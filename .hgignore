@@ -1,0 +1,12 @@
+syntax: glob
+*.pyc
+*~
+.DS_Store
+.buildinfo
+*.pro
+*.trk
+*.wig
+*.wig2
+*.flat
+tests/test_images/*
+char_*.png
