@@ -13,9 +13,9 @@ from mpl_toolkits.mplot3d import Axes3D, art3d
 import scipy.cluster.vq 
 from sklearn.decomposition import PCA
 
-import config
-from draw import draw
-from genelist import genelist
+from . import config
+from .draw import draw
+from .genelist import genelist
 
 class pca:
     def __init__(self, parent=None, rowwise=False, feature_key_name=None, whiten=False, **kargs):
@@ -114,7 +114,7 @@ class pca:
         **returns**
             True if successful, and all subsequent pca methods will use the new projected data.
         """
-        raise AsserionError, 'Not implemented'
+        raise AsserionError('Not implemented')
         return(False)           
     
     def explained_variance(self, filename=None, percent_variance=True, **kargs):
@@ -375,7 +375,7 @@ class pca:
         if stem: # stem must go after scatter for sorting. Actually, not true right? matplotlib uses zorder for that...
             z_min = min(zdata)
             for x_, y_, z_ in zip(xdata, ydata, zdata):        
-                line = art3d.Line3D(*zip((x_, y_, z_min), (x_, y_, z_)), marker=None, c="grey", alpha=0.1)
+                line = art3d.Line3D(*list(zip((x_, y_, z_min), (x_, y_, z_))), marker=None, c="grey", alpha=0.1)
                 ax.add_line(line)
         
         ax.set_xlabel("PC%s (%.1f%%)" % (x, perc_weights[x-1])) # can be overridden via do_common_args()

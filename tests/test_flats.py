@@ -27,9 +27,9 @@ import numpy
 class Test_Flat_Function(unittest.TestCase):
     def setUp(self):
         self.t = flat_track.flat_track(filename="test_images/test.flat", new=True, name="Test Track", bin_format="f")
-        for i in xrange(0, 100):
+        for i in range(0, 100):
             self.t.add_score(chromosome=1, left=i, right=i+1, score=i)
-        for i in xrange(100,110):
+        for i in range(100,110):
             self.t.add_score(chromosome=2, left=i, right=i+1, score=0)
         self.t.add_score(chromosome=2, left=111, right=112, score=2)
         self.t.add_score(chromosome=2, left=99, right=100, score=2)
@@ -42,7 +42,7 @@ class Test_Flat_Function(unittest.TestCase):
     def test_reload(self):
         t = flat_track.flat_track(filename="test_images/test.flat", bin_format="f")
         a = self.t.get(location(loc="chr1:0-100"))
-        expected_result = [i for i in xrange(0, 100)] +[0]
+        expected_result = [i for i in range(0, 100)] +[0]
         self.assertTrue(False not in [int(x) == int(y) for x, y in zip(a, expected_result)]) # all seqs.
     
     def test_meta_data(self):
@@ -61,7 +61,7 @@ class Test_Flat_Function(unittest.TestCase):
         g = genelist.genelist(filename="track_test.bed", format=format.bed)
         L, meh = t.pileup(genelists=g, filename="test_output.png", bandwidth=15, respect_strand=False)
         
-        expected_result = numpy.array(range(0, 30))
+        expected_result = numpy.array(list(range(0, 30)))
         
         self.assertTrue(False not in [x == y for x, y in zip(L, expected_result)])
 

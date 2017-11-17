@@ -17,24 +17,24 @@ import sys, os
 sys.path.append(os.path.realpath("../..")) # only extra path required, adds the parent makes glbase importable from here.
 from glbase import *
 
-print genelist.load.__gui__
-print genelist.__gui__avail__
+print(genelist.load.__gui__)
+print(genelist.__gui__avail__)
 
 chipseq_result = peaklist(filename="../example/chip_seq_data.csv")
-print chipseq_result
-print chipseq_result[0]["loc"]
-print repr(chipseq_result[0]["loc"])
-print chipseq_result[0]["loc"]["left"]
+print(chipseq_result)
+print(chipseq_result[0]["loc"])
+print(repr(chipseq_result[0]["loc"]))
+print(chipseq_result[0]["loc"]["left"])
 
 # lest the loading
 data1 = peaklist(filename="../example/chip_seq_data.csv")
-print data1
+print(data1)
 
 data2 = peaklist(filename="../example/sissrs_list.txt", format=format_bed)
-print data2
+print(data2)
 
 data3 = peaklist(filename="../example/ccat_list.region")
-print data3
+print(data3)
 
 data4 = peaklist(filename="../example/macs_list.xls")
-print data4
+print(data4)

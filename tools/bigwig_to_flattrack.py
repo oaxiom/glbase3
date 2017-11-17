@@ -92,7 +92,7 @@ def bedgraph_to_flat(infilename, outfilename, name, bin_format=None, gzip=None, 
      
             if n>1e6:
                 m += 1
-                print "%s,000,000 bp" % m
+                print("%s,000,000 bp" % m)
                 n = 0
             n += int(line[2]) - int(line[1])
 

@@ -17,8 +17,8 @@ See below for the catalogue of file formats
 
 import csv, re, copy
 
-from format_container import fc
-from helpers import lst_find
+from .format_container import fc
+from .helpers import lst_find
 
 # ------------------- 'sniffer' formats - tell glbase to guess the file format.
 
@@ -311,9 +311,9 @@ class fccatalogue():
             self.formats[item.name] = item
         
     def __str__(self):
-        print "Found %s formats" % len(self.formats)
+        print("Found %s formats" % len(self.formats))
         a = []
-        keys = self.formats.keys() # report in alphabetical order
+        keys = list(self.formats.keys()) # report in alphabetical order
         keys.sort()
         for k in keys:
             a.append("format.{name:24} - {desc:5}".format(name=k, desc=self.formats[k].description))
@@ -342,9 +342,9 @@ class fccatalogue():
             if value.lower() in self.formats[key].name.lower() or value in self.formats[key].description.lower():
                 a.append("format.{name:22} - {desc:6}".format(name=key, desc=self.formats[key].description))
         if a:
-            print "\n".join(a)
+            print("\n".join(a))
         else:
-            print "None found"
+            print("None found")
 
 catalogue = fccatalogue([fimo_out, fasta, gtf, bed, full_bed, minimal_bed,
     exporttxt_loc_only, exporttxt_all, mm8_refgene, mm9_refgene, mm10_refgene, hg18_refseq, hg19_refgene,
@@ -356,8 +356,8 @@ catalogue = fccatalogue([fimo_out, fasta, gtf, bed, full_bed, minimal_bed,
     ])
          
 if __name__ == "__main__":
-    print catalogue
-    print 
-    print "Find:"
+    print(catalogue)
+    print() 
+    print("Find:")
     catalogue.find("bed")
         

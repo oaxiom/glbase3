@@ -13,13 +13,13 @@ from operator import itemgetter
 import numpy
 from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # This use of array here is not good.
 
-import config
-from flags import *
-from draw import draw
-from genelist import genelist
-from progress import progressbar
-from errors import AssertionError, ArgumentError
-from utils import qdeepcopy
+from . import config
+from .flags import *
+from .draw import draw
+from .genelist import genelist
+from .progress import progressbar
+from .errors import AssertionError, ArgumentError
+from .utils import qdeepcopy
 
 class base_expression(genelist):
     def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent=False, **kargs):
@@ -39,12 +39,12 @@ class base_expression(genelist):
             assert loadable_list[0], "the list to load does not appear to be a proper list"
         
         if "cv_err" in kargs or "err_up" in kargs or "err_dn" in kargs:
-            raise NotImplementedError, "Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented"
+            raise NotImplementedError("Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented")
             
         valig_args = ["cond_names", "name", "force_tsv", "nan_value"]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.__init__, k)
+                raise ArgumentError(self.__init__, k)
 
         genelist.__init__(self)
         
@@ -103,7 +103,7 @@ class base_expression(genelist):
                         do = True # do anyway
 
                     if do:
-                        exec "names = %s" % format["conditions"]["code"] # yay, more nice happy arbitrary code execution.
+                        exec("names = %s" % format["conditions"]["code"]) # yay, more nice happy arbitrary code execution.
             
                         if names:
                             self._conditions = [str(k) for k in names]
@@ -111,7 +111,7 @@ class base_expression(genelist):
                 oh.close()
                 if not silent: 
                     config.log.info("expression(): I found the following conditions:")
-                print "\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)])
+                print("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
   
         # coerce the conditions errs etc to floats
         for idx, i in enumerate(self):
@@ -231,7 +231,7 @@ class base_expression(genelist):
         valig_args = ["filename", "tsv", "key_order", "no_header"]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.saveCSV, k)
+                raise ArgumentError(self.saveCSV, k)
 
         assert filename, "you must specify a filename"
 
@@ -247,21 +247,21 @@ class base_expression(genelist):
         if "key_order" in kargs:
             write_keys = kargs["key_order"]
             # now add in any missing keys to the right side of the list:
-            for item in self.keys():
+            for item in list(self.keys()):
                 if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
                     write_keys.append(item)
         else:
             # just select them all:
-            write_keys = [k for k in self.keys() if not k in array_data_keys]
+            write_keys = [k for k in list(self.keys()) if not k in array_data_keys]
 
-        if "err" in self.keys():
+        if "err" in list(self.keys()):
             if interleave_errors:
                 conds = ["mean_%s" % c for c in self.getConditionNames()]
                 errs = ["err_%s" % c for c in self.getConditionNames()]
                 paired = [val for pair in zip(conds, errs) for val in pair]
                 
                 if not no_header:
-                    title_row = [k for k in write_keys if k in self.keys()]            
+                    title_row = [k for k in write_keys if k in list(self.keys())]            
                     writer.writerow(title_row + paired)
 
                 for data in self.linearData:
@@ -273,7 +273,7 @@ class base_expression(genelist):
                 oh.close()
             else:
                 if not no_header:
-                    title_row = [k for k in write_keys in k in self.keys()]
+                    title_row = [k for k in write_keys in k in list(self.keys())]
                     writer.writerow(write_keys + self.getConditionNames() + ["err_%s" % i for i in self.getConditionNames()])
 
                 for data in self.linearData:
@@ -283,7 +283,7 @@ class base_expression(genelist):
                 
         else: # no error, very easy:
             if not no_header:
-                title_row = [k for k in write_keys if k in self.keys()]
+                title_row = [k for k in write_keys if k in list(self.keys())]
                 if no_col1_header:
                     title_row[0] = ""
                 writer.writerow(title_row + self.getConditionNames())
@@ -394,7 +394,7 @@ class base_expression(genelist):
             else:
                 # conditions can get lost in a loadable list. fill in a dummy one
                 if len(self._conditions) != len(newl[0]["conditions"]):
-                    self._conditions = ["cond_%s" % i for i in xrange(len(newl[0]["conditions"]))]
+                    self._conditions = ["cond_%s" % i for i in range(len(newl[0]["conditions"]))]
                 
         # Now call parent with new list
         genelist.load_list(self, newl, name)
@@ -413,8 +413,8 @@ class base_expression(genelist):
         """
         assert len(new_cond_names) == len(self._conditions), "setConditionNames(): new and old condition names are different lengths (%s vs. %s)" % (len(new_cond_names), len(self._conditions))
         if len(set(new_cond_names)) != len(self._conditions):
-            dupes = [x for x, y in collections.Counter(new_cond_names).items() if y > 1]
-            raise AssertionError, "setConditionNames(): Due to a variety of complicated reasons, condition names MUST be unique, non-unique names are: %s" % (", ".join(dupes))
+            dupes = [x for x, y in list(collections.Counter(new_cond_names).items()) if y > 1]
+            raise AssertionError("setConditionNames(): Due to a variety of complicated reasons, condition names MUST be unique, non-unique names are: %s" % (", ".join(dupes)))
         
         self._conditions = list(new_cond_names)
         self._optimiseData()

@@ -9,13 +9,13 @@ base class for track-like objects (ie. tracks and flats)
 import sys, os, sqlite3, time, math, numpy, zlib
 from array import array
 
-import config, utils
-from draw import draw
+from . import config, utils
+from .draw import draw
 from operator import itemgetter
 
-from genelist import genelist
-from location import location
-from errors import FailedToMakeNewDBError
+from .genelist import genelist
+from .location import location
+from .errors import FailedToMakeNewDBError
 
 class base_track:
     def __init__(self, name=None, new=False, filename=None, norm_factor=1.0, mem_cache=False):
@@ -58,7 +58,7 @@ class base_track:
         if mem_cache:
             config.log.info('caching the database "%s" into memory...' % filename)
             
-            from StringIO import StringIO
+            from io import StringIO
             
             # This doens't give a very big speed up in reality:
             self._connection = sqlite3.connect(filename)
@@ -107,7 +107,7 @@ class base_track:
         """
         if key == "info": # catch this special key
             for k in self.meta_data:
-                print "%s\t:\t%s" % (k, self.meta_data[k])
+                print("%s\t:\t%s" % (k, self.meta_data[k]))
         else:
             assert key in self.meta_data, "'%s' not found in this track" % key
             return(self.meta_data[key])
@@ -186,7 +186,7 @@ class base_track:
                 # This could potentially fail - I should report and fail
                 # nicely... At the moment it just throws an exception.
         except Exception:
-            raise FailedToMakeNewDBError, (filename, )
+            raise FailedToMakeNewDBError(filename,)
 
         self.__load_tables(filename)
         
@@ -275,8 +275,8 @@ class base_track:
         """
         assert filename, "must specify a filename"
         assert genelist, "must provide a genelist"
-        assert "loc" in genelist.keys(), "appears genelist has no 'loc' key"
-        assert "left" in genelist.linearData[0]["loc"].keys(), "appears the loc key data is malformed"
+        assert "loc" in list(genelist.keys()), "appears genelist has no 'loc' key"
+        assert "left" in list(genelist.linearData[0]["loc"].keys()), "appears the loc key data is malformed"
         assert log in (False, "e", math.e, 2, 10), "this 'log' base not supported"
         
         table = []

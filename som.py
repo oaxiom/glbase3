@@ -49,9 +49,9 @@ from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.spatial.distance import pdist 
 
 # glbase parts:
-import config
-from draw import draw
-from genelist import genelist
+from . import config
+from .draw import draw
+from .genelist import genelist
 
 def chunk_based_bmu_find(x, y, Y2):
     # This must be a pure function for Parallel
@@ -319,8 +319,8 @@ class SOM(object):
             elif len(mapsize) == 1:
                 #s =  int (mapsize[0]/2)
                 self.mapsize = [1 ,mapsize[0]]
-                print 'input was considered as node numbers'
-                print 'map size is [{0},{1}]'.format(s,s) 
+                print('input was considered as node numbers')
+                print('map size is [{0},{1}]'.format(s,s)) 
         self.nnodes = self.mapsize[0]*self.mapsize[1]
                 
         # to set component names
@@ -332,7 +332,7 @@ class SOM(object):
                     self.compnames = np.asarray(cc)[np.newaxis,:]
             except:
                 pass
-                print 'no data yet: please first set training data to the SOM'
+                print('no data yet: please first set training data to the SOM')
         else:
             assert len(compname) == self.dim, 'compname should have the same size'
             self.compname = np.asarray(compname)[np.newaxis,:]
@@ -344,7 +344,7 @@ class SOM(object):
         """
         cd = self.nnodes
         UD2 = np.zeros((cd, cd))
-        for i in xrange(cd):
+        for i in range(cd):
             UD2[i,:] = self.grid_dist(i).reshape(1,cd)
         self.UD2 =  UD2
             
@@ -403,12 +403,12 @@ class SOM(object):
                         
         #initialization
         if verbose:
-            print 'initialization method = %s' % self.initmethod
+            print('initialization method = %s' % self.initmethod)
             t0 = time()
             
         self.init_map()
         if verbose:
-            print 'initialization done in %f seconds' % round(time()-t0 , 3)
+            print('initialization done in %f seconds' % round(time()-t0 , 3))
         
         self.batchtrain(njob=n_job, phase='rough', verbose=verbose)
         self.batchtrain(njob=n_job, phase='finetune', verbose=verbose)
@@ -416,9 +416,9 @@ class SOM(object):
         err = np.mean(self.bmu[1])
         if verbose: 
             ts = round(time() - t0, 3)
-            print
-            print "Total time elapsed: %.1f seconds" % ts
-            print "final quantization error: %.2f" % err 
+            print()
+            print("Total time elapsed: %.1f seconds" % ts)
+            print("final quantization error: %.2f" % err) 
     
     def project_data(self, data, k=1):
         """
@@ -448,18 +448,18 @@ class SOM(object):
         clf = neighbors.KNeighborsClassifier(n_neighbors=k)
         labels = np.arange(0, self.codebook.shape[0])
         
-        print "codebook", self.codebook.shape
-        print "codebook slice", self.codebook[:,index].shape
-        print "labels", labels.shape
+        print("codebook", self.codebook.shape)
+        print("codebook slice", self.codebook[:,index].shape)
+        print("labels", labels.shape)
         
         clf.fit(self.codebook, labels)
-        print self.codebook, labels
+        print(self.codebook, labels)
         
         # the codebook values are all normalized
         # we can normalize the input data based on mean and std of original data
         data = normalize_by(self.data_raw, data, method='var')
         data = data.T
-        print data[:,index].shape
+        print(data[:,index].shape)
         predicted_labels = clf.kneighbors(data[:,index], n_neighbors=k, return_distance=True)
         return(predicted_labels)
 
@@ -502,7 +502,7 @@ class SOM(object):
         """
         _, _, _, res = self.__get_all_genes()
         
-        ks = res.keys()
+        ks = list(res.keys())
         ks.sort()
         return(res)
 
@@ -594,7 +594,7 @@ class SOM(object):
         if alternate_soms:
             assert isinstance(alternate_soms, dict), "som.threshold_SOM_nodes: expected a dict for alternate_soms"
             soms_to_do = alternate_soms
-            som_order = soms_to_do.keys()
+            som_order = list(soms_to_do.keys())
             som_order.sort() # Try to be helpful
         elif som_names:
             codebook = denormalize_by(self.data_raw, self.codebook) # This is wrong?
@@ -867,7 +867,7 @@ class SOM(object):
         
         b = Parallel(n_jobs=njb, pre_dispatch='3*n_jobs')(delayed(chunk_based_bmu_find)\
             (x[i*dlen // njb:min((i+1)*dlen // njb, dlen)],y, Y2) \
-            for i in xrange(njb))
+            for i in range(njb))
         
         bmu = np.asarray(list(itertools.chain(*b))).T
         del b
@@ -975,10 +975,10 @@ class SOM(object):
         X2 = np.einsum('ij,ij->i', self.data, self.data)
     
         if verbose:
-            print '%s training...' % phase
-            print 'radius_ini: %.2f, radius_final: %.2f, trainlen: %d' %(radiusin, radiusfin, trainlen)
+            print('%s training...' % phase)
+            print('radius_ini: %.2f, radius_final: %.2f, trainlen: %d' %(radiusin, radiusfin, trainlen))
         
-        for i in xrange(trainlen):
+        for i in range(trainlen):
             #in case of Guassian neighborhood
             H = np.exp(-1.0*UD2/(2.0*radius[i]**2)).reshape(nnodes, nnodes)
             bmu = None
@@ -988,7 +988,7 @@ class SOM(object):
             New_Codebook_V = self.update_codebook_voronoi(self.data, bmu, H, radius)        
                             
             if verbose:
-                print "Iteration: %d, quantization error: %.2f" % (i+1, np.mean(np.sqrt(bmu[1] + X2)))  
+                print("Iteration: %d, quantization error: %.2f" % (i+1, np.mean(np.sqrt(bmu[1] + X2))))  
             
         self.codebook = New_Codebook_V
         bmu[1] = np.sqrt(bmu[1] + X2)
@@ -1006,7 +1006,7 @@ class SOM(object):
             lattice = self.lattice
         except:
             lattice = 'hexa'
-            print 'lattice not found! Lattice as hexa was set'
+            print('lattice not found! Lattice as hexa was set')
    
         if lattice == 'rect':
             return(self.rect_dist(bmu_ind))
@@ -1020,7 +1020,7 @@ class SOM(object):
                 cols = 0.
        
             #needs to be implemented
-            print 'to be implemented' , rows , cols
+            print('to be implemented' , rows , cols)
             return np.zeros((rows,cols))
 
     def rect_dist(self,bmu):
@@ -1044,7 +1044,7 @@ class SOM(object):
             c_bmu = int(bmu%cols)
             r_bmu = int(bmu/cols)
         else:
-            print 'wrong bmu'  
+            print('wrong bmu')  
       
         #calculating the grid distance
         if np.logical_and(rows>0, cols>0): 
@@ -1052,7 +1052,7 @@ class SOM(object):
             dist2 = (r-r_bmu)**2 + (c-c_bmu)**2
             return dist2.ravel()
         else:
-            print 'please consider the above mentioned errors'
+            print('please consider the above mentioned errors')
             return np.zeros((rows,cols)).ravel()
         
     def view_2d(self, text_size, which_dim='all', what='codebook'):
@@ -1067,7 +1067,7 @@ class SOM(object):
                 data_raw = self.data_raw
                 codebook = denormalize_by(data_raw, codebook)
             else:
-                print 'First initialize codebook'
+                print('First initialize codebook')
                 
             if which_dim == 'all':
                 dim = self.dim
@@ -1100,8 +1100,8 @@ class SOM(object):
             else:
                 no_col_in_plot = 6
         
-            print indtoshow
-            print self.compnames
+            print(indtoshow)
+            print(self.compnames)
             
             axisNum = 0
             while axisNum < dim:
@@ -1110,7 +1110,7 @@ class SOM(object):
                 ind = int(indtoshow[axisNum-1])
                 mp = codebook[:,ind].reshape(msz0, msz1)
                 pl = plt.pcolor(mp[::-1])
-                print ind, self.compnames[ind]
+                print(ind, self.compnames[ind])
                 plt.title(self.compnames[ind])
                 font = {'size': text_size*sH/no_col_in_plot}
                 plt.rc('font', **font)
@@ -1230,7 +1230,7 @@ class SOM(object):
                 plt.axis('off')
         
             if text:
-                print ind, self.compnames[ind]
+                print(ind, self.compnames[ind])
                 plt.title("\n".join(textwrap.wrap(self.compnames[ind], 19)))
                 font = {'size': text_size}
                 plt.rc('font', **font)
@@ -1273,7 +1273,7 @@ class SOM(object):
     
         if np.min(msize) > 1:
             coord = np.zeros((nnodes, 2))
-            for i in xrange(0, nnodes):
+            for i in range(0, nnodes):
                 coord[i,0] = int(i/cols) #x
                 coord[i,1] = int(i%cols) #y
             mx = np.max(coord, axis=0)
@@ -1291,7 +1291,7 @@ class SOM(object):
             elif isinstance(self.components, list):
                 max_comp = max(self.components)
             else:
-                raise AssertionError, 'components must be either an integer or a list'
+                raise AssertionError('components must be either an integer or a list')
             
             if self.initmethod in ('pca', 'fullpca'):
                 if self.initmethod == 'pca':
@@ -1325,16 +1325,16 @@ class SOM(object):
                 fig.savefig('%s_init_int.png' % self.image_debug)
                 self.eigvec = eigvec
                         
-            for j in xrange(nnodes):
-                for i in xrange(eigvec.shape[0]):
+            for j in range(nnodes):
+                for i in range(eigvec.shape[0]):
                     codebook[j,:] = codebook[j, :] + coord[j,i] * eigvec[i,:]
             
             return np.around(codebook, decimals=6)   
              
         elif np.min(msize) == 1:
-            raise AssertionError, 'mapsize too small'
+            raise AssertionError('mapsize too small')
             coord = np.zeros((nnodes, 1))
-            for i in xrange(0,nnodes):
+            for i in range(0,nnodes):
                 #coord[i,0] = int(i/cols) #x
                 coord[i,0] = int(i%cols) #y
             mx = np.max(coord, axis = 0)
@@ -1356,7 +1356,7 @@ class SOM(object):
             norms = np.sqrt(np.einsum('ij,ij->i', eigvec, eigvec))
             eigvec = ((eigvec.T/norms)*eigval).T; eigvec.shape
         
-            for j in xrange(nnodes):
+            for j in range(nnodes):
                 for i in range(eigvec.shape[0]):
                     codebook[j,:] = codebook[j, :] + coord[j,i]*eigvec[i,:]
             return np.around(codebook, decimals = 6)    
@@ -1386,14 +1386,14 @@ def denormalize_by(data_by, n_vect, n_method='var'):
         vect = n_vect * st + me
         return vect 
     else:
-        print 'data was not normalized before'
+        print('data was not normalized before')
         return n_vect  
 
 if __name__ == '__main__':
-    import config
+    from . import config
     config.SKLEARN_AVAIL = True # SKlearn import strangeness
-    from expression import expression
-    from helpers import glload
+    from .expression import expression
+    from .helpers import glload
     import cProfile, pstats
     
     expn = glload('example/shared_raw_data/som_test_data_set.glb') 

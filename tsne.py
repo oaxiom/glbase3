@@ -16,9 +16,9 @@ import scipy.cluster.vq
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-import config
-from draw import draw
-from genelist import genelist
+from . import config
+from .draw import draw
+from .genelist import genelist
 
 class tsne:
     def __init__(self, parent=None, name='none'):
@@ -65,7 +65,7 @@ class tsne:
         if rowwise:
             # rowwise here is not needed
             assert feature_key_name, 'If rowwise=True then feature_key_name must also be valid'
-            assert feature_key_name in self.parent.keys(), 'feature_key_name "%s" not found in this expression object' % feature_key_name
+            assert feature_key_name in list(self.parent.keys()), 'feature_key_name "%s" not found in this expression object' % feature_key_name
             self.labels = self.parent[feature_key_name]
             self.data_table = self.parent.getExpressionTable()
         else:
@@ -111,7 +111,7 @@ class tsne:
             # get only the specific PCs                      
             self.__pcas = numpy.array([self.__transform[:,c-1] for c in num_pc]).T
         else:
-            raise AssertionError, 'num_pcs must be either an integer or a list'
+            raise AssertionError('num_pcs must be either an integer or a list')
         self.__model = TSNE(n_components=2, random_state=self.random_state) # I make this deterministic
         self.npos = self.__model.fit_transform(self.__pcas)
         

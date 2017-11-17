@@ -36,11 +36,11 @@ class stats:
         maxs = []
         sums = []
 
-        print "All Array:"
-        print "\tmin", self.parent.stats.min()
-        print "\tmax", self.parent.stats.max()
-        print "\tmean", self.parent.stats.mean()
-        print "\tstddev", self.parent.stats.stdev()
+        print("All Array:")
+        print("\tmin", self.parent.stats.min())
+        print("\tmax", self.parent.stats.max())
+        print("\tmean", self.parent.stats.mean())
+        print("\tstddev", self.parent.stats.stdev())
             
         for i, k in enumerate(self.parent.getConditionNames()):
             expn_values = self.parent.numpy_array_all_data[:,i]
@@ -55,13 +55,13 @@ class stats:
             amax = numpy.max(expn_values)
             asum = numpy.sum(expn_values)
             
-            print "Condition: %s" % k
-            print "\tmin", amin
-            print "\tmax", amax
-            print "\tsum", asum
-            print "\tmean", aaverage
-            print "\tmedian", amedian
-            print "\tstddev", astd
+            print("Condition: %s" % k)
+            print("\tmin", amin)
+            print("\tmax", amax)
+            print("\tsum", asum)
+            print("\tmean", aaverage)
+            print("\tmedian", amedian)
+            print("\tstddev", astd)
             
             means.append(aaverage)
             medians.append(amedian)

@@ -11,23 +11,23 @@ TODO:
 
 """
 
-from __future__ import division
 
-import cPickle, sys, os, struct, ConfigParser, math, sqlite3, zlib # renamed to configparser in >2.6
 
-from location import location
-from data import positive_strand_labels, negative_strand_labels
+import pickle, sys, os, struct, configparser, math, sqlite3, zlib # renamed to configparser in >2.6
+
+from .location import location
+from .data import positive_strand_labels, negative_strand_labels
 
 from array import array
-from base_track import base_track
-from draw import draw
-from progress import progressbar
-import config
+from .base_track import base_track
+from .draw import draw
+from .progress import progressbar
+from . import config
 
 import numpy
 import matplotlib.pyplot as plot
 
-from track import track # All the benefits of track. 
+from .track import track # All the benefits of track. 
 
 TRACK_BLOCK_SIZE = 1000000 # should go in opt, and in META later, required on a per-flat basis.
 CACHE_SIZE = 100000 # maximum number of blocks to keep in memory.
@@ -113,7 +113,7 @@ class flat_track(base_track, track):
         left_most_block = int(abs(math.floor(loc["left"] / self.block_size)))
         right_most_block = int(abs(math.ceil((loc["right"]+1) / self.block_size)))
 
-        blocks_required = ["%s:%s" % (loc["chr"], b) for b in xrange(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
+        blocks_required = ["%s:%s" % (loc["chr"], b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
 
         for blockID in blocks_required:
             # this is the span location of the block
@@ -132,7 +132,7 @@ class flat_track(base_track, track):
             lleft = int(loc["left"])
             lright = int(loc["right"])
             # modify the data
-            for pos in xrange(self.block_size): # iterate through the array.
+            for pos in range(self.block_size): # iterate through the array.
                 local_pos = bleft + pos # only require "left"
                 # some funny stuff here:
                 # right is inc'd by 1
@@ -172,7 +172,7 @@ class flat_track(base_track, track):
         left_most_block = int(abs(math.floor(left / self.block_size)))
         right_most_block = int(abs(math.ceil((right+1) / self.block_size)))
 
-        blocks_required = ["%s:%s" % (chrom, b) for b in xrange(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
+        blocks_required = ["%s:%s" % (chrom, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
 
         for blockID in blocks_required:
             # this is the span location of the block
@@ -191,7 +191,7 @@ class flat_track(base_track, track):
             bright = bleft + TRACK_BLOCK_SIZE
             # modify the data
             #print blockID, lleft, lright, bleft, bright, score,
-            for pos in xrange(lleft, lright): # iterate through the array.
+            for pos in range(lleft, lright): # iterate through the array.
                 local_pos = pos - bleft # only require "left"
                 # some funny stuff here:
                 # right is inc'd by 1
@@ -233,7 +233,7 @@ class flat_track(base_track, track):
         left_most_block = int(abs(math.floor(lleft / self.block_size))) # bodge for now
         right_most_block = int(abs(math.ceil((lright+1) / self.block_size)))
 
-        blocks_required = ["%s:%s" % (chrom, b) for b in xrange(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
+        blocks_required = ["%s:%s" % (chrom, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
 
         for blockID in blocks_required:
             #print blockID
@@ -273,7 +273,7 @@ class flat_track(base_track, track):
         does not return the block, you must use __get_block()
         to get the actual block.
         """
-        if self.cache.has_key(blockID):
+        if blockID in self.cache:
             return(True) # on cache, so must exist.
 
         c = self._connection.cursor()
@@ -314,7 +314,7 @@ class flat_track(base_track, track):
         You need to flush the cache for that to happen
         """
         if not data: # fill a blank entry
-            data = array(self.bin_format, [0 for x in xrange(self.block_size)]) # Numpy arrays may be faster here.
+            data = array(self.bin_format, [0 for x in range(self.block_size)]) # Numpy arrays may be faster here.
 
         if not blockID in self.cacheQ: # not on cache
             self.cacheQ.insert(0, blockID) # put the ID at the front.
@@ -339,7 +339,7 @@ class flat_track(base_track, track):
         """
         get the block identified by chr and left coordinates and return a Python Object.
         """
-        if self.cache.has_key(blockID):
+        if blockID in self.cache:
             return(self.cache[blockID])
 
         # not on the cache. get the block and put it on the cache.
@@ -354,7 +354,7 @@ class flat_track(base_track, track):
             #self.cache[blockID] = self._unformat_data(result[0]) # flats are never too big, so I don't bother flushing the cache
             return(self._unformat_data(result[0]))
         else:
-            raise Exception, "No Block! blockID=%s" % blockID # Not possible
+            raise Exception("No Block! blockID=%s" % blockID) # Not possible
 
     def get_total_num_reads(self):
         """
@@ -399,7 +399,7 @@ class flat_track(base_track, track):
         left_most_block = int(abs(math.floor(left / self.block_size)))
         right_most_block = int(abs(math.ceil((rite+1) / self.block_size)))
 
-        blocks_required = ["%s:%s" % (c, b) for b in xrange(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
+        blocks_required = ["%s:%s" % (c, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
 
         ret_array = [] # faster than array
         
@@ -421,7 +421,7 @@ class flat_track(base_track, track):
             if rite_most > self.block_size: rite_most = self.block_size
             #print left_most, rite_most
             
-            for pos in xrange(left_most, rite_most): #self.block_size): # iterate through the array.
+            for pos in range(left_most, rite_most): #self.block_size): # iterate through the array.
                 local_pos = block_loc_left + pos
                 if local_pos >= left and local_pos <= (rite+1): # within the span to increment.
                     if pos >= len(this_block_array_data): # stop edge falloffs
@@ -464,7 +464,7 @@ class flat_track(base_track, track):
     
         right_most_block = int(abs(math.ceil((biggest_block+1) / self.block_size)))
 
-        blocks_required = ["%s:%s" % (chrom, b) for b in xrange(0, right_most_block * self.block_size, self.block_size)] # always in order?
+        blocks_required = ["%s:%s" % (chrom, b) for b in range(0, right_most_block * self.block_size, self.block_size)] # always in order?
         ret_array = [] # faster than array
         
         for blockID in blocks_required:

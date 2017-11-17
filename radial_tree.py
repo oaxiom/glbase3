@@ -69,13 +69,13 @@ def _leafs(p):
 
 def _create_leaf_nodes(ndx):
     nodes= []
-    for k in xrange(len(ndx)):
+    for k in range(len(ndx)):
         nodes.append(Node(ndx[k], []))
     return nodes
 
 def _link_and_create_nodes(_n, n_, cn, groups):
     nodes, n0= [], 0
-    for k in xrange(len(groups)):
+    for k in range(len(groups)):
         nodes.append(Node(n_+ n0, [cn[m] for m in groups[k]]))
         n0 += 1
     return n_, n_+ n0, nodes
@@ -177,7 +177,7 @@ def _s(sp, t, o):
 
 def demo1(n, filename='tests/test_images/radial_tree.png'):
     p = r_[2* pi* rand(1, n)- pi, ones((1, n))]
-    print p
+    print(p)
     t = tree(p)
     f = figure()
     _s(221, t, pre_order)

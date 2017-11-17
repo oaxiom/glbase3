@@ -69,7 +69,7 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, **kargs):
             
             if n>1e6:
                 m += 1
-                print "%s,000,000 bp" % m
+                print("%s,000,000 bp" % m)
                 n = 0
             n += step
 

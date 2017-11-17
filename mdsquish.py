@@ -20,9 +20,10 @@ import scipy.stats
 import scipy.cluster.hierarchy
 import scipy.spatial.distance
 
-import network_support
-import utils, config
-from progress import progressbar
+from . import network_support
+from . import utils, config
+from .progress import progressbar
+from functools import reduce
 
 # nx is interpreting the numpy color array as an iterable.
 
@@ -113,8 +114,8 @@ class mdsquish:
         
         # Iterate over dimensions
         # TODO : Scale the data by percent variance.
-        for item1 in xrange(pcs.shape[1]): # each row is a PC, this is iterating the columns (samples)
-            for item2 in xrange(pcs.shape[1]):
+        for item1 in range(pcs.shape[1]): # each row is a PC, this is iterating the columns (samples)
+            for item2 in range(pcs.shape[1]):
                 if item1 != item2:
                     sample1 = pcs[:,item1]
                     sample2 = pcs[:,item2]
@@ -157,7 +158,7 @@ class mdsquish:
         values = utils.kde(d, range=(self.distances.min(), self.distances.max()), covariance=0.1, bins=1000)
         ax.plot(values, color="grey")
         
-        ax.set_xticks(range(0, 1000, 50))
+        ax.set_xticks(list(range(0, 1000, 50)))
         ax.set_xticklabels(numpy.arange(self.distances.min(), self.distances.max(), self.distances.max() * (50.0/1000.0)))
         ax.grid(True)
     
@@ -305,7 +306,7 @@ class mdsquish:
                 self.G.add_node(self.names[cind], color=cols[cind])
         
             for cind, row in enumerate(self.distances):           
-                scores = zip(self.names, row) # The highest will always be self.
+                scores = list(zip(self.names, row)) # The highest will always be self.
             
                 scores.sort(key=operator.itemgetter(1), reverse=True)
                 
@@ -362,7 +363,7 @@ class mdsquish:
         
             # I need to reorder the node_sizes to match the nodes.
             # I don't know why this is required here, where commonly it is not required...
-            ss = dict(zip(self.parent.getConditionNames(), node_size_t))
+            ss = dict(list(zip(self.parent.getConditionNames(), node_size_t)))
             node_size = []
             for node in self.G.nodes():
                 node_size.append(ss[node])
@@ -508,7 +509,7 @@ class mdsquish:
         if neighbours:
             direct_path_names, direct_path = network_support.populate_path_neighbours(self.G, direct_path_names)
         else:
-            direct_path = zip(direct_path_names, direct_path_names[1:]) #
+            direct_path = list(zip(direct_path_names, direct_path_names[1:])) #
         #print direct_path
         
         if filename:
@@ -772,7 +773,7 @@ class mdsquish:
             ax.add_patch(rect)
 
             tdata = []
-            for i in xrange(0, len(xdata)):
+            for i in range(0, len(xdata)):
                 if xdata[i] > cut[0] and xdata[i] < cut[2]:
                     if ydata[i] < cut[1] and ydata[i] > cut[3]:
                         if self.rowwise: # grab the full entry from the parent genelist

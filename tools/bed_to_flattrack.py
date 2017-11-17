@@ -42,7 +42,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip):
                 l = int(line[1])
                 r = int(line[2])
 
-                for bp in xrange(l, r):
+                for bp in range(l, r):
                     this_chrom[bp] += 1
         
                 if n % 1000000 == 0 and n>0:
@@ -85,11 +85,11 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
                 elif s == '-':
                     l -= read_extend
                 else:
-                    raise AssertionError, 'strand %s not found' % s
+                    raise AssertionError('strand %s not found' % s)
 
                 #print l, r
 
-                for bp in xrange(l, r):
+                for bp in range(l, r):
                     this_chrom[bp] += 1
         
                 if n % 1000000 == 0 and n>0:

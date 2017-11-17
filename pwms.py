@@ -7,17 +7,17 @@ An amalgamation of a set of pwms.
 """
 
 import sys, os, csv, random, string
-import config, utils
+from . import config, utils
 
 from numpy import zeros, array, mean, std
-from draw import draw
-from genelist import genelist
-from errors import AssertionError, NotImplementedError
-from progress import progressbar
-from location import location
+from .draw import draw
+from .genelist import genelist
+from .errors import AssertionError, NotImplementedError
+from .progress import progressbar
+from .location import location
 #from history import historyContainer
 
-import pwm
+from . import pwm
 
 class pwms(genelist):
     """
@@ -456,7 +456,7 @@ class pwms(genelist):
         if "key_order" in kargs and kargs["key_order"]:
             key_order = kargs["key_order"]
         else:
-            ks = self.keys()
+            ks = list(self.keys())
             ks.remove('name')
             ks.remove('pwm')
             if ks:

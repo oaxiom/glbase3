@@ -11,16 +11,16 @@ fasta list may be obselete?
 
 import sys, os
 
-import utils
+from . import utils
 
-from genelist import genelist
-from flags import regex_dict
+from .genelist import genelist
+from .flags import regex_dict
 
 class fastalist(genelist):
     def __init__(self, **kargs):
         genelist.__init__(self)
 
-        if kargs.has_key("filename"):
+        if "filename" in kargs:
             self.importFASTA(kargs["filename"])
 
     def importFASTA(self, filename=None, **kargs):
@@ -28,13 +28,13 @@ class fastalist(genelist):
         import a fasta file.
         """
         if (not filename) or (not os.path.exists(filename)):
-            print "Error: fasta filename is not valid"
+            print("Error: fasta filename is not valid")
             return(False)
 
         try:
             self.linearData = utils.convertFASTAtoDict()
         except:
-            print "Error: Not a valid FASTA file"
+            print("Error: Not a valid FASTA file")
             return(False)
         # sequence is stored under the f and r tags...
         # see if I can make some tags from the FASTA header:
@@ -54,7 +54,7 @@ class fastalist(genelist):
         returns a list with the number of hits per fasta
         """
         if not motif_word:
-            print "Error: scanMotif() requires a motif word"
+            print("Error: scanMotif() requires a motif word")
             return(False)
 
         try:
@@ -63,7 +63,7 @@ class fastalist(genelist):
                 rel.append(regex_dict[bp])
             regex = re.compile(string.join(rel, ""))
         except:
-            print "Error: your 'motif_word' is not valid"
+            print("Error: your 'motif_word' is not valid")
             return(False)
 
         res = []

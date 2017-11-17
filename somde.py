@@ -5,8 +5,8 @@ Differential expression using SOMs.
 '''
 
 import numpy, copy, math
-import config
-from som import SOM, normalize
+from . import config
+from .som import SOM, normalize
 
 class somde(SOM):
     def __init__(self, parent, name):
@@ -29,10 +29,10 @@ class somde(SOM):
             m = numpy.mean(row)
             s = numpy.std(row)
             CV = s / m
-            print self.dlabel[i], CV
+            print(self.dlabel[i], CV)
             if CV > 1.0 and CV < 7.0:
                 zzs = (row - m) / array_std
-                print self.dlabel[i], CV, zzs
+                print(self.dlabel[i], CV, zzs)
                 new_raw.append(row)
                 new_data.append(zzs)
                 newdlab.append(self.dlabel[i])
@@ -62,8 +62,8 @@ class somde(SOM):
         
         #self.data = numpy.array(new_data)
 
-        print self.data.shape
-        print len(self.dlabel)
+        print(self.data.shape)
+        print(len(self.dlabel))
     
         sq = math.ceil(math.sqrt(len(self.dlabel)))
         self.mapsize = (int(sq),int(sq))# I want to re-guess a reasonable mapsize after culling genes.

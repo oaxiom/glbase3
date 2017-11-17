@@ -1,15 +1,15 @@
 
 import sys, os, csv, re
-import config, utils
+from . import config, utils
 
 import matplotlib.pyplot as plot
 
-from genelist import genelist
-from flags import *
-from errors import AssertionError
-from location import location
-from base_genelist import _base_genelist
-from draw import draw
+from .genelist import genelist
+from .flags import *
+from .errors import AssertionError
+from .location import location
+from .base_genelist import _base_genelist
+from .draw import draw
 
 class region(_base_genelist):
     def __init__(self, genome=None, sequence=None, loc=None, name=None, **kargs):
@@ -94,7 +94,7 @@ class region(_base_genelist):
                 for i, m in enumerate(left_matches):
                     primer_details["left"] = (m.start(), m.end())
                     if i >= 1:
-                        raise AssertionError, "Found more than one matching sequence! Discard primer: %s, (%s)" % (primer["name"], primer["left"])
+                        raise AssertionError("Found more than one matching sequence! Discard primer: %s, (%s)" % (primer["name"], primer["left"]))
 
             right = re.compile(utils.rc(primer["right"]), re.IGNORECASE)
             #right = re.compile(primer["right"], re.IGNORECASE)
@@ -103,7 +103,7 @@ class region(_base_genelist):
                 for i, m in enumerate(right_matches):
                     primer_details["right"] = (m.start(), m.end())
                     if i >= 1:
-                        raise AssertionError, "Found more than one matching sequence! Discard primer: %s, (%s)" % (primer["name"], primer["left"])
+                        raise AssertionError("Found more than one matching sequence! Discard primer: %s, (%s)" % (primer["name"], primer["left"]))
             primers.append(primer_details)
 
         fig = plot.figure(dpi=config.DEFAULT_DPI, figsize=(14,3))

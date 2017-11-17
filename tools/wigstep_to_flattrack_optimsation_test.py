@@ -20,7 +20,7 @@ if __name__ == "__main__":
     p.strip_dirs().sort_stats('cumulative').print_stats()
     
     flat = gl.flat_track(filename='test_flat.flat', name='meh', bin_format='f')
-    print flat.get("chr1:3000306-3000326")
+    print(flat.get("chr1:3000306-3000326"))
     
     # Correct answer is:
     """

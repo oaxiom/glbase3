@@ -16,20 +16,20 @@ can equal track.py. Then as seq depths get larger this approach will win.
 
 """
 
-from __future__ import division
 
-import cPickle, sys, os, struct, math, sqlite3, zlib, time, csv
 
-from progress import progressbar
-from errors import AssertionError
-from location import location
-import utils, config
-from data import positive_strand_labels, negative_strand_labels
-from draw import draw
+import pickle, sys, os, struct, math, sqlite3, zlib, time, csv
+
+from .progress import progressbar
+from .errors import AssertionError
+from .location import location
+from . import utils, config
+from .data import positive_strand_labels, negative_strand_labels
+from .draw import draw
 import matplotlib.cm as cm
 import matplotlib.pyplot as plot
 import scipy.stats as stats
-from base_track import base_track
+from .base_track import base_track
 
 import numpy
 from numpy import array, zeros, set_printoptions, int32, append, linspace, argmax, amax, delete, integer
@@ -131,7 +131,7 @@ class track(base_track):
 
         # make the new chromsome table:
         table_name = "buck_%s" % (str(chromosome),)
-        c.execute("INSERT INTO %s VALUES (?, ?)" % table_name, (buck_id, sqlite3.Binary(cPickle.dumps(set([]))))) # add in spoof data
+        c.execute("INSERT INTO %s VALUES (?, ?)" % table_name, (buck_id, sqlite3.Binary(pickle.dumps(set([]))))) # add in spoof data
         
         #print "added bucket", table_name, buck_id
         
@@ -252,15 +252,15 @@ class track(base_track):
         #print "got:", chrom, bucket_id
 
         if result:
-            return(cPickle.loads(str(result[0])))
+            return(pickle.loads(str(result[0])))
         else:
-            raise Exception, "No Block!"
+            raise Exception("No Block!")
 
     def __update_buck(self, chrom, buck_id, buck_set):
         """
         Update the bucket with a new set
         """
-        data_to_put = sqlite3.Binary(cPickle.dumps(buck_set ,1))
+        data_to_put = sqlite3.Binary(pickle.dumps(buck_set ,1))
         
         c = self._connection.cursor()
         table_name = "buck_%s" % str(chrom)
@@ -274,7 +274,7 @@ class track(base_track):
         """
         left_buck = int((left-1)/config.bucket_size)*config.bucket_size
         right_buck = int((right)/config.bucket_size)*config.bucket_size
-        buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+        buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
         return(buckets_reqd)
 
@@ -341,7 +341,7 @@ class track(base_track):
             #a[rel_array_left:rel_array_right] += 1
             # The below is a very tiny amount faster
             
-            for array_relative_location in xrange(rel_array_left, rel_array_right, 1):
+            for array_relative_location in range(rel_array_left, rel_array_right, 1):
                 #print array_relative_location
                 a[array_relative_location] += 1
             
@@ -406,7 +406,7 @@ class track(base_track):
             or a tuple containing two arrays, one for each strand.
         """
         if strand: 
-            raise NotImplementedError, "Eh... strand not supported yet..."
+            raise NotImplementedError("Eh... strand not supported yet...")
 
         if not self._c:
             self._c = self._connection.cursor()
@@ -436,7 +436,7 @@ class track(base_track):
             # check for array wrap arounds:
             if left < 0: left = 0
 
-            for loc in xrange(left, right, 1):
+            for loc in range(left, right, 1):
                 if resolution <= 1: # force 1bp read # this may be incorrect as it may add the read several times until it increments?
                     # this is the source of the artivacts when resolution < 1.0?
                     a[loc] += 1
@@ -480,7 +480,7 @@ class track(base_track):
             #result = self._connection.execute("SELECT set_data FROM %s WHERE buck_id=?" % table_name, (buck,)) 
             
             self._c.execute("SELECT set_data FROM %s WHERE buck_id=? LIMIT 1" % table_name, (bucket_id, ))
-            result = cPickle.loads(str(self._c.fetchone()[0]))
+            result = pickle.loads(str(self._c.fetchone()[0]))
             if result:
                 read_ids |= result
         
@@ -556,18 +556,18 @@ class track(base_track):
         c.execute("SELECT * FROM main")
         result = c.fetchall()
 
-        print "Main:"
+        print("Main:")
         for item in result:
-            print item
+            print(item)
 
-        print "Chr_Tables:"
+        print("Chr_Tables:")
         for item in result:
             table_name = "chr_%s" % str(item[0])[0] # stop injections.
-            print " Table", table_name
+            print(" Table", table_name)
             c.execute("SELECT * FROM %s" % table_name)
             chr_table_res = c.fetchall()
             for i in chr_table_res:
-                print " ", i
+                print(" ", i)
         c.close()
 
     def pileup(self, genelist=None, key="loc", filename=None, heatmap_filename=None, 
@@ -801,34 +801,34 @@ if __name__ == "__main__":
     """
     
     import random, time
-    from location import location
-    from genelist import genelist
+    from .location import location
+    from .genelist import genelist
     
     s = time.time()
-    print "Building...",
+    print("Building...", end=' ')
     t = track(filename="testnew.trk2", name="test", new=True, bucket_size=100)
-    for n in xrange(0, 10000):
+    for n in range(0, 10000):
         l = random.randint(0, 100000)
         t.add_location(location(chr="1", left=l, right=l+35), strand="+")
     t.finalise()
     e = time.time()
-    print e-s, "s"
+    print(e-s, "s")
     
     s = time.time()
-    print "Fake bed..."
+    print("Fake bed...")
     # fake a bed
     newb = []
-    for n in xrange(0, 1000):
+    for n in range(0, 1000):
         l = random.randint(1000, 100000) # 1000 is for the window size. -ve locs are real bad.
         newb.append({"loc": location(chr="1", left=l, right=l+200), "strand": "+"})
     bed = genelist()
     bed.load_list(newb)
     e = time.time()
-    print e-s, "s"
+    print(e-s, "s")
     
     t = track(filename="testnew.trk2")
     
-    print "Pileup..."
+    print("Pileup...")
     import cProfile, pstats
     cProfile.run("t.pileup(genelist=bed, filename='test.png', bin_size=10, window_size=1000)", "profile.pro")
     p = pstats.Stats("profile.pro")

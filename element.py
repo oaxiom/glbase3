@@ -10,14 +10,14 @@ Part of glbase.
 
 """
 
-import config
+from . import config
 
 import re, random, sys, os, string, numpy, copy
 
-import utils
-from genelist import genelist as new_gl
-from errors import AssertionError
-from draw import draw
+from . import utils
+from .genelist import genelist as new_gl
+from .errors import AssertionError
+from .draw import draw
 from numpy import zeros
 
 # R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT],
@@ -98,7 +98,7 @@ class motif:
         'regexd' motifs.
         """
         res = []
-        for n in xrange(number):
+        for n in range(number):
             newSeq = oldSeq = self.seq
             while newSeq == oldSeq: # stops the new motif == old motif.
                 q = []
@@ -375,7 +375,7 @@ class motif:
         elif "sequence" in genelist.linearData[0]:
             seq_key = "sequence"
         else:
-            raise AssertionError, "the genelist does not appear to have a sequence attached" # fake an assert        
+            raise AssertionError("the genelist does not appear to have a sequence attached") # fake an assert        
         
         seq_len = len(genelist[0][seq_key])
         pileup = zeros(seq_len)
@@ -476,7 +476,7 @@ class motif:
         elif "sequence" in genelist[0][0]:
             seq_key = "sequence"
         else:
-            raise AssertionError, "the genelist does not appear to have a sequence attached" # fake an assert
+            raise AssertionError("the genelist does not appear to have a sequence attached") # fake an assert
 
         motif_result = []
         labels = []

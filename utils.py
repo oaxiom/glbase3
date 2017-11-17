@@ -9,11 +9,11 @@ degenerate character N=[ATCG]
 
 """
 
-import sys, os, numpy, string, csv, random, math, cPickle, gzip
+import sys, os, numpy, string, csv, random, math, pickle, gzip
 import scipy.stats as stats
 from scipy.spatial.distance import pdist
 
-import config
+from . import config
 
 #from errors import AssertionError
 
@@ -44,7 +44,7 @@ def expandDegenerateMotifs(motif):
 
     # scan the motif and count the no of degenerate motifs
     newlist = []
-    for n in xrange(mlen):
+    for n in range(mlen):
         if nm[n] == "r" or nm[n] == "y" or nm[n] == "k" or nm[n] == "m" or nm[n] == "s" or nm[n] == "w": # AG
             newlist.append((2, n, nm[n])) # append a triple, with the number of flips and its location
         elif nm[n] == "n":
@@ -72,7 +72,7 @@ def iti(_fm, _fmcpos, _cl, _list): # my iterator
     # do some set up
     if not _cl: # also okay if _cl == False; be careful with these, as may be False, but not None
         _cl = []
-        for n in xrange(len(_fm)):
+        for n in range(len(_fm)):
             _cl.append("")
 
     # the main iterator;
@@ -81,7 +81,7 @@ def iti(_fm, _fmcpos, _cl, _list): # my iterator
     else:
         n = _fm[_fmcpos]
         #print n
-        for x in xrange(n[0]):
+        for x in range(n[0]):
             _cl[n[1]] = osc(_cl[n[1]], n[2])
             if not iti(_fm, _fmcpos+1, _cl, _list): # each time we iterate at the end of the motif add it to the list;
                 # convert the list back to a string
@@ -109,9 +109,9 @@ def movingAverage(listIn, window=20, normalise=False, bAbsiscaCorrect=True):
 
     y = []
 
-    for n in xrange(half_window_left, len(listIn)-half_window_right):
+    for n in range(half_window_left, len(listIn)-half_window_right):
         score = 0
-        for i in xrange(n-half_window_left, n+half_window_right, 1):
+        for i in range(n-half_window_left, n+half_window_right, 1):
             score += listIn[i]
 
         if normalise:
@@ -254,8 +254,8 @@ def expandElement(_element, _preserve=True): #
     else:
         lib = []
 
-    for left in xrange(4): # base iterator;
-        for right in xrange(4):
+    for left in range(4): # base iterator;
+        for right in range(4):
             lib.append(dir[left]+_element+dir[right])
 
     return  lib
@@ -279,7 +279,7 @@ def expandElementRightOnly(_element, _preserve=True): #
     else:
         lib = []
 
-    for right in xrange(4):
+    for right in range(4):
         lib.append(_element+dir[right])
 
     return  lib
@@ -313,7 +313,7 @@ degenerate character N=[ATCG]
     else:
         lib = []
 
-    for right in xrange(11):
+    for right in range(11):
         lib.append(_element+dir[right])
 
     return  lib
@@ -339,7 +339,7 @@ def expandElementRightOnly_degenerate_n(_element, _preserve=True): #
     else:
         lib = []
 
-    for right in xrange(5):
+    for right in range(5):
         lib.append(_element+dir[right])
 
     return  lib
@@ -361,7 +361,7 @@ def convertCSVtoFASTA(csvfilename, outfile, sequenceCol, fastaNameCol = None):
 
     for n in csvreader:
         t = n[0]
-        if t[0] <> "#":
+        if t[0] != "#":
             seq = n[sequenceCol]
             if fastaNameCol:
                 fastname = n[fastaNameCol]
@@ -385,7 +385,7 @@ def convertFASTAtoCSV(filename):
         openfile = open(filename, "rb")
         savefile = open(filename+'_out.csv', "wb")
     except IOError:
-        print "Error opening File"
+        print("Error opening File")
         sys.exit()
 
     writer = csv.writer(savefile)
@@ -477,7 +477,7 @@ def removeDuplicatesFromCSV(path, csvfile, outfile, column_no = 3, bKeepEmptyCol
     for line in reader:
         if line[column_no] in ulist:
             # don't write this enty,
-            print "Duplicate:", line[column_no]
+            print("Duplicate:", line[column_no])
         else:
             # add to ulist and write to file;
             if line[column_no]: # if column is empty don't add it to the list, but write to file
@@ -600,7 +600,7 @@ def removeDuplicatesFrom2DList(_list, column_no = 3):
         if line[column_no] in ulist:
             # don't write this enty,
             dupecount +=1
-            print "Duplicate:%s" % (line[column_no])
+            print("Duplicate:%s" % (line[column_no]))
         else:
             # add to ulist and write to file;
             if line[column_no]: # if column is empty don't add it to the list, but write to file
@@ -623,7 +623,7 @@ def removeDuplicatesFromCSV_2Cols(path, csvfile, outfile, column_no1 = 0, column
     for line in reader:
         if line[column_no1]+line[column_no2] in ulist:
             # don't write this enty,
-            print "duplicate:", line[column_no1]+line[column_no2]
+            print("duplicate:", line[column_no1]+line[column_no2])
         else:
             # add to ulist and write to file;
             ulist.append(line[column_no1]+line[column_no2])
@@ -635,7 +635,7 @@ def keepRowOnlyIfColXHasValue(path, _in, _out, _colX):
     """
     what it says
     """
-    print "keepRowOnlyIfColXHasValue(",path, _in, _out, _colX,")"
+    print("keepRowOnlyIfColXHasValue(",path, _in, _out, _colX,")")
     inf = open(os.path.join(path, _in), "rb")
     outf = open(os.path.join(path, _out), "wb")
 
@@ -686,7 +686,7 @@ def FASTAToLIST(filename):
     try:
         openfile = open(filename, "rb")
     except IOError:
-        print "Error opening File:", filename
+        print("Error opening File:", filename)
         sys.exit()
 
     record = ""
@@ -734,7 +734,7 @@ def renameDuplicatesFromCSV(path, csvfile, outfile, column_no = 3, bKeepEmptyCol
     for line in reader:
         if line[column_no] in ulist:
             # don't write this enty,
-            print "Duplicate:", line[column_no]
+            print("Duplicate:", line[column_no])
             if bKeepEmptyCols:
                 if column_no == 0:
                     writer.writerow(["%s_%s" % (line[column_no], nFound[line[column_no]])] + line[column_no+1:])
@@ -822,10 +822,10 @@ def transpose(list):
         rows = 1 # probably.
     cols = len(list)
 
-    for row in xrange(rows):
-        newl.append([0 for x in xrange(cols)])
-    for r in xrange(rows):
-        for c in xrange(cols):
+    for row in range(rows):
+        newl.append([0 for x in range(cols)])
+    for r in range(rows):
+        for c in range(cols):
             newl[r][c] = list[c][r]
     return(newl)
 
@@ -850,13 +850,13 @@ def bin_data(array_like, bin_size):
     """
     This is an old alias, please use bin_sum_data or bin_mean_data
     """
-    return([sum(array_like[i:i+bin_size]) for i in xrange(0, len(array_like), bin_size)])
+    return([sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)])
 
 def bin_sum_data(array_like, bin_size):
-    return([sum(array_like[i:i+bin_size]) for i in xrange(0, len(array_like), bin_size)])
+    return([sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)])
     
 def bin_mean_data(array_like, bin_size):
-    return([(sum(array_like[i:i+bin_size]) / float(len(array_like[i:i+bin_size]))) for i in xrange(0, len(array_like), bin_size)])
+    return([(sum(array_like[i:i+bin_size]) / float(len(array_like[i:i+bin_size]))) for i in range(0, len(array_like), bin_size)])
 
 def scale_data(array_like, range=(0, 100)):
     """
@@ -1086,15 +1086,15 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
     index_order = numpy.arange(n)
     random_state.shuffle(index_order)
     D = pdist(X, metric="euclidean")
-    print D
+    print(D)
     D = euclidean_distances(X)
-    print D
-    print D.shape
-    print numpy.sum(D, axis=0)
-    print numpy.sum(D, axis=1)
-    print numpy.max(D)
-    print numpy.min(D)
-    print numpy.histogram(D)
+    print(D)
+    print(D.shape)
+    print(numpy.sum(D, axis=0))
+    print(numpy.sum(D, axis=1))
+    print(numpy.max(D))
+    print(numpy.min(D))
+    print(numpy.histogram(D))
     
     # Calculate neighborhood for all samples. This leaves the original point
     # in, which needs to be considered later (i.e. point i is the
@@ -1181,16 +1181,16 @@ def rgba_to_hex(rgba_color):
 
 def qdeepcopy(anobject):
     # You should wrap me in a try: except:
-    return(cPickle.loads(cPickle.dumps(anobject, -1)))
+    return(pickle.loads(pickle.dumps(anobject, -1)))
 
 if __name__ == "__main__":
     # small tester for euclidean_distance()
     X = numpy.array([[0, 1], [1, 1]])
-    print euclidean_distances(X)
+    print(euclidean_distances(X))
     #array([[ 0.,  1.],
     #       [ 1.,  0.]])
-    print euclidean_distances(X, numpy.array([[0.0, 0.0]]))
+    print(euclidean_distances(X, numpy.array([[0.0, 0.0]])))
     #array([[ 1.        ],
     #       [ 1.41421356]])
     
-    print fold_change(100, 50, log=2, pad=1e-6)
+    print(fold_change(100, 50, log=2, pad=1e-6))

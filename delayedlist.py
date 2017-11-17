@@ -5,22 +5,22 @@ Think of me as a delayed version of geneList
 """
 import sys, os, time, copy, csv, gzip
 
-import config
-import utils
-from data import *
+from . import config
+from . import utils
+from .data import *
 from array import array as qarray
-from draw import draw
-from genelist import genelist
-from history import historyContainer
-from errors import AssertionError, NotSupportedError, DelayedListError
-from location import location
+from .draw import draw
+from .genelist import genelist
+from .history import historyContainer
+from .errors import AssertionError, NotSupportedError, DelayedListError
+from .location import location
 
 # try to load non-standard libs.
 try:
     import matplotlib.pyplot as plot
     MATPLOTLIB_AVAIL = True
 except:
-    print "Warning: matplotlib not available or not installed"
+    print("Warning: matplotlib not available or not installed")
     MATPLOTLIB_AVAIL = False
 
 class delayedlist(genelist):
@@ -84,7 +84,7 @@ class delayedlist(genelist):
         only "and" can be performed.
         """
         self._optimiseData()
-        if "logic" in kargs: raise NotSupportedError, "'logic' commands not supported for delayedlist.collide()"
+        if "logic" in kargs: raise NotSupportedError("'logic' commands not supported for delayedlist.collide()")
 
         assert "peaklist" in kargs or "genelist" in kargs or "microarray" in kargs, "You must provide a genelist-like object"
         assert "loc_key" in kargs, "You must provide a 'loc_key' name"
@@ -97,11 +97,11 @@ class delayedlist(genelist):
             gene_list = kargs["microarray"]
         
         assert kargs["loc_key"] in gene_list[0]
-        assert self.__iter__().next().has_key(kargs["loc_key"]) # get an item and test it
+        assert kargs["loc_key"] in next(self.__iter__()) # get an item and test it
         self._optimiseData()
 
         delta = 200
-        if kargs.has_key("delta"): delta = kargs["delta"]
+        if "delta" in kargs: delta = kargs["delta"]
 
         return(genelist.collide(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True))
 
@@ -112,24 +112,24 @@ class delayedlist(genelist):
         """
         self._optimiseData()
 
-        assert kargs.has_key("peaklist") or kargs.has_key("genelist") or kargs.has_key("microarray"), "You must provide a genelist-like object"
+        assert "peaklist" in kargs or "genelist" in kargs or "microarray" in kargs, "You must provide a genelist-like object"
         assert "loc_key" in kargs, "You must provide a 'loc_key' name"
         assert 'logic' not in kargs, "the 'logic' system is not supported if one of the genelists is a delayedlist"
 
         # get the genelist object:
-        if kargs.has_key("peaklist"): gene_list = kargs["peaklist"]
-        elif kargs.has_key("genelist"): gene_list = kargs["genelist"]
-        elif kargs.has_key("microarray"): gene_list = kargs["microarray"]
+        if "peaklist" in kargs: gene_list = kargs["peaklist"]
+        elif "genelist" in kargs: gene_list = kargs["genelist"]
+        elif "microarray" in kargs: gene_list = kargs["microarray"]
 
         assert kargs["loc_key"] in gene_list[0]
-        assert kargs["loc_key"] in self.__iter__().next() # get an item and test it
+        assert kargs["loc_key"] in next(self.__iter__()) # get an item and test it
 
         self._optimiseData() # reset the __iter__
 
         return(genelist.overlap(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True))
 
     def map(self):
-        raise AssertionError, 'delayedlists cannot be mapped in this direction, try the other way: genelist.map(genelist=delayedlist, key="...", ...)'
+        raise AssertionError('delayedlists cannot be mapped in this direction, try the other way: genelist.map(genelist=delayedlist, key="...", ...)')
 
     def __len__(self):
         # I need to collect an estimate
@@ -137,7 +137,7 @@ class delayedlist(genelist):
             if not self.gzip:
                 f = open(self.fullpath, 'rb')           
                 lines = 0
-                for line in f.xreadlines(): lines += 1
+                for line in f: lines += 1
 
                 self.__len_estimate = lines-1 # start from 0
                 
@@ -159,7 +159,7 @@ class delayedlist(genelist):
         routines.
         """
         self._optimiseData()
-        return(self.__iter__().next())
+        return(next(self.__iter__()))
         self._optimiseData()
 
     def __iter__(self):
@@ -168,7 +168,7 @@ class delayedlist(genelist):
         make the geneList behave like a normal iterator (list)
         """
         try:
-            column = self.__reader.next() # get started
+            column = next(self.__reader) # get started
             self.cindex += 1
             
             while column:
@@ -196,7 +196,7 @@ class delayedlist(genelist):
                                 d = self._processKey(self.format, column)
                     
                     if not d: # d is bad, grab another
-                        column = self.__reader.next()
+                        column = next(self.__reader)
                         self.cindex += 1
                 
                 # I do quoting = NONE now, so I need to manually deal with containing quotes.  
@@ -208,7 +208,7 @@ class delayedlist(genelist):
                             d[k] = d[k].strip('"')
                 
                 yield d # d should be valid
-                column = self.__reader.next() # get the next item
+                column = next(self.__reader) # get the next item
                 self.cindex += 1
         except StopIteration:
             self._optimiseData()
@@ -244,7 +244,7 @@ class delayedlist(genelist):
                     if i == self.format["skiplines"]:
                         break
         else: # default behaviour of genelist is to always skip the first line
-            self.__reader.next()
+            next(self.__reader)
 
         if "skiptill" in self.format:
             done = False
@@ -273,10 +273,10 @@ class delayedlist(genelist):
         return("%s\nThis is a delayedlist - only the first %s entries are shown" %(ret, config.NUM_ITEMS_TO_PRINT))
 
     def save(self):
-        raise NotSupportedError, "Cannot save a binary representation of a delayedlist"
+        raise NotSupportedError("Cannot save a binary representation of a delayedlist")
 
     def saveCSV(self, **kargs):
-        raise NotSupportedError, "delayedlists do not support saveCSV()"
+        raise NotSupportedError("delayedlists do not support saveCSV()")
 
     def getChIPSeqTags(self, gene_list, bins=None, bSaveMergedImages=True):
         """
@@ -309,15 +309,15 @@ class delayedlist(genelist):
         in preference to taglist's methods.
         the chip_seq tag frequency is stored in the "chip_tags" key
         """
-        print "Warning: getChIPSeqTags() is slow (depending upon the size of your tag file)"
-        print "         press Ctrl+C to interupt."
+        print("Warning: getChIPSeqTags() is slow (depending upon the size of your tag file)")
+        print("         press Ctrl+C to interupt.")
 
         # test gene_list has a valid sorted
         assert gene_list.dataByChr["1"], "List does not have a valid location tag"
         assert gene_list.dataByChr["1"][0]["tss_loc"] , "List does not have a valid tss_loc tag"
 
         if not bins:
-            bins = [x for x in xrange(-5000, 5000, 100)]
+            bins = [x for x in range(-5000, 5000, 100)]
 
         newl = taglist(bins, gene_list.name) # loses any non-standard methods... :(
         newl.linearData = []
@@ -326,7 +326,7 @@ class delayedlist(genelist):
         oh = open(self.fullpath, "rU")
 
         results = [] # fill a blank array to store the scores.
-        for item in xrange(len(gene_list)+1):
+        for item in range(len(gene_list)+1):
             results.append(qarray("L", [0 for item in bins]))
         flatBin = qarray("L", [0 for item in bins])
 
@@ -374,7 +374,7 @@ class delayedlist(genelist):
 
             if n > 1000000: # counter
                 t += 1
-                print "Info: Done: %s,000,000 - Found: %s tags" % (t, f)
+                print("Info: Done: %s,000,000 - Found: %s tags" % (t, f))
                 n = 0
                 #break
 
@@ -383,7 +383,7 @@ class delayedlist(genelist):
         # load my newl
         for index, item in enumerate(gene_list.linearData):
             c = copy.deepcopy(item) # if you don't copy, it will mangle the original list...
-            if not c.has_key("chip_tags"):
+            if "chip_tags" not in c:
                 c["chip_tags"] = {}
             c["chip_tags"][self.name] = results[index]
             newl.linearData.append(c)

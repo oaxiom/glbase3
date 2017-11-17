@@ -92,7 +92,7 @@ def gerp_to_flat(path, outfilenameA, outfilenameB, name, bin_format="f", **kargs
                 
                 if n>1e6:
                     m += 1
-                    print "%s,000,000 bp" % m
+                    print("%s,000,000 bp" % m)
                     n = 0
                 n += step
         oh.close()

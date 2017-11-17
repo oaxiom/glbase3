@@ -9,7 +9,7 @@ import random, math
 import operator
 import numpy
 import matplotlib.pyplot as plot
-import config
+from . import config
 
 valid_init_methods = set(["random", ])
 valid_metrics = set(["sum_of_deltas", ]) #
@@ -110,9 +110,9 @@ class rigidgrid:
         
         # You need to pick the grid location properly...
         
-        for iter in xrange(self.iterations):
-            for x in xrange(2, self.sq-2):
-                for y in xrange(2, self.sq-2):
+        for iter in range(self.iterations):
+            for x in range(2, self.sq-2):
+                for y in range(2, self.sq-2):
                     thisi = int(x / self.sq) + int(y % self.sq)
                     thisp = self.data[thisi,:]
                     
@@ -124,7 +124,7 @@ class rigidgrid:
                                 thati = int((x+xx) / self.sq) + int((y+yy) % self.sq)
                                 thatp = self.data[thati,:]
                                 near_neighbours.append((thatp, x+xx, y+yy, func_metrics_map[self.metric](thisp, thatp))) # Yeah, sue me. 
-                                print x, y, x+xx, y+yy, thisp, thatp, near_neighbours[-1]
+                                print(x, y, x+xx, y+yy, thisp, thatp, near_neighbours[-1])
                     
                     far_neighbours = []
                     for xx in [-2, 0, 2]:
@@ -133,19 +133,19 @@ class rigidgrid:
                                 thati = int((x+xx) / self.sq) + int((y+yy) % self.sq)
                                 thatp = self.data[thati,:]
                                 far_neighbours.append((thatp, x+xx, y+yy, func_metrics_map[self.metric](thisp, thatp))) # Yeah, sue me. 
-                                print x, y, x+xx, y+yy, thisp, thatp, far_neighbours[-1]
+                                print(x, y, x+xx, y+yy, thisp, thatp, far_neighbours[-1])
                     # find the best match
                     near_neighbours = sorted(near_neighbours, key=operator.itemgetter(3))
                     far_neighbours = sorted(far_neighbours, key=operator.itemgetter(3))
                     
                     if far_neighbours[3] > near_neighbours[3]:
-                        print "Hit"
+                        print("Hit")
                     #print tests
                     best = tests[0]
                     # best test so swap:
-                    print best[3]
+                    print(best[3])
                     if best[3] > 1e-6: # minimum thrreshold to stop thrashing
-                        print "Moved %s -> %s" % ("%s,%s" % (x, y), "%s,%s" % (best[1], best[2]))
+                        print("Moved %s -> %s" % ("%s,%s" % (x, y), "%s,%s" % (best[1], best[2])))
                         self.grid[x,y], self.grid[best[1], best[2]] = self.grid[best[1], best[2]], self.grid[x,y] # swap
                         moved += 1
             if draw_view_each_iter:
@@ -172,7 +172,7 @@ class rigidgrid:
         
         fig = plot.figure(figsize=(no_col_in_plot*1.5*(1+w), no_row_in_plot*1.5*(1+h)))
 
-        for axis_num in xrange(self.data.shape[1]):       
+        for axis_num in range(self.data.shape[1]):       
             ax = fig.add_subplot(no_row_in_plot, no_col_in_plot, axis_num+1)
 
             this_grid = self.data[self.grid.ravel(),axis_num].reshape(self.sq, self.sq) # rearranged
@@ -185,7 +185,7 @@ class rigidgrid:
             plot.axis('off')
         
             if text:
-                print ind, self.compname[ind]
+                print(ind, self.compname[ind])
                 plt.title(self.compname[ind])
                 font = {'size': text_size}
 
@@ -208,7 +208,7 @@ class rigidgrid:
         initialise grid indeces randomly
         """
         # get an array of shuffled indeces:
-        shuffled = range(0, self.samples_required) # Not yet
+        shuffled = list(range(0, self.samples_required)) # Not yet
         random.shuffle(shuffled) # Now it is
         for i, r in enumerate(shuffled):
             x = int(i / self.sq)
@@ -229,4 +229,4 @@ class rigidgrid:
         
 if __name__ == "__main__":
     r = rigidgrid([[1,2,3],[2,3,4]])
-    print r._metric_sum_of_deltas(numpy.array([  22.,   2. ,  3.  , 2.  ,10.]), numpy.array([ 2. , 2. , 3. , 2. , 3.]) )
+    print(r._metric_sum_of_deltas(numpy.array([  22.,   2. ,  3.  , 2.  ,10.]), numpy.array([ 2. , 2. , 3. , 2. , 3.]) ))

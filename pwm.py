@@ -11,19 +11,19 @@ TODO:
 
 """
 
-from __future__ import division
 
-import config
+
+from . import config
 
 import sys, os, math, numpy
 from numpy import zeros, array
 
-from base_genelist import _base_genelist
-from genelist import genelist
-from draw import draw
-from utils import rc, convertFASTAtoDict
-from progress import progressbar
-from location import location
+from .base_genelist import _base_genelist
+from .genelist import genelist
+from .draw import draw
+from .utils import rc, convertFASTAtoDict
+from .progress import progressbar
+from .location import location
 
 # constant used below in score:
 con_setpos = {"a": 0, "c": 1, "g": 2, "t": 3,
@@ -99,7 +99,7 @@ class pwm:
                         
             self.__matrix = array(pwm_matrix)# self.__convert_dict_matrix(pwm_matrix)
         else:
-            raise AssertionError, "no valid input found for pwm"
+            raise AssertionError("no valid input found for pwm")
             
         self.__original_PFM = numpy.copy(self.__matrix) # Keep a copy of the original
         
@@ -151,9 +151,9 @@ class pwm:
             This object now contains a weight matrix, not a frequency matrix.
         """
         
-        for row in xrange(len(self.__matrix)):
+        for row in range(len(self.__matrix)):
             bign = sum(self.__matrix[row])
-            for bp in xrange(len(self.__matrix[row])):
+            for bp in range(len(self.__matrix[row])):
                 self.__matrix[row][bp] = math.log((self.__matrix[row][bp] + math.sqrt(bign) * 0.25) / (bign + math.sqrt(bign)) / 0.25, 2) # log 2, not log n
 
         self.__do_minmax() # redo min/max scores
@@ -261,7 +261,7 @@ class pwm:
 
         scores = {}
 
-        for p in xrange(len(sequence)-len(self)):
+        for p in range(len(sequence)-len(self)):
             seq = sequence[p:p+len(self)]
             if "n" not in seq and "N" not in seq:
                 seq_data = {"+": seq, "-": rc(seq)}
@@ -394,7 +394,7 @@ class pwm:
                     nl = numpy.array([0.0, 0.0, 0.0, 0.0])
                 else:
                     nl = i/float(sum(i))
-                print nl
+                print(nl)
                 oh.write("%s\n" % "\t".join([str(b) for b in nl]))   
                 
         elif mode == "counts":
@@ -429,7 +429,7 @@ class pwm:
             WEBLOGO_AVAILABLE = True
         except Exception:
             WEBLOGO_AVAILABLE = False # fail silently
-            raise AssertionError, 'pwm.draw_logo: Asking to draw logo, but weblogolib not found/available' 
+            raise AssertionError('pwm.draw_logo: Asking to draw logo, but weblogolib not found/available') 
         
         if not title:
             title = self.name
@@ -473,14 +473,14 @@ if __name__ == "__main__":
             [56,    3,  12, 2],         # a
             [62,    0,  0,  1],         # a
             [16,    0,  2,  29]])
-    print m
-    print m.score("cattgtcatgcaaat")
-    print m.score("cattgacacgcttat")
+    print(m)
+    print(m.score("cattgtcatgcaaat"))
+    print(m.score("cattgacacgcttat"))
 
-    print m.scan_sequence("aaaaaaaaaatttgcatgacaagaagccttcttttttttttcttcattgtcatgcaaatcccccggggg") # two sox-oct motifs.
+    print(m.scan_sequence("aaaaaaaaaatttgcatgacaagaagccttcttttttttttcttcattgtcatgcaaatcccccggggg")) # two sox-oct motifs.
 
-    print
-    print m.get_matrix()
+    print()
+    print(m.get_matrix())
 
     #m = pwm("meh", txt_file="tests/txt_motif_file.txt", isPFM=False)
 

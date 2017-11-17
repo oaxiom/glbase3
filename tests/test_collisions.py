@@ -161,7 +161,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
        
         left_buck = int((1299-1)/glbase.config.bucket_size)*glbase.config.bucket_size
         right_buck = int((1788)/glbase.config.bucket_size)*glbase.config.bucket_size
-        buckets_reqd = range(left_buck, right_buck+glbase.config.bucket_size, glbase.config.bucket_size) # make sure to get the right spanning and left spanning sites
+        buckets_reqd = list(range(left_buck, right_buck+glbase.config.bucket_size, glbase.config.bucket_size)) # make sure to get the right spanning and left spanning sites
         
         loc_ids = set()
         if buckets_reqd:

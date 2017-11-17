@@ -6,23 +6,23 @@ renamed to glglob as it clashes with a matplotlib and python module name
 
 """
 
-from __future__ import division
 
-import sys, os, csv, string, math, numpy, cPickle, random # random is for occasional testing
+
+import sys, os, csv, string, math, numpy, pickle, random # random is for occasional testing
 
 from numpy import array, zeros, object_, arange
 from copy import deepcopy
 from operator import itemgetter
 
-import config, utils
-from flags import *
-from base_genelist import _base_genelist
-from draw import draw
-from errors import AssertionError, NotImplementedError, GlglobDuplicateNameError
-from location import location
-from progress import progressbar
-from genelist import genelist
-from expression import expression
+from . import config, utils
+from .flags import *
+from .base_genelist import _base_genelist
+from .draw import draw
+from .errors import AssertionError, NotImplementedError, GlglobDuplicateNameError
+from .location import location
+from .progress import progressbar
+from .genelist import genelist
+from .expression import expression
 
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -76,7 +76,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         self.__list_name_lookback = {} # the index location.
         for index, item in enumerate(self.linearData):
             if item.name in self.__list_name_lookback:
-                raise GlglobDuplicateNameError, ("self._optimiseData", item.name)
+                raise GlglobDuplicateNameError("self._optimiseData", item.name)
             else:
                 self.__list_name_lookback[item.name] = index
 
@@ -335,7 +335,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         valid_args = ["filename", "key", "title", "experimental_proportional_venn"]
         for k in kargs:
             if not k in valid_args:
-                raise ArgumentError, (self.map, k)
+                raise ArgumentError(self.map, k)
 
         assert len(self.linearData) <= 5, "currently glglob venn diagrams only support at most 5 overlaps"
         assert len(self.linearData) >= 2, "you must send at least two lists"
@@ -402,7 +402,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             B = set(self.linearData[1][key])
             C = set(self.linearData[2][key])
             D = set(self.linearData[3][key])
-            print len(A), len(B), len(C), len(D)
+            print(len(A), len(B), len(C), len(D))
 
             # Use set logic to work out the actual values:
             # I'm pretty sure this is accurate at this point.
@@ -431,7 +431,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 len(AB), len(AC), len(AD), len(BC), len(BD), len(CD), 
                 len(ABC), len(ABD), len(ACD), len(BCD), len(ABCD)]
             
-            labs = [self.linearData[i].name for i in xrange(4)] 
+            labs = [self.linearData[i].name for i in range(4)] 
             
             realfilename = self.draw.venn4(lists, labs, filename, **kargs)
 
@@ -483,7 +483,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 len(ABC), len(ABD), len(ABE), len(ACD), len(ACE), len(ADE), len(BCD), len(BCE), len(BDE), len(CDE),
                 len(ABCD), len(ABCE), len(ACDE), len(BCDE), (ABCDE)]
             
-            labs = [self.linearData[i].name for i in xrange(5)] 
+            labs = [self.linearData[i].name for i in range(5)] 
             
             realfilename = self.draw.venn5(lists, labs, filename, **kargs)
         
@@ -686,7 +686,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     
                 block_id = "bid:%s" % (math.floor(item["loc"]["left"] / resolution) * 1000, )
                 if block_id not in chr_blocks[item["loc"]["chr"]]:
-                    chr_blocks[item["loc"]["chr"]][block_id] = [0 for x in xrange(len(self.linearData))] # one for each gl
+                    chr_blocks[item["loc"]["chr"]][block_id] = [0 for x in range(len(self.linearData))] # one for each gl
                     total_rows += 1
                 
                 if score_key:
@@ -702,7 +702,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         crow = 0
         for c in chr_blocks:
             for bid in chr_blocks[c]:
-                for i in xrange(len(chr_blocks[c][bid])): # or len(self.linearData)
+                for i in range(len(chr_blocks[c][bid])): # or len(self.linearData)
                     tab[i, crow] = chr_blocks[c][bid][i]
                 crow += 1
         
@@ -857,7 +857,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 if not p1["chr"] in chr_blocks:
                     chr_blocks[p1["chr"]] = {}
             
-                binary = [0 for x in xrange(len(list_of_peaks))] # set-up here in case I need to modify it.
+                binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
             
                 for p2 in chr_blocks[p1["chr"]]: # p2 is now a block_id tuple
                     #if p1.qcollide(p2):
@@ -882,7 +882,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 block_id = (p1["left"], p1["right"])
                 if block_id not in chr_blocks[p1["chr"]]:
                     chr_blocks[p1["chr"]][block_id] = {"binary": binary,
-                        "pil": [0 for x in xrange(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
+                        "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
                         # pil is not needed here, but kept for compatability with _heatmap function
                     total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
 
@@ -1108,7 +1108,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 if not p1["chr"] in chr_blocks:
                     chr_blocks[p1["chr"]] = {}
             
-                binary = [0 for x in xrange(len(list_of_peaks))] # set-up here in case I need to modify it.
+                binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
             
                 for p2 in chr_blocks[p1["chr"]]: # p2 is now a block_id tuple
                     #if p1.qcollide(p2):
@@ -1133,7 +1133,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 block_id = (p1["left"], p1["right"])
                 if block_id not in chr_blocks[p1["chr"]]:
                     chr_blocks[p1["chr"]][block_id] = {"binary": binary,
-                        "pil": [0 for x in xrange(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
+                        "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
                     total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
 
             p.update(idx)
@@ -1153,7 +1153,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # sort out cached_data
         if cache_data and os.path.isfile(cache_data): # reload previously cached data.
             oh = open(os.path.realpath(cache_data), "rb")
-            chr_blocks = cPickle.load(oh)
+            chr_blocks = pickle.load(oh)
             oh.close()
             config.log.info("chip_seq_cluster_heatmap: Reloaded previously cached pileup data: '%s'" % cache_data)
             # this_loc will not be valid and I test it for length below, so I need to fake one.
@@ -1196,7 +1196,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             if cache_data: # store the generated data for later.
                 oh = open(cache_data, "wb")
-                cPickle.dump(chr_blocks, oh, -1)
+                pickle.dump(chr_blocks, oh, -1)
                 oh.close()
                 config.log.info("chip_seq_cluster_heatmap: Saved pileup data to cache file: '%s'" % cache_data)
             
@@ -1236,7 +1236,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             for chrom in chr_blocks:
                 for block_id in chr_blocks[chrom]:
                     if chr_blocks[chrom][block_id]["cluster_membership"] == cluster_id["id"]:
-                        for peaks in xrange(len(list_of_peaks)):
+                        for peaks in range(len(list_of_peaks)):
                             row = chr_blocks[chrom][block_id]["pil"][peaks]
                             if list_of_tables[peaks] is None:
                                 # append together all pileup data in a long row and stick on the tab array.
@@ -1263,13 +1263,13 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         # finish off the pileup_data:
         for cid in pileup_data:
-            for pid in xrange(len(pileup_data[cid])):
+            for pid in range(len(pileup_data[cid])):
                 pileup_data[cid][pid] /= len(ret_data[cid]["genelist"])
             
         self.__pileup_data = pileup_data
         self.__pileup_names = [g.name for g in list_of_peaks] # names for each sample, taken from peaks.
         self.__pileup_groups_membership = sorted_clusters
-        self.__pileup_group_sizes = [groups.count(i) for i in xrange(0, len(sorted_clusters)+1)]
+        self.__pileup_group_sizes = [groups.count(i) for i in range(0, len(sorted_clusters)+1)]
         
         config.log.info("chip_seq_cluster_heatmap: There are %s groups" % len(sorted_clusters))             
         
@@ -1283,7 +1283,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         colbar_label = "tag density"
         
         if log:
-            for index in xrange(len(list_of_tables)):
+            for index in range(len(list_of_tables)):
                 # multiply the data so that max() = 100000
                 list_of_tables[index] /= tab_max
                 list_of_tables[index] *= 1000        
@@ -1428,7 +1428,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         """    
         
         assert genome[0], "genome_dist_radial: genome appears to be empty"
-        assert "tss_loc" in genome.keys(), "genome_dist_radial: genome does not have a 'tss_loc' key"
+        assert "tss_loc" in list(genome.keys()), "genome_dist_radial: genome does not have a 'tss_loc' key"
         # check layout == len(self.linearData)
 
         annotation = genome
@@ -1571,7 +1571,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for k in go_store:
             newe.append({'name': k.replace("~", ":"), 'conditions': go_store[k]}) # REPAIR DAVID GO names
     
-        cond_names = sorted(zip(cond_names_idx.keys(), cond_names_idx.values()), key=itemgetter(1))
+        cond_names = sorted(zip(list(cond_names_idx.keys()), list(cond_names_idx.values())), key=itemgetter(1))
         cond_names = [i[0] for i in cond_names]
         
         goex = expression(loadable_list=newe, cond_names=cond_names)
@@ -1622,7 +1622,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             
         """
         assert isinstance(trks, list), 'measure_density: trks must be a list'
-        assert 'loc' in peaks.keys(), 'measure_density: no loc key found in peaks'
+        assert 'loc' in list(peaks.keys()), 'measure_density: no loc key found in peaks'
         all_trk_names = [t["name"] for t in trks]
         assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track["name"] to unique names'
         

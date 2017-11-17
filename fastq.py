@@ -8,10 +8,10 @@ Generally glbase is not efficient at this and other tools may be preferable.
 
 import sys, os
 
-import config
-from genelist import genelist
-from errors import AssertionError, NotSupportedError, DelayedListError
-from delayedlist import delayedlist
+from . import config
+from .genelist import genelist
+from .errors import AssertionError, NotSupportedError, DelayedListError
+from .delayedlist import delayedlist
 # Todo: Move rnaseqqc into fastq
 
 class fastq(delayedlist):
@@ -50,7 +50,7 @@ class fastq(delayedlist):
         return("glbase.fastq")
 
     def getSequences(self):
-        raise NotSupportedError, "getSequences() not supported for fastq file"
+        raise NotSupportedError("getSequences() not supported for fastq file")
 
     def _optimiseData(self):
         """
@@ -152,8 +152,8 @@ class fastq(delayedlist):
         read1 = True
         while True:
             try:
-                read1 = self.__iter__().next()
-                read2 = self.__iter__().next()
+                read1 = next(self.__iter__())
+                read2 = next(self.__iter__())
             except StopIteration:
                 break
 

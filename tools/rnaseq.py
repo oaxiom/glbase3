@@ -5,7 +5,7 @@ These are a series of undocumented routines for QC of RNA-seq, primarily FASTQ f
 
 """
 
-from __future__ import division
+
 import sys, os, math, time, random # Don't worry, random is just for db name
 from numpy import array
 import numpy
@@ -26,7 +26,7 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
             Override the location to store tmp data in
             
     """
-    print "Started '%s'" % filename
+    print("Started '%s'" % filename)
     oh = open(filename, "rU")
     
     res = None
@@ -61,8 +61,8 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
             # on Numpy arrays, I only want __nonzero__() dumbasses!!! Stupid eh?
     
             # Only gets run once. 
-            res = array([0 for x in xrange(len(qual))], numpy.int64)
-            bp_dist = [{"A": 0, "C": 0, "G": 0, "T": 0} for x in xrange(len(qual))]
+            res = array([0 for x in range(len(qual))], numpy.int64)
+            bp_dist = [{"A": 0, "C": 0, "G": 0, "T": 0} for x in range(len(qual))]
             res_std = numpy.zeros((len(qual), max_q_score))
     
         for i, c in enumerate(qual): # Collect the aggregate scores
@@ -100,7 +100,7 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
         n += 1
         if n > 100000:
             m += 1
-            print "%se5 reads done" % m
+            print("%se5 reads done" % m)
             n = 0
             #break
         
@@ -108,15 +108,15 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
     conn.commit()
     
     frac_res = [x / num_reads for x in res]
-    print "File: %s" % filename
-    print "Number of FASTQ entries: %s" % num_reads
+    print("File: %s" % filename)
+    print("Number of FASTQ entries: %s" % num_reads)
 
     # Draw some graphs:
     filename_base = "_".join(os.path.split(filename)[1].split(".")[:-1])
     fig = plot.figure()
     ax = fig.add_subplot(111)
     for bp in ["A", "C", "G", "T"]:
-        ax.plot([(bp_dist[i][bp] / num_reads) * 100.0 for i in xrange(len(bp_dist))], label=bp)
+        ax.plot([(bp_dist[i][bp] / num_reads) * 100.0 for i in range(len(bp_dist))], label=bp)
     ax.legend()
     ax.set_title("%s - bp bias" % filename_base)
     ax.set_xlabel("base pair")

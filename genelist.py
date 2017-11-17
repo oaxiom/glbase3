@@ -4,21 +4,21 @@ behaves like a normal list, but each element contains a heterogenous set of data
 
 """
 
-import sys, os, csv, copy, random, cPickle, re, numpy, scipy, gzip
+import sys, os, csv, copy, random, pickle, re, numpy, scipy, gzip
 
 from operator import itemgetter
 
-import config
-import utils
-from flags import *
-from helpers import *
-from location import location
-from draw import draw
-from history import historyContainer
-from errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
-from progress import progressbar
-from base_genelist import _base_genelist
-from format import sniffer, sniffer_tsv
+from . import config
+from . import utils
+from .flags import *
+from .helpers import *
+from .location import location
+from .draw import draw
+from .history import historyContainer
+from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
+from .progress import progressbar
+from .base_genelist import _base_genelist
+from .format import sniffer, sniffer_tsv
 
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
     """
@@ -136,7 +136,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         valig_args = ["name", "format", "force_tsv",]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.__init__, k)
+                raise ArgumentError(self.__init__, k)
 
         self.linearData = []
         self.dataByChr = None # this is private, use get by loc.
@@ -158,7 +158,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if "format" in kargs:
                 self.load(filename=filename, format=format, gzip=gzip)
             else:
-                raise AssertionError, 'Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer'
+                raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer')
 
             config.log.info("genelist(): loaded '%s' found %s items" % (filename, len(self.linearData)))
         elif loadable_list:
@@ -217,7 +217,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     self._optimiseData()
                     return(True)
         else:
-            raise AssertionError, 'Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument'
+            raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument')
 
         csv_headers = frozenset(["csv", "xls", "tsv", "txt", "bed"])
         if filename.split(".")[-1].lower() in csv_headers: # check the last one for a csv-like header
@@ -227,7 +227,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         else:
             self.loadCSV(filename=filename, format=format, gzip=gzip, **kargs)
                 
-        if "force_tsv" not in kargs and "force_tsv" not in format and len(self.keys()) == 1:
+        if "force_tsv" not in kargs and "force_tsv" not in format and len(list(self.keys())) == 1:
             config.log.warning("List contains only a single key, are you sure this is not a tsv?")
             
         return(True) # must have made it to one - if it fails it should trigger
@@ -278,8 +278,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 format = sniffer
     
         if "debug" in format and format["debug"]:
-            print "--------"
-            print "DEBUG load:"
+            print("--------")
+            print("DEBUG load:")
             self._loadCSV(filename=self.fullfilename, format=format, **kargs)
         else:
             try:
@@ -292,7 +292,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 except Exception: # oh dear. Die.
                     if self.__deathline:
                         config.log.error("Died on line: '%s'" % self.__deathline)
-                    raise UnRecognisedCSVFormatError, ("'%s' appears mangled, the file does not fit the format specifier" % self.fullfilename, self.fullfilename, format)
+                    raise UnRecognisedCSVFormatError("'%s' appears mangled, the file does not fit the format specifier" % self.fullfilename, self.fullfilename, format)
 
     def _loadCSV(self, **kargs):
         """
@@ -384,7 +384,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         
             if "debug" in format and format["debug"]:
                 debug_line += 1
-                print "%s:'%s'" % (index, column)
+                print("%s:'%s'" % (index, column))
                 if isinstance(format["debug"], int) and debug_line > format["debug"]: 
                     break # If an integer, collect that many items.
 
@@ -445,7 +445,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # which bucket is left and right in?
                 left_buck = int(item[loc_key]["left"]/config.bucket_size)*config.bucket_size
                 right_buck = int((item[loc_key]["right"]+config.bucket_size)/config.bucket_size)*config.bucket_size
-                buckets_reqd = range(left_buck, right_buck, config.bucket_size)
+                buckets_reqd = list(range(left_buck, right_buck, config.bucket_size))
                 
                 #print n, item[loc_key], buckets_reqd, left_buck, right_buck, len(buckets_reqd)
                 
@@ -569,7 +569,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if r:
                 r = [r]
         else:
-            raise AssertionError, "mode '%s' for get() is not known" % mode
+            raise AssertionError("mode '%s' for get() is not known" % mode)
         
         # The internal methods return vanilla lists for compatability with er... internal stuffs
         # repackage to a new gl.
@@ -748,7 +748,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         valig_args = ["filename", "key_order", "tsv", "no_header"]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.saveCSV, k)
+                raise ArgumentError(self.saveCSV, k)
 
         oh = open(filename, "w")
         if not self.linearData: # data is empty, fail graciously.
@@ -766,12 +766,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "key_order" in kargs:
             write_keys = kargs["key_order"]
             # now add in any missing keys to the right side of the list:
-            for item in self.keys():
+            for item in list(self.keys()):
                 if item not in write_keys:
                     write_keys.append(item)
         else:
             # just selece them all:
-            write_keys = self.keys()
+            write_keys = list(self.keys())
 
         if not no_header:
             writer.writerow(write_keys) # write the header row.
@@ -989,7 +989,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert loc in self, "'%s' not found in this list" % loc
         
         # work out the decorator keys:
-        keys = self.keys()
+        keys = list(self.keys())
         keys.remove(loc)
         if strand:
             keys.remove(strand)
@@ -1176,7 +1176,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if len(self.linearData) > config.NUM_ITEMS_TO_PRINT:
             out = []
             # welcome to perl
-            for index in xrange(config.NUM_ITEMS_TO_PRINT):
+            for index in range(config.NUM_ITEMS_TO_PRINT):
                 out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
             out = "%s\n... truncated, showing %s/%s" % ("\n".join(out), config.NUM_ITEMS_TO_PRINT, len(self.linearData))
 
@@ -1188,7 +1188,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             
         else: # just print first entry.
             out = []
-            for index in xrange(len(self.linearData)):
+            for index in range(len(self.linearData)):
                 out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
             out = "%s\nShowing %s/%s" % ("\n".join(out), len(self.linearData), len(self.linearData))
 
@@ -1200,7 +1200,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         out = []
         # welcome to perl
-        for index in xrange(len(self.linearData)): # Yeah, funky way to do it, but maintains compatability with __str__()
+        for index in range(len(self.linearData)): # Yeah, funky way to do it, but maintains compatability with __str__()
             out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
 
         return("\n".join(out))
@@ -1356,7 +1356,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             assert key in self._conditions, "filter_by_value():'%s' not found in this expression object" % key
             its_a_condition = True
         else:
-            assert key in self.keys(), "filter_by_value(): no key named '%s' found in this genelist object" % key
+            assert key in list(self.keys()), "filter_by_value(): no key named '%s' found in this genelist object" % key
             its_a_condition = False
             
         new_expn = []
@@ -1463,7 +1463,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             "image_filename", "title", "venn_proportional", "greedy")
         for k in kargs:
             if not k in valid_args:
-                raise ArgumentError, (self.map, k)
+                raise ArgumentError(self.map, k)
         
         assert logic in ("and", "notright"), "logic '%s' not supported" % logic
 
@@ -1680,7 +1680,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         genome_loc_key = "tss_loc"
         #if genome_loc_key not in self.keys():
         #    genome_loc_key = "loc" # default to loc if genome object 
-        assert genome_loc_key in self.keys(), "The annotation list does not have a valid transcription start-site key, are the genelist and genome the wrong way around?"
+        assert genome_loc_key in list(self.keys()), "The annotation list does not have a valid transcription start-site key, are the genelist and genome the wrong way around?"
 
         t = [] # blank the data though
 
@@ -1701,7 +1701,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             # work out which of the buckets required:
             left_buck = int((loc["left"]-1)/config.bucket_size)*config.bucket_size
             right_buck = int((loc["right"])/config.bucket_size)*config.bucket_size
-            buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+            buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
     
             # get the ids reqd.                
             loc_ids = set()
@@ -2153,7 +2153,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "genelist" in kargs: 
             gene_list = kargs["genelist"]
         else:
-            raise AssertionError, "_unified_collide_overlap(): No valid genelist-like object" # bodge the error as I do loading at the same time.
+            raise AssertionError("_unified_collide_overlap(): No valid genelist-like object") # bodge the error as I do loading at the same time.
             # yes it could be done in a one line assert, but how then do I load gene_list?
 
         assert loc_key in self[0], "_unified_collide_overlap(): The 'loc_key' '%s' not found in this list" % (loc_key, )
@@ -2167,14 +2167,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "logic" in kargs and kargs["logic"] != "and":
             assert kargs["logic"] in ("and", "not", "notinleft", "notinright"), "'%s' logic not found/supported" % kargs["logic"]
             mode = kargs["logic"]
-            foundA = [False for x in xrange(len(self))]
-            foundB = [False for x in xrange(len(gene_list))]
+            foundA = [False for x in range(len(self))]
+            foundB = [False for x in range(len(gene_list))]
 
         newl = gene_list.shallowcopy()
         newl.linearData = [] 
 
         if image_filename:
-            result_array = [0 for x in xrange(max(len(gene_list), len(self)))]
+            result_array = [0 for x in range(max(len(gene_list), len(self)))]
             x_data = []
             y_data = []
             scatter_data = {"found": [], "not_found": []}
@@ -2194,7 +2194,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # work out which of the buckets required:
                 left_buck = int((locA["left"]-1-delta)/config.bucket_size)*config.bucket_size
                 right_buck = int((locA["right"]+delta)/config.bucket_size)*config.bucket_size
-                buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+                buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
                 # get the ids reqd.                
                 loc_ids = set()
@@ -2248,7 +2248,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                                         __add_tag_keys_float_warning = True
                                     try:
                                         a[add_tags] = int(item[add_tags]) + int(other[add_tags])
-                                    except TypeError, ValueError:
+                                    except TypeError as ValueError:
                                     
                                         if not __add_tag_keys_int_warning:
                                             __add_tag_keys_int_warning = True
@@ -2297,7 +2297,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if not title:
                 title = filename_root
     
-            x_array, y_array = zip(*scatter_data["found"]) # neat trick to unzip list
+            x_array, y_array = list(zip(*scatter_data["found"])) # neat trick to unzip list
             
             # I need to add indexB not founds...
 
@@ -2344,7 +2344,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             A new genelist containing only unique sites
         """
         if key == 'loc':
-            all_keys = self.keys()
+            all_keys = list(self.keys())
             assert 'tss_loc' not in all_keys, 'removeDuplicatesByLoc will give incorrect results if your genelist contains both a loc and tss_loc key. Please delete one or the other key'
         
         mask = [0] * len(self.linearData) # keep track of masked entries
@@ -2359,7 +2359,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # work out which of the buckets required:
                 left_buck = int((locA["left"]-1-delta)/config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
                 right_buck = int((locA["right"]+1+delta)/config.bucket_size)*config.bucket_size
-                buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+                buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
                 # get the ids reqd.                
                 loc_ids = set()
@@ -2423,7 +2423,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             The new list with the duplicates removed.
         """
         assert key, "No key specified"
-        assert key in self.keys(), "the key '%s' was not found in this genelist" % key
+        assert key in list(self.keys()), "the key '%s' was not found in this genelist" % key
 
         newl = self.shallowcopy()
         newl.linearData = []
@@ -2454,7 +2454,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         count = 0
         
         unq = set()
-        kord = self.linearData[0].keys()# fix the key order
+        kord = list(self.linearData[0].keys())# fix the key order
         
         for item in self.linearData:
             valstr = "".join([str(item[k]) for k in kord])
@@ -2566,7 +2566,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             "cat": "<cat>"} # used in history and for a default storage key
 
         if operation not in valid_operations:
-            raise BadOperationError, ("%s.act()" % self.__repr__(), operation)
+            raise BadOperationError("%s.act()" % self.__repr__(), operation)
 
         if not result_key:
             result_key = "%s%s%s" % (key1, op_str_map[operation], key2)
@@ -2619,13 +2619,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             list_to_load[0]
             i = list_to_load.__iter__()
         except TypeError:
-            raise AssertionError, "Type Error, the list appears not to be actually a list"
+            raise AssertionError("Type Error, the list appears not to be actually a list")
 
         try:
             item = list_to_load[0]
             i = [item[k] for k in item]
         except Exception:
-            raise AssertionError, "Type Error, the list of items appears not to contain a dictionary item"
+            raise AssertionError("Type Error, the list of items appears not to contain a dictionary item")
         
         #try:
         self.linearData = utils.qdeepcopy(list_to_load)
@@ -2720,7 +2720,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if seed:
             random.seed(seed)
             
-        shuf = range(len(self))
+        shuf = list(range(len(self)))
         random.shuffle(shuf)
         to_get = shuf[0:number_to_get]
         samples = []
@@ -2824,8 +2824,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             
             This method will fill in the holes in 'key_to_repair' by dragging data from 'fill_in key'
         '''
-        assert key_to_repair in self.keys(), 'key_to_repair: "%s" not found' % key_to_repair
-        assert fill_in_key in self.keys(), 'fill_in_key: "%s" not found' % fill_in_key
+        assert key_to_repair in list(self.keys()), 'key_to_repair: "%s" not found' % key_to_repair
+        assert fill_in_key in list(self.keys()), 'fill_in_key: "%s" not found' % fill_in_key
         
         replaced = 0
         newl = self.deepcopy()
@@ -3028,7 +3028,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         for item in self.qkeyfind[key]:
             data[item] = len(self.qkeyfind[key][item])
        
-        labels = data.keys()
+        labels = list(data.keys())
         fracs = [data[k] for k in labels]
                        
         newfilename = self.draw.pie(fracs, labels, filename, font_size=font_size, **kargs)
@@ -3097,8 +3097,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert filename, "must specify a filename to save as"
         assert expression, "must provide some expression data"
         assert match_key, "'match_key' is required"
-        assert match_key in self.linearData[0].keys(), "match_key '%' not found in this list"
-        assert match_key in expression.linearData[0].keys(), "match_key '%' not found in expression object"
+        assert match_key in list(self.linearData[0].keys()), "match_key '%' not found in this list"
+        assert match_key in list(expression.linearData[0].keys()), "match_key '%' not found in expression object"
         if spline_interpolate:
             assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), "'%s' spline_interpolate method not found" % spline_interpolate
 
@@ -3134,12 +3134,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 newl += newf
                 
         if not newl:
-            raise AssertionError, "frequencyAgainstArray: no matches were found, it's possible this is correct, but it is highly unlikely. I suspect you have not specified match_key correctly"
+            raise AssertionError("frequencyAgainstArray: no matches were found, it's possible this is correct, but it is highly unlikely. I suspect you have not specified match_key correctly")
 
         newgl.load_list(newl)
                
         if spline_interpolate:  
-            f = scipy.interpolate.interp1d(range(len(bin)), bin, kind=spline_interpolate)
+            f = scipy.interpolate.interp1d(list(range(len(bin))), bin, kind=spline_interpolate)
             xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
             peak_data = list(f(xnew)) # dump out the falues from formula
         else:   
@@ -3203,7 +3203,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # work out which of the buckets is required:
         left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
         right_buck = int((loc["right"]+delta)/config.bucket_size)*config.bucket_size
-        buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+        buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
         # get the ids reqd.                
         loc_ids = set()
@@ -3268,7 +3268,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # work out which of the buckets is required:
         left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
         right_buck = int((loc["right"]+delta)/config.bucket_size)*config.bucket_size
-        buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+        buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
         # get the ids reqd.                
         loc_ids = set()
@@ -3369,10 +3369,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             (100, 200)]
         
         # arrange a table:
-        print "class\tann\tmean\tstdev\tstderr"
+        print("class\tann\tmean\tstdev\tstderr")
         for k in kord:
             t = [k, hist[k], numpy.mean(back[k]), numpy.std(back[k]), numpy.std(back[k])/math.sqrt(len(back[k]))]
-            print "\t".join([str(i) for i in t])
+            print("\t".join([str(i) for i in t]))
              
         labels = ["Gene desert", "-200 kb to -100 kb", "-100 kb to -50 kb", "-50 kb to -10 kb", "-10 kb to 0 kb",
             "0 kb to 10 kb", "10 kb to 50 kb", "50 kb to 100 kb", "100 kb to 200 kb"]
@@ -3498,7 +3498,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         labels = ["Gene desert", "-200 kb to -100 kb", "-100 kb to -50 kb", "-50 kb to -10 kb", "-10 kb to 0 kb",
             "0 kb to 10 kb", "10 kb to 50 kb", "50 kb to 100 kb", "100 kb to 200 kb"] 
 
-        dlabels = dict(zip(kord, labels)) 
+        dlabels = dict(list(zip(kord, labels))) 
         
         # arrange a table:
         #print "class\tann\tmean\tstdev\tstderr"
@@ -3708,7 +3708,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert filename, "need a filename!"
         assert key, "need a key!"
-        assert key in self.keys(), "key not found in this data"
+        assert key in list(self.keys()), "key not found in this data"
         
         if random_backgrounds:
             if not isinstance(random_backgrounds, list):
@@ -3747,7 +3747,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 rand_counts[k] = numpy.mean(rand_counts[k])
         
         if not random_backgrounds:
-            labels = counts.keys()
+            labels = list(counts.keys())
         else: # collect eh rand keys too.
             labels = [] # make sure all possible labes are collected:
         
@@ -3891,7 +3891,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert key, "remove(): You must specify a key"
         assert value, "remove(): You must specify a value"
-        assert key in self.keys(), "remove(): key '%s was not found in this genelist" % key
+        assert key in list(self.keys()), "remove(): key '%s was not found in this genelist" % key
         
         newl = self.shallowcopy() # Just use a view as we are not really modifying the data.
         newl.linearData = [] # get a new view
@@ -3932,7 +3932,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert filename, "cumulative_annotation_plot(): You must provide a filename"
         
-        xs = range(100, 50000, 500)
+        xs = list(range(100, 50000, 500))
         result = []
         annotated_genes = self.annotate(genelist=peaklists, distance=annotation_range[1]).removeDuplicates("enst")
         

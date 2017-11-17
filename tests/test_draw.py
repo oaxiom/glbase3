@@ -31,7 +31,7 @@ class Test_Draw(unittest.TestCase):
         """
         labels = {"left": "Left label", "right": "Right label", "title": "This is the title"}
         res = self.draw._vennDiagram2(10,2,20, filename="test_venn.png", labels=labels)
-        self.failIf(not res)
+        self.assertFalse(not res)
         # You have to test these by eye.
         self.draw._vennDiagram2(1000, 1000, 500, filename="messing_eq.png", proportional=True, labels=labels)
         self.draw._vennDiagram2(500, 1000, 1000, filename="messing_big_over.png", proportional=True, labels=labels)

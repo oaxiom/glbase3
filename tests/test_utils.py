@@ -42,7 +42,7 @@ class Test_Utils(unittest.TestCase):
         self.assertTrue(False not in [int(x*10000) == int(y*10000) for x, y in zip(res, exp)])
 
     def test_movingAverage(self):
-        data = range(0,21) + range(20,0,-1)
+        data = list(range(0,21)) + list(range(20,0,-1))
         #print data
         ma = utils.movingAverage(data, window=4)
         expected = [6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 77, 78, 77, 74, 70, 66, 62, 58, 54, 50, 46, 42, 38, 34, 30, 26, 22, 18, 14]

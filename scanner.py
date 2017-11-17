@@ -23,12 +23,12 @@ import sys, os, re, string
 from numpy import zeros
 
 # get glbase
-import config
-from flags import *
-from draw import draw
-from history import historyContainer
-from data import *
-from genelist import genelist
+from . import config
+from .flags import *
+from .draw import draw
+from .history import historyContainer
+from .data import *
+from .genelist import genelist
 
 class scanner(genelist.genelist):
     """
@@ -51,7 +51,7 @@ class scanner(genelist.genelist):
         returns a list of (object) rObj ?
         o would really like to do a reg expression for degenerate motifs here;
         """
-        print "Info: Started"
+        print("Info: Started")
         oh = file(os.path.join(path, fastafile), "rU") # Don't cache the FASTA so can perform arbitrarily massive searches.
 
         linelength = None
@@ -85,7 +85,7 @@ class scanner(genelist.genelist):
                 n += 1
                 if n > 1000:
                     m += 1
-                    print "Done: %s000, Found: %s" % (m, f)
+                    print("Done: %s000, Found: %s" % (m, f))
                     n = 0
 
         for w in [10, 50, 100, 500, 1000, 2000]:
@@ -94,7 +94,7 @@ class scanner(genelist.genelist):
         oh.close()
 
     def plotGraph(a, degenmotif, linelength, path, fastafile, window):
-        print "Info: Plotting Graph"
+        print("Info: Plotting Graph")
         x, ma = movingAverage(a, window)
         plot(x, ma)
         title(degenmotif+' periodicity')
@@ -124,7 +124,7 @@ class matrixmotif:
         rc_seq = self.rc(up_seq) # because I need to search the rc sequence too.
 
         for strand, seq in enumerate([up_seq, rc_seq]):
-            for pos in xrange(len(up_seq)):
+            for pos in range(len(up_seq)):
 
                 if (pos + self._length) > len(seq): # fail is seq < length
                     break
@@ -164,7 +164,7 @@ class matrixmotif:
 
         con_setpos = {"A" : 0, "C": 1, "G": 2, "T": 3}
 
-        for p_pos in xrange(self._length, len(pos_seq)-self._length, 1):
+        for p_pos in range(self._length, len(pos_seq)-self._length, 1):
             n_pos = len(pos_seq) - p_pos # work out the corresponding -ve strand
 
             seq_both_strands = [pos_seq[p_pos:p_pos+self._length], neg_seq[n_pos-self._length:n_pos]]
@@ -182,7 +182,7 @@ class matrixmotif:
 
             if max(scores) >= self._threshold: # keep it.
                 # found motif:
-                print "here:", seq_both_strands, p_pos
+                print("here:", seq_both_strands, p_pos)
                 hits.append(p_pos)
             result.append(max(scores))
         return({"scores": result, "hits": hits})
@@ -196,7 +196,7 @@ class matrixmotif:
         oldthreshold = self._threshold
         threshold = 0.75
         self._threshold = 0.0
-        for n in xrange(steps):
+        for n in range(steps):
             self._threshold = threshold + (n * 0.007) #(0.1/float(steps-1)))
             r = self.find_matches(seq)
             if r:
@@ -399,7 +399,7 @@ def BatchConvert(fasta_file, matrix, threshold = 0.883, bKeepAll=False, errorf=F
                     writer.writerow([name, location, 0, "None", seq])
 
         else: # Do the error stuff;
-            print "n:",i
+            print("n:",i)
             i += 1
             errorf.writerow(mm.EstimateErrorRate(seq, 30))
 

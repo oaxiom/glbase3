@@ -8,12 +8,12 @@ Used in places like the CSV format language and in selecting criteria, etc...
 
 """
 
-import cPickle, math, sys, os
-import utils, config
+import pickle, math, sys, os
+from . import utils, config
 
-from data import *
-from location import location
-from errors import BadBinaryFileFormatError
+from .data import *
+from .location import location
+from .errors import BadBinaryFileFormatError
 
 # ----------------------------------------------------------------------
 # Some helper functions
@@ -35,16 +35,16 @@ def glload(filename):
 
     try:
         oh = open(os.path.realpath(filename), "rb")
-        newl = cPickle.load(oh)
+        newl = pickle.load(oh)
         oh.close()
-    except cPickle.UnpicklingError:
-        raise BadBinaryFileFormatError, filename
+    except pickle.UnpicklingError:
+        raise BadBinaryFileFormatError(filename)
         
     # Recalculate the _optimiseData for old lists, and new features
     try:
         if newl.qkeyfind:
             pass
-        if "loc" in newl[0].keys() or "tss_loc" in newl[0].keys(): # buckets are only present if a loc key is available.
+        if "loc" in list(newl[0].keys()) or "tss_loc" in list(newl[0].keys()): # buckets are only present if a loc key is available.
             if newl.buckets: # added in 0.381, only in objects with tss_loc or loc key.
                 pass
     except Exception:
@@ -160,7 +160,7 @@ def XUp(data, names, normed = None, **kargs):
 # For formatting the CSV loading.
 
 def lst_find(lst, predicate): # I need a helper function to find the item
-    return (i for i, j in enumerate(lst) if predicate(j)).next()
+    return next((i for i, j in enumerate(lst) if predicate(j)))
 
 def cat_columns(c1, c2, sep=' '):
     # concatenate two columns together

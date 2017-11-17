@@ -7,11 +7,11 @@ Inspired from the progress bar in urlgrabber.
 
 """
 
-from __future__ import division
+
 
 import sys
 
-import config
+from . import config
 
 class progressbar:
     def __init__(self, maximum_value, output=sys.stderr):
@@ -52,7 +52,7 @@ class progressbar:
         if t_percent_done > self.__last_percent:
             percent_done = int(((new_value+1) / self.maximum) *100)
 
-            bar = "".join(["=" for x in xrange(t_percent_done)] + ["-" for x in xrange(self.__barwidth-t_percent_done)])
+            bar = "".join(["=" for x in range(t_percent_done)] + ["-" for x in range(self.__barwidth-t_percent_done)])
             if not config.SILENT: self.__writer.write("\r[%s] %s%% (%s/%s)" % (bar, percent_done, new_value+1, self.maximum))
             self.__last_percent = t_percent_done
 
@@ -68,6 +68,6 @@ if __name__ == "__main__":
     import time
 
     p = progressbar(100)
-    for i in xrange(100):
+    for i in range(100):
         time.sleep(0.1)
         p.update(i)

@@ -18,7 +18,7 @@ Supported platforms and file formats:
 
 import csv, math, numpy
 
-import config
+from . import config
 
 class assay:
     def __init__(self, _sampleName, _primerName, _output = None):
@@ -57,8 +57,8 @@ class assay:
         # calculate the first delta and weed out the bad calls from Ct_call
         self.tp1 = []
         self.fp = []
-        for i in xrange(len(self.Ct)):
-            for t in xrange(len(self.primerRef.Ct)):
+        for i in range(len(self.Ct)):
+            for t in range(len(self.primerRef.Ct)):
                 if (self.Ct_call[i]) and (self.primerRef.Ct_call[t]):
                     self.tp1.append(self.Ct[i] - self.primerRef.Ct[t])
                     self.fp.append(self.Ct[i])
@@ -116,21 +116,21 @@ class assay:
     def _pprint(self):
         self.sprint()
         if self.primerRef:
-            print ">>>>>primerRef"
+            print(">>>>>primerRef")
             self.primerRef.rprint()
         else:
-            print ">>>>>primerRef\r\nNone"
+            print(">>>>>primerRef\r\nNone")
         if self.sampleRef:
-            print ">>>>>sampleRef"
+            print(">>>>>sampleRef")
             self.sampleRef.rprint()
         else:
-            print ">>>>>sampleRef\r\nNone"
-        print "\r\n"
+            print(">>>>>sampleRef\r\nNone")
+        print("\r\n")
 
     def _sprint(self):
-        print self.sample, "\r\n",self.primer, "\r\n",  self.Ct, "\r\n", self.pow_ddCt, "\r\n", self.ddCt, "\r\n", self.mean, "\r\n",
+        print(self.sample, "\r\n",self.primer, "\r\n",  self.Ct, "\r\n", self.pow_ddCt, "\r\n", self.ddCt, "\r\n", self.mean, "\r\n", end=' ')
     def _rprint(self):
-        print self.sample, "\r\n",self.primer, "\r\n",  self.Ct, "\r\n", self.mean, "\r\n",
+        print(self.sample, "\r\n",self.primer, "\r\n",  self.Ct, "\r\n", self.mean, "\r\n", end=' ')
 
 class realtime2:
     def __init__(self, filename=None, format=None, **kargs):
@@ -237,23 +237,23 @@ class realtime2:
         csvr = csv.reader(fh)
         # read the header row;
         # start at row 10 and read in the three lines
-        for n in xrange(10):
-            line = csvr.next()
+        for n in range(10):
+            line = next(csvr)
         headers = []
         # then read in three lines and store them in a list of lists
-        for n in xrange(2):
-            line = csvr.next()
+        for n in range(2):
+            line = next(csvr)
             headers.append(line)
         # squash the three lines into 1
         nheaders = []
-        for n in xrange(len(headers[0])):
+        for n in range(len(headers[0])):
             a = headers[0]
             b = headers[1]
             nheaders.append(a[n]+b[n])
 
         #print nheaders
 
-        for n in xrange(len(nheaders)): # find the column numbers for all of the elements;
+        for n in range(len(nheaders)): # find the column numbers for all of the elements;
             item = nheaders[n].lower()
 
             if item == "samplename": cSamName = n
@@ -281,13 +281,13 @@ class realtime2:
         fh.close()
 
     def importGenericFilter(self, _csvfile):
-        print "> Generic File Import"
+        print("> Generic File Import")
         fh = open(_csvfile, "rb")
         csvr = csv.reader(fh)
         # read the header row;
-        line = csvr.next()
+        line = next(csvr)
         cCtCall = None
-        for n in xrange(len(line)): # find the column numbers for all of the elements;
+        for n in range(len(line)): # find the column numbers for all of the elements;
             item = line[n].lower()
 
             if item == "sample_name": cSamName = n
@@ -337,7 +337,7 @@ class realtime2:
                     if probe_name not in self.primerList:
                         self.primerList.append(probe_name)
                         
-                except ValueError, IndexError:
+                except ValueError as IndexError:
                     # Ct column is empty and this is an empty row, skip it.
                     pass
 
@@ -367,11 +367,11 @@ class realtime2:
                        
             cts = [float(i) for i in tt[1:]]
             
-            print probe_name, cts
+            print(probe_name, cts)
             
             for i, ct in enumerate(cts):
                 sample_name = header[i]
-                print probe_name, ct, sample_name
+                print(probe_name, ct, sample_name)
                 n = self.contains(probe_name, sample_name)
                 if n:
                     n.addCt(ct, True)
@@ -406,10 +406,10 @@ class realtime2:
                 found_sampleRef = True
 
         if not found_sampleRef: # with the GUI, these *should* be impossible;
-            print "> Error: No reference Sample found:", self.cRefSampleName
+            print("> Error: No reference Sample found:", self.cRefSampleName)
             return(False)
         if not found_PrimerRef:
-            print "> Error: No reference Primer found: ", self.cRefPrimerName
+            print("> Error: No reference Primer found: ", self.cRefPrimerName)
             return(False)
 
         # now pair up the assays with their controls;
@@ -568,8 +568,8 @@ class realtime2:
         **Arguments**
             None
         """
-        print "Data:"
-        print self.__str__()
-        print
+        print("Data:")
+        print(self.__str__())
+        print()
         for item in self.assayList:
-            print item
+            print(item)

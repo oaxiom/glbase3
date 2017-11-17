@@ -7,9 +7,9 @@ Functions take a bunch of data and spit out an glbase expression object.
 """
 
 import csv, numpy, copy
-import config
-from genelist import genelist
-from expression import expression
+from . import config
+from .genelist import genelist
+from .expression import expression
 
 valid_methods = ["Buganim", None, "Mean"]
 
@@ -129,7 +129,7 @@ def process_biomark(expression_sheets, sample_descriptor_tables, method, prefix=
                     if prim_name not in data[sam_name]:
                         data[sam_name][prim_name] = []
                     data[sam_name][prim_name] = data[sam_name][prim_name] + expn[s][p]
-            primer_names = primer_names.values()
+            primer_names = list(primer_names.values())
     else: # descriptors are contained in the expression_sheets
         for expn_tab, prefix in zip(expression_sheets, prefix):
             #sample_names, primer_names = load_descriptors(desc_tab, prefix, convert_under_scores)
@@ -163,9 +163,9 @@ def process_biomark(expression_sheets, sample_descriptor_tables, method, prefix=
             for s in data:
                 for p in data[s]:
                     data[s][p] = numpy.mean(data[s][p])
-            sample_names = data.keys()
+            sample_names = list(data.keys())
             #print data
-            primer_names = set(sum([data[s].keys() for s in data], []))
+            primer_names = set(sum([list(data[s].keys()) for s in data], []))
             #print primer_names
             
                     

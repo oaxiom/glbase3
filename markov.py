@@ -13,7 +13,7 @@ expanded to further word-based items.
 
 """
 
-import config
+from . import config
 
 default_letter_set = ["a", "c", "g", "t"]
 

@@ -17,9 +17,9 @@ import matplotlib.pyplot as plot
 import matplotlib.cm as cm
 import networkx as nx # Should only be possible to get here if networkx is available.
 
-import config
-import network_support
-import utils
+from . import config
+from . import network_support
+from . import utils
 
 class network:
     def __init__(self, parent):
@@ -93,7 +93,7 @@ class network:
             
         # Build the links:
         for cind, row in enumerate(correlation_table):
-            scores = zip(self.names, row) # The highest will always be self.
+            scores = list(zip(self.names, row)) # The highest will always be self.
             
             scores.sort(key=operator.itemgetter(1), reverse=True)
             #print scores
@@ -432,7 +432,7 @@ class network:
         
         # I need to reorder the node_sizes to match the nodes.
         # I don't know why this is required here, where commonly it is not required...
-        ss = dict(zip(self.parent.getConditionNames(), node_size_t))
+        ss = dict(list(zip(self.parent.getConditionNames(), node_size_t)))
         node_size = []
         for node in G.nodes():
             node_size.append(ss[node])

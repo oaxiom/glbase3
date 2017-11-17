@@ -9,4 +9,4 @@ outname= "".join(filename.split(".")[:-1])
 
 a = genelist(filename=filename)
 a.saveBED("%s.bed" % outname)
-print "%s -> %s.bed" % (filename, outname)
+print("%s -> %s.bed" % (filename, outname))

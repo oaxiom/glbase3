@@ -13,9 +13,9 @@ import matplotlib.patches
 from mpl_toolkits.mplot3d import Axes3D, art3d # not always available?
 import scipy.cluster.vq 
 
-import config
-from draw import draw
-from genelist import genelist
+from . import config
+from .draw import draw
+from .genelist import genelist
 
 class svd:
     def __init__(self, parent=None, rowwise=False, label_key=None, whiten=False, mean_subtraction=False, **kargs):
@@ -133,7 +133,7 @@ class svd:
         matrix = numpy.array(self.parent.serialisedArrayDataList)
         U, S, V = numpy.linalg.svd(matrix.T, full_matrices=False)
         
-        print "matrix", matrix.shape
+        print("matrix", matrix.shape)
         
         # set-ups
         self.parent = new_expn
@@ -144,17 +144,17 @@ class svd:
         
         matrix = numpy.array(self.parent.serialisedArrayDataList)
         S = numpy.diag(S)
-        print "U", U.shape
-        print "V", V.shape
-        print "S", S.shape
-        print "matrix", matrix.shape
+        print("U", U.shape)
+        print("V", V.shape)
+        print("S", S.shape)
+        print("matrix", matrix.shape)
         
         #data = np.dot(U, np.dot(S, V))
         #X_transformed = np.dot(X_transformed, self.V.T)
-        print numpy.dot(S, V).shape
+        print(numpy.dot(S, V).shape)
 
         pr = numpy.dot(matrix, S)
-        print "pr", pr.shape
+        print("pr", pr.shape)
         #y = x*W;
         #y0 = Y(1,:);
         #sum(abs(y0 - y)) %
@@ -163,12 +163,12 @@ class svd:
         
         self.__v = pr
         
-        print U
-        print
-        print pr
+        print(U)
+        print()
+        print(pr)
         
-        print numpy.allclose(U, pr)    
-        print numpy.allclose(matrix.T, numpy.dot(U, numpy.dot(S, V)))
+        print(numpy.allclose(U, pr))    
+        print(numpy.allclose(matrix.T, numpy.dot(U, numpy.dot(S, V))))
         return(True)           
         
     def get_uvd(self):
@@ -431,7 +431,7 @@ class svd:
             ax.add_patch(rect)
 
             tdata = []
-            for i in xrange(0, len(xdata)):
+            for i in range(0, len(xdata)):
                 if xdata[i] > cut[0] and xdata[i] < cut[2]:
                     if ydata[i] < cut[1] and ydata[i] > cut[3]:
                         if self.rowwise: # grab the full entry from the parent genelist
@@ -515,7 +515,7 @@ class svd:
         labs = self.parent[label_key]
         if topbots:
             # Get the top and bot from the X and Y sorted PCs:
-            sortable_data = zip(xdata, ydata, self.parent[label_key])
+            sortable_data = list(zip(xdata, ydata, self.parent[label_key]))
             sorted_by_x = sorted(sortable_data, key=lambda sortable_data: sortable_data[0])
             x_tbs = list(sorted_by_x[0:topbots]) + list(sorted_by_x[-topbots:])
             sorted_by_y = sorted(sortable_data, key=lambda sortable_data: sortable_data[1])
@@ -572,7 +572,7 @@ class svd:
 
             tdata = []
             labels = self.parent[label_key] # Just get once or big hit!
-            for i in xrange(0, len(xdata)):
+            for i in range(0, len(xdata)):
                 if xdata[i] > cut[0] and xdata[i] < cut[2]:
                     if ydata[i] < cut[1] and ydata[i] > cut[3]:
                         tdata.append({"name": labels[i], "pcx": xdata[i], "pcy": ydata[i]})
@@ -656,7 +656,7 @@ class svd:
         if stem: # stem must go after scatter for sorting. Actually, not true right? matplotlib uses zorder for that...
             z_min = min(zdata)
             for x_, y_, z_ in zip(xdata, ydata, zdata):        
-                line = art3d.Line3D(*zip((x_, y_, z_min), (x_, y_, z_)), marker=None, c="grey", alpha=0.1)
+                line = art3d.Line3D(*list(zip((x_, y_, z_min), (x_, y_, z_))), marker=None, c="grey", alpha=0.1)
                 ax.add_line(line)
         
         ax.set_xlabel("PC%s" % (x,)) # can be overridden via do_common_args()

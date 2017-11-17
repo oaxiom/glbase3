@@ -60,11 +60,11 @@ from matplotlib.colors import ColorConverter, rgb2hex
 import matplotlib.colors as matplotlib_colors
 import matplotlib.mlab as mlab
 from matplotlib.patches import Ellipse, Circle
-from adjustText import adjust_text
+from .adjustText import adjust_text
 
-import config, cmaps, utils
-from flags import *
-from errors import AssertionError
+from . import config, cmaps, utils
+from .flags import *
+from .errors import AssertionError
 
 # this is a work around in the implementation of
 # scipy.cluster.hierarchy. It does some heavy
@@ -213,7 +213,7 @@ class draw:
             ls = [len(kargs["data"][key]) for key in col_names]
 
             if not all(x == ls[0] for x in ls):  
-                raise Exception, "Heatmap data not Square"
+                raise Exception("Heatmap data not Square")
         else:
             # the default is a numpy like array object which can be passed right through.
             data = array(kargs["data"], dtype=float32)
@@ -224,11 +224,11 @@ class draw:
             assert len(row_colbar) == data.shape[0]
         
         if col_norm:
-            for col in xrange(data.shape[1]):   
+            for col in range(data.shape[1]):   
                 data[:,col] /= float(data[:,col].max())
         
         if row_norm:
-            for row in xrange(data.shape[0]):
+            for row in range(data.shape[0]):
                 mi = min(data[row,:])
                 ma = max(data[row,:])
                 data[row,:] = (data[row,:]-mi) / (ma-mi)
@@ -498,8 +498,8 @@ class draw:
             ax4.set_yticklabels("")
          
         if draw_numbers:
-            for x in xrange(data.shape[0]):
-                for y in xrange(data.shape[1]):
+            for x in range(data.shape[0]):
+                for y in range(data.shape[1]):
                     if data[x, y] >= draw_numbers_threshold:
                         if '%' in draw_numbers_fmt:
                             ax3.text(y+0.5, x+0.5, draw_numbers_fmt % data[x, y], size=draw_numbers_font_size, 
@@ -594,11 +594,11 @@ class draw:
         data = array(kargs["data"], dtype=float32) # heatmap2 can only accept a numpy array
         
         if col_norm:
-            for col in xrange(data.shape[1]):   
+            for col in range(data.shape[1]):   
                 data[:,col] /= float(data[:,col].max())
         
         if row_norm:
-            for row in xrange(data.shape[0]):
+            for row in range(data.shape[0]):
                 mi = min(data[row,:])
                 ma = max(data[row,:])
                 data[row,:] = (data[row,:]-mi) / (ma-mi)
@@ -852,7 +852,7 @@ class draw:
         
         pad = 1.0 / (num_heatmaps+1)
         # item positions:
-        heatmap_locations = [(0.01+(i*(pad+0.005)), 0.01, pad, 0.90) for i in xrange(num_heatmaps)]
+        heatmap_locations = [(0.01+(i*(pad+0.005)), 0.01, pad, 0.90) for i in range(num_heatmaps)]
         scalebar_location = [0.05,  0.97,   0.90,   0.02]
 
         if not "colbar_label" in kargs: 
@@ -2103,7 +2103,7 @@ class draw:
             cmap = cm.get_cmap(cm.Paired, len(labs))
             cols = []
             step = 256 // len(labs) 
-            for t in xrange(1, 256, step):
+            for t in range(1, 256, step):
                 cols.append(cmap(t))
             #print cols
         
@@ -2241,7 +2241,7 @@ class draw:
         ax = fig.add_subplot(111)
         
         if not order:
-            order = data.keys()
+            order = list(data.keys())
         
         num_cats = len(data)
         #xs = np.arange(num_cats)
@@ -2289,7 +2289,7 @@ class draw:
         
         ax.set_ylim([cmin, cmax])
         ax.set_xlim([-0.6, len(order)-0.4])
-        ax.set_xticks([i for i in xrange(len(order))]) # xticks must be 1 separated to get all labels for line up
+        ax.set_xticks([i for i in range(len(order))]) # xticks must be 1 separated to get all labels for line up
         
         fig.autofmt_xdate()
         
@@ -2387,7 +2387,7 @@ class draw:
             ax.add_patch(rect)
 
             tdata = []
-            for i in xrange(0, len(xdata)):
+            for i in range(0, len(xdata)):
                 if xdata[i] > cut[0] and xdata[i] < cut[2]:
                     if ydata[i] < cut[1] and ydata[i] > cut[3]:
                         if self.rowwise: # grab the full entry from the parent genelist

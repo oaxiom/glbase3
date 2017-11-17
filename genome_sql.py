@@ -12,23 +12,23 @@ TODO:
 
 """
 
-from __future__ import division
 
-import cPickle, sys, os, struct, math, sqlite3, zlib, time, csv
+
+import pickle, sys, os, struct, math, sqlite3, zlib, time, csv
 
 from operator import itemgetter
 
-from progress import progressbar
-from errors import AssertionError
-from location import location
-import utils, config
-from data import positive_strand_labels, negative_strand_labels
-from draw import draw
+from .progress import progressbar
+from .errors import AssertionError
+from .location import location
+from . import utils, config
+from .data import positive_strand_labels, negative_strand_labels
+from .draw import draw
 import matplotlib.cm as cm
 import matplotlib.pyplot as plot
 import scipy.stats as stats
 from scipy.stats import pearsonr
-from base_track import base_track
+from .base_track import base_track
 
 import numpy
 from numpy import array, zeros, set_printoptions, int32, append, linspace, argmax, amax, delete
@@ -170,7 +170,7 @@ class genome_sql(base_track):
         try:
             loc = location(loc=loc)
         except:
-            raise AssertionError, "cannot cooerce location into correct form. Location is mangled?"
+            raise AssertionError("cannot cooerce location into correct form. Location is mangled?")
 
         table_name = "chr_%s" % loc["chr"]
 
@@ -269,18 +269,18 @@ class genome_sql(base_track):
         c.execute("SELECT * FROM main")
         result = c.fetchall()
 
-        print "Main:"
+        print("Main:")
         for item in result:
-            print item
+            print(item)
 
-        print "Chr_Tables:"
+        print("Chr_Tables:")
         for item in result:
             table_name = "chr_%s" % str(item[0])[0] # stop injections.
-            print " Table", table_name
+            print(" Table", table_name)
             c.execute("SELECT * FROM %s" % table_name)
             chr_table_res = c.fetchall()
             for i in chr_table_res:
-                print " ", i
+                print(" ", i)
         c.close()
         
     def bindSequence(self, path=None):
@@ -433,6 +433,6 @@ if __name__ == '__main__':
             10, [1,2,3,4], [5,6,7,8], 
             'Nanog', '+')
     
-    print gsql.getFeatures(loc='chr1:100-130')
-    print gsql.getFeatures(loc='chr1:100-110')    # Should still return the entry
-    print gsql.getFeatures(loc='chr1:200-330')
+    print(gsql.getFeatures(loc='chr1:100-130'))
+    print(gsql.getFeatures(loc='chr1:100-110'))    # Should still return the entry
+    print(gsql.getFeatures(loc='chr1:200-330'))

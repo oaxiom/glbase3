@@ -6,16 +6,16 @@ tools for drawing logos from sequences, fasta files, genelists, etc.
 
 """
 
-from __future__ import division
+
 
 import sys, os, math
 from operator import itemgetter
 
 import numpy
 
-import config, utils
-from genelist import genelist
-from errors import NotImplementedError
+from . import config, utils
+from .genelist import genelist
+from .errors import NotImplementedError
 
 import matplotlib.pyplot as plot
 import matplotlib.image as mpimg
@@ -82,26 +82,26 @@ class logo:
             Nothing
         """        
         if style not in ["normal", "lol"]:
-            raise NotImplementedError, "%s style not found" % style
+            raise NotImplementedError("%s style not found" % style)
         
-        print self.freq
+        print(self.freq)
         
         if transpose:
             if style == "normal":
-                raise NotImplementedError, "%s, transposed, not done yet, sorry" % style
+                raise NotImplementedError("%s, transposed, not done yet, sorry" % style)
             elif style == "lol":
                 newa = []
                 for k in ["a", "c", "g", "t"]:
                     newa.append([i[k] for i in self.freq])
                 n = numpy.array(newa).T
-                print n
+                print(n)
         else:
             if style == "normal":
                 for k in ["a", "c", "g", "t"]:
-                    print "%s:%s" % (k, "\t".join([str(i[k]) for i in self.freq]))
+                    print("%s:%s" % (k, "\t".join([str(i[k]) for i in self.freq])))
             elif style == "lol":
                 for k in ["a", "c", "g", "t"]:
-                    print "[%s]" % (", ".join([str(i[k]) for i in self.freq]))
+                    print("[%s]" % (", ".join([str(i[k]) for i in self.freq])))
             
         
     def load_seq(self, sequence_data):
@@ -132,7 +132,7 @@ class logo:
     def __load_file(self, filename):
         # See if the file is a fasta file:
         oh = open(filename, "rU")
-        for i in xrange(100): # take a big sample
+        for i in range(100): # take a big sample
             l = oh.readline()
             if ">" in l:
                 # It's probably a FASTA
@@ -148,7 +148,7 @@ class logo:
         return(True)
     
     def __load_genelist(self, gl_object):
-        raise NotImplementedError, "genelist loading for logos not implemented"
+        raise NotImplementedError("genelist loading for logos not implemented")
     
     def __load_list(self, list_obj):
         self.data = numpy.array([[c for c in l] for l in list_obj], dtype='|S1').T # Why do I use |S1?
@@ -192,7 +192,7 @@ class logo:
                     rel_freq[k] = 0
                 else:
                     rel_freq[k] = (freq[k]/self.num_items)
-            sum_freq = sum([i for i in rel_freq.values()])
+            sum_freq = sum([i for i in list(rel_freq.values())])
             
             ind = -sum([rel_freq[k] * math.log(rel_freq[k], 2) for k in rel_freq if rel_freq[k] != 0])
                       
@@ -328,6 +328,6 @@ if __name__ == "__main__":
     
     l = logo(a)
     l.draw("logo.png")
-    print l.data
-    print l.freq
+    print(l.data)
+    print(l.freq)
     

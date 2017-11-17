@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 from matplotlib import pyplot as plt
 from itertools import product
@@ -452,7 +452,7 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
 
     texts = repel_text_from_axes(texts, ax, renderer=r, expand=expand_points)
     history = [np.inf]*5
-    for i in xrange(lim):
+    for i in range(lim):
         q1, q2 = np.inf, np.inf
 
         if text_from_text:

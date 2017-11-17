@@ -7,9 +7,9 @@ clean-up code and helpers for catching and dealing with errors.
 
 import csv
 
-from data import typical_headers, ignorekeys
-from location import location
-import config
+from .data import typical_headers, ignorekeys
+from .location import location
+from . import config
 
 class AssertionError(Exception):
     """
@@ -98,40 +98,40 @@ class UnRecognisedCSVFormatError(Exception):
         oh = open(file_handle, "rU")
         config.log.error("csv/tsv file did not pass the csv parser")
         config.log.error("Message: %s" % message)
-        print "-----------------------"
-        print "CSV Diagnostic:"
-        if format.has_key("skiplines"): # skip the lines.
+        print("-----------------------")
+        print("CSV Diagnostic:")
+        if "skiplines" in format: # skip the lines.
             if format["skiplines"] != -1:
-                for n in xrange(format["skiplines"]):
+                for n in range(format["skiplines"]):
                     oh.readline().rstrip("\r\n")
 
-        print "0:", oh.readline().rstrip("\r\n")
-        print "1:", oh.readline().rstrip("\r\n")
-        print "2:", oh.readline().rstrip("\r\n")
-        print "3:", oh.readline().rstrip("\r\n")
-        print "-----------------------"
-        print "Format Specifier: %s" % (" ".join(["%s:%s\t" % (key, format[key]) for key in format]))
-        print "Expected Format, based on the format specifier:"
+        print("0:", oh.readline().rstrip("\r\n"))
+        print("1:", oh.readline().rstrip("\r\n"))
+        print("2:", oh.readline().rstrip("\r\n"))
+        print("3:", oh.readline().rstrip("\r\n"))
+        print("-----------------------")
+        print("Format Specifier: %s" % (" ".join(["%s:%s\t" % (key, format[key]) for key in format])))
+        print("Expected Format, based on the format specifier:")
         oh.close()
 
         # This is a safe-ish version of loadCSV() that intelligently fails.
 
-        if not format.has_key("sniffer"):
+        if "sniffer" not in format:
             oh = open(file_handle, "rU")
-            if format.has_key("dialect"):
+            if "dialect" in format:
                 reader = csv.reader(oh, dialect=format["dialect"])
             else:
                 reader = csv.reader(oh)
 
             try:
-                if format.has_key("skiplines"):
+                if "skiplines" in format:
                     skiplines = format["skiplines"]
                 else:
                     skiplines = 0 # skip any header row by default.
             except:
-                print "Error: End of File" # premature end of file, skip out.
-                print "-----------------------"
-                print "Error: %s" % (message)
+                print("Error: End of File") # premature end of file, skip out.
+                print("-----------------------")
+                print("Error: %s" % (message))
                 return
 
             for index, column in enumerate(reader): # This is cryptically called column, when it is actually row.
@@ -152,13 +152,13 @@ class UnRecognisedCSVFormatError(Exception):
                                             d[key] = str(column[format[key]])
                                     except:
                                         d[key] = "mangled"
-                            print "%s" % (" ".join(["%s:%s" % (key, d[key]) for key in d]))
+                            print("%s" % (" ".join(["%s:%s" % (key, d[key]) for key in d])))
                             if index > 3:
                                 break
         else:
-            print "  No specified format (glbase will guess)"
+            print("  No specified format (glbase will guess)")
 
-        print "-----------------------"
+        print("-----------------------")
         config.log.error("End of error output")
 
 class LibraryNotFoundError(Exception):
@@ -182,19 +182,19 @@ class UnrecognisedFileFormatError(Exception):
         """
         oh = open(file_handle, "rU")
         config.log.critical("Unrecognised file format")
-        print "-----------------------"
-        print "Diagnostic:"
-        print "0:", oh.readline().rstrip("\r\n")
-        print "1:", oh.readline().rstrip("\r\n")
-        print "2:", oh.readline().rstrip("\r\n")
-        print "3:", oh.readline().rstrip("\r\n")
+        print("-----------------------")
+        print("Diagnostic:")
+        print("0:", oh.readline().rstrip("\r\n"))
+        print("1:", oh.readline().rstrip("\r\n"))
+        print("2:", oh.readline().rstrip("\r\n"))
+        print("3:", oh.readline().rstrip("\r\n"))
         if "sniffer" in format:
-            print "Format Specifier: Sniffer (guess the file format)"
+            print("Format Specifier: Sniffer (guess the file format)")
         else:
-            print "Format Specifier: %s" % (" ".join(["%s:%s" % (key, format[key]) for key in format]))
-        print "-----------------------"
+            print("Format Specifier: %s" % (" ".join(["%s:%s" % (key, format[key]) for key in format])))
+        print("-----------------------")
         config.log.critical("%s" % (message,))
-        print
+        print()
 
 class NotSupportedError(Exception):
     """

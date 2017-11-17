@@ -9,14 +9,14 @@ TODO:
 """
 
 import sys, os, csv
-import config, utils
+from . import config, utils
 
-from genelist import genelist
-from errors import AssertionError
-from location import location
-from progress import progressbar
-from format import sniffer, sniffer_tsv
-from data import * 
+from .genelist import genelist
+from .errors import AssertionError
+from .location import location
+from .progress import progressbar
+from .format import sniffer, sniffer_tsv
+from .data import * 
 
 class genome(genelist):
     """
@@ -50,7 +50,7 @@ class genome(genelist):
         valig_args = ["filename", "format", "sequence_path", "force_tsv"]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.__init__, k)
+                raise ArgumentError(self.__init__, k)
 
         genelist.__init__(self) # inherit
 
@@ -139,7 +139,7 @@ class genome(genelist):
             "tss_loc": self._findByCoords,
             "entrez": self._findByLabel
             }
-        for key, value in args.iteritems():
+        for key, value in args.items():
             if key == "key": # not a documented way to do it, but if you want to just search by key. pass a tuple of the form (actual_key, data)
                 if value[0] in self.linearData[0]:
                     return(func_dict[value[0]](value[0], value[1]))
@@ -221,7 +221,7 @@ class genome(genelist):
         try:
             loc = location(loc=loc)
         except:
-            raise AssertionError, "cannot cooerce location into correct form. Location is mangled?"
+            raise AssertionError("cannot cooerce location into correct form. Location is mangled?")
 
         ret = []
         if loc["chr"] in self.dataByChr:

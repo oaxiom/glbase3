@@ -19,30 +19,31 @@ import matplotlib.pyplot as plot
 from pylab import bivariate_normal, griddata # comes from where?
 import matplotlib.cm as cm
 
-import config, utils
-from flags import *
-from base_expression import base_expression
-from draw import draw
-from progress import progressbar
-from errors import AssertionError, ArgumentError
-from genelist import genelist
-from location import location
-from svd import svd
-from stats import stats
+from . import config, utils
+from .flags import *
+from .base_expression import base_expression
+from .draw import draw
+from .progress import progressbar
+from .errors import AssertionError, ArgumentError
+from .genelist import genelist
+from .location import location
+from .svd import svd
+from .stats import stats
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
-    from network import network
-    if config.PYDOT_AVAIL:
-        from bayes import bayes # Requires graphviz, but will probably port it later.
+    from .network import network
+    # 2to3 problem:
+    #if config.PYDOT_AVAIL:
+    #    from bayes import bayes # Requires graphviz, but will probably port it later.
 
-from som import SOM
-from somde import somde
-from pca import pca
-from mds import mds
-from tsne import tsne
+from .som import SOM
+from .somde import somde
+from .pca import pca
+from .mds import mds
+from .tsne import tsne
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
-    from mdsquish import mdsquish
+    from .mdsquish import mdsquish
 
 class expression(base_expression):
     def __init__(self, loadable_list=None, filename=None, format=None, expn=None, **kargs):
@@ -183,7 +184,7 @@ class expression(base_expression):
             self.bayes = bayes(self)
             return(self.bayes)
         
-        raise AttributeError, "'%s' object has no attribute '%s'" % (self.__repr__(), name)
+        raise AttributeError("'%s' object has no attribute '%s'" % (self.__repr__(), name))
 
     def get_pca(self, rowwise=False, label_key=None, **kargs):
         """
@@ -298,7 +299,7 @@ class expression(base_expression):
         """        
         col_sums = numpy.sum(self.numpy_array_all_data, axis=0)
         
-        new_condition_order = zip(self._conditions, col_sums)
+        new_condition_order = list(zip(self._conditions, col_sums))
         new_condition_order = sorted(new_condition_order, key=itemgetter(1))
         new_condition_order = [i[0] for i in new_condition_order]
                 
@@ -404,7 +405,7 @@ class expression(base_expression):
         """
         Deprecated method
         """
-        raise AssertioError, "findGene() is deprecated, see getRowsByKey()"
+        raise AssertioError("findGene() is deprecated, see getRowsByKey()")
 
     # ----------- overrides/extensions ---------------------------------
 
@@ -435,9 +436,9 @@ class expression(base_expression):
         assert isinstance(return_keys, list), "getColumns: return_keys must be a list"
         not_found = []
         for k in return_keys:
-            if k not in self.keys():
+            if k not in list(self.keys()):
                 not_found.append(k)
-        assert False not in [k in self.keys() for k in return_keys], "key(s): '%s' not found" % (', '.join(not_found),)
+        assert False not in [k in list(self.keys()) for k in return_keys], "key(s): '%s' not found" % (', '.join(not_found),)
         assert len(return_keys) == len(set(return_keys)), 'return_keys list is not unique'
 
         if strip_expn:
@@ -516,7 +517,7 @@ class expression(base_expression):
         for item in newgl:
             others = [i._findDataByKeyLazy(key=key, value=item[key]) for i in tables]
             if None in others:
-                raise AssertionError, "merge: %s:%s not found in table" % (key, item[key])
+                raise AssertionError("merge: %s:%s not found in table" % (key, item[key]))
             others = [i["conditions"] for i in others]
             item["conditions"] = sum(others, item["conditions"])
             if "err" in item:
@@ -942,7 +943,7 @@ class expression(base_expression):
         """
         # checks for option here please.
         assert filename, "heatmap: you must specify a filename"
-        assert row_label_key in self.keys(), 'row_label_key "%s" not found in this genelist' % row_label_key
+        assert row_label_key in list(self.keys()), 'row_label_key "%s" not found in this genelist' % row_label_key
         
         data = self.serialisedArrayDataList
 
@@ -1117,8 +1118,8 @@ class expression(base_expression):
         **Returns**
             A new expression object.
         """
-        assert conds.keys(), "norm_multi_fc: 'conds' must be a dictionary-like object"
-        assert conds.values(), "norm_multi_fc: 'conds' must be a dictionary-like object"
+        assert list(conds.keys()), "norm_multi_fc: 'conds' must be a dictionary-like object"
+        assert list(conds.values()), "norm_multi_fc: 'conds' must be a dictionary-like object"
         #if "err" in self.linearData[0]:
         #    config.log.warning("'err' key in this data, norm_multi_fc() will not correct the errors, I will delete this key")
         
@@ -1204,7 +1205,7 @@ class expression(base_expression):
         #print [c in self._conditions for c in all_reps], self._conditions
         if False in [c in self._conditions for c in all_reps]:
             missing_conds = [c for c in all_reps if c not in self._conditions]
-            raise AssertionError, "mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),)
+            raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
         
         threshold = 0.8
         if "threshold" in kargs and kargs["threshold"]:
@@ -1364,7 +1365,7 @@ class expression(base_expression):
             c2v = item["conditions"][c2i]+pad
             try:
                 item[key] = self.__fold_change(item["conditions"][c1i]+pad, item["conditions"][c2i]+pad, log=log)
-            except OverflowError, DivByZeroError:
+            except OverflowError as DivByZeroError:
                 if c2v > c1v:
                     config.log.error("(%.2f/%.2f) failed" % (c2v, c1v))
                 else:
@@ -1600,11 +1601,11 @@ class expression(base_expression):
                     cell_expressing.append(n)
             
         cell_expressing = list(set(cell_expressing))
-        print cell_expressing
+        print(cell_expressing)
 
         e = e.sliceConditions(cell_expressing)
-        print e
-        print e.getConditionNames()
+        print(e)
+        print(e.getConditionNames())
         
         return(newe)
 
@@ -2268,7 +2269,7 @@ class expression(base_expression):
         ax = fig.add_subplot(111)
     
         if "verbose" in kargs and kargs["verbose"]:
-            print "name\tmean\tstd" 
+            print("name\tmean\tstd") 
 
         for i, c in enumerate(self.getConditionNames()):
             ax.hist(data[i], bins=window_size, histtype="step", label=c, **extra_args)
@@ -2278,7 +2279,7 @@ class expression(base_expression):
             ax.axvline(x=m-d, color='grey', ls=":")
             ax.axvline(x=m+d, color='grey', ls=":")
             if "verbose" in kargs and kargs["verbose"]:
-                print "%s\t%.2f\t%.2f" % (c, m, d)
+                print("%s\t%.2f\t%.2f" % (c, m, d))
 
         if xlimits: 
             ax.xlim(xlimits)
@@ -2375,7 +2376,7 @@ class expression(base_expression):
         valig_args = ["genelists", "filename", "key"]
         for k in kargs:
             if k not in valig_args:
-                raise ArgumentError, (self.cumulative_distributions, k)
+                raise ArgumentError(self.cumulative_distributions, k)
 
         assert filename, "you must specify a valid filename"
         assert key, "you must specify a mapping key"
@@ -2395,7 +2396,7 @@ class expression(base_expression):
             nmap = []
             # this will sum all items in array.
             for a in mapped:
-                print a["conditions"]
+                print(a["conditions"])
                 s = sum(a["conditions"])
                 nmap.append(s)
 
@@ -2406,7 +2407,7 @@ class expression(base_expression):
                 except:
                     break
 
-            print nmap
+            print(nmap)
 
         # matplotlib junk is inappropriately here: to go later.
 
@@ -2511,7 +2512,7 @@ class expression(base_expression):
                 if not "symbol" in self:
                     key = "symbol"
                 else:
-                    raise AssertionError, "No suitable key found"
+                    raise AssertionError("No suitable key found")
         
         if not labels:
             labels = key
@@ -2844,7 +2845,7 @@ class expression(base_expression):
         """
         config.log.warning('radial_tree: is currently experimental!')
         
-        import radial_tree
+        from . import radial_tree
         
         valid_modes = ("conditions", "rows", "genes")
         assert mode in valid_modes, "'%s' not a valid mode" % mode
@@ -2886,7 +2887,7 @@ class expression(base_expression):
             
         link = linkage(dist, 'complete', metric=cluster_mode)
         
-        print link
+        print(link)
         
         rtree = radial_tree.tree(link)
 
@@ -3138,7 +3139,7 @@ class expression(base_expression):
         
         if pretty_print:
             for rank, item in enumerate(res):
-                print "%s:\t%s (%.3f)" % (rank+1, item["name"], item["correlation"])
+                print("%s:\t%s (%.3f)" % (rank+1, item["name"], item["correlation"]))
         
         return(res)
 
@@ -3505,7 +3506,7 @@ class expression(base_expression):
         
         ax = fig.add_subplot(121)    
         ax.scatter(pt_x, pt_y, alpha=0.2, color=cols)
-        for i in xrange(len(labs)):
+        for i in range(len(labs)):
             ax.text(pt_x[i], pt_y[i], labs[i], size=5, ha="center")
 
         # Diagonal slopes:
@@ -3598,7 +3599,7 @@ class expression(base_expression):
         # expression table needs to be transformed.
         data = numpy.array(self.serialisedArrayDataList).T
         
-        print "data", data.shape
+        print("data", data.shape)
         
         if dowhiten:
             config.log.info("kmeans: whiten...")
@@ -3619,18 +3620,18 @@ class expression(base_expression):
                 seed_names.append(i[key])
             seeds = numpy.array(cents)
             
-            print "seeds", seeds.shape
+            print("seeds", seeds.shape)
         
         config.log.info("kmeans: kmeans...")
         centroids, variance = kmeans(wt, seeds)
         
-        print centroids.shape
-        print centroids
+        print(centroids.shape)
+        print(centroids)
         
         config.log.info("kmeans: vq...")
         code, distance = vq(wt, centroids)
 
-        print code
+        print(code)
 
         clusters = {}
         for feature, cluster in enumerate(code):
@@ -3638,7 +3639,7 @@ class expression(base_expression):
                 clusters[cluster] = []
             clusters[cluster].append(data[feature])
     
-        print clusters.keys()
+        print(list(clusters.keys()))
         
         # Guess a suitable arrangement
         sq = math.ceil(math.sqrt(len(clusters)))

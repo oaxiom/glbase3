@@ -1,10 +1,10 @@
 
-import copy, cPickle, re
+import copy, pickle, re
 from shlex import split as shlexsplit
 
-import config
-from helpers import *
-from errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
+from . import config
+from .helpers import *
+from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 
 class _base_genelist:
     def __init__(self):
@@ -26,9 +26,9 @@ class _base_genelist:
         Confer: 
         if "key" in genelist:
         """
-        return(key in self.keys())
+        return(key in list(self.keys()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Fixes:
         if genelist: # contains something
@@ -47,10 +47,10 @@ class _base_genelist:
     #    raise Exception, "__copy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()"
     
     def __shallowcopy__(self):
-        raise Exception, "__shallowcopy__() is NOT supposrted for genelists, use gl.deepcopy() or gl.shallowcopy()"
+        raise Exception("__shallowcopy__() is NOT supposrted for genelists, use gl.deepcopy() or gl.shallowcopy()")
     
     def __deepcopy__(self, fake_arg):
-        raise Exception, "__deepcopy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()"
+        raise Exception("__deepcopy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()")
     
     def deepcopy(self):
         """
@@ -58,7 +58,7 @@ class _base_genelist:
         
         This is required as genelists are compound lists.
         """
-        return(cPickle.loads(cPickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
+        return(pickle.loads(pickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
 
     def shallowcopy(self):
         """
@@ -127,7 +127,7 @@ class _base_genelist:
         (Override)
         Block key editing.
         """
-        raise AssertionError, "Cannot modify list in-place"
+        raise AssertionError("Cannot modify list in-place")
 
     def __hash__(self):
         """
@@ -377,9 +377,9 @@ class _base_genelist:
         oh = open(filename, "wb")
         if compressed:
             config.log.warning("compression not currently implemented, saving anyway")
-            cPickle.dump(self, oh, -1)
+            pickle.dump(self, oh, -1)
         else:
-            cPickle.dump(self, oh, -1)
+            pickle.dump(self, oh, -1)
         oh.close()
         config.log.info("Saved binary version of list: '%s'" % filename)
         

@@ -11,10 +11,10 @@ import matplotlib.pyplot as plot
 from matplotlib.lines import Line2D
 import matplotlib.lines as mpllines
 
-import config
-from genelist import genelist
-from location import location
-from draw import draw
+from . import config
+from .genelist import genelist
+from .location import location
+from .draw import draw
 
 # Available formats
 # go_DAVID
@@ -129,7 +129,7 @@ class glgo(genelist):
                     newv.append(v)
             labs = newl
             vals = [-math.log10(i+pad) for i in newv]
-            print labs, vals
+            print(labs, vals)
         else:
             vals = [-math.log10(i[key]+pad) for i in data] # now padded, etc 
                 

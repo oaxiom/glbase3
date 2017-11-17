@@ -1,10 +1,10 @@
 
-import config
+from . import config
 
 import sys, os
 
-from genelist import genelist as genelist_object
-from location import location
+from .genelist import genelist as genelist_object
+from .location import location
 
 class tfbs_iter:
     def __init__(self, filename):

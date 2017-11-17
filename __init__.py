@@ -14,11 +14,11 @@ import sys
 #-----------------------------------------------------------------------
 # Load all of the global configuration options.
 try:
-    import config
-    from errors import LibraryNotFoundError
+    from . import config
+    from .errors import LibraryNotFoundError
 except:
-    print "Error: Fatal - GLbase is not installed correctly, cannot find my own libraries"
-    print "       Is the python 'sys.path' correct?"
+    print("Error: Fatal - GLbase is not installed correctly, cannot find my own libraries")
+    print("       Is the python 'sys.path' correct?")
     sys.exit() # no raise if I can't get errors, it's surely a fatal installation problem.
 
 # ----------------------------------------------------------------------
@@ -29,26 +29,26 @@ try:
     import numpy
     config.NUMPY_AVAIL = True
 except Exception:
-    raise LibraryNotFoundError, "Fatal - Numpy is not available or not installed"
+    raise LibraryNotFoundError("Fatal - Numpy is not available or not installed")
 
 try:
     import scipy
     config.SCIPY_AVAIL = True
 except Exception:
-    raise LibraryNotFoundError, "Fatal - Scipy is not available or not installed"
+    raise LibraryNotFoundError("Fatal - Scipy is not available or not installed")
 
 try:
     import matplotlib
     matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
 except Exception:
-    raise LibraryNotFoundError, "Fatal - matplotlib not available or not installed"
+    raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
 
 try:
     import sklearn
     config.SKLEARN_AVAIL = True
 except Exception:
-    raise LibraryNotFoundError, "Fatal - sklearn not available or not installed"
+    raise LibraryNotFoundError("Fatal - sklearn not available or not installed")
  
 try:
     import networkx
@@ -108,11 +108,11 @@ from .format_container import fc
 from .fastq import fastq
 from .glgo import glgo
 #from .rigidgrids import rigidgrid # Available only through expn objects in future?
-import realtime
-import gldata
-import utils
-import format
-import cmaps
+from . import realtime
+from . import gldata
+from . import utils
+from . import format
+from . import cmaps
 
 from .tools.seqToTrk import seqToTrk
 from .tools.wigstep_to_flattrack import wigstep_to_flat

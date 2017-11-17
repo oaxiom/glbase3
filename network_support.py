@@ -18,8 +18,8 @@ import matplotlib.patches
 import networkx as nx
 from operator import itemgetter
 
-import config, utils
-from draw import draw
+from . import config, utils
+from .draw import draw
 
 gldraw = draw() # make the glbase draw system avaiablae
 
@@ -195,7 +195,7 @@ def draw_node_labels(G, pos, labels=None, font_size=12, font_color='k',
     verticalalignment = kargs.get('verticalalignment', 'center')
 
     text_items = {}  # there is no text collection so we'll fake one
-    for n, label in labels.items():
+    for n, label in list(labels.items()):
         x, y = pos[n]
         #if not cb.is_string_like(label): # Assume users are a bit more savvy
         label = str(label)  # this will cause "1" and 1 to be labeled the same
@@ -295,7 +295,7 @@ def longest_path(G, **kargs):
                 longest_path = n
 
     # convert nodes to edgelist:
-    longest_edges = zip(longest_path, longest_path[1:])   
+    longest_edges = list(zip(longest_path, longest_path[1:]))   
     return(longest_path, longest_edges) # does not support multiple paths
 
 def __path_similarity(p1, p2):
@@ -373,7 +373,7 @@ def branches(G, **kargs):
     
     # Now select the expected_branches from the longest_branches
     ret_nodes = [longest_nodes] + longest_branches[0:kargs["expected_branches"]]
-    ret_edges = [zip(n, n[1:]) for n in ret_nodes]
+    ret_edges = [list(zip(n, n[1:])) for n in ret_nodes]
 
     #longest_edges = zip(longest_path, longest_path[1:])   
     return(ret_nodes, ret_edges)
@@ -392,7 +392,7 @@ def minimum_spanning_tree(G, **kargs):
     assert G, "minimum_spanning_tree(): No network specified"
     nodes = nx.minimum_spanning_tree(self.G) # returns a new network. Will need to unpack
     nodes = nodes.nodes()
-    edges = zip(nodes, nodes[1:]) # This is wrong?
+    edges = list(zip(nodes, nodes[1:])) # This is wrong?
     return([nodes], [edges])
 
 path_func_mapper = {"longest_path": longest_path,
@@ -539,7 +539,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         elif mark_path: # use a path if no network_boundary sent
             boundary = nx.node_boundary(G, mark_path) 
         else:
-            raise AssertionError, 'asked to draw a boundary, but no network_boundary or path available'
+            raise AssertionError('asked to draw a boundary, but no network_boundary or path available')
         draw_nodes(G, pos, ax=ax, 
             nodelist=boundary,
             node_size=node_size*1.2, #don't use node_color, see if the draw_nodes can pick it up from the attributes

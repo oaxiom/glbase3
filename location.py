@@ -14,7 +14,7 @@ TODO:
 
 """
 
-import copy, cPickle
+import copy, pickle
 
 class location:
     def __init__(self, loc=None, chr=None, left=None, right=None):
@@ -60,9 +60,9 @@ class location:
         return(hash(self._loc_string))
     
     def __deepcopy__(self, memo):
-        return(cPickle.loads(cPickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
+        return(pickle.loads(pickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
     
-    def __nonzero__(self):
+    def __bool__(self):
         return(True)
 
     def __repr__(self):
@@ -237,4 +237,4 @@ if __name__ == "__main__":
     
     s = "a = location(loc='chr1:1000-2000').pointify()"
     t = timeit.Timer(s, "from location import location")
-    print "%.2f usec/pass" % (1000000 * t.timeit(number=100000)/100000)
+    print("%.2f usec/pass" % (1000000 * t.timeit(number=100000)/100000))

@@ -3,24 +3,24 @@ track, part of glbase
 
 """
 
-from __future__ import division
 
-import cPickle, sys, os, struct, math, sqlite3, zlib, time, csv, zlib
+
+import pickle, sys, os, struct, math, sqlite3, zlib, time, csv, zlib
 
 from operator import itemgetter
 
-from progress import progressbar
-from errors import AssertionError
-from location import location
-import genelist as Genelist
-import utils, config
-from data import positive_strand_labels, negative_strand_labels
-from draw import draw
+from .progress import progressbar
+from .errors import AssertionError
+from .location import location
+from . import genelist as Genelist
+from . import utils, config
+from .data import positive_strand_labels, negative_strand_labels
+from .draw import draw
 import matplotlib.cm as cm
 import matplotlib.pyplot as plot
 import scipy.stats as stats
 from scipy.stats import pearsonr
-from base_track import base_track
+from .base_track import base_track
 
 import numpy
 from numpy import array, zeros, set_printoptions, int32, append, linspace, argmax, amax, delete
@@ -76,7 +76,7 @@ class track(base_track):
         try:
             self.pre_build =  self.meta_data['pre_build']
         except KeyError:
-            raise AssertionError, 'meta data not found in trk file, this suggests the trk file is incomplete, please check your trk file and regenerate if required'
+            raise AssertionError('meta data not found in trk file, this suggests the trk file is incomplete, please check your trk file and regenerate if required')
             
         self.norm_factor = float(self.meta_data['norm_factor'])
         if self.norm_factor != 1.0:
@@ -105,7 +105,7 @@ class track(base_track):
         #print "ret:",[d for d in data], ":"
         try:
             a = numpy.loads(zlib.decompress(data))
-        except cPickle.UnpicklingError:
+        except pickle.UnpicklingError:
             a = numpy.loads(zlib.decompress(data))
             if not self.__warned_about_zlib:
                 config.log.warning('Tracks are no no longer Zlib compressed by default. Tracks will need to be regenerated')
@@ -293,7 +293,7 @@ class track(base_track):
             if rel_array_right > len_a:
                 rel_array_right = len_a
             
-            for array_relative_location in xrange(rel_array_left, rel_array_right, 1):
+            for array_relative_location in range(rel_array_left, rel_array_right, 1):
                 a[array_relative_location] += 1
             
             #a[rel_array_left:rel_array_right] += 1 # Why is this slower than the for loop? # could be done with num_expr?
@@ -398,7 +398,7 @@ class track(base_track):
             or a tuple containing two arrays, one for each strand.
         """
         if strand: 
-            raise NotImplementedError, "Eh... strand not supported yet..."
+            raise NotImplementedError("Eh... strand not supported yet...")
         
         c = self._connection.cursor()
 
@@ -457,7 +457,7 @@ class track(base_track):
             # fold up to 1 liner           
             # This one liner does not work for some reason.
             #[a[array_relative_location] + 1 for array_relative_location in xrange(rel_array_left, rel_array_right, 1)]
-            for array_relative_location in xrange(rel_array_left, rel_array_right, 1):
+            for array_relative_location in range(rel_array_left, rel_array_right, 1):
                 a[array_relative_location] += 1
 
         #print "array_len", len(a)
@@ -484,7 +484,7 @@ class track(base_track):
             # work out which of the buckets is required:
             left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
             right_buck = int((loc["right"]+delta)/config.bucket_size)*config.bucket_size
-            buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
+            buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
             # get the ids reqd.                
             loc_ids = set()
@@ -616,18 +616,18 @@ class track(base_track):
         c.execute("SELECT * FROM main")
         result = c.fetchall()
 
-        print "Main:"
+        print("Main:")
         for item in result:
-            print item
+            print(item)
 
-        print "Chr_Tables:"
+        print("Chr_Tables:")
         for item in result:
             table_name = "chr_%s" % str(item[0])[0] # stop injections.
-            print " Table", table_name
+            print(" Table", table_name)
             c.execute("SELECT * FROM %s" % table_name)
             chr_table_res = c.fetchall()
             for i in chr_table_res:
-                print " ", i
+                print(" ", i)
         c.close()
 
     def saveBedGraph(self, filename, bin_size=100, read_extend=0):
@@ -658,7 +658,7 @@ class track(base_track):
             config.log.info("Doing Chromosome '%s'" % chrom)
             min_position = 0 # Could guess, but the below code will trim the padding zeros
             max_position = len(this_chrom)
-            for l in xrange(min_position, max_position, bin_size):
+            for l in range(min_position, max_position, bin_size):
                 value = numpy.mean(this_chrom[l:l+bin_size])
                 if value > 0.0: # If zero then it is okay to skip the loc.
                     oh.write('chr%s\t%s\t%s\t%s\n' % (chrom, l, l+bin_size, numpy.mean(this_chrom[l:l+bin_size]))) # data is already norm_factor corrected  
@@ -924,7 +924,7 @@ class track(base_track):
             self._draw = draw()
                 
         if pileup is None: # numpy iszero testing:
-            raise AssertionError, 'no data found, either the bed is empty, has no regions or the trk file is empty'
+            raise AssertionError('no data found, either the bed is empty, has no regions or the trk file is empty')
         
         if norm_by_read_count:
             config.log.info('Normalized by read count')
@@ -1038,8 +1038,8 @@ class track(base_track):
             as the heatmap
         """
         assert genelist, "must provide a genelist"
-        assert "loc" in genelist.keys(), "appears genelist has no 'loc' key"
-        assert "left" in genelist.linearData[0]["loc"].keys(), "appears the loc key data is malformed"
+        assert "loc" in list(genelist.keys()), "appears genelist has no 'loc' key"
+        assert "left" in list(genelist.linearData[0]["loc"].keys()), "appears the loc key data is malformed"
         assert log in ("e", math.e, 2, 10, None), "this 'log' base not supported"
         
         table = []
@@ -1272,7 +1272,7 @@ class track(base_track):
         
         # constructing a numpy array is excessively large. I only need to store pairs of reads
         
-        all_chroms = set(self.get_chromosome_names()) & set([i.replace("chr", "") for i in chrom_sizes.keys()]) # only iterate ones in both list
+        all_chroms = set(self.get_chromosome_names()) & set([i.replace("chr", "") for i in list(chrom_sizes.keys())]) # only iterate ones in both list
         all_p = numpy.array([])
         all_m = numpy.array([])
         res = []
@@ -1283,7 +1283,7 @@ class track(base_track):
             this_m = numpy.array([r[1] for r in self.get_all_reads_on_chromosome(chrom, "-")])
                         
             p = progressbar(max_shift)
-            for n in xrange(max_shift):                   
+            for n in range(max_shift):                   
                 this_m = this_m - 1    
                                  
                 union = numpy.union1d(this_p, this_m) # only ones I will have to look at
@@ -1303,12 +1303,12 @@ class track(base_track):
                 ax.set_title("Pearson: %.3f" % pears[n, idx])
                 fig.savefig("plots/test_%s_%s.png"% (chrom, n))
                 """
-            print "Done chromosome '%s'" % chrom
+            print("Done chromosome '%s'" % chrom)
 
-        print pears            
+        print(pears)            
         for row in pears:
             res.append(numpy.average(row))
-        print res
+        print(res)
         
         fig = self._draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
@@ -1325,48 +1325,48 @@ if __name__ == "__main__":
 
     """
     import random, time
-    from location import location
-    from genelist import genelist
+    from .location import location
+    from .genelist import genelist
     
     s = time.time()
-    print "Building...",
+    print("Building...")
     t = track(filename="testold.trk2", name="test", new=True)
-    for n in xrange(0, 10000):
+    for n in range(0, 10000):
         l = random.randint(0, 100000)
         t.add_location(location(chr="1", left=l, right=l+35), strand="+")
     t.finalise()
     e = time.time()
-    print e-s, "s"
+    print(e-s, "s")
     #t.finalise()
     
-    print t.get_reads('chr1:100-200')
+    print(t.get_reads('chr1:100-200'))
     
     s = time.time()
-    print "Fake bed..."
+    print("Fake bed...")
     # fake a bed
     newb = []
-    for n in xrange(0, 1000):
+    for n in range(0, 1000):
         l = random.randint(1000, 100000) # 1000 is for the window size. -ve locs are real bad.
         newb.append({"loc": location(chr="1", left=l, right=l+200), "strand": "+"})
     bed = genelist()
     bed.load_list(newb)
     e = time.time()
-    print e-s, "s"
+    print(e-s, "s")
     
     t = track(filename="testold.trk2")
-    print "Pileup..."
+    print("Pileup...")
     import cProfile, pstats
     cProfile.run("t.pileup(genelist=bed, filename='test.png', bin_size=10, window_size=1000)", "profile.pro")
     p = pstats.Stats("profile.pro")
     p.strip_dirs().sort_stats("time").print_stats()
 
-    print t.pileup(genelist=bed, filename='/tmp/test2.png', respect_strand=True)
-    print t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, respect_strand=True)
+    print(t.pileup(genelist=bed, filename='/tmp/test2.png', respect_strand=True))
+    print(t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, respect_strand=True))
     
-    print bed.all()
-    print t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, window_size=0, respect_strand=True)
+    print(bed.all())
+    print(t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, window_size=0, respect_strand=True))
 
-    print t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000)
-    print t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000, log=None)
-    print t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000, log=None, respect_strand=True)
+    print(t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000))
+    print(t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000, log=None))
+    print(t.heatmap(genelist=bed, raw_heatmap_filename="/tmp/test.tsv", filename='/tmp/test.png', bin_size=10, window_size=1000, log=None, respect_strand=True))
     
