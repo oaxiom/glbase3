@@ -33,7 +33,7 @@ TRACK_BLOCK_SIZE = 1000000 # should go in opt, and in META later, required on a 
 CACHE_SIZE = 100000 # maximum number of blocks to keep in memory.
 
 
-class flat_track(base_track, track):
+class flat_track(base_track):
     def __init__(self, name=None, new=False, filename=None, bin_format=None):
         """
         **Purpose**

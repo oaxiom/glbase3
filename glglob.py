@@ -767,7 +767,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         return(tab)
 
     def chip_seq_cluster(self, list_of_peaks, merge_peaks_distance=400, sort_clusters=True,  
- 		_get_chr_blocks=False, **kargs):
+        _get_chr_blocks=False, **kargs):
         """
         **Purpose**
             Combine and merge all peaks, extract the read pileups then categorize the peaks into
@@ -888,21 +888,21 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             p.update(idx)
             
-    	config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
-    	
-    	if _get_chr_blocks:
-    		return(chr_blocks)
-    	# Convert the chr_blocks into a expression object
-    	
-    	tab = []
-    	for chrom in chr_blocks:
-    		for loc in chr_blocks[chrom]:
-    			l = location(chr=chrom, left=loc[0], right=loc[1])
-    			cid = int("".join([str(i) for i in chr_blocks[chrom][loc]["binary"]]), 2)
-    			#print cid
-    			tab.append({'loc': l, 'conditions': chr_blocks[chrom][loc]['binary'], 'cid': cid})
+        config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
+        
+        if _get_chr_blocks:
+            return(chr_blocks)
+        # Convert the chr_blocks into a expression object
+        
+        tab = []
+        for chrom in chr_blocks:
+            for loc in chr_blocks[chrom]:
+                l = location(chr=chrom, left=loc[0], right=loc[1])
+                cid = int("".join([str(i) for i in chr_blocks[chrom][loc]["binary"]]), 2)
+                #print cid
+                tab.append({'loc': l, 'conditions': chr_blocks[chrom][loc]['binary'], 'cid': cid})
 
-		'''
+        '''
         # I want to sort the groups from the most complex to the least complex.     
         if sort_clusters:
             sorted_clusters = []
@@ -914,14 +914,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         else:
             pass
             #URK!
-    	'''
-    		
-    	#print tab
-    	e = expression(loadable_list=tab, cond_names=[p.name for p in list_of_peaks])
-    	if sort_clusters:
-    		e.sort('cid')
-    	
-    	return(e)
+        '''
+            
+        #print tab
+        e = expression(loadable_list=tab, cond_names=[p.name for p in list_of_peaks])
+        if sort_clusters:
+            e.sort('cid')
+        
+        return(e)
         
     def chip_seq_cluster_heatmap(self, list_of_peaks, list_of_trks, filename=None, normalise=False, bins=20, 
         pileup_distance=1000, merge_peaks_distance=400, sort_clusters=True, cache_data=False, log=2, bracket=None,
@@ -1084,9 +1084,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         """
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
 
-		# Currently untested:
-		#chr_blocks = self.chip_seq_cluster(list_of_peaks=list_of_peaks, merge_peaks_distance=merge_peaks_distance, 
-		#	sort_clusters=sort_clusters, _get_chr_blocks=True)
+        # Currently untested:
+        #chr_blocks = self.chip_seq_cluster(list_of_peaks=list_of_peaks, merge_peaks_distance=merge_peaks_distance, 
+        #   sort_clusters=sort_clusters, _get_chr_blocks=True)
 
         # get a non-redundant list of genomic regions based on resolution.           
         chr_blocks = {} # stores a binary identifier 

@@ -83,17 +83,17 @@ class pwms(genelist):
         '''
         load HOMER format, basically load_ACGT_rows with enhanced header splitting
         
-        >AAAGCATTGA	14-AAAGCATTGA,BestGuess:PB0197.1_Zfp105_2/Jaspar(0.625)	10.296193	-829.609933	0	T:187.0(2.20%),B:4.8(0.01%),P:1e-360
-        0.700	0.100	0.100	0.100
-        0.700	0.100	0.100	0.100
-        0.700	0.100	0.100	0.100
-        0.100	0.100	0.700	0.100
-        0.100	0.700	0.100	0.100
-        0.700	0.100	0.100	0.100
-        0.100	0.100	0.100	0.700
-        0.100	0.100	0.100	0.700
-        0.100	0.100	0.700	0.100
-        0.700	0.100	0.100	0.100
+        >AAAGCATTGA 14-AAAGCATTGA,BestGuess:PB0197.1_Zfp105_2/Jaspar(0.625) 10.296193   -829.609933 0   T:187.0(2.20%),B:4.8(0.01%),P:1e-360
+        0.700   0.100   0.100   0.100
+        0.700   0.100   0.100   0.100
+        0.700   0.100   0.100   0.100
+        0.100   0.100   0.700   0.100
+        0.100   0.700   0.100   0.100
+        0.700   0.100   0.100   0.100
+        0.100   0.100   0.100   0.700
+        0.100   0.100   0.100   0.700
+        0.100   0.100   0.700   0.100
+        0.700   0.100   0.100   0.100
         '''
         oh = open(filename, 'rU')
         
@@ -190,19 +190,19 @@ class pwms(genelist):
                                 l = [float(i) for i in l]
                                 data.append(l)
                             if "Probability matrix" in line:
-                            	post_process = True
-                            	# THere's a change in format 
-                            	# later, and they give 4 motifs
-                            	# for the same TF (different representations)
-                            	# we only want the last one 9the probabilty matrix
-						
+                                post_process = True
+                                # THere's a change in format 
+                                # later, and they give 4 motifs
+                                # for the same TF (different representations)
+                                # we only want the last one 9the probabilty matrix
+                        
                     # convert to numpy.
                     pfm = array(data)
                     
                     if post_process:
-						# keep only the last four columns
-						pfm = pfm[14:18]
-						post_process = False
+                        # keep only the last four columns
+                        pfm = pfm[14:18]
+                        post_process = False
                     
                     pfm = pfm.T
 
@@ -247,24 +247,24 @@ class pwms(genelist):
         Load a ACGT in rows arrangement (e.g. output from fexcom):
         
             >ap2af_-1bp_gcm1f
-            22	678	612	21
-            27	1238	31	37
-            24	1261	11	37
-            378	498	4	453
-            294	430	592	17
-            419	373	522	19
-            518	12	776	27
-            22	46	1234	31
-            310	571	442	10
-            377	28	514	414
-            43	1078	85	127
-            32	1252	18	31
-            576	705	7	45
-            324	45	613	351
-            27	1218	76	12
-            1193	67	24	49
-            25	32	839	437
-            347	52	672	262
+            22  678 612 21
+            27  1238    31  37
+            24  1261    11  37
+            378 498 4   453
+            294 430 592 17
+            419 373 522 19
+            518 12  776 27
+            22  46  1234    31
+            310 571 442 10
+            377 28  514 414
+            43  1078    85  127
+            32  1252    18  31
+            576 705 7   45
+            324 45  613 351
+            27  1218    76  12
+            1193    67  24  49
+            25  32  839 437
+            347 52  672 262
         
         """
         
