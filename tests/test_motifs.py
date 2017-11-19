@@ -11,7 +11,7 @@ for f in glob.glob('test_data/*.motif'): # Python library for wildcard file glob
     all_pwms.append(pwms(f, format='HOMER')) # pwms is from glbase 
     
 # Look at the zeroth entry in the pwm
-print(all_pwms[0])
+print((all_pwms[0]))
     
 # You can add multiple lists of pwms together:
 meta_pwm_list = sum(all_pwms[1:], all_pwms[0])

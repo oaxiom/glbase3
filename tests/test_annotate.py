@@ -14,16 +14,16 @@ import unittest
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 
-import glbase
-from glbase.utils import qcollide
+import glbase3
+from glbase3.utils import qcollide
 
-glbase.config.SILENT = True
-glbase.config.set_log_level(None)
+glbase3.config.SILENT = True
+glbase3.config.set_log_level(None)
 
 class Test_Annotate(unittest.TestCase):
     def setUp(self):
-        self.a = glbase.genelist(filename="testA.csv", format=glbase.format.sniffer)
-        self.g = glbase.genome(filename="test-genome.csv", format=glbase.format.sniffer)
+        self.a = glbase3.genelist(filename="test_data/testA.csv", format=glbase3.format.sniffer)
+        self.g = glbase3.genome(filename="test_data/test-genome.csv", format=glbase3.format.sniffer)
 
     def test_annotate(self):
         ann = self.g.annotate(genelist=self.a, key_to_match="loc", closest_only=False,

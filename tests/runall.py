@@ -8,9 +8,9 @@ import unittest
 # get glbase
 import sys, os
 sys.path.append(os.path.realpath("../../"))
-import glbase.config
+import glbase3.config
 
-glbase.config.set_log_level(None) # Silence output
+glbase3.config.set_log_level(None) # Silence output
 
 # please maintain these in alphabetical order.
 from test_annotate import Test_Annotate
