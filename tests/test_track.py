@@ -19,7 +19,7 @@ import unittest
 import sys, os
 #sys.path.append(os.path.realpath("../"))
 
-import glbase as gl
+import glbase3 as gl
 import numpy
 
 gl.config.SILENT = True

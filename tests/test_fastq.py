@@ -1,13 +1,9 @@
 """
-track.py tester code.
-
-Part of glbase
-
-Tests that track is performing accurately.
+FASTQ SE and PE splitter loader tester
 
 TODO:
 -----
-. some of the tests are not very extensive yet.
+. not in test suite
 
 """
 
@@ -15,9 +11,7 @@ import unittest, numpy
 
 # get glbase
 import sys, os
-sys.path.append(os.path.realpath("../"))
-
-from fastq import fastq
+import glbase3
 
 class Test_Fastq(unittest.TestCase):
     def test_splitPE(self):
@@ -32,7 +26,7 @@ class Test_Fastq(unittest.TestCase):
         HHHHHHHHCHBEEEE9EEBEEEDCECFBFBCB>?ACC>C##
         """
     
-        fq = fastq("fastq_typical_data.fq", "phred33")        
+        fq = glbase3.fastq("test_data/fastq_typical_data.fq", "phred33")        
         fq.splitPE("/tmp/out1.fq", "/tmp/out2.fq")
 
         # Uh... It works, but is not a real test.
@@ -44,7 +38,7 @@ class Test_Fastq(unittest.TestCase):
         self.assertEqual(id1[:-1], id2[:-1])
 
     def test_splitPE2(self):
-        fq = fastq("fastq_typical_data2.fq", "phred64")    
+        fq = glbase3.fastq("test_data/fastq_typical_data2.fq", "phred64")    
         """
         This interleaved file was also seen in the wild:
         

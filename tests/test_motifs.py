@@ -3,7 +3,7 @@
 
 import glob
 
-from glbase import *
+from glbase3 import *
 
 all_pwms = []
 

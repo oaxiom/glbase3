@@ -14,16 +14,16 @@ import unittest
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 
-import glbase
+import glbase3
 
-glbase.config.SILENT = True
-glbase.config.set_log_level(None)
+glbase3.config.SILENT = True
+glbase3.config.set_log_level(None)
 
 class Test_Genome(unittest.TestCase):
     def setUp(self):
-        self.gsql = glbase.genome_sql(new=True, filename='/tmp/test_genome_sql.sql') # This is platform specific and breaks on Windows
-        self.gsql.add_feature(glbase.location(chr='chr1', left=110, right=120), 
-            glbase.location(chr='chr1', left=110, right=120), 
+        self.gsql = glbase3.genome_sql(new=True, filename='/tmp/test_genome_sql.sql') # This is platform specific and breaks on Windows
+        self.gsql.add_feature(glbase3.location(chr='chr1', left=110, right=120), 
+            glbase3.location(chr='chr1', left=110, right=120), 
             10, [1,2,3,4], [5,6,7,8], 
             'Nanog', '+')
 
@@ -38,7 +38,7 @@ class Test_Genome(unittest.TestCase):
         self.assertTrue(isinstance(self.gsql.getFeatures(loc='chr1:100-130')[0]['exonStarts'], list))
 
     def test_get_sequences(self):
-        genome_mm10 = glbase.genome()
+        genome_mm10 = glbase3.genome()
         genome_mm10.bindSequence(os.path.join(os.path.expanduser("~"), "mm10/seq"))
         seq = genome_mm10.getSequence("chr1:10000000-10000200")
         self.assertEqual(seq, 'TTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATTTGTGGTGTAATTCAGGTTAGTGACTTGACTAATGCGATTATCATATAAATATAAAACACTCAGGTTTCTGCAAAGAGAGAGGTCATCCTGAAAAGTAAACAAAACAGGCCCTATTTAATTACCTCACAAGCTTACAAGTTGGATTTTAAGA')
@@ -46,11 +46,11 @@ class Test_Genome(unittest.TestCase):
         self.assertEqual(seq, 'AGTAATGGTAGTCATATGGTCCTTTGACACTTCAAGATTTATATTTAATTGGAAAAGAGAAAGCCATAGAAAGAATAATGGTAAGCCCTATTTATAGGAATAAAGTTGGTAGAAATACCAAGTCCAAAAATCCTTTGAAACTGAAAATCTGTAGCTGTGTTGGGTTTTGTTTTTTCCATGAAATACACCACACTGATCTGA')       
 
     def test_save_fasta(self):
-        genome_mm10 = glbase.genome()
+        genome_mm10 = glbase3.genome()
         genome_mm10.bindSequence(os.path.join(os.path.expanduser("~"), "mm10/seq"))
-        newl = [{"name": "A", "loc": glbase.location(loc="chr1:10000000-10000200")},
-            {"name": "X", "loc": glbase.location(loc="chrX:10000000-10000200")}]
-        newgl = glbase.genelist()
+        newl = [{"name": "A", "loc": glbase3.location(loc="chr1:10000000-10000200")},
+            {"name": "X", "loc": glbase3.location(loc="chrX:10000000-10000200")}]
+        newgl = glbase3.genelist()
         newgl.load_list(newl)
         fasta = genome_mm10.getSequences(newgl)
         fasta.saveFASTA(filename="/tmp/test_fasta.fa", name=["loc", "name"])

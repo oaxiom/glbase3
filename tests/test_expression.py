@@ -13,7 +13,7 @@ import unittest
 import sys, os, math
 sys.path.append(os.path.realpath("../../"))
 
-import glbase as gl
+import glbase3 as gl
 
 def fq_eq(a, b, eps=0.000001):
     return abs(math.log(abs(a)) - math.log(abs(b))) <=  eps

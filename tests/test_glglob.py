@@ -14,22 +14,22 @@ import unittest, numpy
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 
-import glbase
+import glbase3
 
-glbase.config.SILENT = True
-glbase.config.set_log_level(None)
+glbase3.config.SILENT = True
+glbase3.config.set_log_level(None)
 
 class Test_glglob(unittest.TestCase):
     def setUp(self):
         # get some data;
-        self.data1 = glbase.peaklist(filename="testA.csv")
-        self.data2 = glbase.peaklist(filename="testB.csv")
-        self.data3 = glbase.peaklist(filename="testC.csv")
-        self.data4 = glbase.peaklist(filename="../example/ccat_list.region", format=glbase.format_ccat_output)
-        self.g = glbase.glglob(self.data1, self.data2, self.data3, self.data4, type="peaklist")
+        self.data1 = glbase3.peaklist(filename="test_data/testA.csv")
+        self.data2 = glbase3.peaklist(filename="test_data/testB.csv")
+        self.data3 = glbase3.peaklist(filename="test_data/testC.csv")
+        self.data4 = glbase3.peaklist(filename="test_data/ccat_list.region", format=glbase3.format_ccat_output)
+        self.g = glbase3.glglob(self.data1, self.data2, self.data3, self.data4, type="peaklist")
 
-	"""
-	# This test is obselete now as I use Scipy to calculate?
+    """
+    # This test is obselete now as I use Scipy to calculate?
     def test_compare_euclidean_collide(self):
         r = self.g.compare(key="loc", filename="matrix_compare.png", method="collide", distance="euclidean")
 
@@ -47,7 +47,7 @@ class Test_glglob(unittest.TestCase):
                     array_equal = False
                     break
         self.assert_(array_equal)
-	"""
+    """
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_glglob)
     unittest.TextTestRunner(verbosity=2).run(suite)

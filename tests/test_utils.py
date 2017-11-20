@@ -15,9 +15,7 @@ import unittest, numpy
 
 # get glbase
 import sys, os
-sys.path.append(os.path.realpath("../"))
-
-import utils
+import glbase3.utils as utils
 
 class Test_Utils(unittest.TestCase):
     def test_cumulative_line_percent_false(self):

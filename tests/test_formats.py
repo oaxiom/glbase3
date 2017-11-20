@@ -11,7 +11,7 @@ import sys, os, unittest
 
 sys.path.append(os.path.realpath("../"))
 
-import glbase as gl
+import glbase3 as gl
 
 class Test_Formats(unittest.TestCase):
     def setUp(self):
@@ -49,7 +49,7 @@ class Test_Formats(unittest.TestCase):
         self.assertEqual(len(gl.format.catalogue), 31) # will need to be updated each time I register a format
 
     def test_sam_tophat_xs(self):
-        newgl = gl.genelist("../example/shared_raw_data/test.sam", format=gl.format.sam_tophat_xs)        
+        newgl = gl.genelist("test_data/test.sam", format=gl.format.sam_tophat_xs)        
         
         self.assertEqual(newgl[0]["loc"], "chr1:3035081-3035081")
         self.assertEqual(newgl[0]["seq"], "AAACATTCCTGGGAACATCTTGACCATAAGATAAAGGGGACTGTGAAGACATAGCAGGGCTATATTATCTAAGTCAACACCATCTGGCCG")
@@ -57,7 +57,7 @@ class Test_Formats(unittest.TestCase):
         self.assertEqual(newgl[1]["strand"], "-")
         
         # test it also works for a delayedlist, which is where I'd usually use it:
-        newgl = gl.delayedlist("../example/shared_raw_data/test.sam", format=gl.format.sam_tophat_xs)    
+        newgl = gl.delayedlist("test_data/test.sam", format=gl.format.sam_tophat_xs)    
         
         for index, item in enumerate(newgl):    
             #print item

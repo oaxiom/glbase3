@@ -9,6 +9,7 @@ import unittest
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 import glbase3.config
+print(sys.version)
 
 glbase3.config.set_log_level(None) # Silence output
 

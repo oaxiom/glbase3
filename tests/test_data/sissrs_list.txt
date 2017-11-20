@@ -1,0 +1,67 @@
+======================================================================
+SISSRs: A tool to identify binding sites from ChIP-Seq data
+======================================================================
+SISSRs version 1.4 (Release date: Mon, 24 November 2008)
+
+For further information on how to interpret these results or to get
+a recent version of the SISSRs software, please visit
+http://sissrs.rajajothi.com
+======================================================================
+
+
+======================================================================
+REFERENCE
+======================================================================
+If you use this program in your research, please cite:
+
+Raja Jothi, Suresh Cuddapah, Artem Barski, Kairong Cui, Keji Zhao
+Genome-wide identification of in vivo protein-DNA binding sites
+from ChIP-Seq Data. Nucleic Acids Research, 36(16):5221-31 (2008)
+======================================================================
+
+
+======================================================================
+COMMAND LINE SUMMARY & ESTIMATED PARAMETERS
+======================================================================
+Data file (i)                           : SCS847_re_unique_hits.bed
+Number of tags in the data file         : 10971698
+Number of tags selected for analysis    : 10971698 (100.00%)
+Tags mapped to sense strand             : 5483724 (49.98%)
+Tags mapped to anti-sense strand        : 5487974 (50.02%)
+Background model (Negative Control)     : SCS846_re_unique_hits.bed
+Number of tags in the control file      : 9635618
+Genome length (s)                       : 2716965481
+Fraction of genome mappable by reads (m): 0.80
+Effective Genome length  (s*m)          : 2173572384
+E-value (e)                             : 10
+P-value (p)                             : 0.001
+Scanning window size (w)                : 20
+Average DNA fragment length (f)         : 222
+Minimum number of 'directional' tags
+  required on each side of the inferred
+  binding site (E)                      : 2
+Keep one tag per genomic position (a)   : NO
+Also reports binding sites supported
+  only by reads mapped to either sense
+  or anti-sense strand (u)              : NO
+======================================================================
+
+
+======================================================================
+BINDING SITES
+======================================================================
+Tags necessary to identify binding sites: 13 (Fold >= 6.00)
+(at least E=2 tags on each side)
+
+Chr	cStart	cEnd	NumTags	Fold	p-value
+---	------	----	-------	----	-------
+chr1	35060071	35060111	14	12.30	4.0e-06
+chr1	78536851	78536891	19	16.69	0.0e+00
+chr1	188492651	188492711	15	13.17	2.0e-06
+chr11	51810871	51810991	15	6.59	8.6e-04
+chr11	65247791	65247851	14	6.15	8.6e-04
+chr11	77710211	77710331	15	13.17	2.0e-06
+chr11	114035911	114035951	15	6.59	8.6e-04
+chr11	118257731	118257771	14	6.15	8.6e-04
+chr11	119721111	119721151	15	6.59	8.6e-04
+======================================================================

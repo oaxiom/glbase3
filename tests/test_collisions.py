@@ -14,26 +14,26 @@ import unittest
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 
-import glbase
-from glbase.utils import qcollide
+import glbase3
+from glbase3.utils import qcollide
 
-#glbase.config.SILENT = True
-#glbase.config.set_log_level(None)
+#glbase3.config.SILENT = True
+#glbase3.config.set_log_level(None)
 
 class Test_Collisions_Overlaps(unittest.TestCase):
     def setUp(self):
-        self.a = glbase.genelist(filename="testA.csv", format=glbase.format.sniffer)
-        self.b = glbase.genelist(filename="testB.csv", format=glbase.format.sniffer)
-        self.c = glbase.genelist(filename="testC.csv", format=glbase.format.sniffer)
-        self.d = glbase.genelist(filename="../example/tutorial2/ccat_list.region", format=glbase.format.ccat_output)
-        self.e = glbase.genelist(filename="../example/tutorial2/macs_list.xls", format=glbase.format.macs_output)       
+        self.a = glbase3.genelist(filename="test_data/testA.csv", format=glbase3.format.sniffer)
+        self.b = glbase3.genelist(filename="test_data/testB.csv", format=glbase3.format.sniffer)
+        self.c = glbase3.genelist(filename="test_data/testC.csv", format=glbase3.format.sniffer)
+        self.d = glbase3.genelist(filename="test_data/ccat_list.region", format=glbase3.format.ccat_output)
+        self.e = glbase3.genelist(filename="test_data/macs_list.xls", format=glbase3.format.macs_output)       
         
         fake1 = [{"name": "gene1"}, 
             {"name": "gene2"}, 
             {"name": "gene3"}, 
             {"name": "gene4"}, 
             {"name": "gene5"}]
-        self.f1 = glbase.genelist()
+        self.f1 = glbase3.genelist()
         self.f1.load_list(fake1)
         
         fake2 = [{"name": "gene4", "alt_key": "meh"}, 
@@ -42,7 +42,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
             {"name": "gene7"}, 
             {"name": "gene8"},
             {"name": "gene9"}] 
-        self.f2 = glbase.genelist()
+        self.f2 = glbase3.genelist()
         self.f2.load_list(fake2)
         
         fake3 = [{"name": "gene4", "alt_key": False}, 
@@ -50,7 +50,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
             {"name": "gene5", "alt_key": False}, 
             {"name": "gene6"}, 
             {"name": "gene7"}]
-        self.f3 = glbase.genelist()
+        self.f3 = glbase3.genelist()
         self.f3.load_list(fake3)
 
     def test_load(self):
@@ -143,25 +143,25 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         self.assertEqual(res[2]["score"], 11.0)
     
     def test_buckets(self):
-        glbase.config.bucket_size = 100 # change to a smaller value for testing purposes.
+        glbase3.config.bucket_size = 100 # change to a smaller value for testing purposes.
 
-        g = glbase.genelist()
+        g = glbase3.genelist()
         
-        data = [{"loc": glbase.location(loc="chr1:1000-1200")},
-            {"loc": glbase.location(loc="chr1:1200-1300")},
-            {"loc": glbase.location(loc="chr1:1200-1201")},
-            {"loc": glbase.location(loc="chr1:1300-1400")},
-            {"loc": glbase.location(loc="chr1:1400-1500")},
-            {"loc": glbase.location(loc="chr1:1500-1600")},
-            {"loc": glbase.location(loc="chr1:1600-1600")}, # point locs on edges of buckets
-            {"loc": glbase.location(loc="chr1:1423-1423")}, # point locs in middle of buckets
-            {"loc": glbase.location(loc="chr1:0-1500")}] # span much larger than bucket 
+        data = [{"loc": glbase3.location(loc="chr1:1000-1200")},
+            {"loc": glbase3.location(loc="chr1:1200-1300")},
+            {"loc": glbase3.location(loc="chr1:1200-1201")},
+            {"loc": glbase3.location(loc="chr1:1300-1400")},
+            {"loc": glbase3.location(loc="chr1:1400-1500")},
+            {"loc": glbase3.location(loc="chr1:1500-1600")},
+            {"loc": glbase3.location(loc="chr1:1600-1600")}, # point locs on edges of buckets
+            {"loc": glbase3.location(loc="chr1:1423-1423")}, # point locs in middle of buckets
+            {"loc": glbase3.location(loc="chr1:0-1500")}] # span much larger than bucket 
         
         g.load_list(data)
        
-        left_buck = int((1299-1)/glbase.config.bucket_size)*glbase.config.bucket_size
-        right_buck = int((1788)/glbase.config.bucket_size)*glbase.config.bucket_size
-        buckets_reqd = list(range(left_buck, right_buck+glbase.config.bucket_size, glbase.config.bucket_size)) # make sure to get the right spanning and left spanning sites
+        left_buck = int((1299-1)/glbase3.config.bucket_size)*glbase3.config.bucket_size
+        right_buck = int((1788)/glbase3.config.bucket_size)*glbase3.config.bucket_size
+        buckets_reqd = list(range(left_buck, right_buck+glbase3.config.bucket_size, glbase3.config.bucket_size)) # make sure to get the right spanning and left spanning sites
         
         loc_ids = set()
         if buckets_reqd:
@@ -173,20 +173,20 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         self.assertEqual(len(g.buckets), 1)
         self.assertEqual(len(g.buckets["1"]), 17)
         
-        glbase.config.bucket_size = 10000 # change it back
+        glbase3.config.bucket_size = 10000 # change it back
 
     def test_remove_dupes_by_loc(self):
-        data = [{"loc": glbase.location(loc="chr1:1000-1200")},
-            {"loc": glbase.location(loc="chr1:1000-1200")},
-            {"loc": glbase.location(loc="chr1:1100-1200")},
-            {"loc": glbase.location(loc="chr1:1300-1400")},
-            {"loc": glbase.location(loc="chr1:1300-1400")},
-            {"loc": glbase.location(loc="chr1:1300-1400")},
-            {"loc": glbase.location(loc="chr1:1600-1600")},
-            {"loc": glbase.location(loc="chr1:1423-1423")},
-            {"loc": glbase.location(loc="chr2:1000-1200")}]   
+        data = [{"loc": glbase3.location(loc="chr1:1000-1200")},
+            {"loc": glbase3.location(loc="chr1:1000-1200")},
+            {"loc": glbase3.location(loc="chr1:1100-1200")},
+            {"loc": glbase3.location(loc="chr1:1300-1400")},
+            {"loc": glbase3.location(loc="chr1:1300-1400")},
+            {"loc": glbase3.location(loc="chr1:1300-1400")},
+            {"loc": glbase3.location(loc="chr1:1600-1600")},
+            {"loc": glbase3.location(loc="chr1:1423-1423")},
+            {"loc": glbase3.location(loc="chr2:1000-1200")}]   
         
-        g = glbase.genelist()            
+        g = glbase3.genelist()            
         g.load_list(data)
         
         newl = g.removeDuplicatesByLoc(delta=100)        

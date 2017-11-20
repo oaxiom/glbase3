@@ -6,7 +6,7 @@ Ideally this would be turned into a test case...
 
 """
 
-from glbase import *
+from glbase3 import *
 
 A = genelist(name="A")
 B = genelist(name="B")

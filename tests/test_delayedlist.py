@@ -16,26 +16,26 @@ import unittest
 import sys, os
 sys.path.append(os.path.realpath("../../"))
 
-import glbase
+import glbase3
 
 format = {"array_systematic_name": 0, "entrez": 1, "refseq": 2, "name": 3,
         "GFP": 4, "Mash": 5, "skiplines": 0}
 
 class Test_Delayedlist(unittest.TestCase):
     def setUp(self):
-        self.a = glbase.delayedlist(filename="../example/array_data.csv", format=format) # although I don't actually need this at all.
+        self.a = glbase3.delayedlist(filename="test_data/array_data.csv", format=format) # although I don't actually need this at all.
         spoof_gl = [{"name": "Lypla1"}, {"name": "Pdia4"}]
-        self.b = glbase.genelist()
+        self.b = glbase3.genelist()
         self.b.load_list(spoof_gl)
     
     def test_len(self):
-        self.b = glbase.genelist(filename="../example/array_data.csv", format=format)
-        self.a = glbase.delayedlist(filename="../example/array_data.csv", format=format)
+        self.b = glbase3.genelist(filename="test_data/array_data.csv", format=format)
+        self.a = glbase3.delayedlist(filename="test_data/array_data.csv", format=format)
         self.assertEqual(len(self.a), len(self.b))
 
     def test_gzipped_delayedlist(self):
-        self.b = glbase.genelist(filename="../example/array_data.csv", format=format)
-        self.a = glbase.delayedlist(filename="../example/array_data.csv.gz", format=format, gzip=True)
+        self.b = glbase3.genelist(filename="test_data/array_data.csv", format=format)
+        self.a = glbase3.delayedlist(filename="test_data/array_data.csv.gz", format=format, gzip=True)
         self.assertEqual(len(self.a), len(self.b))
         
         for item in self.a:
