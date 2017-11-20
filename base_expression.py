@@ -103,7 +103,8 @@ class base_expression(genelist):
                         do = True # do anyway
 
                     if do:
-                        exec("names = %s" % format["conditions"]["code"]) # yay, more nice happy arbitrary code execution.
+                        #names = None # py3.6 has a different exec action
+                        names = eval("%s" % format["conditions"]["code"]) # yay, more nice happy arbitrary code execution.
             
                         if names:
                             self._conditions = [str(k) for k in names]

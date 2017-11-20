@@ -278,10 +278,10 @@ class expression(base_expression):
         """
         if selected_conditions:
             selected_condition_indeces = [self._conditions.index(i) for i in selected_conditions]
-            comparator = lambda x, y: cmp(sum([x["conditions"][i] for i in selected_condition_indeces]), sum([y["conditions"][i] for i in selected_condition_indeces]))
-            self.linearData = sorted(self.linearData, cmp=comparator) 
+            comparator = lambda x: sum([x["conditions"][i] for i in selected_condition_indeces])
+            self.linearData = sorted(self.linearData, key=comparator) 
         else:        
-            self.linearData = sorted(self.linearData, cmp=lambda x, y: cmp(sum(x["conditions"]), sum(y["conditions"]))) 
+            self.linearData = sorted(self.linearData, key=lambda x: sum(x["conditions"])) 
         self._optimiseData()
         return(True)
 
