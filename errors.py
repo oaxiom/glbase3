@@ -18,7 +18,7 @@ class AssertionError(Exception):
         failed. This usually means some sort of category required
         for the method is missing.
     """
-    def __init__(self, message):
+    def __init__(self, message="Undefned AssertionError"):
         """
         Output the error message and tidy up the traceback, and perform other stuff.
         """

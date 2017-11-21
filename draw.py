@@ -219,9 +219,9 @@ class draw:
             data = array(kargs["data"], dtype=float32)
 
         if col_colbar:
-            assert len(col_colbar) == data.shape[1]
+            assert len(col_colbar) == data.shape[1], "col_colbar not the same length as data.shape[1]"
         if row_colbar:
-            assert len(row_colbar) == data.shape[0]
+            assert len(row_colbar) == data.shape[0], "row_colbar not the same length as data.shape[0]"
         
         if col_norm:
             for col in range(data.shape[1]):   
@@ -465,12 +465,20 @@ class draw:
         
         if col_colbar: 
             # Must be reordered by the col_cluster if present
-            newd = {}
-            colors_ = dict(list(six.iteritems(matplotlib_colors.cnames)))
-            for c in colors_:
-                newd[c] = matplotlib_colors.hex2color(colors_[c])
-                
-            col_colbar = numpy.array([[newd[c]] for c in col_colbar]).transpose(1,0,2)
+            named_color_dict = {}
+            colors_ = dict(list(six.iteritems(matplotlib_colors.cnames))) # unique list of colors
+            named_color_dict = {c:matplotlib_colors.hex2color(colors_[c]) for c in colors_}# gets the total list of all matplotlib named colors
+            
+            # convert non-# to RGB:
+            newc = []
+            for c in col_colbar:
+                if '#' in c:
+                    newc.append(matplotlib_colors.hex2color(c))
+                else:
+                    newc.append(named_color_dict[c])
+            
+            col_colbar = numpy.array([newc,]).transpose(1,0,2)
+            
             ax4 = fig.add_axes(loc_col_colbar)
             ax4.imshow(col_colbar, aspect="auto",
                 origin='lower', extent=[0, len(col_colbar),  0, 1], 
