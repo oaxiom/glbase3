@@ -477,7 +477,7 @@ class draw:
                 else:
                     newc.append(named_color_dict[c])
             
-            col_colbar = numpy.array([newc,]).transpose(1,0,2)
+            col_colbar = numpy.array([newc,])#.transpose(1,0,2)
             
             ax4 = fig.add_axes(loc_col_colbar)
             ax4.imshow(col_colbar, aspect="auto",
@@ -2306,7 +2306,7 @@ class draw:
 
     def unified_scatter(self, labels, xdata, ydata, x, y, mode='PC', filename=None,
         spots=True, label=False, alpha=0.8, perc_weights=None, spot_cols='grey', overplot=None,
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False, only_plot_if_x_in_label=None, 
+        spot_size=40, label_font_size=7, label_style=None, cut=None, squish_scales=False, only_plot_if_x_in_label=None, 
         adjust_labels=True, **kargs):
         '''
         Unified for less bugs, more fun!        
@@ -2364,9 +2364,9 @@ class draw:
             texts = []
             for i, lab in enumerate(labels):
                 if not spots and isinstance(spot_cols, list):
-                    texts.append(ax.text(xdata[i], ydata[i], lab, size=label_font_size, color=spot_cols[i]))
+                    texts.append(ax.text(xdata[i], ydata[i], lab, size=label_font_size, color=spot_cols[i], style=label_style, ha='center'))
                 else:
-                    texts.append(ax.text(xdata[i], ydata[i], lab, size=label_font_size, color="black"))
+                    texts.append(ax.text(xdata[i], ydata[i], lab, size=label_font_size, style=label_style, color="black"))
             if adjust_labels:
                 adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))                
         

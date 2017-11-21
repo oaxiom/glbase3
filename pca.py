@@ -170,7 +170,7 @@ class pca:
         return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
         
     def scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs): 
+        spot_size=40, label_font_size=7, label_style='normal', cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs): 
         """
         **Purpose**
             plot a scatter plot of PCx against PCy.
@@ -214,6 +214,10 @@ class pca:
                 
             label_font_size (Optional, default=7)
                 Size of the spot label text, only valid if label=True
+            
+            label_style (Optional, default='normal')
+                add a 'style' for the text labels, one of:
+                'normal', 'italic', 'oblique'
         
             cut (Optional, default=None)
                 Send a rectangle of the form [topleftx, toplefty, bottomrightx, bottomrighty], cut out all of the items within that
@@ -240,7 +244,8 @@ class pca:
         return(return_data)
         
     def feature_scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, 
-        topbots=False, spot_size=40, label_font_size=7, cut=None, squish_scales=False, **kargs): 
+        topbots=False, spot_size=40, label_font_size=7, cut=None, squish_scales=False,
+        label_style='normal', **kargs): 
         """
         **Purpose**
             plot a scatter plot of the loading for the features for PCx and PCy
@@ -279,6 +284,10 @@ class pca:
                 
             label_font_size (Optional, default=7)
                 Size of the spot label text, only valid if label=True
+                
+            label_style (Optional, default='normal')
+                add a 'style' for the text labels, one of:
+                'normal', 'italic', 'oblique'
         
             cut (Optional, default=None)
                 Send a rectangle of the form [leftx, topy, rightx, bottomy], cut out all of the items within that
@@ -299,7 +308,7 @@ class pca:
         
         return_data = self.__draw.unified_scatter(labels, xdata, ydata, x=x, y=y, filename=filename, 
             spot_cols=spot_cols, spots=spots, label=label, alpha=alpha, 
-            perc_weights=self.get_loading_percents(),
+            perc_weights=self.get_loading_percents(), label_style=label_style,
             spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales, 
             only_plot_if_x_in_label=False, **kargs)
         
