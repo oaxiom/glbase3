@@ -162,7 +162,7 @@ class location:
 
     def pointify(self):
         new = copy.deepcopy(self)
-        centre = (self.loc["left"] + self.loc["right"]) / 2
+        centre = (self.loc["left"] + self.loc["right"]) // 2
         new.loc = {"chr": self.loc["chr"], "left": centre, "right": centre}
         new.__update()
         return(new)
@@ -202,8 +202,8 @@ class location:
         (Internal)
         ignore the assert.
         """
-        centreA = (self.loc["left"] + self.loc["right"]) / 2
-        centreB = (loc["left"] + loc["right"]) / 2
+        centreA = (self.loc["left"] + self.loc["right"]) // 2
+        centreB = (loc["left"] + loc["right"]) // 2
         return(centreA - centreB)
 
     def __sub__(self, loc):

@@ -92,8 +92,8 @@ class Test_Location(unittest.TestCase):
         t = a["string"]
         self.assertEqual(t, "chr1:1000-2000")
 
-        t = str(a["dict"]) # emulate a print
-        self.assertEqual(t, "{'chr': '1', 'right': 2000, 'left': 1000}") # this is may be wrong as dicts can be unordered
+        t = str(sorted(a["dict"])) # emulate a print
+        self.assertEqual(t, str(sorted({'chr': '1', 'right': 2000, 'left': 1000}))) # this is may be wrong as dicts can be unordered
 
         t = len(a) # should be the length of the location string. = span between the two elements
         self.assertEqual(t, 1000)
