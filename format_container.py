@@ -26,6 +26,12 @@ class fc():
             "Format: %s" % self.data,
             "Description: %s" % self.description]
         return ("\n".join(a))
+
+    def keys(self):
+        return(self.data.keys())
+    
+    def values(self):
+        return(self.data.values())
         
     def __getitem__(self, key):
         return(self.data[key])

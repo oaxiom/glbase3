@@ -21,7 +21,9 @@ class Test_Formats(unittest.TestCase):
             description="A simple format")
         
     def test_format_containers(self):
-        self.assertEqual(str(self.f), "Name: f\nFormat: {'force_tsv': True, 'name': 0, 'strand': 2, 'description': 1}\nDescription: A simple format") # This may fail on windows?
+        result = {'force_tsv': True, 'name': 0, 'strand': 2, 'description': 1}
+        self.assertEqual(sorted(self.f.keys()), sorted(result.keys()))
+        self.assertEqual(sorted(self.f.values()), sorted(result.values()))
                
         self.assertEqual(self.f.description, "A simple format")
         
