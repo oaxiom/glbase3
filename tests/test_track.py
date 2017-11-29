@@ -146,7 +146,7 @@ class Test_Track_Function(unittest.TestCase):
             t.add_location(gl.location(chr="chr1", left=i, right=i+5))
         t.finalise()
         
-        g = gl.genelist(filename="track_test.bed", format=gl.format.bed)
+        g = gl.genelist(filename="test_data/track_test.bed", format=gl.format.bed)
         L = t.pileup(genelist=g, filename="test_images/test_output.png", heatmap_filename="test_images/test_heatmap.png", window_size=15, 
             bin_size=1, respect_strand=True, normalise=False, read_extend=1, raw_tag_filename="test_images/test_tags.tsv")
         
