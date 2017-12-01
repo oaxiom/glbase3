@@ -6,7 +6,7 @@
 
 """
 
-import sys, os, csv, string, math, copy, heapq, itertools
+import sys, os, csv, string, math, copy, heapq, itertools, functools
 
 from operator import itemgetter
 
@@ -359,13 +359,13 @@ class expression(base_expression):
         
         def comparer(left, right):
             for fn in comparers:
-                result = cmp(fn(left), fn(right))
+                result = (fn(left)>fn(right))-(fn(left)<fn(right)) # py2.7: cmp(fn(left), fn(right)) and py3.6 bodge: (a>b)-(a<b)
                 if result:
                     return result
             else:
                 return 0
         
-        self.linearData = sorted(self.linearData, cmp=comparer)
+        self.linearData = sorted(self.linearData, key=functools.cmp_to_key(comparer))
         self._optimiseData()
         return(True)
 
