@@ -226,9 +226,9 @@ class delayedlist(genelist):
             self.filehandle.close()
 
         if not self.gzip:
-            self.filehandle = open(self.fullpath, "rU")
+            self.filehandle = open(self.fullpath, "rt")
         else:
-            self.filehandle = gzip.open(self.fullpath, 'rb') # must be rb :(
+            self.filehandle = gzip.open(self.fullpath, 'rt') # must be rb :(
         
         
         if "force_tsv" in self.format and self.format["force_tsv"]:
