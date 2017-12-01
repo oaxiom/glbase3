@@ -43,18 +43,18 @@ class location:
                         return(True)
         return(False)
 
-    def __cmp__(self, other):
+    def __lt__(self, other): # deprecated in Python3
         # Make locations sortable
         if self.loc['chr'] < other.loc['chr']:
-            return -1
+            return True
         elif self.loc['chr'] == other.loc['chr']:
             if self.loc['left'] < other.loc['left']:
-                return -1
-            elif self.loc['left'] == other.loc['left']:
-                return 0
-            return 1
+                return True
+            elif self.loc['left'] == other.loc['left']: # For ties
+                return False
+            return False
         #self.loc['chr'] > other.loc['chr']:
-        return 1
+        return False
 
     def __hash__(self):
         return(hash(self._loc_string))

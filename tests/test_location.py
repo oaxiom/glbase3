@@ -12,6 +12,7 @@ import sys, os, unittest
 sys.path.append(os.path.realpath("../"))
 
 from location import location
+import glbase3
 
 class Test_Location(unittest.TestCase):
     def test_loading(self):
@@ -155,6 +156,20 @@ class Test_Location(unittest.TestCase):
         self.assertEqual(a == b, False) # internal
         self.assertEqual(a == "chr1:1000-2000", True)
         self.assertEqual(a == "chr1:1000-2001", False)
+
+    def test_sort_location(self):
+        a = [{'loc': location("chr1:1000-2000")},
+        {'loc': location("chr1:1001-2000")},
+        {'loc': location("chr1:1000-2001")},
+        {'loc': location("chr2:1050-2000")},
+        {'loc': location("chr1:999-2000")}]
+
+        gl = glbase3.genelist()
+        gl.load_list(a)
+        gl.sort('loc')
+
+        self.assertEqual(str(gl[-1]['loc']), "chr2:1050-2000")
+        self.assertEqual(str(gl[0]['loc']), "chr1:999-2000")
 
     def left_right_pointify(self):
         a = location("chr1:1000-2000")
