@@ -362,7 +362,7 @@ class genome(genelist):
             config.log.warning("'%s' not found" % chrom)
             return(None)
 
-        seekloc = (left + (left / self.seq_data[chrom]["linelength"]))-1 # the division by 50 is due to the presence of newlines every 50 characters.
+        seekloc = (left + (left // self.seq_data[chrom]["linelength"]))-1 # the division by 50 is due to the presence of newlines every 50 characters.
         #print chrom, self.seq[chrom], seekloc, self.seq_data[chrom]["offset"], loc
         self.seq[chrom].seek(seekloc+self.seq_data[chrom]["offset"]) # move to the start location.
 
@@ -374,7 +374,7 @@ class genome(genelist):
         ret = ""
         while len(ret) < delta:
             self.seq[chrom].seek(seekloc+self.seq_data[chrom]["offset"])
-            ret = self.seq[chrom].read(delta + (delta /self.seq_data[chrom]["linelength"]) + bonus).replace("\n", "").replace("\r", "")
+            ret = self.seq[chrom].read(delta + (delta // self.seq_data[chrom]["linelength"]) + bonus).replace("\n", "").replace("\r", "")
             bonus += 1
             if bonus > delta: # breaks in case you send a loc that is beyond the end of the file.
                 break
