@@ -11,8 +11,6 @@ TODO:
 
 """
 
-
-
 import pickle, sys, os, struct, configparser, math, sqlite3, zlib # renamed to configparser in >2.6
 
 from .location import location
@@ -31,7 +29,6 @@ from .track import track # All the benefits of track.
 
 TRACK_BLOCK_SIZE = 1000000 # should go in opt, and in META later, required on a per-flat basis.
 CACHE_SIZE = 100000 # maximum number of blocks to keep in memory.
-
 
 class flat_track(base_track):
     def __init__(self, name=None, new=False, filename=None, bin_format=None):
@@ -585,7 +582,7 @@ class flat_track(base_track):
         
         x = None
         if window_size:
-            x = numpy.arange(window_size*2) - int((window_size*2)/2)
+            x = numpy.arange(window_size*2) - (window_size*2)//2
         
         if window_size:
             loc_span = window_size*2
@@ -598,7 +595,7 @@ class flat_track(base_track):
                 counts = numpy.zeros(window_size*2)
                 gl = gl.pointify().expand('loc', window_size)
             else:
-                x = numpy.arange(loc_span) - int(loc_span/2)
+                x = numpy.arange(loc_span) - loc_span//2
                 hist = numpy.zeros(loc_span)
                 counts = numpy.zeros(loc_span) # used to get the average.
                 

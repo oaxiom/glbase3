@@ -163,7 +163,7 @@ class Test_Track_Function(unittest.TestCase):
         oh = open('/tmp/bedgraph.bg', 'rU')
         l1 = oh.readline().strip().split('\t')
         oh.close()
-        self.assertEqual(l1, ['chr1', '0', '100', '2.68'])
+        self.assertEqual(l1, ['chr1', '0', '100', '1.42'])
         
     '''def test_seqtotrk(self):
         gl.seqToTrk("track_test2.bed", "test_trk2.trk", name="Test Track", format=gl.format.bed)
