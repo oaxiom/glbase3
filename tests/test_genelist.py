@@ -27,9 +27,10 @@ class Test_GeneList(unittest.TestCase):
         self.assertEqual(len(self.a[0:2]), 2)
         # notice that this arrangement is not a microarray and Mash and GFP keys are separate.
         # single slices now return a plain dictionary
-        self.assertEqual(str(self.a[-1]), "{'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304}")
-        self.assertEqual(str(self.a[2]),  "{'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398}")
-
+        
+        self.assertDictEqual(self.a[-1], {'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304})
+        self.assertDictEqual(self.a[2], {'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398})   
+        
     def test_get_by_name(self):
         self.assertEqual(len(self.a["name"]), len(self.a))
         self.assertEqual(self.a["name"][0], "Lypla1")
