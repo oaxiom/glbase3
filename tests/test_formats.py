@@ -21,9 +21,7 @@ class Test_Formats(unittest.TestCase):
             description="A simple format")
         
     def test_format_containers(self):
-        result = {'force_tsv': True, 'name': 0, 'strand': 2, 'description': 1}
-        self.assertEqual(sorted(self.f.keys()), sorted(result.keys()))
-        self.assertEqual(sorted(self.f.values()), sorted(result.values()))
+        self.assertDictEqual(dict(self.f), {'force_tsv': True, 'name': 0, 'strand': 2, 'description': 1})
                
         self.assertEqual(self.f.description, "A simple format")
         

@@ -414,9 +414,9 @@ def convertFASTAtoDict(filename, gzip_input=False):
     assert os.path.exists(filename), "filename %s not found" % filename
 
     if gzip_input:
-        openfile = gzip.open(filename, "rb")
+        openfile = gzip.open(filename, "rt")
     else:
-        openfile = open(filename, "rU")
+        openfile = open(filename, "rt")
 
     result = []
     #entry = {"seq": "", "name": "empty"}

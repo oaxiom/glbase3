@@ -312,7 +312,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         temp_data = []
         if 'gzip' in kargs and kargs['gzip']:
-            oh = gzip.open(filename, "rU")
+            oh = gzip.open(filename, "rb")
         else:
             oh = open(filename, "rU")            
             

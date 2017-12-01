@@ -22,12 +22,10 @@ glbase3.config.set_log_level(None)
 class Test_GeneList(unittest.TestCase):
     def setUp(self):
         self.a = glbase3.genelist(filename="test_data/array_data.csv", format=glbase3.format.sniffer)
+        #print(self.a)
 
     def test_get_by_slice(self):
-        self.assertEqual(len(self.a[0:2]), 2)
-        # notice that this arrangement is not a microarray and Mash and GFP keys are separate.
-        # single slices now return a plain dictionary
-        
+        self.assertEqual(len(self.a[0:2]), 2)       
         self.assertDictEqual(self.a[-1], {'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304})
         self.assertDictEqual(self.a[2], {'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398})   
         
@@ -41,24 +39,24 @@ class Test_GeneList(unittest.TestCase):
         get["name"] = "Bleh"
         self.assertNotEqual(self.a[2]["name"], "Srpr")
         self.assertEqual(get["name"], "Bleh")
-    
-    def test_rename_key(self):
-        new = self.a.renameKey("name", "meh")
-                
-        self.assertTrue("meh" in new.linearData[0])
-        self.assertFalse("name" in new.linearData[0])
         
-        self.assertTrue("name" in self.a.linearData[0]) # test original list intact  
-        self.assertFalse("meh" in self.a.linearData[0]) 
-
+    def test_renameKey(self):
+        self.a = glbase3.genelist(filename="test_data/array_data.csv", format=glbase3.format.sniffer)
+        print(self.a)
+        newl = self.a.renameKey("name", "other-name")
+        self.assertTrue("name" in self.a[0])
+        self.assertTrue("other-name" not in self.a[0])
+        self.assertTrue("name" not in newl[0])
+        self.assertTrue("other-name" in newl[0])
+        
     def test_rename_key_keep_old_key(self):
-        new = self.a.renameKey("name", "meh", keep_old_key=True)
+        new = self.a.renameKey("name", "other-name", keep_old_key=True)
                 
-        self.assertTrue("meh" in new.linearData[0])
+        self.assertTrue("other-name" in new.linearData[0])
         self.assertTrue("name" in new.linearData[0])
         
         self.assertTrue("name" in self.a.linearData[0]) # test original list intact  
-        self.assertFalse("meh" in self.a.linearData[0]) 
+        self.assertFalse("other-name" in self.a.linearData[0]) 
         
     def test_addfakekey(self):       
         b = self.a.addFakeKey("meh", "++")
@@ -68,23 +66,16 @@ class Test_GeneList(unittest.TestCase):
     def test_splitbykey(self):
         newl = self.a.getRowsByKey(key="name", values="Ptp")
         self.assertTrue(len(newl) == 3) # A little basic?
-
-    def test_renameKey(self):
-        newl = self.a.renameKey("name", "other-name")
-        self.assertTrue("name" in self.a[0])
-        self.assertTrue("other-name" not in self.a[0])
-        self.assertTrue("name" not in newl[0])
-        self.assertTrue("other-name" in newl[0])
-
+    '''
     def test_load_gzips(self):
-        self.a = glbase3.genelist(filename="test_data/array_data.csv.gz", format=glbase3.format.sniffer, gzip=True)
-        self.assertEqual(str(self.a[-1]), "{'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304}")
-        self.assertEqual(str(self.a[2]),  "{'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398}")
-
+        self.b = glbase3.genelist(filename="test_data/array_data.csv.gz", format=glbase3.format.sniffer, gzip=True)
+        self.assertEqual(str(self.b[-1]), "{'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304}")
+        self.assertEqual(str(self.b[2]),  "{'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398}")
+    '''
     def test_load_FASTA_gzips(self):
-        self.a = glbase3.genelist(filename="test_data/Fasta_file.fa.gz", format=glbase3.format.fasta, gzip=True)
-        self.assertEqual(self.a[0]['seq'], 'AAATctggatacagtggcctttatttctagttccagtgactgggagactgaaacaagagagtcacttgagtacaggagtgcaaggctagcttgagcaatatagtaagactatctcaaaaTGTGAATTtagatcaacagaattgacatcaagaaaaatactgatatcactcaaagcaatctacagattcaacacaatctccatcaacatgacaatgacttccatcaGCATGACAATGACTCCATCAACATGCCAATGGGCCCCATCAACATAACAATGACCCCTATCATCATGACAATGATCCCCATCAACATGACAATGACCTCCATCAACATGACAATTACTCCTGTCAACATGCCAATtgttggggttcagaagtcaccctgcaaaccacaagaacact')
-
+        self.b = glbase3.genelist(filename="test_data/Fasta_file.fa.gz", format=glbase3.format.fasta, gzip=True)
+        self.assertEqual(self.b[0]['seq'], 'AAATctggatacagtggcctttatttctagttccagtgactgggagactgaaacaagagagtcacttgagtacaggagtgcaaggctagcttgagcaatatagtaagactatctcaaaaTGTGAATTtagatcaacagaattgacatcaagaaaaatactgatatcactcaaagcaatctacagattcaacacaatctccatcaacatgacaatgacttccatcaGCATGACAATGACTCCATCAACATGCCAATGGGCCCCATCAACATAACAATGACCCCTATCATCATGACAATGATCCCCATCAACATGACAATGACCTCCATCAACATGACAATTACTCCTGTCAACATGCCAATtgttggggttcagaagtcaccctgcaaaccacaagaacact')
+    
     def test_removeDuplicatesByLoc(self):
         a = [{'loc': glbase3.location(chr=1, left=100, right=200)},
             {'loc':  glbase3.location(chr=1, left=100, right=200)},
@@ -110,3 +101,9 @@ class Test_GeneList(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_GeneList)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    
+    a = glbase3.genelist(filename="test_data/array_data.csv", format=glbase3.format.sniffer)
+    print(a)
+    newl = a.renameKey("name", "other-name")
+    
+    print(newl)
