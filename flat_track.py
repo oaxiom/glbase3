@@ -569,8 +569,10 @@ class flat_track(base_track):
         if background:
             if not isinstance(background, list):
                 background = [background] # make a one item'd list
-    
-        read_count = float(self.get_total_num_reads())
+        
+        read_count = 1.0
+        if norm_by_read_count:
+            read_count = float(self.get_total_num_reads())
     
         all_hists = {}
         
