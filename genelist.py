@@ -312,9 +312,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         temp_data = []
         if 'gzip' in kargs and kargs['gzip']:
-            oh = gzip.open(filename, "rb")
+            oh = gzip.open(filename, "rt")
         else:
-            oh = open(filename, "rU")            
+            oh = open(filename, "rt")            
             
         if "force_tsv" in kargs and kargs["force_tsv"]: # force_tsv takes priority
             reader = csv.reader(oh, dialect=csv.excel_tab)

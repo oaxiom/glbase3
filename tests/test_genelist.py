@@ -42,7 +42,6 @@ class Test_GeneList(unittest.TestCase):
         
     def test_renameKey(self):
         self.a = glbase3.genelist(filename="test_data/array_data.csv", format=glbase3.format.sniffer)
-        print(self.a)
         newl = self.a.renameKey("name", "other-name")
         self.assertTrue("name" in self.a[0])
         self.assertTrue("other-name" not in self.a[0])
@@ -66,12 +65,12 @@ class Test_GeneList(unittest.TestCase):
     def test_splitbykey(self):
         newl = self.a.getRowsByKey(key="name", values="Ptp")
         self.assertTrue(len(newl) == 3) # A little basic?
-    '''
+    
     def test_load_gzips(self):
         self.b = glbase3.genelist(filename="test_data/array_data.csv.gz", format=glbase3.format.sniffer, gzip=True)
-        self.assertEqual(str(self.b[-1]), "{'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304}")
-        self.assertEqual(str(self.b[2]),  "{'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398}")
-    '''
+        self.assertDictEqual(self.b[-1], {'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304})
+        self.assertDictEqual(self.b[2],  {'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398})
+    
     def test_load_FASTA_gzips(self):
         self.b = glbase3.genelist(filename="test_data/Fasta_file.fa.gz", format=glbase3.format.fasta, gzip=True)
         self.assertEqual(self.b[0]['seq'], 'AAATctggatacagtggcctttatttctagttccagtgactgggagactgaaacaagagagtcacttgagtacaggagtgcaaggctagcttgagcaatatagtaagactatctcaaaaTGTGAATTtagatcaacagaattgacatcaagaaaaatactgatatcactcaaagcaatctacagattcaacacaatctccatcaacatgacaatgacttccatcaGCATGACAATGACTCCATCAACATGCCAATGGGCCCCATCAACATAACAATGACCCCTATCATCATGACAATGATCCCCATCAACATGACAATGACCTCCATCAACATGACAATTACTCCTGTCAACATGCCAATtgttggggttcagaagtcaccctgcaaaccacaagaacact')
@@ -101,9 +100,3 @@ class Test_GeneList(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_GeneList)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    
-    a = glbase3.genelist(filename="test_data/array_data.csv", format=glbase3.format.sniffer)
-    print(a)
-    newl = a.renameKey("name", "other-name")
-    
-    print(newl)
