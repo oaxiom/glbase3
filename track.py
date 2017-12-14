@@ -977,7 +977,7 @@ class track(base_track):
     def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2, 
         bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None, 
         pointify=True, respect_strand=False, cmap=cm.BuPu, norm_by_read_count=False,
-        imshow=True,
+        log_pad=None, imshow=True,
         **kargs):
         """
         **Purpose**
@@ -1017,6 +1017,9 @@ class track(base_track):
                 log transform the data, optional, the default is to transform by log base 2.
                 Note that this parameter only supports "e", 2, and 10 for bases for log
                 if set to None no log transform takes place.
+            
+            log_pad (Optional, default=None)
+                a Pad value for the log. If None then heatmap() guesses from the min of 0.1 or data.min()
             
             norm_by_read_count (Optional, default=False)
                 Normalise the heatmap by the total number of tags in the seq library.
@@ -1120,21 +1123,12 @@ class track(base_track):
         mag_tab = []
         for index, row in enumerate(table):
             mag_tab.append({"n": index, "sum": row.max()}) # Shouldn't this be sum?
-        
+
+        data = numpy.array(table)        
         if sort_by_intensity:
             mag_tab = sorted(mag_tab, key=itemgetter("sum"))
-        
-        if log:
-            data = numpy.array(table)+1 # Should be in tag count, so a reasonable pad
-        else:
-            data = numpy.array(table)
-        
-        newt = []
-        for item in mag_tab:
-            newt.append(data[item["n"],])
-        data = numpy.array(newt)
-        #print data.shape
-        data = numpy.delete(data, numpy.s_[-1:], 1) # Nerf the last column.
+            data = numpy.array([data[item["n"],] for item in mag_tab])
+            data = numpy.delete(data, numpy.s_[-1:], 1) # Nerf the last column.
         
         # Get the sorted_locs for reporting purposes:
         temp_gl_copy = genelist.deepcopy().linearData # deepcopy for fastness
@@ -1145,12 +1139,15 @@ class track(base_track):
         sorted_locs = gl
         
         if log:
+            if not log_pad:
+                log_pad = min([0.1, max([0.1, numpy.min(data)])])
+                
             if log == "e" or log == math.e:
-                data = numpy.log(data)-1
+                data = numpy.log(data+log_pad)
             elif log == 2:
-                data = numpy.log2(data)-1
+                data = numpy.log2(data+log_pad)
             elif log == 10:
-                data = numpy.log10(data)-1
+                data = numpy.log10(data+log_pad)
                
         # draw heatmap
         

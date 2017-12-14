@@ -22,6 +22,12 @@ C.load_list([{"key": i} for i in [1, 2, 3,    5, 6, 7,       10, 11,     13, 14,
 D.load_list([{"key": i} for i in [1, 2,    4, 5, 6,    8,    10,     12, 13,     15, 16,         19,         22,     24,     26,             30]])
 E.load_list([{"key": i} for i in [1,    3, 4, 5, 6,       9,     11, 12,     14, 15, 16,             20,         23,     25, 26,                31]])       
 
+gl = glglob(A, B) 
+gl.venn(filename="test_images/test_venn_AB.png", key="key")
+
+gl = glglob(A, B, C) 
+gl.venn(filename="test_images/test_venn3_ABC.png", key="key")
+
 gl = glglob(A, B, C, D) # pen and paper tested as correct, should be all 2's in each box
 gl.venn(filename="test_images/test_venn4_ABCD.png", key="key")
 

@@ -1378,8 +1378,8 @@ class draw:
         ax.set_ylim([0,30])
         
         artists = []
-        artists.append(Circle((10, 15), 8, alpha=1, facecolor="none"))
-        artists.append(Circle((20, 15), 8, alpha=1, facecolor="none"))
+        artists.append(Circle((10, 15), 8, alpha=1, lw=1, edgecolor='grey', facecolor="none"))
+        artists.append(Circle((20, 15), 8, alpha=1, lw=1, edgecolor='grey', facecolor="none"))
         
         for a in artists: # add all artists...
             ax.add_artist(a)
