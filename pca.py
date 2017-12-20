@@ -18,7 +18,7 @@ from .draw import draw
 from .genelist import genelist
 
 class pca:
-    def __init__(self, parent=None, rowwise=False, feature_key_name=None, whiten=False, **kargs):
+    def __init__(self, parent=None, rowwise=False, feature_key_name=None, **kargs):
         """
         **Purpose**
             A custom class for PCA analysis of expression object data.
@@ -55,12 +55,11 @@ class pca:
         self.cols = "black"
         self.rowwise = rowwise
         self.__model = None
-        self.whiten = whiten
         self.feature_labels = parent[feature_key_name]
         self.labels = parent.getConditionNames() # It makes more sense to get a copy incase someone does something that reorders the list in between 
         self.valid = False # Just check it's all calc'ed.
 
-    def train(self, number_of_components):
+    def train(self, number_of_components, whiten=False):
         '''
         **Purpose**
             Train the PCA on some array
@@ -69,11 +68,23 @@ class pca:
             number_of_components (Required)
                 the number of PC to collect
         
+            whiten (Optional, default=False)
+                [From sklearn]
+                When True (False by default) the components_ vectors are divided by 
+                n_samples times singular values to ensure uncorrelated outputs with 
+                unit component-wise variances.
+                
+                Whitening will remove some information from the 
+                transformed signal (the relative variance scales of the components) but 
+                can sometime improve the predictive accuracy of the downstream estimators 
+                by making there data respect some hard-wired assumptions.
+        
         **Returns**
             None
         
         '''
-        self.__model = PCA(n_components=number_of_components, whiten=self.whiten)
+        self.whiten = whiten
+        self.__model = PCA(n_components=number_of_components, whiten=whiten)
         self.__transform = self.__model.fit_transform(self.matrix) # U, sample loading
         self.__components = self.__model.components_.T # V, The feature loading
         #self.__transform = self.__model.transform(self.matrix) # project the data into the PCA
@@ -87,6 +98,7 @@ class pca:
         ret = ["PCA object",
             "    Expression: %s" % self.parent.name,
             "    Trained   : %s" % self.valid,
+            "    Whiten    : %s" % self.whiten,
             ]
         return("\n".join(ret))
 
@@ -142,7 +154,7 @@ class pca:
         fig = self.__draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
         x = numpy.arange(len(expn_var))
-        ax.bar(x-0.4, expn_var, ec="none", color="grey")
+        ax.bar(x, expn_var, ec="none", color="grey")
         ax.set_xlabel("Principal components")
         if percent_variance:
             ax.set_ylabel('Percent Variance')
@@ -456,6 +468,7 @@ class pca:
             
         """
         assert label_key, 'label_key is a required argument'
+        assert PC>0, 'PC must be >0'
         PC -= 1 # Pad the PC so that the expected PC is returned rather than the zero-based PC.
         
         if not self.rowwise:
