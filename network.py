@@ -104,7 +104,7 @@ class network:
                 if rind != cind: # stop self edges:
                     if t >= lo:
                         if not G.has_edge(self.names[rind], self.names[cind]):
-                            if len(G.neighbors(self.names[rind])) < max_links and len(G.neighbors(self.names[cind])) < max_links:
+                            if len(list(G.neighbors(self.names[rind]))) < max_links and len(list(G.neighbors(self.names[cind]))) < max_links:
                                 G.add_edge(self.names[rind], self.names[cind], weight=1.0-t)
                                 done += 1
                                 

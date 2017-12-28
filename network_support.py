@@ -31,7 +31,7 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
     Heavily modified these days though...
     """
     if nodelist is None: # set it to use all nodes if nodelist is None. is, as sometimes you get a numpy array
-        nodelist = G.nodes(data=True)
+        nodelist = [n for n in G.nodes(data=True)] # Strip the networkx view business
     elif isinstance(nodelist, list): # The node_boundary just sends back a list of node names
         # Convert to a tuple-like list of nodes, to match the output from G.nodes()
         nodelist = [(n, G.node[n]) for n in nodelist] # get the node back out from the full network
