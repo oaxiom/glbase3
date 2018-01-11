@@ -25,9 +25,9 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip):
         for file in infilename:
             config.log.info("Collecting %s" % (file,)) 
             if not gzip:
-                oh = open(file, "rU")
+                oh = open(file, "rt")
             else:
-                oh = opengzip.GzipFile(file, 'r') 
+                oh = opengzip.open(file, 'rt') 
 
             for line in oh: # Skip glbase overhead:
                 if "#" in line:
@@ -63,9 +63,9 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
         for file in infilename:
             config.log.info("Collecting %s" % (file,)) 
             if not gzip:
-                oh = open(file, "rU")
+                oh = open(file, "rt")
             else:
-                oh = opengzip.GzipFile(file, 'r') 
+                oh = opengzip.open(file, 'rt') 
 
             for line in oh: # Skip glbase overhead:
                 if "#" in line:
@@ -180,9 +180,9 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
         config.log.info("Collecting %s" % (file,)) 
 
         if not gzip:
-            oh = open(file, "rU")
+            oh = open(file, "rt")
         else:
-            oh = opengzip.GzipFile(file, 'r')
+            oh = opengzip.open(file, 'rt')
     
         # Pre-parse to grab the maximum chromosome sizes:
         for line in oh: # Skip glbase overhead:
