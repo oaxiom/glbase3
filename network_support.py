@@ -16,6 +16,7 @@ import matplotlib.cm as cm
 import matplotlib.cbook as cb
 import matplotlib.patches
 import networkx as nx
+from networkx.utils import is_string_like
 from operator import itemgetter
 
 from . import config, utils
@@ -32,10 +33,11 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
     """
     if nodelist is None: # set it to use all nodes if nodelist is None. is, as sometimes you get a numpy array
         nodelist = [n for n in G.nodes(data=True)] # Strip the networkx view business
+        #nodelist = list(G) # data?
     elif isinstance(nodelist, list): # The node_boundary just sends back a list of node names
         # Convert to a tuple-like list of nodes, to match the output from G.nodes()
-        nodelist = [(n, G.node[n]) for n in nodelist] # get the node back out from the full network
-            
+        nodelist = [(n, G.node[n]) for n in nodelist] # get the node back out from the full network    
+    
     # set the colors from the attributes if present:
     if 'color' in nodelist[0][1]: # Test a node to see if color attrib present
         node_color = []
@@ -56,20 +58,23 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
     if 'size' in nodelist[0][1]:
         node_size = []
         for n in nodelist:
-            node_size.append(n[1]['size'])
-    else:
-        node_size = [node_size] * len(nodelist)
+            node_size.append((n[1]['size'],))
+    #else: Assume they know what they are doing
     
     xy = numpy.asarray([pos[v[0]] for v in nodelist])
-
-    #print node_color
-    #print node_size
     
-    node_collection = ax.scatter(xy[:,0], xy[:,1], s=node_size, c=node_color,
-        marker=node_shape, cmap=cmap, vmin=vmin, vmax=vmax, alpha=alpha,
-        linewidths=linewidths, label=label)
+    node_collection = ax.scatter(xy[:,0], xy[:,1], 
+        s=node_size, 
+        c=node_color,
+        marker=node_shape, 
+        cmap=cmap, 
+        vmin=vmin, vmax=vmax, 
+        alpha=alpha,
+        linewidths=linewidths, 
+        edgecolors=None,
+        label=label)
 
-    plot.sci(node_collection)
+    #plot.sci(node_collection)
     node_collection.set_zorder(zorder) # I need this modification to change the ordering
 
     return node_collection
@@ -120,7 +125,7 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     else:   
         lw = width
 
-    if not cb.is_string_like(edge_color) and cb.iterable(edge_color) and len(edge_color) == len(edge_pos):
+    if not is_string_like(edge_color) and cb.iterable(edge_color) and len(edge_color) == len(edge_pos):
         if numpy.alltrue([cb.is_string_like(c) for c in edge_color]):
             # (should check ALL elements)
             # list of color letters such as ['k','r','k',...]
@@ -135,14 +140,18 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         else:
             raise ValueError('edge_color must consist of either color names or numbers')
     else:
-        if cb.is_string_like(edge_color) or len(edge_color) == 1:
+        if is_string_like(edge_color) or len(edge_color) == 1:
             edge_colors = (colorConverter.to_rgba(edge_color, alpha), )
         else:
             raise ValueError('edge_color must be a single color or list of exactly m colors where m is the number or edges')
 
-    edge_collection = LineCollection(edge_pos, colors=edge_colors,
-        linewidths=lw, antialiaseds=(1,), linestyle=style,
-        transOffset = ax.transData, zorder=zorder)
+    edge_collection = LineCollection(edge_pos, 
+        colors=edge_colors,
+        linewidths=lw, 
+        antialiaseds=(1,), 
+        linestyle=style,
+        transOffset=ax.transData, 
+        zorder=zorder)
  
     edge_collection.set_label(label)
     ax.add_collection(edge_collection)
@@ -470,7 +479,12 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         node_alpha = 0.1
     
     if nodes:
-        draw_nodes(G, pos, ax=ax, node_size=node_size, node_color=cols, alpha=node_alpha, linewidths=0, zorder=5)
+        draw_nodes(G, pos, ax=ax, 
+        node_size=node_size, 
+        node_color=cols, 
+        alpha=node_alpha, 
+        linewidths=0, zorder=5
+        )
     
     #print 'univerted:', [2.0-(i[2]['weight']) for i in G.edges(data=True)]
     elarge = [(u,v,d) for (u,v,d) in G.edges(data=True) if ((traversal_weight+1.0)-d['weight']) >= hi_threshold] # I pad and invert the weight so that pathfinding works correctly

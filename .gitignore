@@ -1,6 +1,6 @@
-syntax: glob
+.hgignore
+.hg
 *.pyc
-*~
 .DS_Store
 .buildinfo
 *.pro
