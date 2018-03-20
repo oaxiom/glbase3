@@ -54,6 +54,7 @@ from scipy import polyfit, polyval
 from scipy.stats import linregress
 import scipy.stats
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
 from matplotlib.colors import ColorConverter, rgb2hex
@@ -65,6 +66,9 @@ from .adjustText import adjust_text
 from . import config, cmaps, utils
 from .flags import *
 from .errors import AssertionError
+
+# This helps AI recognise the text as text:
+matplotlib.rcParams['pdf.fonttype']=42
 
 # this is a work around in the implementation of
 # scipy.cluster.hierarchy. It does some heavy
