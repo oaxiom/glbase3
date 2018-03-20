@@ -222,7 +222,7 @@ class base_expression(genelist):
             returns None
 
         """
-        self._save_TSV_CSV(filename=filename, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
+        self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
         config.log.info("saveTSV(): Saved '%s'" % filename)
         
     def _save_TSV_CSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
