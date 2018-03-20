@@ -296,7 +296,7 @@ class base_expression(genelist):
 
         return(None)
         
-    def sort(self, key):
+    def sort(self, key, reverse=False):
         """
         This is slightly different from the vanilla genelist's sort - you can pass it the name of
         a condition. Take care to make sure the condition name is not also a valid list key.
@@ -310,6 +310,10 @@ class base_expression(genelist):
         key
             must be a valid key in the genelist or the name of an array condition.
 
+        reverse (Optional, default=False)
+            By default the list is sorted smallest to largest.
+            reverse = True sorts largest to smallest.
+
         **Result**
 
         returns True if succesful.
@@ -319,11 +323,13 @@ class base_expression(genelist):
         assert (key in self.linearData[0]) or key in self._conditions, "'%s' search key not found in list or array data" % key
 
         if key in self.linearData[0]:
-            return(genelist.sort(self, key)) # use the parents sort.
+            return(genelist.sort(self, key, reverse=reverse)) # use the parents sort.
         else:
             if key in self._conditions:
                 name_index = self._conditions.index(key)
                 self.linearData = sorted(self.linearData, cmp=lambda x, y: cmp(x["conditions"][name_index],y["conditions"][name_index])) # the original sort() was overridden.
+                if reverse:
+                    self.linearData.reverse()
                 self._optimiseData()
                 return(True)
         return(False)
