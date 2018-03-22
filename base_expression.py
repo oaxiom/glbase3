@@ -28,6 +28,7 @@ class base_expression(genelist):
         
         This is the underlying base expression object and is not designed for direct usage.
         """
+        '''
         if not loadable_list:
             # these are only required if not loading a list
             assert expn, "'expn' argument cannot be empty"
@@ -37,6 +38,7 @@ class base_expression(genelist):
         else:
             # probably should put some more sanity checking in here.
             assert loadable_list[0], "the list to load does not appear to be a proper list"
+        '''
         
         if "cv_err" in kargs or "err_up" in kargs or "err_dn" in kargs:
             raise NotImplementedError("Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented")
@@ -56,6 +58,10 @@ class base_expression(genelist):
             self.name = kargs["name"]
         elif filename:
             self.name = "".join(self.filename.split(".")[:-1])
+        
+        if not loadable_list and not expn:
+            config.log.info("expression(): made an empty expression object")
+            return()
         
         if loadable_list:
             self.load_list(loadable_list, expn, **kargs)
@@ -405,6 +411,54 @@ class base_expression(genelist):
                 
         # Now call parent with new list
         genelist.load_list(self, newl, name)
+
+    def from_pandas(self, pandas_data_frame, condition_names=None):
+        """
+        **Purpose**
+
+            Convert a pandas dataFrame to a genelist
+            
+            NOTE: This is an INPLACE method that will REPLACE any exisiting data
+            in the 
+
+        **Arguments**
+
+            pandas_data_frame (Required)
+                The pandas data frame to convert
+                
+            condition_names (Required)
+                A list of Column names from the Pandas frame to use as expression data
+
+        **Result**
+            None
+            The object is populated by the Pandas object
+
+        """
+        assert condition_names, 'You must specify condition_names'
+        assert isinstance(condition_names, list), 'condition_names must be a list of colun names'
+        if len(self) >0:
+            config.log.warning('expression.from_pandas() will overwrite the existing data in the expression')
+        
+        newl = []
+        key_names = pandas_data_frame.columns
+        for index, row in pandas_data_frame.iterrows():
+            newitem = {}
+            
+            # load normal keys:
+            for k, item in zip(key_names, row):
+                if k not in condition_names:
+                    newitem[k] = item
+            # load conditions, in-order:
+            dict_items = dict(zip(key_names, row))
+            newitem['conditions'] = [dict_items[z] for z in condition_names]
+            
+            newl.append(newitem)
+            
+        self._conditions = condition_names
+        self.linearData = newl
+        self._optimiseData()
+
+        config.log.info("expression.from_pandas() imported dataFrame")
         
     def getConditionNames(self):
         """

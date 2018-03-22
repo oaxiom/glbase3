@@ -30,6 +30,7 @@ from test_track import Test_Track_Function
 from test_tsv_csv_behaviour import Test_TSVCSV
 from test_utils import Test_Utils
 from test_genome import Test_Genome
+from test_panda_import import Test_PandasImportlist
 
 def get_suite():
     suite = [
@@ -48,7 +49,8 @@ def get_suite():
         unittest.TestLoader().loadTestsFromTestCase(Test_TSVCSV),
         unittest.TestLoader().loadTestsFromTestCase(Test_Formats),
         unittest.TestLoader().loadTestsFromTestCase(Test_Fastq),
-        unittest.TestLoader().loadTestsFromTestCase(Test_Genome)
+        unittest.TestLoader().loadTestsFromTestCase(Test_Genome),
+        unittest.TestLoader().loadTestsFromTestCase(Test_PandasImportlist)
         ]
 
     return unittest.TestSuite(suite)
