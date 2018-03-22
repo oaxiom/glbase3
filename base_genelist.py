@@ -382,6 +382,40 @@ class _base_genelist:
             pickle.dump(self, oh, -1)
         oh.close()
         config.log.info("Saved binary version of list: '%s'" % filename)
+
+    def from_pandas(self, pandas_data_frame):
+        """
+        **Purpose**
+
+            Convert a pandas dataFrame to a genelist
+            
+            NOTE: This is an INPLACE method that will REPLACE any exisiting data
+            in the 
+
+        **Arguments**
+
+            pandas_data_frame (Required)
+                The pandas data frame to convert
+
+        **Result**
+            None
+            The object is populated by 
+
+        """
+        if len(self) >0:
+            config.log.warning('genelist.from_pandas() will overwrite the existing data in the genelist')
+        
+        newl = []
+        key_names = pandas_data_frame.columns
+        for index, row in pandas_data_frame.iterrows():
+            newitem = {}
+            for k, item in zip(key_names, row):
+                newitem[k] = item
+            newl.append(newitem)
+        self.linearData = newl
+        self._optimiseData()
+
+        config.log.info("genelist.from_pandas() imported dataFrame")
         
     # ----------- special file loaders:
     # Unbelievably stupid format for hmmer:
