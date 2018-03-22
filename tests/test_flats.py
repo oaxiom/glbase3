@@ -31,7 +31,7 @@ class Test_Flat_Function(unittest.TestCase):
 
     def test_get(self):
         a = self.t.get(glbase3.location(loc="chr1:10-20"))
-        self.assertEqual(str(a), "array('f', [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0])")
+        self.assertListEqual(list(a), [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0])
 
     def test_reload(self):
         t = glbase3.flat_track(filename="test_images/test.flat", bin_format="f")
@@ -53,10 +53,10 @@ class Test_Flat_Function(unittest.TestCase):
         t = glbase3.flat_track(filename="test_images/test.flat", bin_format="f")
         
         g = glbase3.genelist(filename="test_data/track_test.bed", format=glbase3.format.bed)
-        L, meh = t.pileup(genelists=g, filename="test_output.png", bandwidth=15, respect_strand=False)
-        
+        L, _ = t.pileup(genelists=g, filename="test_output.png", bandwidth=15, respect_strand=False)
+        print(L)
         expected_result = numpy.array(list(range(0, 30)))
-        
+        print(list(zip(L, expected_result)))
         self.assertTrue(False not in [x == y for x, y in zip(L, expected_result)])
 
     def test_pileup_respect_strand(self):
@@ -80,7 +80,7 @@ class Test_Flat_Function(unittest.TestCase):
         unmasked = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,2]
         self.assertTrue(False not in [int(x) == int(y) for x, y in zip(a, unmasked)]) # all seqs.
         a = t.get(glbase3.location(loc="chr2:99-111"), mask_zero=True)
-        expected = "[2.0 -- -- -- -- -- -- -- -- -- -- -- 2.0]" # not sure how to test this apart from a string.
+        expected = "[2.0 -- -- -- -- -- -- -- -- -- -- --]" # not sure how to test this apart from a string.
         self.assertEqual(str(a), expected)
         
 if __name__ == "__main__":
