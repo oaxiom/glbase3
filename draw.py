@@ -264,8 +264,9 @@ class draw:
                 
             else:
                 # If no row cluster take advantage of the extra width available, but shift down to accomodate the scalebar
-                mmheat_hei = 0.90 - heat_hei # this is also the maximal value (heamap edge is against the bottom)
-                top_side_tree =          [0.03,   0.852,  heat_wid,   0.044]
+                mmheat_hei = 0.89 - heat_hei # this is also the maximal value (heamap edge is against the bottom)
+                #top_side_tree =          [0.03,   0.852,  heat_wid,   0.044]
+                top_side_tree =          [0.03,   0.891,  heat_wid,   0.020]
                 heatmap_location =       [0.03,   mmheat_hei,   heat_wid,  heat_hei]
                 loc_row_colbar =         [0.03-0.016,   mmheat_hei,   0.014,  heat_hei] # No need to cut the tree, just squeeze i into the left edge
                 
@@ -273,7 +274,7 @@ class draw:
                     top_side_tree =          [0.03,   0.864,  heat_wid,   0.040] # squeeze up the colbar
                     loc_col_colbar =         [0.03,   0.852,   heat_wid,  0.012] # 
                 
-        scalebar_location = [0.01,  0.96,   0.24,   0.03]
+        scalebar_location = [0.01,  0.98,   0.24,   0.015]
         
         # set size of the row text depending upon the number of items:
         row_font_size = 0
@@ -383,7 +384,7 @@ class draw:
                 a = dendrogram(Z, orientation='left', color_threshold=row_color_threshold)
                 ax1.axvline(row_color_threshold, color="grey", ls=":")
             else:
-                a = dendrogram(Z, orientation='left')
+                a = dendrogram(Z, orientation='left', ax=ax1)
 
             ax1.set_position(left_side_tree)
             ax1.set_frame_on(False)
@@ -420,7 +421,7 @@ class draw:
         if col_cluster:
             # ---------------- top side plot (tree) --------------------
             transposed_data = data.T
-
+            print('Drawing col cluster')
             ax2 = fig.add_subplot(142)
             ax2.set_frame_on(False)
             ax2.set_position(top_side_tree)
@@ -432,7 +433,7 @@ class draw:
             else:
                 Y = pdist(transposed_data, metric=cluster_mode)
                 Z = linkage(Y, method='complete', metric=cluster_mode)
-            a = dendrogram(Z, orientation='top')
+            a = dendrogram(Z, orientation='top', ax=ax2)
 
             ax2.tick_params(top=False, bottom=False, left=False, right=False)
             
