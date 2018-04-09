@@ -18,7 +18,7 @@ from .draw import draw
 from .genelist import genelist
 
 class pca:
-    def __init__(self, parent=None, rowwise=False, feature_key_name=None, **kargs):
+    def __init__(self, parent=None, rowwise=False, feature_key_name=None, whiten=False, **kargs):
         """
         **Purpose**
             A custom class for PCA analysis of expression object data.
@@ -55,11 +55,12 @@ class pca:
         self.cols = "black"
         self.rowwise = rowwise
         self.__model = None
+        self.whiten = whiten
         self.feature_labels = parent[feature_key_name]
         self.labels = parent.getConditionNames() # It makes more sense to get a copy incase someone does something that reorders the list in between 
         self.valid = False # Just check it's all calc'ed.
 
-    def train(self, number_of_components, whiten=False):
+    def train(self, number_of_components, **kargs):
         '''
         **Purpose**
             Train the PCA on some array
@@ -83,8 +84,9 @@ class pca:
             None
         
         '''
-        self.whiten = whiten
-        self.__model = PCA(n_components=number_of_components, whiten=whiten)
+        if 'whiten' in kargs:
+            self.whiten = kargs['whiten']
+        self.__model = PCA(n_components=number_of_components, whiten=self.whiten)
         self.__transform = self.__model.fit_transform(self.matrix) # U, sample loading
         self.__components = self.__model.components_.T # V, The feature loading
         #self.__transform = self.__model.transform(self.matrix) # project the data into the PCA
