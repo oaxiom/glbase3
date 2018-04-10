@@ -27,7 +27,7 @@ import matplotlib.pyplot as plot
 
 from .track import track # All the benefits of track. 
 
-TRACK_BLOCK_SIZE = 1000000 # should go in opt, and in META later, required on a per-flat basis.
+TRACK_BLOCK_SIZE = 1000000 # should go in opt, or in META? required on a per-flat basis.
 CACHE_SIZE = 100000 # maximum number of blocks to keep in memory.
 
 class flat_track(base_track):

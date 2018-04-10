@@ -462,7 +462,7 @@ class track(base_track):
 
         #print "array_len", len(a)
 
-        return(numpy.array(a)*self.norm_factor)
+        return(numpy.array(a)*self.norm_factor) # NORMFACTOR (If any) is done HERE!
 
     def get_reads(self, loc, strand=None):
         """

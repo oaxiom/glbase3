@@ -3023,7 +3023,6 @@ class expression(base_expression):
         **Returns**
             A dict containing::
                 "data": 2D numpy array containing the correlation scores (depending upon the mode)
-                "p": 2D numpy array of p-values.
                 "labels": the labels along the top and bottom of the array, sorted according to the 
                 clustering (if any)
                 
