@@ -3465,11 +3465,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             for d in ann:
                 if i == 0:
                     for k in hist:
+                        if k == 'desert': # Py3 no longer evaluates >= for str/float
+                            continue
+                        
                         c = d["dist_to_tss"] / 1000
                         if c >= k[0] and c < k[1]:
                             hist[k] += 1
                 else:
                     for k in back:
+                        if k == 'desert': # Py3 no longer evaluates >= for str/float
+                            continue
                         c = d["dist_to_tss"] / 1000
                         if c >= k[0] and c < k[1]:
                             tback[k] += 1
