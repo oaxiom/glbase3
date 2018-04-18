@@ -1486,7 +1486,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             size=[8, 6], bracket=[1.3,4], row_cluster=True, col_cluster=False, # heatmap args
             heat_wid=0.15, cmap=cm.Reds, border=True, row_font_size=7, 
             heat_hei=0.80, grid=True, ontology=None, draw_numbers_fmt='%.1f',
-            draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5, **kargs):
+            draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5, do_negative_log10=True, 
+            **kargs):
         '''
         **Purpose**
             Produce a heatmap of GO categories from a glglob of GO genelists (glgo's)
@@ -1524,6 +1525,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 the bracket for the min and max of the heatmap. This sort of bracket
                 assumes your data is -log10 transformed and so the p-value would 
                 range from 0.05 to 0.0001
+                
+            do_negative_log10 (Optional, default=True)
+                By default convert the value in pvalue into the -log10()
+                Set this to False if you don't want to convert
             
         **Returns**
             The resorted row names (as a list) and a heatmap in filename
@@ -1556,7 +1561,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 if item[pvalue_key] < 0.01: 
                     if item['name'] not in go_store:
                         go_store[item['name']] = [-1] * (number_of_clusters)
-                    go_store[item['name']][idx] = -math.log10(item['pvalue'])
+                    if do_negative_log10:
+                        go_store[item['name']][idx] = -math.log10(item['pvalue'])
+                    else:
+                        go_store[item['name']][idx] = item['pvalue']
                     #main_cluster_membership[item['name']] = clus_number-1
                 
         # fill in the holes:
@@ -1564,7 +1572,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             for k in go_store:
                 this_k = go.get(key='name', value=k, mode='lazy') # by default
                 if this_k:
-                    go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0]['pvalue']))
+                    if do_negative_log10:
+                        go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0]['pvalue']))
+                    else: 
+                        go_store[k][cond_names_idx[go.name]] = float(this_k[0]['pvalue'])
 
         newe = []
 
