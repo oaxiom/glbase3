@@ -1550,6 +1550,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 continue
                 
             go.sort(pvalue_key)
+            go.reverse()
+            
+            print(go)
             
             if ontology:
                 this_ont = go.getRowsByKey('ontology', ontology)
@@ -1558,25 +1561,35 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 top5 = go[0:num_top]
       
             for item in top5:
-                if item[pvalue_key] < 0.01: 
-                    if item['name'] not in go_store:
-                        go_store[item['name']] = [-1] * (number_of_clusters)
-                    if do_negative_log10:
+                if do_negative_log10:
+                    if float(item[pvalue_key]) < 0.01: 
+                        if item['name'] not in go_store:
+                            go_store[item['name']] = [-1] * (number_of_clusters)
                         go_store[item['name']][idx] = -math.log10(item['pvalue'])
-                    else:
+                else:
+                    if float(item[pvalue_key]) > 2: # i.e. 0.01
+                        if item['name'] not in go_store:
+                            go_store[item['name']] = [-1] * (number_of_clusters)
                         go_store[item['name']][idx] = item['pvalue']
-                    #main_cluster_membership[item['name']] = clus_number-1
+
                 
         # fill in the holes:
         for go in self.linearData:   
             for k in go_store:
                 this_k = go.get(key='name', value=k, mode='lazy') # by default
                 if this_k:
+                
                     if do_negative_log10:
-                        go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0]['pvalue']))
-                    else: 
-                        go_store[k][cond_names_idx[go.name]] = float(this_k[0]['pvalue'])
-
+                        if float(item[pvalue_key]) < 0.01: 
+                            if item['name'] not in go_store:
+                                go_store[item['name']] = [-1] * (number_of_clusters)
+                            go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0]['pvalue']))
+                    else:
+                        if float(item[pvalue_key]) > 2: # i.e. 0.01
+                            if item['name'] not in go_store:
+                                go_store[item['name']] = [-1] * (number_of_clusters)
+                            go_store[k][cond_names_idx[go.name]] = float(this_k[0]['pvalue'])
+                
         newe = []
 
         for k in go_store:

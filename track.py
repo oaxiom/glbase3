@@ -103,15 +103,19 @@ class track(base_track):
         whatever stored as in db --> array('i', [])
         """
         #print "ret:",[d for d in data], ":"
+        
         try:
             a = numpy.loads(zlib.decompress(data))
-        except pickle.UnpicklingError:
+        except UnicodeDecodeError:
+            print(data.decode('utf-8'))
+            '''
             a = numpy.loads(zlib.decompress(data))
             if not self.__warned_about_zlib:
                 config.log.warning('Tracks are no no longer Zlib compressed by default. Tracks will need to be regenerated')
                 config.log.warning('Benefit is that they are now faster!')
                 config.log.warning('In future versions of glbase this warning will be removed and an error will be produced')
                 self.__warned_about_zlib = True
+            ''' 
         return(a)
 
     def __setup_tables(self, filename):
