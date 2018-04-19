@@ -1667,6 +1667,40 @@ class expression(base_expression):
         config.log.info("filter_by_CV: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
         return(newl)
 
+    def bracket(self, min, max):
+        """
+        **Purpose**
+            force the data to span only min and max:
+            
+            for each_value:
+                if each_value > max:
+                    each_value = max
+                elif each_value <min:
+                    each_value = min
+        
+        **Arguments**
+            min, max (Required)
+                minimum and maximum values
+        
+        **Returns**
+            A new expn object.
+        
+        """
+        newl = self.deepcopy()
+        
+        for item in newl:
+            newc = []
+            for c in item['conditions']:
+                if c > max:
+                    newc.append(max)
+                elif c < min:
+                    newc.append(min)
+                else:
+                    newc.append(c)
+            item['conditions'] = newc
+        newl._optimiseData()
+        return(newl)
+
     def draw_cumulative_CV(self, filename, pad=0.1, label_genes=None, label_genes_key=None, 
         label_fontsize=7, **kargs):
         '''
@@ -1806,7 +1840,7 @@ class expression(base_expression):
                 and a key to use and all of the spots will be labelled.
 
             label_fontsize (Optional, default=14)
-            	labels fontsize
+                labels fontsize
 
             do_best_fit_line (Optional, default=False)
                 draw a best fit line on the scatter
