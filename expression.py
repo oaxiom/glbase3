@@ -1968,7 +1968,7 @@ class expression(base_expression):
         **Results**
 
         saves an image with the correct filetype extension for the current
-        config.DEFAULT_DRAWER.
+        config.DEFAULT_DRAWER
         returns the actual filename used to save the file.
         """
         assert filename, "must provide a filename"
