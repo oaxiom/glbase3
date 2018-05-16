@@ -1066,6 +1066,27 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self._optimiseData()
         return(True)
 
+    def shuffle(self, key=None, reverse=False):
+        """
+        Randomly shuffle the order of the genelist
+
+        **Arguments**
+            None
+
+        **Result**
+        Returns None, and shuffles the list IN PLACE
+        """
+        new_order = list(range(0, len(self)))
+        random.shuffle(new_order)
+        
+        newl = []
+        for p in new_order:
+            newl.append(self.linearData[p])
+        self.linearData = newl
+        
+        self._optimiseData()
+        return(True)
+
     def multi_sort(self, keys):
         """
         **Purpose**
