@@ -500,7 +500,7 @@ class network:
 
         conds, G, correlation_table, cols = self.__corr_network(threshold, threshold, length, max_links, cols=cols)
         
-        pos = nx.graphviz_layout(G, prog='twopi', root="'%s'" % root_sample) # bug in names with spaces in it.
+        pos = nx.drawing.nx_agraph.graphviz_layout(G, prog='twopi', root="'%s'" % root_sample) # bug in names with spaces in it.
         
         fig = self.parent.draw.getfigure(**kargs)
         ax = fig.add_subplot(111)

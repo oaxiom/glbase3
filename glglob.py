@@ -1285,8 +1285,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if log:
             for index in range(len(list_of_tables)):
                 # multiply the data so that max() = 100000
-                list_of_tables[index] /= tab_max
-                list_of_tables[index] *= 1000        
+                #list_of_tables[index] /= tab_max
+                #list_of_tables[index] *= 1000        
                 if log == 2:
                     list_of_tables[index] = numpy.log2(list_of_tables[index]+1)
                     colbar_label = "tag density (log2)"
@@ -1310,7 +1310,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             bracket = [tab_max*range_bracket[0], tab_max*range_bracket[1]]
         elif bracket:
             bracket = bracket # Fussyness for clarity.
-        else: # guess a range: This should really be done on a per-heatmap basis.
+        else: # guess a range: 
             bracket = [tab_median+tab_stdev, tab_median+(tab_stdev*2.0)] 
             config.log.info("chip_seq_cluster_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))   
      
