@@ -1,8 +1,6 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
-
-### What is this repository for? ###
+### What is glbase3? ###
 
 glbase is a flexible and multifunctional toolkit allowing the user to perform many common analyses on ChIP-seq, microarray and RNA-seq data.
 
@@ -10,15 +8,15 @@ glbase is a flexible and multifunctional toolkit allowing the user to perform ma
 
 I strongly recommend installing the mercurial version of glbase. glbase is updated regularly, sometimes daily to remove bugs and add features. 
 
-You will need Python, numpy, scipy,  matplotlib, networkx and sklearn. On the Mac I use Macports or Anaconda. Linux machines should be pretty easy to do this on, more than likely you already have numpy, scipy and matplotlib (and all major linux distributions come with Python >3.x).
+You will need Python3.6, numpy, scipy,  matplotlib, networkx, graphviz, pydot and sklearn. On the Mac I use Macports or Anaconda. Linux machines should be pretty easy to do this on, more than likely you already have numpy, scipy and matplotlib (and all major linux distributions come with Python >3.x). Window is slightly more painful. I reccomend Anaconda python.
 
-The mercurial installation is simpler. Make certain Python, Numpy, Scipy and matplotlib are all installed and correctly working. Then install Mercurial if required.
+The mercurial installation is simplest. Make certain Python, Numpy, Scipy, sklearn, netwrokx, graphviz and matplotlib are all installed and correctly working. Then install Mercurial if required.
 
 Go to the directory you wish glbase to install to (for example /Users/name/tools/).
 
 Then at the command type:
 
-{{{$ hg clone https://bitbucket.org/oaxiom/glbase}}}
+{{{$ hg clone https://bitbucket.org/oaxiom/glbase3}}}
 
 This will create a directory 'glbase', containing all of the code.
 
