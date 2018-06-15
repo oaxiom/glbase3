@@ -37,10 +37,11 @@ class Test_TSVCSV(unittest.TestCase):
     def test_force_tsv_format(self):
         form = dict(tss_loc=1, force_tsv=True, chr=1)
         form_delayed = dict(tss_loc=1, force_tsv=True, skiplines=0) # delayedlists must have skiplines
+  
         a = gl.genelist(filename="test_data/mm9_refGene.tsv", format=form)
         c = gl.delayedlist(filename="test_data/mm9_refGene.tsv", format=form_delayed)
         d = gl.genome(filename="test_data/mm9_refGene.tsv", format=form)
-        e = gl.expression(filename="test_data/mm9_refGene.tsv", format=form, expn="column[5:]") # must go last as it modifies format
+        e = gl.expression(filename="test_data/mm9_refGene.tsv", format=form, expn="column[5:]") # must go last as it modifies format      
         
         # Make sure glbase is not just bodging it all in in one key:
         self.assertEqual("chr1:134212701-134212701", a[0]["tss_loc"])

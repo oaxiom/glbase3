@@ -8,6 +8,7 @@ clean-up code and helpers for catching and dealing with errors.
 import csv
 
 from .data import typical_headers, ignorekeys
+from collections import Counter
 from .location import location
 from . import config
 
@@ -259,6 +260,24 @@ class GlglobDuplicateNameError(Exception):
         config.log.critical("glglob has two lists with the same name")
         config.log.critical("for glglob to work you must provide lists")
         config.log.critical("with unique names")
+
+class ExpressionNonUniqueConditionNameError(Exception):
+    """
+    Error
+        expression recived two names that are identical.
+    """
+    def __init__(self, argument):
+        """
+        Output the error message and tidy up the traceback, and perform other stuff.
+        """
+        config.log.critical("glbase expression objects must have unique names")
+        config.log.critical("for each condition.")
+        c = Counter(argument)
+        for k in c:
+            if c[k] == 2:
+                config.log.critical(' Duplicate condition Name: %s' % k)
+            elif c[k] > 2:
+                config.log.critical(' Duplicate condition Name: %s, used %s times' % (k, c[k]))
 
 class FailedToMakeNewDBError(Exception):
     """

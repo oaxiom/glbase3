@@ -421,7 +421,7 @@ class draw:
         if col_cluster:
             # ---------------- top side plot (tree) --------------------
             transposed_data = data.T
-            print('Drawing col cluster')
+
             ax2 = fig.add_subplot(142)
             ax2.set_frame_on(False)
             ax2.set_position(top_side_tree)

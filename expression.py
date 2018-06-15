@@ -1601,11 +1601,8 @@ class expression(base_expression):
                     cell_expressing.append(n)
             
         cell_expressing = list(set(cell_expressing))
-        print(cell_expressing)
 
         e = e.sliceConditions(cell_expressing)
-        print(e)
-        print(e.getConditionNames())
         
         return(newe)
 
@@ -2921,8 +2918,6 @@ class expression(base_expression):
             
         link = linkage(dist, 'complete', metric=cluster_mode)
         
-        print(link)
-        
         rtree = radial_tree.tree(link)
 
         ax = fig.add_subplot(111)
@@ -3631,9 +3626,7 @@ class expression(base_expression):
         
         # expression table needs to be transformed.
         data = numpy.array(self.serialisedArrayDataList).T
-        
-        print("data", data.shape)
-        
+                
         if dowhiten:
             config.log.info("kmeans: whiten...")
             wt = whiten(data) # features are columns
@@ -3652,27 +3645,19 @@ class expression(base_expression):
                 cents.append(self[col]["conditions"])    
                 seed_names.append(i[key])
             seeds = numpy.array(cents)
-            
-            print("seeds", seeds.shape)
-        
+                    
         config.log.info("kmeans: kmeans...")
         centroids, variance = kmeans(wt, seeds)
         
-        print(centroids.shape)
-        print(centroids)
-        
+       
         config.log.info("kmeans: vq...")
         code, distance = vq(wt, centroids)
-
-        print(code)
 
         clusters = {}
         for feature, cluster in enumerate(code):
             if not cluster in clusters:
                 clusters[cluster] = []
             clusters[cluster].append(data[feature])
-    
-        print(list(clusters.keys()))
         
         # Guess a suitable arrangement
         sq = math.ceil(math.sqrt(len(clusters)))

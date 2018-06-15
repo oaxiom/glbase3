@@ -127,7 +127,7 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
         infilename
             the name of the bed file(s) to read from. 
             
-            You can send a lit of filenames
+            You can send a list of filenames
 
         outfilename
             The filename of the flat file to write to.

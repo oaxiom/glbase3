@@ -169,7 +169,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
                 if buck in g.buckets["1"]:
                     loc_ids.update(g.buckets["1"][buck]) # unique ids
                 
-        self.assertEqual(str(loc_ids), "set([0, 1, 2, 3, 4, 5, 6, 7, 8])")
+        self.assertSetEqual(loc_ids, set([0, 1, 2, 3, 4, 5, 6, 7, 8]))
         self.assertEqual(len(g.buckets), 1)
         self.assertEqual(len(g.buckets["1"]), 17)
         

@@ -116,9 +116,10 @@ class base_expression(genelist):
                             self._conditions = [str(k) for k in names]
                         break
                 oh.close()
+                
                 if not silent: 
                     config.log.info("expression(): I found the following conditions:")
-                print("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
+                    config.log.info("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
   
         # coerce the conditions errs etc to floats
         for idx, i in enumerate(self):
