@@ -18,7 +18,7 @@ from .flags import *
 from .draw import draw
 from .genelist import genelist
 from .progress import progressbar
-from .errors import AssertionError, ArgumentError
+from .errors import AssertionError, ArgumentError, ExpressionNonUniqueConditionNameError
 from .utils import qdeepcopy
 
 class base_expression(genelist):
@@ -134,9 +134,20 @@ class base_expression(genelist):
             if "cv_err" in i:
                 i["cv_err"] = [float(t) for t in i["cv_err"]]
 
+        self.__check_condition_names_are_unique()
         self._optimiseData()
         if not silent:
             config.log.info("expression(): loaded %s items, %s conditions" % (len(self), len(self.getConditionNames())))
+
+    def __check_condition_names_are_unique(self):
+        """
+        Bit of gotcha this one, but expression objects must have unique condition names
+        or lots of things break. Here, check the condition names are unique.
+        
+        """
+        if len(self._conditions) > len(set(self._conditions)):
+            raise ExpressionNonUniqueConditionNameError(self._conditions)
+        return(False)
         
     def __repr__(self):
         return("glbase.expression")
@@ -473,10 +484,8 @@ class base_expression(genelist):
         THIS IS AN IN-PLACE method and returns None
         """
         assert len(new_cond_names) == len(self._conditions), "setConditionNames(): new and old condition names are different lengths (%s vs. %s)" % (len(new_cond_names), len(self._conditions))
-        if len(set(new_cond_names)) != len(self._conditions):
-            dupes = [x for x, y in list(collections.Counter(new_cond_names).items()) if y > 1]
-            raise AssertionError("setConditionNames(): Due to a variety of complicated reasons, condition names MUST be unique, non-unique names are: %s" % (", ".join(dupes)))
         
+        self.__check_condition_names_are_unique()
         self._conditions = list(new_cond_names)
         self._optimiseData()
         return(self._conditions)
