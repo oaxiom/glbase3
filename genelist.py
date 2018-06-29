@@ -18,7 +18,7 @@ from .history import historyContainer
 from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 from .progress import progressbar
 from .base_genelist import _base_genelist
-from .format import sniffer, sniffer_tsv
+from .format import sniffer, sniffer_tsv, _load_hmmer_tbl
 
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
     """
@@ -213,7 +213,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     self._optimiseData()
                     return(True)
                 if format["special"] == "hmmer_tbl":
-                    self.linearData = self._load_hmmer_tbl(filename)
+                    self.linearData = format._load_hmmer_tbl(filename)
                     self._optimiseData()
                     return(True)
         else:

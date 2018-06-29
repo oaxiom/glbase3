@@ -70,7 +70,7 @@ class Test_Track_Function(unittest.TestCase):
 
     def test_get_array(self):
         a = self.t.get(gl.location(loc="chr1:10-20"))
-        self.assertEqual(str(a), "[ 5.  5.  4.  4.  4.  5.  4.  4.  4.  5.  4.]")
+        self.assertListEqual(list(a), [ 5.,  5.,  4.,  4.,  4.,  5.,  4.,  4.,  4.,  5.,  4.])
 
     def test_get_reads(self):
         # Test a range of reads and edges.
@@ -112,9 +112,9 @@ class Test_Track_Function(unittest.TestCase):
 
     def test_read_extend(self):
         a = self.t.get(gl.location(loc="chr1:10-20"), read_extend=1)
-        self.assertEqual(str(a), "[ 5.  5.  5.  4.  4.  5.  5.  4.  4.  5.  5.]") # These are correct. Always returns floats now
+        self.assertListEqual(list(a), [ 5.,  5.,  5.,  4.,  4.,  5.,  5.,  4.,  4.,  5.,  5.]) # These are correct. Always returns floats now
         a = self.t.get(gl.location(loc="chr1:10-20"), read_extend=2)
-        self.assertEqual(str(a), "[ 5.  5.  5.  5.  4.  5.  5.  5.  4.  5.  5.]") # .
+        self.assertListEqual(list(a), [ 5.,  5.,  5.,  5.,  4.,  5.,  5.,  5.,  4.,  5., 5.]) # .
 
     def test_read_extend_frags_only(self):
         a = self.frags.get(gl.location(loc="chr1:5-25"), read_extend=1)

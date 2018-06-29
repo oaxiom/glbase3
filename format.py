@@ -283,6 +283,31 @@ hmmer_tbl = fc(name="hmmer_tbl",
     description="hmmsearch/hmmscan --tbl_out loader",
     format={"special": "hmmer_tbl"})
 
+
+def _load_hmmer_tbl(filename):
+    """
+    # Unbelievably stupid format for hmmer:
+    Load the hmmer tbl_out table
+    """
+    oh = open(filename, "rt")
+    res = []
+    for line in oh:
+        if "#" not in line:
+            ll = line.split()
+            
+            name = ll[18:]
+            gene = "NA"
+            # split the name up into k:v pairs
+            for item in name:
+                if ":" in item:
+                    if "gene:" in item:
+                        gene = item.split(":")[1]
+            
+            res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": ll[4],
+                "gene": gene})
+    return(res)
+
+
 # --------------------- GO outputs
 
 go_GREAT_shown = fc(name="go_GREAT_shown",
