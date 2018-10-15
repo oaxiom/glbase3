@@ -247,6 +247,18 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             result_table = corr_result_table
 
+        if pearson_tsv:
+            names = [i.name for i in self.linearData]
+            oh = open(pearson_tsv, "w")
+            oh.write("%s\n" % "\t".join([] + names))
+            
+            for ia, la in enumerate(names):
+                oh.write("%s" % la)
+                for ib, lb in enumerate(names):
+                    oh.write("\t%s" % corr_result_table[ia,ib])
+                oh.write("\n")
+            oh.close()
+
         # need to add the labels and serialise into a doct of lists.
         dict_of_lists = {}
         row_names = []

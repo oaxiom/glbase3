@@ -250,9 +250,9 @@ class draw:
             if row_cluster:
                 mmheat_hei = 0.93 - heat_hei # this is also the maximal value (heamap edge is against the bottom)
                 
-                left_side_tree =         [0.05,  mmheat_hei,   0.248, heat_hei]
-                top_side_tree =          [0.3,   0.932,  heat_wid,   0.044]
-                heatmap_location =       [0.3,   mmheat_hei,   heat_wid,  heat_hei]
+                left_side_tree =         [0.01,  mmheat_hei,   0.186,      heat_hei]
+                top_side_tree =          [0.198,   0.932,        heat_wid,   0.044]
+                heatmap_location =       [0.198,   mmheat_hei,   heat_wid,   heat_hei]
                 
                 if col_colbar: # Slice a little out of the tree
                     top_side_tree =          [0.3,   0.946,  heat_wid,   0.040]
@@ -274,7 +274,7 @@ class draw:
                     top_side_tree =          [0.03,   0.864,  heat_wid,   0.040] # squeeze up the colbar
                     loc_col_colbar =         [0.03,   0.852,   heat_wid,  0.012] # 
                 
-        scalebar_location = [0.01,  0.98,   0.24,   0.015]
+        scalebar_location = [0.01,  0.98,   0.18,   0.015]
         
         # set size of the row text depending upon the number of items:
         row_font_size = 0
@@ -381,7 +381,7 @@ class draw:
                 
             if row_color_threshold:
                 row_color_threshold = row_color_threshold*((Y.max()-Y.min())+Y.min()) # Convert to local threshold.
-                a = dendrogram(Z, orientation='left', color_threshold=row_color_threshold)
+                a = dendrogram(Z, orientation='left', color_threshold=row_color_threshold, ax=ax1)
                 ax1.axvline(row_color_threshold, color="grey", ls=":")
             else:
                 a = dendrogram(Z, orientation='left', ax=ax1)
@@ -557,7 +557,7 @@ class draw:
 
         cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
         cb.set_label(kargs["colbar_label"])
-        [label.set_fontsize(5) for label in ax0.get_xticklabels()]
+        cb.ax.tick_params(labelsize=4)
 
         return({"real_filename": self.savefigure(fig, filename), "reordered_cols": col_names, "reordered_rows": kargs["row_names"],
             "reordered_data": data})
@@ -2197,7 +2197,7 @@ class draw:
         return(self.savefigure(fig, filename))
         
     def beanplot(self, data, filename, violin=True, order=None, mean=False, median=True, alpha=0.2, 
-        beans=True, IQR=False, **kargs):
+        beans=True, IQR=False, covariance=0.2, **kargs):
         """
         http://statsmodels.sourceforge.net/devel/_modules/statsmodels/graphics/boxplots.html#beanplot
         **Purpose**
@@ -2247,6 +2247,9 @@ class draw:
                 xlims - x axis limits
                 ylims - y-axis limits
             
+            covariance (Optional, default=2)
+                
+            
         **Returns**
             None
         """
@@ -2266,7 +2269,7 @@ class draw:
             # get the violin: required, even if not drawn.
             # Check that there is some variation. If no variation then utils.kde will break
             if numpy.std(data[d]) > 0:
-                y_violin = utils.kde(data[d], range=(min(data[d]), max(data[d])), bins=bins, covariance=0.2)
+                y_violin = utils.kde(data[d], range=(min(data[d]), max(data[d])), bins=bins)
                 y_violin = ((y_violin / max(y_violin)) * 0.4) # normalise
                 y_violin = numpy.insert(y_violin, 0, 0)
                 y_violin = numpy.append(y_violin, 0)

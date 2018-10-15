@@ -302,9 +302,12 @@ def _load_hmmer_tbl(filename):
                 if ":" in item:
                     if "gene:" in item:
                         gene = item.split(":")[1]
-            
-            res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": float(ll[4]),
-                "gene": gene})
+            try:
+                res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": float(ll[4]),
+                    "gene": gene})
+            except ValueError:
+                res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": ll[4],
+                    "gene": gene})
     return(res)
 
 

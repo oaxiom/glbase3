@@ -72,9 +72,9 @@ def wig_to_flat(infilename, outfilename, name, gzip=None, **kargs):
     cleft = 0
     # Can only have one file
     if not gzip:
-        oh = open(infilename, "rU")
+        oh = open(infilename, "rt")
     else:
-        oh = opengzip.GzipFile(infilename, 'rt')
+        oh = opengzip.open(infilename, 'rt')
 
     # Pre-parse to grab the maximum chromosome sizes:
     for line in oh: # Skip glbase overhead:

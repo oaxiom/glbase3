@@ -76,12 +76,13 @@ def bedgraph_to_flat(infilename, outfilename, name, bin_format=None, gzip=None, 
 
     s = time.time()
     if not gzip:
-        oh = open(infilename, "rU")
+        oh = open(infilename, "rt")
     else:
-        oh = opengzip.GzipFile(infilename, 'r')
+        oh = opengzip.open(infilename, 'rt')
         
     cleft = 0
     for line in oh:
+        print(line)
         if not "#" in line:
             line = line.split()
             f.add_score(chromosome=line[0].replace("chr", ""), 

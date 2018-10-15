@@ -53,9 +53,12 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, **kargs):
     config.log.info("Started %s -> %s" % (infilename, outfilename))
 
     s = time.time()
-    oh = open(infilename, "rU")
+    oh = open(infilename, "rt")
     cleft = 0
     for line in oh:
+        if 'track' in line: # Ignore headers'
+            continue
+        
         if line: # Just in case there are some empty lines
             if "fixedStep" in line:
                 t = line.split()
