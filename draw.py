@@ -255,12 +255,12 @@ class draw:
                 heatmap_location =       [0.198,   mmheat_hei,   heat_wid,   heat_hei]
                 
                 if col_colbar: # Slice a little out of the tree
-                    top_side_tree =          [0.3,   0.946,  heat_wid,   0.040]
-                    loc_col_colbar =         [0.3,   mmheat_hei+heat_hei+0.002,   heat_wid,  0.012]
+                    top_side_tree =          [0.198,   0.946,  heat_wid,   0.040]
+                    loc_col_colbar =         [0.198,   mmheat_hei+heat_hei+0.002,   heat_wid,  0.012]
                     
                 if row_colbar: # Slice a little out of the tree
-                    left_side_tree =         [0.05,  mmheat_hei,   0.248-0.018, heat_hei]
-                    loc_row_colbar =         [0.3-0.016,   mmheat_hei,   0.014,  heat_hei]
+                    left_side_tree =         [0.01,  mmheat_hei,   0.186-0.018, heat_hei]
+                    loc_row_colbar =         [0.198-0.016,   mmheat_hei,   0.014,  heat_hei]
                 
             else:
                 # If no row cluster take advantage of the extra width available, but shift down to accomodate the scalebar

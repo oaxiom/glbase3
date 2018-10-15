@@ -328,7 +328,7 @@ class pca:
         
         return(return_data)
 
-    def scatter3d(self, x, y, z, filename=None, spot_cols=None, label=False, stem=False, 
+    def scatter3d(self, x, y, z, filename=None, spot_cols=None, label=False, stem=True, 
         label_font_size=6, rotation=134, elevation=48, interactive=False, squish_scales=False, 
         spot_size=40, depthshade=True, **kargs): 
         """
