@@ -431,7 +431,7 @@ def convertFASTAtoDict(filename, gzip_input=False):
             # add the old Node to the list
             if entry["name"] != "empty":
                 # convert the list to a tuple
-                result.append(entry)
+                result.append(entry) # You have to think about this one, but it works as it appends a view!
     return(result)
 
 def scanNumberOfBasePairs(fastafilehandle):

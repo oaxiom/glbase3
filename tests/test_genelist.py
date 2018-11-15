@@ -70,10 +70,21 @@ class Test_GeneList(unittest.TestCase):
         self.b = glbase3.genelist(filename="test_data/array_data.csv.gz", format=glbase3.format.sniffer, gzip=True)
         self.assertDictEqual(self.b[-1], {'name': 'Pdia4', 'GFP': 1.18, 'Mash': 0.6, 'array_systematic_name': 'scl29051.11.1_27-S', 'refseq': 'NM_009787', 'entrez': 12304})
         self.assertDictEqual(self.b[2],  {'name': 'Srpr', 'GFP': 1, 'Mash': 0.77, 'array_systematic_name': 'scl0067398.1_126-S', 'refseq': 'NM_026130', 'entrez': 67398})
+
+    def test_load_FASTA(self):
+        self.b = glbase3.genelist(filename="test_data/Fasta_file.fa", format=glbase3.format.fasta, gzip=False)
+        self.assertEqual(self.b[0]['seq'], 'AAATctggatacagtggcctttatttctagttccagtgactgggagactgaaacaagagagtcacttgagtacaggagtgcaaggctagcttgagcaatatagtaagactatctcaaaaTGTGAATTtagatcaacagaattgacatcaagaaaaatactgatatcactcaaagcaatctacagattcaacacaatctccatcaacatgacaatgacttccatcaGCATGACAATGACTCCATCAACATGCCAATGGGCCCCATCAACATAACAATGACCCCTATCATCATGACAATGATCCCCATCAACATGACAATGACCTCCATCAACATGACAATTACTCCTGTCAACATGCCAATtgttggggttcagaagtcaccctgcaaaccacaagaacact')
+        self.assertEqual(self.b[0]['name'], 'loc_chr3:122137044-122138000_n1')
+        self.assertEqual(self.b[1]['seq'], 'CCCGTGAGCCCCTGCCGCACCCGCCGGTGTGCGGTTTAGCGCCGCGGTCAGTTGGGCCCTGGCGTTGTGTCGCGTCGGGAGCGTGTCCGCCTCGCGGCGGCTAGACGCGGGTGTCGCCGGGCTCCGACGGGTGGCCTATCCAGGGCTCGCCCCCGCCGTCCCCCGCCTGCCCGTCCCGGTGGTGGTCGTTGGTGTGGGGAGTGAATGGTGCTACCGGTCATTCCCTCCCGCGTGGTTTGACTGTCTCGCCGGTGTCGCGCTTCTCTTTCCGCCAACCCCCACGCCAACCCACCGCCCTGTGCTCCGCGCCCGGTGCGGTCGACGTTCCGGCTCTCCCGATGCCGAGGGGTTCGGGATTTGTGCCGGGGACGGAGGGGAGAGCGGATAAGAGAGGTGTCGGA')
+        self.assertEqual(self.b[1]['name'], 'loc_chr17:39450772-39457159_n2')
+    
     
     def test_load_FASTA_gzips(self):
         self.b = glbase3.genelist(filename="test_data/Fasta_file.fa.gz", format=glbase3.format.fasta, gzip=True)
         self.assertEqual(self.b[0]['seq'], 'AAATctggatacagtggcctttatttctagttccagtgactgggagactgaaacaagagagtcacttgagtacaggagtgcaaggctagcttgagcaatatagtaagactatctcaaaaTGTGAATTtagatcaacagaattgacatcaagaaaaatactgatatcactcaaagcaatctacagattcaacacaatctccatcaacatgacaatgacttccatcaGCATGACAATGACTCCATCAACATGCCAATGGGCCCCATCAACATAACAATGACCCCTATCATCATGACAATGATCCCCATCAACATGACAATGACCTCCATCAACATGACAATTACTCCTGTCAACATGCCAATtgttggggttcagaagtcaccctgcaaaccacaagaacact')
+        self.assertEqual(self.b[0]['name'], 'loc_chr3:122137044-122138000_n1')
+        self.assertEqual(self.b[1]['seq'], 'CCCGTGAGCCCCTGCCGCACCCGCCGGTGTGCGGTTTAGCGCCGCGGTCAGTTGGGCCCTGGCGTTGTGTCGCGTCGGGAGCGTGTCCGCCTCGCGGCGGCTAGACGCGGGTGTCGCCGGGCTCCGACGGGTGGCCTATCCAGGGCTCGCCCCCGCCGTCCCCCGCCTGCCCGTCCCGGTGGTGGTCGTTGGTGTGGGGAGTGAATGGTGCTACCGGTCATTCCCTCCCGCGTGGTTTGACTGTCTCGCCGGTGTCGCGCTTCTCTTTCCGCCAACCCCCACGCCAACCCACCGCCCTGTGCTCCGCGCCCGGTGCGGTCGACGTTCCGGCTCTCCCGATGCCGAGGGGTTCGGGATTTGTGCCGGGGACGGAGGGGAGAGCGGATAAGAGAGGTGTCGGA')
+        self.assertEqual(self.b[1]['name'], 'loc_chr17:39450772-39457159_n2')
     
     def test_removeDuplicatesByLoc(self):
         a = [{'loc': glbase3.location(chr=1, left=100, right=200)},
@@ -90,9 +101,9 @@ class Test_GeneList(unittest.TestCase):
             {'loc':  glbase3.location(chr=1, left=10001, right=10200)},]
         gl = glbase3.genelist()
         gl.load_list(a)
-        dups = gl.removeDuplicatesByLoc('loc', 10)
+        dups = gl.removeDuplicatesByLoc('pointify_expand', 'loc', 10)
         self.assertEqual(len(dups), 4)
-        dups = gl.removeDuplicatesByLoc('loc', 200)
+        dups = gl.removeDuplicatesByLoc('pointify_expand', 'loc', 200)
         self.assertEqual(len(dups), 2)
         
         #config.bucket_size = 10000 

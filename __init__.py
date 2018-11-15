@@ -107,6 +107,7 @@ from .draw import draw
 from .format_container import fc
 from .fastq import fastq
 from .glgo import glgo
+from .draw import adjust_text
 #from .rigidgrids import rigidgrid # Available only through expn objects in future?
 from . import realtime
 from . import gldata
@@ -137,6 +138,7 @@ __all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "
             "rnaseqqc", "gldata",
             "gerp_to_flat", "draw", "fc",
             "progressbar", "ecrbase", "region", "realtime", "realtime2", "tfbs_iter",
-            "strandSorter",
+            "strandSorter", 
+            'adjust_text',
             "cmaps"] + dir(helpers)
             # in future I want to get rid of dir() and control what gets exported.

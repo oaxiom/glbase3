@@ -1723,7 +1723,7 @@ class draw:
                 xlims - x axis limits
                 ylims - y-axis limits
                 zlims - z-axis limits (For 3D plots only)
-                xticklabels -list (or not) of labels for the x axis
+                xticklabels - list (or not) of labels for the x axis
                 logx - set the x scale to a log scale argument should equal the base
                 logy - set the y scale to a log scale
                 legend_size - size of the legend, small, normal, medium
@@ -2012,7 +2012,7 @@ class draw:
             
             # Only draw if specified:
             if do_best_fit_line:
-                ax.plot(mx, my, "r.-")
+                ax.plot(mx, my, "r-.", lw=0.5)
             
             if print_correlation:
                 if print_correlation == "r":
