@@ -79,7 +79,7 @@ class fastq(delayedlist):
         id = self.filehandle.readline().strip()
         if not id:
             self._optimiseData()
-            raise StopIteration
+            return
         seq = self.filehandle.readline().strip()
         strand = self.filehandle.readline().strip()
         qual = self.__conv_quals(self.filehandle.readline().strip())

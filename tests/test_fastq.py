@@ -30,9 +30,9 @@ class Test_Fastq(unittest.TestCase):
         fq.splitPE("/tmp/out1.fq", "/tmp/out2.fq")
 
         # Uh... It works, but is not a real test.
-        oh1 = open("/tmp/out1.fq", "rU")
+        oh1 = open("/tmp/out1.fq", "r")
         id1 = oh1.readline().strip()
-        oh2 = open("/tmp/out2.fq", "rU")
+        oh2 = open("/tmp/out2.fq", "r")
         id2 = oh2.readline().strip()
                 
         self.assertEqual(id1[:-1], id2[:-1])
@@ -55,9 +55,9 @@ class Test_Fastq(unittest.TestCase):
         fq.splitPE("/tmp/out1.fq", "/tmp/out2.fq")
 
         # Uh... It works, but is not a real test.
-        oh1 = open("/tmp/out1.fq", "rU")
+        oh1 = open("/tmp/out1.fq", "r")
         id1 = oh1.readline().strip()
-        oh2 = open("/tmp/out2.fq", "rU")
+        oh2 = open("/tmp/out2.fq", "r")
         id2 = oh2.readline().strip()
                 
         self.assertEqual(id1.split(":")[0:6], id2.split(":")[0:6])

@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 -------------
 
 Modifications were added by Andrew P. Hutchins and are included as part of glbase,
-also released under the MIT license
+also released under the MIT license, as above
 
 """
 
@@ -34,7 +34,7 @@ from time import time
 import numpy as np
 import scipy.spatial as spdist
 from scipy.sparse import csr_matrix
-from sklearn.decomposition import RandomizedPCA
+#from sklearn.decomposition import RandomizedPCA
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from sklearn import neighbors
@@ -104,7 +104,7 @@ class SOM(object):
         self.dlabel = False
 
     def config(self, threshold_value=False, digitize=False, nodenames=None, compnames=None, mapsize=None, 
-        CVrange=None, CVplot=None, initmethod='pca', seed=12345678, components=2,
+        CVrange=None, CVplot=None, initmethod='fullpca', seed=12345678, components=2,
         init_whiten=True,
         image_debug=False, **kargs):
         """
@@ -133,17 +133,15 @@ class SOM(object):
             mapsize (Optional)
                 change the size of the map (in pixels/units/nodes)
                 
-            initmethod (Optional, default='pca')
+            initmethod (Optional, default='fullpca')
                 select the initialisation method for the SOM.
-                
-                The default is pca (sklearn RandomizedPCA)
-                
+                               
                 fullpca uses the complete PCA model
                 
                 If the number of componenets (see below) is >2 then MDS is invoked to 
                 determine the final model.
                 
-                initmethod = ['random', 'pca', 'fullpca']
+                initmethod = ['fullpca']
             
             init_whiten (Optional, default=True)
                 whiten (convert to unit variance) the data before doing the initialization specified above
@@ -1293,10 +1291,8 @@ class SOM(object):
             else:
                 raise AssertionError('components must be either an integer or a list')
             
-            if self.initmethod in ('pca', 'fullpca'):
-                if self.initmethod == 'pca':
-                    pca = RandomizedPCA(n_components=max_comp, random_state=self.seed, whiten=self.init_whiten) #Randomized PCA is scalable
-                elif self.initmethod == 'fullpca':
+            if self.initmethod in ('fullpca'):
+                if self.initmethod == 'fullpca':
                     pca = PCA(n_components=max_comp, whiten=self.init_whiten) 
                 
                 # Note that the init is done on the untransformed as the scipy implementation whitens and centers.

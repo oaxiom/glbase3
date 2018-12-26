@@ -39,7 +39,7 @@ except Exception:
 
 try:
     import matplotlib
-    matplotlib.use("Agg") # cluster friendly!
+    #matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
 except Exception:
     raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
@@ -49,12 +49,19 @@ try:
     config.SKLEARN_AVAIL = True
 except Exception:
     raise LibraryNotFoundError("Fatal - sklearn not available or not installed")
+
+# Seme required:
+try:
+    import h5py
+    config.H5PY_AVAIL = True
+except Exception:
+    config.log.warning('h5py not found. It is optional, but highly reccomended')
  
 try:
     import networkx
     config.NETWORKX_AVAIL = True
 except Exception:
-    pass # pass silently as networkx is optional.
+    config.log.warning('networkx not found. It is optional, but highly reccomended') # pass silently as networkx is optional.
 
 try:
     import pygraphviz
@@ -108,6 +115,7 @@ from .format_container import fc
 from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
+from .hic import hic
 #from .rigidgrids import rigidgrid # Available only through expn objects in future?
 from . import realtime
 from . import gldata
@@ -127,9 +135,11 @@ def version():
     config.log.info("glbase - version: %s %s" % (config.version, config.DATE))
     config.log.info("The working directory is: '%s'" % (os.getcwd()))
 
+config.set_log_level('info')
+
 # export all of the libraries, methods and helpers.
 __all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "flat_track", "delayedlist", 
-            "glgo", # primary objects
+            "glgo", "hic", # primary objects
             #"rigidgrid", # Temporarily available
             "location", "pwm", "pwms", #accesory objects 
             "flags",  "format",

@@ -189,7 +189,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         g = glbase3.genelist()            
         g.load_list(data)
         
-        newl = g.removeDuplicatesByLoc(delta=100)        
+        newl = g.removeDuplicatesByLoc(delta=100, mode='pointify_expand')        
         
         self.assertEqual(len(newl), 4)
         

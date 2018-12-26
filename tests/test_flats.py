@@ -69,11 +69,12 @@ class Test_Flat_Function(unittest.TestCase):
         # will be 14.5 for all points. 
         # Note this is identical to the above test_draw_pielup()
         # except respect_strand=False
-        
+        print(L)
+        print(expected_result)
         self.assertTrue(False not in [x == y for x, y in zip(L, expected_result)])
 
     def test_mask(self):
-        t = glbase3.flat_track(filename="test_images/test.flat", bin_format="f")
+        t = glbase3.flat_track(filename="/tmp/test.flat", bin_format="f")
         a = t.get(glbase3.location(loc="chr2:99-111"))
         unmasked = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,2]
         self.assertTrue(False not in [int(x) == int(y) for x, y in zip(a, unmasked)]) # all seqs.

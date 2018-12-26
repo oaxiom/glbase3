@@ -34,6 +34,7 @@ MATPLOTLIB_AVAIL = False # required
 NUMPY_AVAIL = False # required
 SCIPY_AVAIL = False # required
 SKLEARN_AVAIL = False # required
+H5PY_AVAIL = False # Optional.
 NETWORKX_AVAIL = False # optional
 PYDOT_AVAIL = False # optional
 NUMEXPR_AVAIL = False # Optional
@@ -91,7 +92,10 @@ logging.basicConfig(level=logging.DEBUG,
 #logging.getLogger('').addHandler(console)
 
 # use config.log. ... () to get to the logger
-log = logging.getLogger('glbase')
+log = logging.getLogger('glbase3')
+log.setLevel(logging.INFO) # The defult seemed to end up on DEBUG?
+mpl_logger = logging.getLogger('matplotlib') # Bodge to silence the matplotlib logging
+mpl_logger.setLevel(logging.WARNING) 
 
 # helpers [Should be deprecated. Call config.log.<level>() to call info]
 info = log.info

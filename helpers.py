@@ -44,7 +44,7 @@ def glload(filename):
     try:
         if newl.qkeyfind:
             pass
-        if "loc" in list(newl[0].keys()) or "tss_loc" in list(newl[0].keys()): # buckets are only present if a loc key is available.
+        if "loc" in list(newl.keys()) or "tss_loc" in list(newl.keys()): # buckets are only present if a loc key is available.
             if newl.buckets: # added in 0.381, only in objects with tss_loc or loc key.
                 pass
     except Exception:

@@ -39,35 +39,35 @@ class Test_Genome(unittest.TestCase):
 
     def test_get_sequences(self):
         genome_mm10 = glbase3.genome()
-        genome_mm10.bindSequence(os.path.join(os.path.expanduser("~"), "mm10/seq"))
-        seq = genome_mm10.getSequence("chr1:10000000-10000200")
-        self.assertEqual(seq, 'TTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATTTGTGGTGTAATTCAGGTTAGTGACTTGACTAATGCGATTATCATATAAATATAAAACACTCAGGTTTCTGCAAAGAGAGAGGTCATCCTGAAAAGTAAACAAAACAGGCCCTATTTAATTACCTCACAAGCTTACAAGTTGGATTTTAAGA')
-        seq = genome_mm10.getSequence("chrX:10000000-10000200")
-        self.assertEqual(seq, 'AGTAATGGTAGTCATATGGTCCTTTGACACTTCAAGATTTATATTTAATTGGAAAAGAGAAAGCCATAGAAAGAATAATGGTAAGCCCTATTTATAGGAATAAAGTTGGTAGAAATACCAAGTCCAAAAATCCTTTGAAACTGAAAATCTGTAGCTGTGTTGGGTTTTGTTTTTTCCATGAAATACACCACACTGATCTGA')       
+        genome_mm10.bindSequence("test_data/seq")
+        seq = genome_mm10.getSequence("chr1:100-150")
+        self.assertEqual(seq, 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
+        seq = genome_mm10.getSequence("chrA:100-150")
+        self.assertEqual(seq, 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')       
 
     def test_save_fasta(self):
         genome_mm10 = glbase3.genome()
-        genome_mm10.bindSequence(os.path.join(os.path.expanduser("~"), "mm10/seq"))
-        newl = [{"name": "A", "loc": glbase3.location(loc="chr1:10000000-10000200")},
-            {"name": "X", "loc": glbase3.location(loc="chrX:10000000-10000200")}]
+        genome_mm10.bindSequence("test_data/seq")
+        newl = [{"name": "A", "loc": glbase3.location(loc="chr1:100-150")},
+            {"name": "X", "loc": glbase3.location(loc="chrA:100-150")}]
         newgl = glbase3.genelist()
         newgl.load_list(newl)
         fasta = genome_mm10.getSequences(newgl)
         fasta.saveFASTA(filename="/tmp/test_fasta.fa", name=["loc", "name"])
         
         oh = open("/tmp/test_fasta.fa")
-        self.assertEqual(oh.readline().strip(), '>chr1:10000000-10000200_A')
-        self.assertEqual(oh.readline().strip(), 'TTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATTTGTGGTGTAATTCAGGTTAGTGACTTGACTAATGCGATTATCATATAAATATAAAACACTCAGGTTTCTGCAAAGAGAGAGGTCATCCTGAAAAGTAAACAAAACAGGCCCTATTTAATTACCTCACAAGCTTACAAGTTGGATTTTAAGA')
-        self.assertEqual(oh.readline().strip(), '>chrX:10000000-10000200_X')
-        self.assertEqual(oh.readline().strip(), 'AGTAATGGTAGTCATATGGTCCTTTGACACTTCAAGATTTATATTTAATTGGAAAAGAGAAAGCCATAGAAAGAATAATGGTAAGCCCTATTTATAGGAATAAAGTTGGTAGAAATACCAAGTCCAAAAATCCTTTGAAACTGAAAATCTGTAGCTGTGTTGGGTTTTGTTTTTTCCATGAAATACACCACACTGATCTGA')
+        self.assertEqual(oh.readline().strip(), '>chr1:100-150_A')
+        self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
+        self.assertEqual(oh.readline().strip(), '>chrA:100-150_X')
+        self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
         oh.close()
         
         fasta.saveFASTA(filename="/tmp/test_fasta.fa")       
         oh = open("/tmp/test_fasta.fa")
-        self.assertEqual(oh.readline().strip(), '>chr1:10000000-10000200')
-        self.assertEqual(oh.readline().strip(), 'TTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATTTGTGGTGTAATTCAGGTTAGTGACTTGACTAATGCGATTATCATATAAATATAAAACACTCAGGTTTCTGCAAAGAGAGAGGTCATCCTGAAAAGTAAACAAAACAGGCCCTATTTAATTACCTCACAAGCTTACAAGTTGGATTTTAAGA')
-        self.assertEqual(oh.readline().strip(), '>chrX:10000000-10000200')
-        self.assertEqual(oh.readline().strip(), 'AGTAATGGTAGTCATATGGTCCTTTGACACTTCAAGATTTATATTTAATTGGAAAAGAGAAAGCCATAGAAAGAATAATGGTAAGCCCTATTTATAGGAATAAAGTTGGTAGAAATACCAAGTCCAAAAATCCTTTGAAACTGAAAATCTGTAGCTGTGTTGGGTTTTGTTTTTTCCATGAAATACACCACACTGATCTGA')
+        self.assertEqual(oh.readline().strip(), '>chr1:100-150')
+        self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
+        self.assertEqual(oh.readline().strip(), '>chrA:100-150')
+        self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
         oh.close()
 
 if __name__ == "__main__":

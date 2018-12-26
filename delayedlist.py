@@ -212,7 +212,7 @@ class delayedlist(genelist):
                 self.cindex += 1
         except StopIteration:
             self._optimiseData()
-            raise StopIteration
+            return # py3.7 new
 
     def _optimiseData(self):
         """

@@ -2364,6 +2364,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     'pointify_expand':
                         first pointify() (i.e. take the mid point between the left and right coords)
                         and then expand(delta) (i.e. symmetrically expand the left and right by 'delta')
+                        This is the old default mode
                     'overlap':
                         use the left and right span of the coords to perform an overlap. 
                         Note that the new peak will take the min(l1, l2) and the max(r1, r2) where
