@@ -243,7 +243,8 @@ class pca:
         **Returns**
             None
         """
-        assert filename, "scatter: Must provide a filename"     
+        assert filename, "scatter: Must provide a filename"   
+        assert self.valid, 'model has not been trained, use pca.train()'  
 
         labels = self.labels 
         xdata = self.__transform[:,x-1]

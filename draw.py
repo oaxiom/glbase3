@@ -2315,7 +2315,7 @@ class draw:
     def unified_scatter(self, labels, xdata, ydata, x, y, mode='PC', filename=None,
         spots=True, label=False, alpha=0.8, perc_weights=None, spot_cols='grey', overplot=None,
         spot_size=40, label_font_size=7, label_style=None, cut=None, squish_scales=False, only_plot_if_x_in_label=None, 
-        adjust_labels=True, **kargs):
+        adjust_labels=True, cmap=None, **kargs):
         '''
         Unified for less bugs, more fun!        
         '''       
@@ -2356,15 +2356,15 @@ class draw:
                     newcols.append(spot_cols[i])
             
         if spots:
-            ax.scatter(xdata, ydata, s=spot_size, alpha=alpha, edgecolors="none", c=spot_cols, zorder=2)
+            ax.scatter(xdata, ydata, s=spot_size, 
+                alpha=alpha, edgecolors="none", 
+                c=spot_cols, cmap=cmap,
+                zorder=2)
         else:
             # if spots is false then the axis limits are set to 0..1. I will have to send my
             # own semi-sensible limits:
-            dx = (max(xdata) - min(xdata)) * 0.05
-            dy = (max(ydata) - min(ydata)) * 0.05
-            ax.set_xlim([min(xdata)-dx, max(xdata)+dx])
-            ax.set_ylim([min(ydata)-dy, max(ydata)+dy])
-            
+            squish_scales = True
+                            
         if overplot:
             ax.scatter(newx, newy, s=spot_size+1, alpha=alpha, edgecolors="none", c=newcols, zorder=5)
         

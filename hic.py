@@ -4,19 +4,27 @@ hic.py
 
 Analysis for HiC data.
 
+TODO:
+-----
+. Known bug in that the pcamodels are stored globally, but should be stored on a per-chromosome basis
+
 '''
 
 import pickle, numpy, math
 
 import matplotlib.cm as cm
 from scipy import ndimage
-from scipy.signal import argrelextrema
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 
 from operator import itemgetter
+
+from .genelist import genelist
 from . import config
 from .draw import draw
 from .progress import progressbar
 from .location import location
+from .format import minimal_bed
 
 if config.H5PY_AVAIL:
     import h5py
@@ -48,6 +56,8 @@ class hic:
                 
         """
         self.readonly = True
+        self.pca_valid = False
+        self.tsne_trained = False
         # These need to also be packaged into the hiccy
         if new:
             self.readonly = False
@@ -66,7 +76,8 @@ class hic:
         else: # old
             self.hdf5_handle = h5py.File(filename, 'r')
             # TODO: fetch it back out as a set:
-                    
+            self.tad_lookup = None
+            
             dat = self.hdf5_handle['all_chrom_names'].value 
             dat = [i[0] for i in dat]# flatten
             self.all_chrom_names = [n.decode("ascii", "ignore") for n in dat]
@@ -171,6 +182,33 @@ class hic:
         assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
         
         return(binLeft, binRight, newloc, mostLeft, mostRight)
+ 
+    def __find_binID_chromosome_span(self, chrom):
+        """
+        (Internal)
+        
+        Get all of the binID (mostLeft and mostRight) for the indicated chromosome
+        """
+        assert self.readonly, 'To __find_binID_chromosome_span, this must be read-only, set new=False'
+        # These are in global bins.
+        locLeft = 0
+        locRight = 0        
+        mostLeft = 1e50
+        mostRight = -1
+        
+        for bin in self.bin_lookup_by_chrom[chrom]:            
+            # To work out the local bin positions: 
+            if bin[0] < mostLeft:
+                mostLeft = bin[0]
+            if bin[0] > mostRight:
+                mostRight = bin[0]
+                mostRightLoc = bin[2]
+        
+        #newloc = location(chr=loc['chr'], left=mostLeft+1, right=mostRight-1) # the +1/-1 stops the bins from overlapping by 1bp, and solves a lot of problems
+        mostRight = self.bin_lookup_by_binID[mostRight][3] # Convert to newBinID:
+        mostLeft = self.bin_lookup_by_binID[mostLeft][3]
+        
+        return(mostLeft, mostRight)       
         
     def load_hicpro_matrix(self, matrix_filename, bed_file):
         """
@@ -293,6 +331,89 @@ class hic:
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
                 
         return(True)
+
+    def save_np3_column_matrix(self, filename):
+        """
+        **Purpose**
+            Some other tools ask for a n+3 chromosome matrix,
+            
+            In the form 
+            chrom   left    right   0   0   0   0   0   0    .... #bins
+            
+            These tables are chromsome local only. 
+            
+            Additionally, it will save them as 'filename_chromX.matrix'
+            with one chromosome in each matrix file
+        
+        **Arguments**
+            filename (Required)
+                filename to save the matrix file to.
+                
+                The main aim of this tool is input for TopDom
+                
+        """
+        assert self.readonly, 'must be readonly to save_np3_column_matrix. set new=False'
+        assert filename, 'You need to specify a filename'
+        
+        for chrom in self.all_chrom_names:
+            chrom_name = chrom
+            if 'chr' not in chrom:
+                chrom_name = 'chr%s' % chrom_name
+                
+            actual_filename = '%s_chrom%s.matrix' % (filename, chrom)
+            oh = open(actual_filename, 'w')
+                
+            mostLeft, mostRight = self.__find_binID_chromosome_span(chrom)
+            mat = self.mats[chrom].value
+            bins = self.bin_lookup_by_chrom[chrom]
+            for m, b in zip(mat, bins):
+                lin = [chrom_name, b[1], b[2]] + list(m)
+                lin = [str(i) for i in lin]
+                oh.write('%s\n' % '\t'.join(lin))       
+            oh.close()
+        
+            config.log.info('Saved save_np3_column_matrix() "%s"' % actual_filename)
+
+    def load_tad_calls(self, filename, format='bed'):
+        """
+        **Purpose**
+            Load and bind a set of TAD calls from some other tool.  
+            
+        **Arguments**
+            filename (Required)
+                filename to load the TAD calls from
+                
+            format (Optional, default=TopDom)
+                One of:
+                'bed':
+                    Load a 3 column BED file with the calls
+                'TopDom':
+                    Load a TopDom BED file.
+                    This includes the 'gap/domain/boundary' 
+                    information, which will also be plotted.
+            
+        **Returns**
+            The TAD BED as a genelist
+        """
+        assert self.readonly, 'must be readonly to load_tad_calls. set new=False'
+        assert filename, 'You need to specify a filename'
+        
+        if format == 'bed': 
+            format = minimal_bed
+        elif format == 'TopDom':
+            format = minimal_bed
+            format.update({"tad_type": 3})
+            
+        self.tad_calls = genelist(filename, format=format)
+        self.tad_calls.sort('loc')
+        # make a quicklookup by chrom for TAD extraction
+        self.tad_lookup = {}
+        for chrom in self.all_chrom_names:
+            self.tad_lookup[chrom] = []
+        for item in self.tad_calls:
+            self.tad_lookup[item['loc']['chr']].append(item)
+            
+        return self.tad_calls
         
     def heatmap(self, filename, chr=None, loc=None,
         bracket=None, colour_map=cm.inferno_r, **kargs):
@@ -500,6 +621,76 @@ class hic:
         
         return()
 
+    def __plot_tad_calls(self, ax, ax_position, loc, tad_calls):
+        """
+        (Internal)
+        
+        Plot Tad calls from a flat bed with no 'tad_type' key
+        
+        """
+        borders = [tad['loc']['left'] for tad in tad_calls]# This is easy, just take all of the left most positions:
+        tad_loc = loc.expand(len(loc)//5) # I want to collect off the edges so the plots spread off the edge
+        
+        # TAD triangle plot
+        tads = []
+        for tad in tad_calls:
+            # check its inside the mostLeft and mostRight:
+            if tad_loc.qcollide(tad['loc']):
+                tads.append((tad['loc']['left'], tad['loc']['right']))
+          
+        xx = []
+        yy = []
+        for b in tads:
+            midH = (b[1] - b[0])/2
+            mid = midH + b[0]
+        
+            xx.append(b[0])
+            yy.append(0)
+        
+            xx.append(mid)
+            yy.append(midH)        
+        ax.set_position(ax_position)           
+        ax.plot(xx, yy)
+        ax.tick_params(top=False, bottom=False, left=False, right=False)
+        ax.set_xlim([loc['left'], loc['right']]) # yes, to the loc
+        ax.set_yticklabels("")
+        #ax.set_xticklabels("")
+
+    def __plot_tad_calls_topdom(self, ax, ax_position, loc, tad_calls):
+        """
+        (Internal)
+        
+        Plot Tad calls from a flat bed with a 'tad_type' key
+        
+        """
+        borders = [tad['loc']['left'] for tad in tad_calls]# This is easy, just take all of the left most positions:
+        tad_loc = loc.expand(len(loc)//5) # I want to collect off the edges so the plots spread off the edge
+        
+        # TAD triangle plot
+        tads = []
+        for tad in tad_calls:
+            # check its inside the mostLeft and mostRight:
+            if tad_loc.qcollide(tad['loc']):
+                tads.append((tad['loc']['left'], tad['loc']['right'], tad['tad_type']))
+          
+        xx = []
+        yy = []
+        for b in tads:
+            midH = (b[1] - b[0])/2
+            mid = midH + b[0]
+        
+            xx.append(b[0])
+            yy.append(0)
+        
+            xx.append(mid)
+            yy.append(midH)        
+        ax.set_position(ax_position)           
+        ax.plot(xx, yy)
+        ax.tick_params(top=False, bottom=False, left=False, right=False)
+        ax.set_xlim([loc['left'], loc['right']]) # yes, to the loc
+        ax.set_yticklabels("")
+        #ax.set_xticklabels("")
+
     def tri_plot_and_freq_plot(self, filename, expn=None, expn_cond_name=None, 
         chr=None, loc=None,
         bracket=None, colour_map=cm.inferno_r, 
@@ -539,6 +730,8 @@ class hic:
         
         if chr:            
             data = self.mats[str(chr).replace('chr', '')]
+            if self.tad_lookup:       
+                tad_calls = self.tad_lookup[loc['chrom']]
         elif loc:
             if not isinstance(loc, location):
                 loc = location(loc)
@@ -559,32 +752,12 @@ class hic:
                         this_chrom[local_bin_num] = i['conditions'][cindex]
             plot_y = this_chrom
             plot_x = numpy.arange(0, len(plot_y))
-            
+
+            tad_calls = None
+            if self.tad_lookup:       
+                tad_calls = self.tad_lookup[loc['chr']]            
         else: 
             raise(AssertionError, 'Not implemented here! :(')
-        '''
-        if chr:
-            # get a specific chromosome:
-            bin_top = self.chrom_edges[chr.replace('chr', '')][0]
-            bin_bot = self.chrom_edges[chr.replace('chr', '')][1]
-            
-            data = self.matrix[bin_top:bin_bot, bin_top:bin_bot]
-            scores, borders = self.score_insulation(data) # Supposed to be done on non-log transformed
-            
-            this_chrom = [0] * (bin_bot - bin_top + 2) 
-            
-            # I just assume the bins match
-            cindex = expn.getConditionNames().index(expn_cond_name)
-            for i in expn:
-                if i['loc']['chr'] == chr.replace('chr', ''):
-                    local_bin_num = i['bin#'] - bin_top                     
-                    this_chrom[local_bin_num] = i['conditions'][cindex]
-            plot_y = this_chrom
-            plot_x = numpy.arange(0, len(plot_y))
-        else:
-            data = self.matrix # use the whole lot
-            # can't be done at the moment as I resorted the bins
-        '''
     
         if bracket: # done here so clustering is performed on bracketed data
             #data = self.draw.bracket_data(numpy.log2(self.matrix+0.1), bracket[0], bracket[1])
@@ -642,50 +815,15 @@ class hic:
         #t.set_fontsize(6)
         cb.ax.tick_params(labelsize=5)
         #[label.set_fontsize(5) for label in ax0.get_xticklabels()]     
-        '''
-        # TAD boundaries
-        ax = fig.add_subplot(513)
-        ax.set_position(tadborder_location)
-        bar = [0] * (len(plot_y)+1)
-        for b in borders:
-            bar[b] = 1
-            
-        ax.imshow(numpy.array((bar,bar)), cmap=cm.Greys, vmin=0, vmax=1, aspect="auto",
-            origin='lower', extent=[0, len(bar), 0, 2], 
-            interpolation=config.get_interpolation_mode()) 
-            
-        #ax.plot(plot_x, plot_y)     
-        ax.set_xlim([0, len(plot_y)])
-        ax.tick_params(top=False, bottom=False, left=False, right=False)
-        ax.set_yticklabels("")
-        ax.set_xticklabels("")
         
-        # TAD triangle plot
-        ax1 = fig.add_subplot(514)
-        ax1.set_position(tadtri_location)    
-        # zip up border_edges:
-        bo = zip(borders[:-1], borders[1:-1])        
-        xx = []
-        yy = []
-        for b in bo:
-            midH = (b[1] - b[0])/2
-            mid = midH + b[0]
-            
-            xx.append(b[0])
-            yy.append(0)
-            
-            xx.append(mid)
-            yy.append(midH)
-        # need to fill in rightmost point:
-        xx.append(borders[-1])
-        yy.append(0)
+        if tad_calls: 
+            ax = fig.add_subplot(514)
+            if 'tad_type' in self.tad_lookup[loc['chr']]:
+                self.__plot_tad_calls(ax, tadtri_location, loc, tad_calls)
+            else: # assume a flat BED:
+                self.__plot_tad_calls_topdom(ax, tadtri_location, loc, tad_calls)
+        # end TADS
         
-        ax1.plot(xx, yy)
-        ax1.tick_params(top=False, bottom=False, left=False, right=False)
-        ax1.set_xlim([0, len(plot_y)])
-        ax1.set_yticklabels("")
-        ax1.set_xticklabels("")
-        '''
         # freq plot
         ax1 = fig.add_subplot(515)
         ax1.set_position(freq_location)
@@ -742,3 +880,208 @@ class hic:
         
         return()
         
+    def pca(self, number_of_components=10, chrom=None):
+        """
+        **Purpose**
+            Train a PCA on the matrix
+        """
+        assert self.readonly, 'must be readonly to draw a density_plot. set new=False'
+        assert chrom, 'You must specify a chromosome for pca()'
+           
+        matrix = self.mats[str(chrom).replace('chr', '')][:]
+        matrix = numpy.log2(matrix+0.1)
+                
+        self.__pcalabels = self.bin_lookup_by_chrom[str(chrom).replace('chr', '')]
+        
+        self.__model = PCA(n_components=number_of_components, whiten=True)
+        self.__transform = self.__model.fit_transform(matrix) # U, sample loading
+        self.__components = self.__model.components_.T # V, The feature loading
+        
+        self.pca_valid = chrom
+        config.log.info("pca: Trained PCA")
+        
+    def explained_variance(self, filename=None, percent_variance=True, **kargs):
+        """
+        **Purpose**
+            plot a graph of PC loading, percent variance for each componenet
+            
+        **Arguments**
+            filename (Required)
+                The filename to save the image to.
+                
+            <common figure arguments are supported>
+        
+        **Returns**
+            None.
+        """
+        assert filename, "explained_variance: Must provide a filename"
+        assert self.pca_valid, 'model has not been trained, use pca()'
+        
+        if "aspect" not in kargs:
+            kargs["aspect"] = "wide"
+        
+        expn_var = numpy.array(self.__model.explained_variance_ratio_) * 100.0
+        
+        fig = self.draw.getfigure(**kargs)
+        ax = fig.add_subplot(111)
+        x = numpy.arange(len(expn_var))
+        ax.bar(x, expn_var, ec="none", color="grey")
+        ax.set_xlabel("Principal components")
+        if percent_variance:
+            ax.set_ylabel('Percent Variance')
+        else:
+            ax.set_ylabel("Loading")
+        ax.set_xticklabels(x+1)
+        ax.set_xticks(x)
+        ax.set_xlim([-0.5, len(expn_var)-0.5])
+        self.draw.do_common_args(ax, **kargs)
+        real_filename = self.draw.savefigure(fig, filename)
+        
+        config.log.info("explained_variance: Saved PC loading '%s'" % real_filename)
+
+    def get_loading_percents(self, **kargs):
+        """
+        **Purpose**
+            Returns the percent of variance  
+            
+        **Arguments**
+            None
+            
+        **Returns**
+            Returns an array for each PC and it's percent variance
+        """        
+        return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
+        
+    def scatter(self, mode, x=None, y=None, filename=None, spot_cols=None, cmap=None, spots=True, label=False, alpha=0.5, overplot=None,
+        spot_size=5, label_font_size=7, label_style='normal', cut=None, squish_scales=False, **kargs): 
+        """
+        **Purpose**
+            plot a scatter plot of PCx against PCy.
+        
+        **Arguments**
+            mode (Required)
+                One of 'pca' or 'tsne'
+                The mode to take the scatter data from.
+        
+            x, y (Required when mode=='pca')
+                PC dimension to plot as scatter
+                Note that PC begin at 1 (and not at zero, as might be expected)
+            
+            filename (Required)
+        
+            spot_cols (Optional, default="black" or self.set_cols())
+                list of colours for the samples, should be the same length as 
+                the number of conditions. 
+                
+                if labels == True and spots == False and spot_cols is not None then 
+                    spot_cols will be used to colour the labels.
+            
+            only_plot_if_x_in_label (Optional, default=None)
+                Only plot an individual scatter if X is in the label name.
+                
+                This must be a list or tuple of names
+                
+                Allows you to effectively remove points from the PCA plot.
+                        
+            spots (Optional, default=True)
+                Draw the spots
+                            
+            spot_size (Optional, default=40)
+                Size of the spots on the scatter
+                
+            label_font_size (Optional, default=7)
+                Size of the spot label text, only valid if label=True
+            
+            label_style (Optional, default='normal')
+                add a 'style' for the text labels, one of:
+                'normal', 'italic', 'oblique'
+        
+            cut (Optional, default=None)
+                Send a rectangle of the form [topleftx, toplefty, bottomrightx, bottomrighty], cut out all of the items within that
+                area and return their label and PC score    
+                
+            squish_scales (Optional, default=False)
+                set the limits very aggressively to [minmin(x), minmax(y)]
+        
+        **Returns**
+            None
+        """
+        assert filename, "scatter: Must provide a filename"     
+        assert self.pca_valid, 'PCA model has not been trained, or the model was trained on the wrong chromosome, use pca()'
+        
+        if mode == 'pca':
+            assert x and y, 'x and y must be valid principal components in pca(mode="scatter", ...)'
+        
+            labels = self.__pcalabels
+            xdata = self.__transform[:,x-1]
+            ydata = self.__transform[:,y-1]
+            mode = 'PC'
+            perc_weights=self.get_loading_percents()
+        elif mode == 'tsne':
+            assert self.tsne_trained, 'tSNE model has not been trained, or the model was trained on the wrong chromosome, use tsne()'
+            labels = self.__pcalabels
+            xdata = self.npos[:, 0]
+            ydata = self.npos[:, 1]
+            mode = 'tSNE '
+            perc_weights=None
+        else:
+            raise AssertionError('mode "%s" not found' % mode)
+        
+        if spot_cols is None: # colour from start of chrom to end
+            spot_cols = numpy.arange(0, len(xdata)) # linear colouring
+            cmap=cm.inferno
+            # I think this is also a system you could use to e.g. put the frequency of something straight on the plot?
+        
+        return_data = self.draw.unified_scatter(labels, xdata, ydata, x=x, y=y, filename=filename, 
+            spot_cols=spot_cols, spots=spots, alpha=alpha, cmap=cmap,
+            perc_weights=perc_weights, mode=mode,
+            spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales, 
+            **kargs)
+        
+        return(return_data)
+        
+    def tsne(self, num_pc, chrom):
+        """
+        **Purpose**
+            Train the MDS on the first <num_pc> components of a PCA
+        
+            MDS is generally too computationally heavy to do on a full dataset, so you 
+            should choose the first few PCs to train the tSNE. Check the pca module
+            for a PCA interface you can use to select the best PCs
+        
+        **Arguments**
+            num_pc (Required)
+                The number of PCs of a PCA to use for tSNE
+                
+                If it is an integer, tSNE will use [1:num_pc]
+                
+                If it is a list tSNE will only use those specific PCs.
+                
+        **Returns**
+            None
+        """
+        assert chrom, 'You must specify a chromosome for tsne()'
+        
+        matrix = self.mats[str(chrom).replace('chr', '')][:]
+        matrix = numpy.log2(matrix+0.1)
+        self.__pcalabels = self.bin_lookup_by_chrom[str(chrom).replace('chr', '')]
+        
+        if isinstance(num_pc, int):
+            self.__tsne_model = PCA(n_components=num_pc, whiten=True)
+            self.__tsne_transform = self.__model.fit_transform(matrix)
+            self.__tsne_pcas = self.__transform
+
+        elif isinstance(num_pc, list):
+            self.__tsne_model = PCA(n_components=max(num_pc)+1, whiten=True)
+            self.__tsne_transform = self.__model.fit_transform(matrix) 
+            # get only the specific PCs                      
+            self.__tsne_pcas = numpy.array([self.__transform[:,c-1] for c in num_pc]).T
+            
+        else:
+            raise AssertionError('num_pcs must be either an integer or a list')
+            
+        self.__tsne_final_model = TSNE(n_components=2, perplexity=100, init='pca', random_state=12345678) # I make this deterministic
+        self.npos = self.__model.fit_transform(self.__tsne_pcas)
+        
+        self.tsne_trained = chrom
+        config.log.info("tsne: Trained tSNE")
