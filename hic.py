@@ -889,7 +889,7 @@ class hic:
         assert chrom, 'You must specify a chromosome for pca()'
            
         matrix = self.mats[str(chrom).replace('chr', '')][:]
-        matrix = numpy.log2(matrix+0.1)
+        matrix = numpy.log2(matrix+0.01)
                 
         self.__pcalabels = self.bin_lookup_by_chrom[str(chrom).replace('chr', '')]
         
@@ -1063,7 +1063,7 @@ class hic:
         assert chrom, 'You must specify a chromosome for tsne()'
         
         matrix = self.mats[str(chrom).replace('chr', '')][:]
-        matrix = numpy.log2(matrix+0.1)
+        matrix = numpy.log2(matrix+0.01)
         self.__pcalabels = self.bin_lookup_by_chrom[str(chrom).replace('chr', '')]
         
         if isinstance(num_pc, int):
@@ -1080,7 +1080,8 @@ class hic:
         else:
             raise AssertionError('num_pcs must be either an integer or a list')
             
-        self.__tsne_final_model = TSNE(n_components=2, perplexity=100, init='pca', random_state=12345678) # I make this deterministic
+        self.__tsne_final_model = TSNE(n_components=2, perplexity=50, init='pca', random_state=0, n_iter=5000, 
+            n_iter_without_progress=1000) 
         self.npos = self.__model.fit_transform(self.__tsne_pcas)
         
         self.tsne_trained = chrom
