@@ -1,12 +1,12 @@
 """
 
-realtime.py
+realtime2.py
 
-part of glbase
+part of glbase3
 
 Used to tidy up qRT-PCR data.
 
-This is essentially deprecated now in favour of the new realtime functionality 
+This is deprecated now in favour of the new realtime functionality
 (which is basically a tool wrapper around expression())
 
 Supported platforms and file formats:
@@ -326,17 +326,17 @@ class realtime2:
                         a = assay(row[_SamColNum], row[_PrimerColNum])
                         a.addCt(float(row[_CtColNum]))
                         self.assayList.append(a)
-                    
+
                     sample_name = row[_SamColNum]
                     probe_name = row[_PrimerColNum]
-                    
+
                     # is this a new sample type?
                     if sample_name not in self.sampleList:
                         self.sampleList.append(sample_name)
                     # is this a new primer type?
                     if probe_name not in self.primerList:
                         self.primerList.append(probe_name)
-                        
+
                 except ValueError as IndexError:
                     # Ct column is empty and this is an empty row, skip it.
                     pass
@@ -346,7 +346,7 @@ class realtime2:
     def import_gene_row_sam_col(self, filename):
         """
         Import files where the gene is in the row and the columns are samples, e.g.:
-        
+
         NA	MEF	D9_Oct4	d15_Oct4	d30_Oct4
         Actin	13.84773636	15.46720409	15.36977069	16.74893824
         Nestin	20.92989349	21.5210886	21.4988575	24.12586117
@@ -355,20 +355,20 @@ class realtime2:
         mT	32.67443275	31.92605591	25.98482418	30.10064888
         Eomes	29.95026398	29.28219509	25.44676971	26.60316944
         Lhx1	32.42358112	30.61198425	24.54306221	30.56797695
-        
+
         """
         oh = open(filename, "rU")
-        
+
         header = oh.readline().strip().split("\t")[1:]
-        
+
         for line in oh:
             tt = line.strip().split("\t")
             probe_name = tt[0]
-                       
+
             cts = [float(i) for i in tt[1:]]
-            
+
             print(probe_name, cts)
-            
+
             for i, ct in enumerate(cts):
                 sample_name = header[i]
                 print(probe_name, ct, sample_name)
@@ -379,14 +379,14 @@ class realtime2:
                     a = assay(sample_name, probe_name) # not present so make a new element
                     a.addCt(ct, True)
                     self.assayList.append(a)
-                                        
+
                     # is this a new sample type?
                     if sample_name not in self.sampleList:
                         self.sampleList.append(sample_name)
                     # is this a new primer type?
                     if probe_name not in self.primerList:
                         self.primerList.append(probe_name)
-        oh.close()       
+        oh.close()
 
     def calculate(self):
         # these to be userset

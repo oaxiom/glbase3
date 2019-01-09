@@ -56,7 +56,7 @@ try:
     config.H5PY_AVAIL = True
 except Exception:
     config.log.warning('h5py not found. It is optional, but highly reccomended')
- 
+
 try:
     import networkx
     config.NETWORKX_AVAIL = True
@@ -107,7 +107,7 @@ from .pwm import pwm
 from .pwms import pwms
 from .ecrbase import ecrbase, tfbs_iter
 from .region import region
-from .realtime2 import realtime2
+#from .realtime2 import realtime2 # This is deprecated
 from .expression import expression
 from .logos import logo
 from .draw import draw
@@ -115,7 +115,7 @@ from .format_container import fc
 from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
-from .hic import hic
+from .hic import hic, merge_hiccys
 #from .rigidgrids import rigidgrid # Available only through expn objects in future?
 from . import realtime
 from . import gldata
@@ -138,17 +138,21 @@ def version():
 config.set_log_level('info')
 
 # export all of the libraries, methods and helpers.
-__all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "flat_track", "delayedlist", 
+__all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "flat_track", "delayedlist",
             "glgo", "hic", # primary objects
-            #"rigidgrid", # Temporarily available
-            "location", "pwm", "pwms", #accesory objects 
+            #"rigidgrid", # Temporarily unavailable
+            'merge_hiccys', # hic support
+            "location",
+            "pwm", "pwms", # PWM object support
             "flags",  "format",
-            "utils", "glload", "seqToTrk", "logo", 
+            "utils", "glload", "seqToTrk", "logo",
             "glglob", "motif",  "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat',
             "rnaseqqc", "gldata",
             "gerp_to_flat", "draw", "fc",
-            "progressbar", "ecrbase", "region", "realtime", "realtime2", "tfbs_iter",
-            "strandSorter", 
+            "progressbar", "ecrbase", "region", "realtime",
+            #"realtime2", # This is deprecated
+            "tfbs_iter",
+            "strandSorter",
             'adjust_text',
             "cmaps"] + dir(helpers)
             # in future I want to get rid of dir() and control what gets exported.
