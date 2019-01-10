@@ -6,7 +6,7 @@ Analysis for HiC data.
 
 TODO:
 -----
-. Known bug in that the pcamodels are stored globally, but should be stored on a per-chromosome basis
+. merge_hiccys could be adapted to measure variance, and so extract DE?
 
 '''
 
@@ -34,7 +34,7 @@ else:
 def merge_hiccys(new_hic_filename, name, *hics):
     '''
     **Purpose**
-        Take the mean values for two hic objects.
+        Take the mean values for two or more hic objects.
         Save the result as a new hiccy File
 
         This algorithm assumes you know what you are doing, and you are trying to merge
@@ -55,7 +55,8 @@ def merge_hiccys(new_hic_filename, name, *hics):
     '''
     assert new_hic_filename, 'You must specify a filename in new_hic_filename'
     assert name, 'You must specify a name'
-    assert isinstance(hics, list), 'hics must be a list of >=2'
+    assert hics, 'a list of hics was not specified'
+    assert isinstance(hics, tuple), 'hics must be a list of >=2'
     assert (len(hics) > 1), 'hics must be >=2 length'
 
     # For the first one to merge, do an OS copy for speed and setup
@@ -64,8 +65,21 @@ def merge_hiccys(new_hic_filename, name, *hics):
     newhic = hic(filename=new_hic_filename, name=name, new=False)
     newhic.readonly = False # Make it editable
 
+    # I bind all the hics:
+    hics = [hic(filename=f, name=f) for f in hics[1:]]
 
+    for chrom in newhic.all_chrom_names:
+        # config.log.info('Merging chrom "%s"' % chrom)
 
+        data = numpy.array(newhic.mats[chrom])
+        for h in hics:
+            data += h.mats[chrom]
+
+    data /= len(hics)
+    newhic.mats[chrom] = data
+
+    newhic.close()
+    config.log.info('Merged %s matrices' % (len(hics)+1,))
 
 # I'm not using the base_genelist class, so, you need to add in defs as needed.
 class hic:
