@@ -1066,14 +1066,14 @@ class hic:
             xdata = self.__transform[:,x-1]
             ydata = self.__transform[:,y-1]
             mode = 'PC'
-            perc_weights=self.get_loading_percents()
+            perc_weights = self.get_loading_percents()
         elif mode == 'tsne':
             assert self.tsne_trained, 'tSNE model has not been trained, or the model was trained on the wrong chromosome, use tsne()'
             labels = self.__pcalabels
             xdata = self.npos[:, 0]
             ydata = self.npos[:, 1]
             mode = 'tSNE '
-            perc_weights=None
+            perc_weights = None
         else:
             raise AssertionError('mode "%s" not found' % mode)
 

@@ -7,6 +7,8 @@ Requires:
 * matplotlib
 * scipy
 * sklearn
+* h5py
+* networkx
 """
 
 import sys
@@ -23,7 +25,7 @@ except:
 
 # ----------------------------------------------------------------------
 # Test for availability of the core non-standard libs.
-# These need to be available as the subsequent load/checking is weak/non-existant.
+# These need to be available as the subsequent load/checking is weak/non-existent.
 
 try:
     import numpy
@@ -39,7 +41,7 @@ except Exception:
 
 try:
     import matplotlib
-    #matplotlib.use("Agg") # cluster friendly!
+    matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
 except Exception:
     raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
