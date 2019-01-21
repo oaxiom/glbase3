@@ -124,16 +124,16 @@ def movingAverage(listIn, window=20, normalise=False, bAbsiscaCorrect=True):
 def cumulative_line(listIn, percent=True):
     """
     convert the array to a cumulative array
-    
+
     The array is expected to be some sort of list of numbers.
     This will return the array added in a cumulative manner from 0 .. 100 %
     The returned list will always be floats.
-    
+
     (If percent is left as True - the default)
     """
     s = sum(listIn)
     m = max(listIn)
-    
+
     c = 0
     rc = 0
     n = []
@@ -144,7 +144,7 @@ def cumulative_line(listIn, percent=True):
         else:
             rc += i
         n.append(rc)
-    
+
     if percent:
         a = (numpy.array(n) / float(s)) * 100
     else:
@@ -422,7 +422,7 @@ def convertFASTAtoDict(filename, gzip_input=False):
     #entry = {"seq": "", "name": "empty"}
     for line in openfile:
         if line[:1] != ">": # not a FASTA block, so add this line to the sequence
-            entry["seq"] += line.replace('\r', '').replace("\n", "") 
+            entry["seq"] += line.replace('\r', '').replace("\n", "")
 
         if line[:1] == ">": # fasta start block
             entry = {"seq": "", "name": "empty"} # make a new node
@@ -759,15 +759,15 @@ def renameDuplicatesFromCSV(path, csvfile, outfile, column_no = 3, bKeepEmptyCol
 
 # This code comes from http://www.johndcook.com/standard_deviation.html
 # the point of all this complexity is to allow incremental computation of mean and std in
-# a numerically stable way. 
+# a numerically stable way.
 # Taken from ACT
 class accumulate_mean:
     def __init__(self):
         self.m_n = self.m_oldM = self.m_newM = 0
-        
+
     def fields(self):
         return ["mean", "stdev"]
-        
+
     def add(self, x, binWidth):
         x = float(x)/binWidth
         self.m_n += 1
@@ -780,10 +780,10 @@ class accumulate_mean:
             # set up for next iteration
             self.m_oldM = self.m_newM
             self.m_oldS = self.m_newS
-  
+
     def finishPosition(self):
         pass # nothing to do for mean
-  
+
     def finalize(self, count):
         mean = float(self.m_newM) * self.m_n / count
         if self.m_n > 1:
@@ -854,19 +854,19 @@ def bin_data(array_like, bin_size):
 
 def bin_sum_data(array_like, bin_size):
     return([sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)])
-    
+
 def bin_mean_data(array_like, bin_size):
     return([(sum(array_like[i:i+bin_size]) / float(len(array_like[i:i+bin_size]))) for i in range(0, len(array_like), bin_size)])
 
 def scale_data(array_like, range=(0, 100)):
     """
-    rescale the data within range 
+    rescale the data within range
     """
     assert range[0] == 0, "sorry, only ranges 0..n are supported at present"
-    
+
     scaled = numpy.zeros(range[1])
     s = len(array_like)/ float(range[1])
-    
+
     for fi, f in enumerate(numpy.arange(range[0], len(array_like)-1, s)):
         val = array_like[int(math.floor(f)):int(math.floor(f+s))]
         if len(val) >= 1: # when s < 1.0 sometimes the recovered array will be empty
@@ -876,20 +876,20 @@ def scale_data(array_like, range=(0, 100)):
 def kde(val_list, range=(0,1), covariance=0.02, bins=20):
     """
     kernal denstity estimation of an array
-    
+
     covariance not working?
     """
     a = numpy.linspace(range[0], range[1], bins)
-    
+
     def covariance_factor(self):
         return covariance
-    
+
     kde = stats.gaussian_kde(val_list)
     #setattr(kde, 'covariance_factor', covariance_factor.__get__(kde, type(kde))) # Hack gaussian_kde()
     #kde._compute_covariance()
 
     kk = kde.evaluate(a) # resacle to get in integer range.
-    
+
     return(numpy.array(kk, dtype=numpy.float64))
 
 # I think this is non-functional below:
@@ -903,11 +903,11 @@ def _core_distance(pt, epsilon, MinPts):
 def _optics_update(N, p, Seeds, eps, Minpts):
 
     coredist = core_distance(p, eps, MinPts)
-    
+
     for o in N:
         if (o is not processed):
             new_reach_dist = max(coredist, dist(p,o))
-            
+
             if not o.reachability_distance: # o is not in Seeds
                 o.reachability_distance = new_reach_dist
                 Seeds.insert(o, new_reach_dist)
@@ -917,18 +917,18 @@ def _optics_update(N, p, Seeds, eps, Minpts):
                     Seeds.move_up(o, new_reach_dist)
 
 def OPTICS(DB, eps, MinPts):
-    
+
     #for p in DB:
     #   p.reachability_distance = None
     ordered = []
-       
+
     for p in DB:
         if not p.done:
             N = getNeighbors(p, eps)
             p.done = True
             ordered.append(p)
             Seeds = heapq([])
-            
+
             if not core_distance(p, eps, Minpts):
                 _optics_update(N, p, Seeds, eps, Minpts)
                 for q in Seeds:
@@ -940,7 +940,7 @@ def OPTICS(DB, eps, MinPts):
 
 # The below code was taken and modified from sklearn.
 # It's mostly here for reference, I just use the sklearn kit.
-                     
+
 """
 Sklearn was released under the BSD license, which is repeated here:
 
@@ -960,7 +960,7 @@ modification, are permitted provided that the following conditions are met:
   c. Neither the name of the Scikit-learn Developers  nor the names of
      its contributors may be used to endorse or promote products
      derived from this software without specific prior written
-     permission. 
+     permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -989,7 +989,7 @@ def euclidean_distances(X, Y=None):
     efficient when dealing with sparse data. Second, if x varies but y
     remains unchanged, then the right-most dot-product 'dot(y, y)' can be
     pre-computed.
-    
+
     APH: Removed support for Sparse matrices to simplify things a bit and squared returns
 
     Parameters
@@ -1028,7 +1028,7 @@ def euclidean_distances(X, Y=None):
     else: # make sure float;
         X = numpy.asarray(numpy.atleast_2d(X), dtype=numpy.float, order=None)
         Y = numpy.asarray(numpy.atleast_2d(Y), dtype=numpy.float, order=None)
-    
+
     XX = numpy.sum(X * X, axis=1)[:, numpy.newaxis]
 
     if X is Y:  # shortcut in the common case euclidean_distances(X, X)
@@ -1048,10 +1048,10 @@ def euclidean_distances(X, Y=None):
         distances.flat[::distances.shape[0] + 1] = 0.0
 
     return distances
-  
+
 def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
     """Perform DBSCAN clustering from vector array or distance matrix.
-    
+
     Parameters
     ----------
     X: array [n_samples, n_samples] or [n_samples, n_features]
@@ -1064,23 +1064,23 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
     min_samples: int, optional
         The number of samples in a neighborhood for a point to be considered
         as a core point.
-    metric:     
+    metric:
         Only euclidean in this variant.
     random_state: numpy.RandomState, optional
         The generator used to initialize the centers. Defaults to numpy.random.
-    
+
     Returns
     -------
     core_samples: array [n_core_samples]
         Indices of core samples.
-    
+
     labels : array [n_samples]
         Cluster labels for each point.  Noisy samples are given the label -1.
-        
+
     """
     X = numpy.asarray(X)
     n = X.shape[0]
-    
+
     # If index order not given, create random order.
     random_state = numpy.random.mtrand._rand
     index_order = numpy.arange(n)
@@ -1095,22 +1095,22 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
     print(numpy.max(D))
     print(numpy.min(D))
     print(numpy.histogram(D))
-    
+
     # Calculate neighborhood for all samples. This leaves the original point
     # in, which needs to be considered later (i.e. point i is the
     # neighborhood of point i. While True, its useless information)
     neighborhoods = [numpy.where(x <= eps)[0] for x in D]
     #print neighborhoods
-    
+
     # Initially, all samples are noise.
     labels = -numpy.ones(n)
-    
+
     # A list of all core samples found.
     core_samples = []
-    
+
     # label_num is the label given to the new cluster
     label_num = 0
-    
+
     # Look at all samples and determine if they are core.
     # If they are then build a new cluster from them.
     for index in index_order:
@@ -1119,12 +1119,12 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
             continue
         core_samples.append(index)
         labels[index] = label_num
-        
+
         # candidates for new core samples in the cluster.
         candidates = [index]
         while len(candidates) > 0:
             new_candidates = []
-            
+
             # A candidate is a core point in the current cluster that has
             # not yet been used to expand the current cluster.
             for c in candidates:
@@ -1132,16 +1132,16 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
                 noise = neighborhoods[c][noise]
                 labels[noise] = label_num
                 for neighbor in noise:
-                
+
                     # check if its a core point as well
                     if len(neighborhoods[neighbor]) >= min_samples:
                         # is new core point
                         new_candidates.append(neighbor)
                         core_samples.append(neighbor)
-                        
+
             # Update candidates for next round of cluster expansion.
             candidates = new_candidates
-            
+
         # Current cluster finished.
         # Next core point found will start a new cluster.
         label_num += 1
@@ -1152,7 +1152,7 @@ def dbscan(X, eps=0.5, min_samples=5, metric='euclidean', random_state=None):
 def fold_change(c1, c2, log=2, pad=1e-6):
     """
     Calculate the fold-change of two values
-    
+
     by default returns the log fold-change
     """
     try:
@@ -1168,7 +1168,7 @@ def fold_change(c1, c2, log=2, pad=1e-6):
                 return(-math.log(c1v/c2v, log))
             else:
                 return(-(c1v/c2v))
-                                            
+
     except (OverflowError, ZeroDivisionError, ValueError):
         if c2v > c1v:
             config.log.error("(%.2f/%.2f) failed" % (c2v, c1v))
@@ -1192,5 +1192,5 @@ if __name__ == "__main__":
     print(euclidean_distances(X, numpy.array([[0.0, 0.0]])))
     #array([[ 1.        ],
     #       [ 1.41421356]])
-    
+
     print(fold_change(100, 50, log=2, pad=1e-6))
