@@ -1728,7 +1728,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             Peak calling is conservative on any single ChIP-seq library. To get better sensitivity
             I pool information from other libraries by making a superset of peaks
-            (all possible peaks in some set of ChIP-seq) and then ‘re-calling’ the peaks
+            (all possible peaks in some set of ChIP-seq) and then 're-calling' the peaks
             in each library by modeling the enrichment. This allows me to rescue weak peaks.
 
             It then builds a model, constructs a Z-score and then only keeps those peaks
@@ -1824,11 +1824,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             avg = numpy.average(lam10)
             std = numpy.std(lam10)
-            print('Average background: %.3f' % avg)
-            print('Average STDev: %.3f' % std)
+            config.log.info('Average background: %.3f' % avg)
+            config.log.info('Average STDev: %.3f' % std)
 
             thresh = avg + (std * Z_threshold)
-            print('Guessed threshold (For a Z of %s) actual threshold = %.5f' % (Z_threshold, thresh))
+            config.log.info('Guessed threshold (For a Z of %s) actual threshold = %.5f' % (Z_threshold, thresh))
 
             # Plot the histogram:
             if filename:

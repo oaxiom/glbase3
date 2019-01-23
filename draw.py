@@ -2460,6 +2460,7 @@ class draw:
         # Get the means/stdevs:
         means = [numpy.mean(data[k]) for k in data]
         stds = [numpy.std(data[k]) / math.sqrt(len(data[k])) for k in data]
+        lengths = [len(data[k]) for k in data] # for working out if it is valid to plot errs or mean
 
         # convert the data array into a linear list of x and y:
         xs = numpy.arange(0.5, len(labs)+0.5)
@@ -2472,7 +2473,8 @@ class draw:
 
 
         ax.scatter(xd, yd, edgecolors='black', lw=0.5, c='none', s=20)
-        ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
+        if False not in [i>=3 for i in lengths]:
+            ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
 
         ax.set_ylim([0, max(yd)+10])
         ax.set_xlim([-0.2, len(labs)+0.2])
@@ -2481,11 +2483,11 @@ class draw:
         ax.set_xticklabels(labs, rotation=45, rotation_mode="anchor", ha="right")
         ax.set_ylabel(yticktitle)
 
-        ls = []
-        for i in zip(xs, means):
-            print(i)
-            l = mlines.Line2D([i[0]-0.3, i[0]+0.3], [i[1], i[1]], c='red', lw=1)
-            ax.add_line(l) #ax.scatter(xs, ms, color='red', marker='_')
+        if False not in [i>=2 for i in lengths]:
+            ls = []
+            for i in zip(xs, means):
+                l = mlines.Line2D([i[0]-0.3, i[0]+0.3], [i[1], i[1]], c='red', lw=1)
+                ax.add_line(l) #ax.scatter(xs, ms, color='red', marker='_')
 
         self.do_common_args(ax, **kargs)
 
