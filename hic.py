@@ -199,14 +199,18 @@ class hic:
         mostLeft = 1e50
         mostRight = -1
 
+        #print(self.bin_lookup_by_chrom[loc['chr']])
         for bin in self.bin_lookup_by_chrom[loc['chr']]:
             # bin = (binID, left, right)
+            #print(bin, loc)
             if bin[2] > loc['left'] and bin[0] < binLeft:
                 binLeft = bin[0]
                 locLeft = bin[1]
+                #print('bL', binLeft, binRight, loc)
             if loc['right'] > bin[1] and bin[0] > binRight:
                 binRight = bin[0]
                 locRight = bin[2]
+                #print('bR', binLeft, binRight, loc)
 
             # To work out the local bin positions:
             if bin[0] < mostLeft:
@@ -229,6 +233,7 @@ class hic:
         binRight = binRight - mostLeft
         mostRight = self.bin_lookup_by_binID[mostRight][3] # Convert to newBinID:
         mostLeft = self.bin_lookup_by_binID[mostLeft][3]
+        #print (binLeft, binRight, newloc, mostLeft, mostRight)
         assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
 
         return(binLeft, binRight, newloc, mostLeft, mostRight)
@@ -285,7 +290,7 @@ class hic:
             try:
                 chr = int(chr)
             except ValueError:
-                pass # It's chrX etc.
+                pass # It's chrX chrVII etc.
 
             bins.append((chr, int(lin[1]), int(lin[2]), int(lin[3])))
             if chr not in self.all_chrom_names:
@@ -608,7 +613,7 @@ class hic:
                 loc = location(loc)
 
             # Need to get the binIDs and the updated location span
-            localLeft, localRight, loc, _ = self.__find_binID_spans(loc)
+            localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
             data = self.mats[loc['chr']][localLeft:localRight, localLeft:localRight]
         else:
@@ -649,7 +654,7 @@ class hic:
             interpolation=config.get_interpolation_mode())
 
         ax.set_xlim([0,data.shape[1]])
-        ax.set_ylim([data.shape[1]/2,(data.shape[1]/2)+data.shape[1]/10]) # get the middle start position, then about 1/10 of the way up
+        ax.set_ylim([data.shape[1]/2,(data.shape[1]/2)+data.shape[1]/4]) # get the middle start position, then about 1/X of the way up
         #print([dst.shape[1]/2,data.shape[1]])
         #ax.set_yticklabels("")
         #ax.set_xticklabels("")

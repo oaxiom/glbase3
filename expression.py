@@ -646,18 +646,58 @@ class expression(base_expression):
                 use a row_wise Z-score. If False then use the variance from all genes/rows
                 on the expression object
         """
+        config.log.warning('Deprecation: Please use row_Z() method')
+        self.row_Z(row_wise_variance=row_wise_variance)
+
+    def row_Z(self, row_wise_variance=True):
+        """
+        **Purpose**
+            Convert the expression to a row-wise Z-score
+
+            This is an IN PLACE function
+
+        **Arguments**
+            row_wise_variance (Optional, default=True)
+                use a row_wise Z-score. If False then use the variance from all genes/rows
+                on the expression object
+        """
         expn = self.numpy_array_all_data.T
+        m = numpy.mean(expn, axis=0)
         if row_wise_variance:
-            m = numpy.mean(expn, axis=0)
             s = numpy.std(expn, axis=0)
         else:
-            m = numpy.mean(expn, axis=0)
             s = numpy.std(expn)
 
         z = (expn - m) / s
         self.numpy_array_all_data = z.T
         self._load_numpy_back_into_linearData()
 
+    def column_Z(self, col_wise_variance=True):
+        '''
+        **Purpose**
+            Perform column Z-score conversion
+            
+            This is an IN PLACE function
+            
+        **Arguments**
+            col_wise_variance (Optional, default=True)
+                For calculation of the Z-score, if set to True use only the variance in each 
+                column.
+                
+                If set to False use the entire 
+                
+        '''
+        expn = self.numpy_array_all_data
+        m = numpy.mean(expn, axis=0)
+        if col_wise_variance:
+            s = numpy.std(expn, axis=0)
+        else:
+            s = numpy.std(expn)
+
+        z = (expn - m) / s
+        self.numpy_array_all_data = z
+        self._load_numpy_back_into_linearData()
+        
     def normalize(self):
         """
         **Purpose**

@@ -30,11 +30,56 @@ class Test_Expression(unittest.TestCase):
             {"name": "i3", "conditions": [4, 3,    2, 1], "err": [4, 3,    2, 1], "m1": "aaa", "m2": "aa"},
             {"name": "i4", "conditions": [1, 2.05, 3, 0.1], "err": [1, 2.05, 3, 0.1], "m1": "zzz", "m2": "cc"}]
         
+        data_Z_row = [{'name': 0, 'conditions': [1,2,3,4]},
+            {'name': 1, 'conditions': [2,2,3,3]},
+            {'name': 2, 'conditions': [2,4,6,8]},
+            {'name': 3, 'conditions': [10,8,6,4]},
+            ]
+        # There is a transpose in this one, so better not to use a x4x4, have an odd matrix.
+        data_Z = [{'name': 0, 'conditions': [1,2,3,4]},
+            {'name': 1, 'conditions': [2,2,3,3]},
+            {'name': 2, 'conditions': [2,4,6,8]},
+            {'name': 3, 'conditions': [10,8,6,4]},
+            {'name': 4, 'conditions': [3,3,3,3]},
+            ]        
         self.expn = gl.expression(loadable_list=data, cond_names=["a", "b", "c", "d"])
         self.expn_err = gl.expression(loadable_list=data_err, cond_names=["a", "b", "c", "d"])
+        self.expn_Z_row_wise = gl.expression(loadable_list=data_Z_row, cond_names=["a", "b", "c", "d"])
+        self.expn_Z_row_all = gl.expression(loadable_list=data_Z_row, cond_names=["a", "b", "c", "d"])
+        self.expn_Z_col_wise = gl.expression(loadable_list=data_Z, cond_names=["a", "b", "c", "d"])
+        self.expn_Z_col_all = gl.expression(loadable_list=data_Z, cond_names=["a", "b", "c", "d"])
 
-    def test_fold_change(self):
+    def test_Z_row(self):
+        self.expn_Z_row_wise.row_Z()
+        self.assertListEqual([-1.3416407864998738, -0.4472135954999579, 0.4472135954999579, 1.3416407864998738], self.expn_Z_row_wise[0]['conditions'])
+        self.assertListEqual([-1.0, -1.0, 1.0, 1.0], self.expn_Z_row_wise[1]['conditions'])
+        self.assertListEqual([-1.3416407864998738, -0.4472135954999579, 0.4472135954999579, 1.3416407864998738], self.expn_Z_row_wise[2]['conditions'])
+        self.assertListEqual([1.3416407864998738, 0.4472135954999579, -0.4472135954999579, -1.3416407864998738], self.expn_Z_row_wise[3]['conditions'])
         
+        self.expn_Z_row_all.row_Z(False)
+        self.assertListEqual([-0.5911975668985759, -0.19706585563285864, 0.19706585563285864, 0.5911975668985759], self.expn_Z_row_all[0]['conditions'])
+        self.assertListEqual([-0.19706585563285864, -0.19706585563285864, 0.19706585563285864, 0.19706585563285864], self.expn_Z_row_all[1]['conditions'])
+        self.assertListEqual([-1.1823951337971519, -0.3941317112657173, 0.3941317112657173, 1.1823951337971519], self.expn_Z_row_all[2]['conditions'])
+        self.assertListEqual([1.1823951337971519, 0.3941317112657173, -0.3941317112657173, -1.1823951337971519], self.expn_Z_row_all[3]['conditions'])
+ 
+    def test_Z_col(self):
+        self.expn_Z_col_wise.column_Z()
+        self.assertListEqual([-0.7970811413304555, -0.8082238591204869, -0.8164965809277261, -0.21566554640687702], self.expn_Z_col_wise[0]['conditions'])
+        self.assertListEqual([-0.49051147158797265, -0.8082238591204869, -0.8164965809277261, -0.7548294124240691], self.expn_Z_col_wise[1]['conditions'])
+        self.assertListEqual([-0.49051147158797265, 0.08980265101338752, 1.224744871391589, 1.9409899176618914], self.expn_Z_col_wise[2]['conditions'])
+        self.assertListEqual([1.9620458863518906, 1.8858556712811365, 1.224744871391589, -0.21566554640687702], self.expn_Z_col_wise[3]['conditions'])
+        self.assertListEqual([-0.18394180184548975, -0.3592106040535497, -0.8164965809277261, -0.7548294124240691], self.expn_Z_col_wise[4]['conditions'])
+        
+        self.expn_Z_col_all.column_Z(False) # Isnt this the same?
+        print(self.expn_Z_col_all.all())
+        self.assertListEqual([-1.1188618555710315, -0.7745966692414833, -0.5163977794943223, -0.17213259316477422], self.expn_Z_col_all[0]['conditions'])
+        self.assertListEqual([-0.6885303726590963, -0.7745966692414833, -0.5163977794943223, -0.6024640760767094], self.expn_Z_col_all[1]['conditions'])
+        self.assertListEqual([-0.6885303726590963, 0.08606629658238711, 0.7745966692414833, 1.5491933384829666], self.expn_Z_col_all[2]['conditions'])
+        self.assertListEqual([2.7541214906363853, 1.8073922282301278, 0.7745966692414833, -0.17213259316477422], self.expn_Z_col_all[3]['conditions'])
+        self.assertListEqual([-0.25819888974716115, -0.34426518632954806, -0.5163977794943223, -0.6024640760767094], self.expn_Z_col_all[4]['conditions'])
+    
+    
+    def test_fold_change(self):
         expn = self.expn.add_fc_key(key="fca", cond1="a", cond2="b")
         self.assertEqual(expn[0]["fca"], 0.9999992786530209) # not 2.0 because of pad
         self.assertEqual(expn[1]["fca"], -0.0)

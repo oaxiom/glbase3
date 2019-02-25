@@ -1,7 +1,12 @@
 """
 Utilities
 
-Various utilities to support the genome scanning scripts
+Various utilities to support the genome scanning scripts.
+
+MAny of these predate glbase3, but are a little tricky to remove as I am not sure where
+they are used (if at all).
+
+So excuse the terrible code in places. I will deprecate occasional functions from this.
 
 R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
 degenerate character N=[ATCG]
@@ -291,7 +296,7 @@ def expandElementRightOnly_degenerate(_element, _preserve=True): #
     THis one only expands the element one base pair 3'
     will use a degenerate code;
     R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
-degenerate character N=[ATCG]
+    degenerate character N=[ATCG]
 
     returns
     (list) of expanded elements
@@ -316,7 +321,7 @@ degenerate character N=[ATCG]
     for right in range(11):
         lib.append(_element+dir[right])
 
-    return  lib
+    return lib
 
 def expandElementRightOnly_degenerate_n(_element, _preserve=True): #
     """
@@ -393,10 +398,10 @@ def convertFASTAtoCSV(filename):
     record = ""
     entry = Node("empty")
     for line in openfile:
-        if line[:1] != ">": # not a FASTA block, so add this line to the sequence
-            entry.seq += line.replace('\r\n', '') # strip out the new line WINDOWS specific!
+        if line[0] != ">": # not a FASTA block, so add this line to the sequence
+            entry.seq += line.strip().replace('\r\n', '') # strip out the new line WINDOWS specific!
 
-        if line[:1] == ">": # fasta start block
+        if line[0] == ">": # fasta start block
             # start recording
             # add the old Node to the list
             if entry.name != "empty":
@@ -419,12 +424,11 @@ def convertFASTAtoDict(filename, gzip_input=False):
         openfile = open(filename, "rt")
 
     result = []
-    #entry = {"seq": "", "name": "empty"}
     for line in openfile:
-        if line[:1] != ">": # not a FASTA block, so add this line to the sequence
-            entry["seq"] += line.replace('\r', '').replace("\n", "")
+        if line[0] != ">": # not a FASTA block, so add this line to the sequence
+            entry["seq"] += line.strip().replace('\r', '').replace("\n", "")
 
-        if line[:1] == ">": # fasta start block
+        if line[0] == ">": # fasta start block
             entry = {"seq": "", "name": "empty"} # make a new node
             # start recording
             entry["name"] = line.replace(">", "").strip()
@@ -432,6 +436,7 @@ def convertFASTAtoDict(filename, gzip_input=False):
             if entry["name"] != "empty":
                 # convert the list to a tuple
                 result.append(entry) # You have to think about this one, but it works as it appends a view!
+                # And so will not miss the last item!
     return(result)
 
 def scanNumberOfBasePairs(fastafilehandle):

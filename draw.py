@@ -272,7 +272,7 @@ class draw:
 
                 if col_colbar:
                     top_side_tree =          [0.03,   0.864,  heat_wid,   0.040] # squeeze up the colbar
-                    loc_col_colbar =         [0.03,   0.852,   heat_wid,  0.012] #
+                    loc_col_colbar =         [0.03,   0.892,   heat_wid,  0.012] #
 
         scalebar_location = [0.01,  0.98,   0.18,   0.015]
 
