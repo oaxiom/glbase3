@@ -1806,7 +1806,16 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 left_flank = this_data[lambd_left:p['loc']['left']-100]
                 rite_flank = this_data[p['loc']['right']+100:lambd_rite]
 
-                peak_data = this_data[p['loc']['left']:p['loc']['right']] # If this fails then your peak caller is broken as it is defining a peak in a region with no reads.
+
+                peak_data = this_data[p['loc']['left']:p['loc']['right']]
+                # The above can fail, as peaks can come from rich data, and then be tested against a sparse flat
+                if len(peak_data) == 0:
+                    p['%s_peak_score' % sam_name] = 0 # fill the entries in, with 0 due to missing data in the array.
+                    p['%s_lam10' % sam_name] = 0
+                    p['%s_lam10std' % sam_name] = 0
+                    peaks.append(0) # Still need to fill in to get a correct average.
+                    continue
+
                 p['%s_lam10' % sam_name] = numpy.average(left_flank + rite_flank)
                 p['%s_lam10std' % sam_name] = numpy.std(left_flank + rite_flank)
                 lam10.append(numpy.average(left_flank + rite_flank)) # For the global Z

@@ -1778,8 +1778,10 @@ class draw:
             [t.set_fontsize(kargs["legend_size"]) for t in legend.get_texts()]
         if "xticklabel_fontsize" in kargs:
             [t.set_fontsize(kargs["xticklabel_fontsize"]) for t in ax.get_xticklabels()]
+            ax.xaxis.label.set_size(kargs["xticklabel_fontsize"])
         if "yticklabel_fontsize" in kargs:
             [t.set_fontsize(kargs["yticklabel_fontsize"]) for t in ax.get_yticklabels()]
+            ax.yaxis.label.set_size(kargs["yticklabel_fontsize"])
         if "xticklabels" in kargs:
             ax.set_xticklabels(kargs["xticklabels"])
         if "yticklabels" in kargs:

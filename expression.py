@@ -676,16 +676,16 @@ class expression(base_expression):
         '''
         **Purpose**
             Perform column Z-score conversion
-            
+
             This is an IN PLACE function
-            
+
         **Arguments**
             col_wise_variance (Optional, default=True)
-                For calculation of the Z-score, if set to True use only the variance in each 
+                For calculation of the Z-score, if set to True use only the variance in each
                 column.
-                
-                If set to False use the entire 
-                
+
+                If set to False use the entire
+
         '''
         expn = self.numpy_array_all_data
         m = numpy.mean(expn, axis=0)
@@ -697,7 +697,7 @@ class expression(base_expression):
         z = (expn - m) / s
         self.numpy_array_all_data = z
         self._load_numpy_back_into_linearData()
-        
+
     def normalize(self):
         """
         **Purpose**
@@ -3255,7 +3255,8 @@ class expression(base_expression):
         return(cc)
 
     def barh_single_item(self, key=None, value=None, filename=None, tree=None,
-        plot_mean=True, plot_stdev=True, fold_change=False, tight_layout=False, **kargs):
+        plot_mean=True, plot_stdev=True, fold_change=False, tight_layout=False,
+        bar_cols=None, vert_space=0.75, hori_space=0.5, **kargs):
         """
         **Purpose**
             Plot a horizontal bar for a single item (gene?), for all conditions.
@@ -3284,6 +3285,9 @@ class expression(base_expression):
             plot_stdev (Optional, default=True)
                 plot a blue line at 1x stdev and a red line at 2x stdev
 
+            bar_cols (Optional, default=None)
+                a list of colours to use to colour the bars
+
             fold_change (Optional, default=False)
                 by default barh_single_itme expects absolute levels of expression, but if you want to
                 provide fold-change data (which centres around 0 then setting this to True will
@@ -3300,6 +3304,9 @@ class expression(base_expression):
                 xticklabel_fontsize - x tick labels fontsizes
                 yticklabel_fontsize - y tick labels fontsizes
 
+                hori_space (default=0.5)
+                vert_space (default=0.75) - a special arg to help pad the barchart up when using very long plots with a ot of samples
+
             tight_layout (Optional, default=False)
                 wether to use matplotlib tight_layout() on the plot
 
@@ -3310,11 +3317,17 @@ class expression(base_expression):
         assert value, "barh_single_item: you must specify a value"
         assert filename, "barh_single_item: you must specify a filename"
 
+        if tree and bar_cols:
+            config.log.warning('Using tree and bar_cols, make sure your bar_cols are in the same order as the tree!')
+
         item = self._findDataByKeyLazy(key, value)
 
         if not item:
             config.log.warning("barh_single_item: '%s:%s' not found in this list, not saving" % (key, value))
             return(None)
+
+        if not bar_cols:
+            bar_cols = 'grey'
 
         err = None
         # re-order "conditions" by tree, if present:
@@ -3345,12 +3358,16 @@ class expression(base_expression):
 
         fig = self.draw.getfigure(aspect="long", **kargs)
         ax = fig.add_subplot(111)
-        ax.set_position([0.46, 0.14, 0.5, 0.75]) # x,y,width,height
+
+        # Work out vert spacing
+        hori_remaining = 1.0-hori_space-0.03
+        vert_remaining = 1.0-vert_space
+        ax.set_position([hori_remaining, vert_remaining/2, hori_space, vert_space]) # x,y,width,height
 
         y = numpy.arange(len(data))
         if err:
             # error bars'd graphs look better with black on grey
-            ax.barh(y, data, xerr=err, ecolor="black", ec="none", fc="grey", height=0.5, error_kw={'linewidth': 0.3, 'capthick': 0.3}, capsize=2.0)
+            ax.barh(y, data, xerr=err, ec="none", color=bar_cols, height=0.5, error_kw={'linewidth': 0.3, 'capthick': 0.3}, capsize=2.0)
         else:
             # no error bars, solid black is better
             ax.barh(y, data, ec="none", fc="black", height=0.5)
