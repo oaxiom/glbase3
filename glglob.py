@@ -1104,6 +1104,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         total_rows = 0
         resolution = merge_peaks_distance # laziness hack!
 
+        # Confirm that all lists contain a 'loc' key
+        print(['loc' in gl.keys() for gl in list_of_peaks])
+        assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'One of your peak data (list_of_peaks) does not contain a "loc" key'
+
         # Make a super list of all the peaks.
         mega_list_of_peaks = sum([gl["loc"] for gl in list_of_peaks], [])
         mega_list_of_peaks = [p.pointify().expand(merge_peaks_distance) for p in mega_list_of_peaks]

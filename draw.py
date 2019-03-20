@@ -271,10 +271,10 @@ class draw:
                 loc_row_colbar =         [0.03-0.016,   mmheat_hei,   0.014,  heat_hei] # No need to cut the tree, just squeeze i into the left edge
 
                 if col_colbar:
-                    top_side_tree =          [0.03,   0.864,  heat_wid,   0.040] # squeeze up the colbar
+                    top_side_tree =          [0.03,   0.906,  heat_wid,   0.025] # squeeze up the colbar
                     loc_col_colbar =         [0.03,   0.892,   heat_wid,  0.012] #
 
-        scalebar_location = [0.01,  0.98,   0.18,   0.015]
+        scalebar_location = [0.01,  0.98,   0.14,   0.015]
 
         # set size of the row text depending upon the number of items:
         row_font_size = 0

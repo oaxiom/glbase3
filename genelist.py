@@ -604,7 +604,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def _findAllLabelsByKey(self, key):
         """
         (Internal)
-        Returns a 1D list of all the labels under Key.
+        Returns a 1D list of all the values under Key.
         Most useful for things like geneList["Symbol"]
         geneList["entrez"]
         """
