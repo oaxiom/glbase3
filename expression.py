@@ -3874,3 +3874,82 @@ class expression(base_expression):
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("bundle: Saved '%s'" % actual_filename)
         return(res)
+
+    def volcano(self, condition_name, p_value_key, label_key=None, filename=None,
+        label_fontsize=6, label_significant=0.01, **kargs):
+        """
+        **Purpose**
+            draw a Volcano plot (fold change versus P/Q-value
+
+            Assumes that your data is already in fold-change, or Z-score or some other
+            value centered on 0.
+
+        **Arguments**
+            condition_name (Required)
+                the name of the condition to use.
+
+            key (Optional, Required if 'genelist' used)
+                The key to match between the expression data and the genelist.
+
+            label_key (Optional, default=None)
+                Put a text label on top of those points that are <label_significant
+
+                None = draw no labels.
+
+            label_significant (Optional, default=0.01)
+                Put a text label on top of those points that are <label_significant
+
+            label_fontsize (Optional, default=6)
+                labels fontsize
+
+            spot_size (Optional, default=5)
+                The size of each dot.
+
+            available key-word arguments:
+            xlabel, ylabel, title, log (set this to the base to log the data by),
+            xlims, ylims, spot_size,
+
+        **Returns**
+            the actual filename saved as and a new image in filename.
+        """
+        assert filename, "no filename specified"
+        assert condition_name in self.serialisedArrayDataDict, "%s condition not found" % x_condition_name
+        assert p_value_key in self.keys(), '"%s" p_value_key not found in this list' % p_value_key
+
+        x_data = self.getDataForCondition(condition_name)
+        y_data = self[p_value_key]
+
+        if not "xlabel" in kargs:
+            kargs["xlabel"] = 'Fold-change'
+        if not "ylabel" in kargs:
+            kargs["ylabel"] = 'P-value'
+
+        xlim = max(x_data)
+
+        if label_key:
+            assert label_key in self.keys(), 'label_key "%s" not found in this list' % label_key
+            tx = []
+            ty = []
+            matches = []
+
+            for x, p, label in zip(x_data, y_data, self['name']):
+                if p < label_significant:
+                    tx.append(x)
+                    ty.append(p)
+                    matches.append(label)
+                kargs["spot_labels"] = matches
+
+            real_filename = self.draw.nice_scatter(x=x_data, y=y_data,
+                filename=filename,
+                #spots=(tx, ty),
+                xlims=[-xlim, xlim],
+                plot_diag_slope=False,
+                label_fontsize=label_fontsize,
+                **kargs)
+        #else:
+        #    real_filename = self.draw.nice_scatter(x_data, y_data, filename, xlims=[-xlim, xlim],
+        #        plot_diag_slope=False, **kargs)
+
+
+        config.log.info("scatter: Saved '%s'" % real_filename)
+        return(True)

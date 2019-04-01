@@ -105,6 +105,7 @@ class hic:
                 At the moment only inter-chromsomal contacts are recorded.
 
         """
+        assert inter_chrom_only, 'inter_chrom_only != True, only inter-chromosomal links are supported'
         self.readonly = True
         self.pca_valid = False
         self.tsne_trained = False

@@ -139,11 +139,11 @@ class draw:
                 provide your own tree for ordering the data by. See row_tree for details.
                 This one is applied to the columns.
 
-            row_font_size (Optional, default=guess suitable size)
+            row_font_size or yticklabel_fontsize (Optional, default=guess suitable size)
                 the size of the row labels (in points). If set this will also override the hiding of
                 labels if there are too many elements.
 
-            col_font_size (Optional, default=8)
+            col_font_size or xticklabel_fontsize (Optional, default=8)
                 the size of the column labels (in points)
 
             heat_wid (Optional, default=0.25)
@@ -280,6 +280,8 @@ class draw:
         row_font_size = 0
         if "row_font_size" in kargs:
             row_font_size = kargs["row_font_size"]
+        elif "yticklabel_fontsize" in kargs:
+            row_font_size = kargs["yticklabel_fontsize"]
         else:
             if "row_names" in kargs and kargs["row_names"]:
                 if len(kargs["row_names"]) <= 100:
@@ -326,6 +328,8 @@ class draw:
         col_font_size = 8
         if "col_font_size" in kargs:
             col_font_size = kargs["col_font_size"]
+        elif "xticklabel_fontsize" in kargs:
+            col_font_size = kargs["xticklabel_fontsize"]
 
         if "bracket" in kargs: # done here so clustering is performed on bracketed data
             data = self.bracket_data(data, kargs["bracket"][0], kargs["bracket"][1])
@@ -494,7 +498,7 @@ class draw:
             ax4.set_yticklabels("")
 
         if row_colbar:
-            # Must be reordered by the col_cluster if present
+            # Must be reordered by the row_cluster if present
             newd = {}
             colors_ = dict(list(matplotlib_colors.cnames.items()))
             for c in colors_:
@@ -2325,6 +2329,8 @@ class draw:
 
         if not "aspect" in kargs:
             kargs["aspect"] = "square"
+        if 'figsize' not in kargs:
+            kargs['figsize'] = (4,4)
 
         fig = self.getfigure(**kargs)
         ax = fig.add_subplot(111)
