@@ -139,6 +139,7 @@ config.set_log_level('info')
 # export all of the libraries, methods and helpers.
 __all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "flat_track", "delayedlist",
             "glgo", "hic", # primary objects
+            'config',
             #"rigidgrid", # Temporarily unavailable
             'merge_hiccys', # hic support
             "location",
