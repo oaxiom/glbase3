@@ -15,7 +15,7 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def bedgraph_to_flat(infilename, outfilename, name, bin_format=None, gzip=None, all_in_mem=False, **kargs):
+def bedgraph_to_flat(infilename, outfilename, name, gzip=None, all_in_mem=False, **kargs):
     """
     **Purpose**
         Convert a bedGraph file to a flat file (Actually an SQL
@@ -44,12 +44,6 @@ def bedgraph_to_flat(infilename, outfilename, name, bin_format=None, gzip=None, 
         name
             A name describing the track
 
-        bin_format
-            the format to use to store the data. Valid values are:
-
-            i = integers
-            f = floats
-
         gzip (Optional, default=False)
             The input file(s) is a gzip file.
 
@@ -64,8 +58,8 @@ def bedgraph_to_flat(infilename, outfilename, name, bin_format=None, gzip=None, 
     """
     assert os.path.realpath(infilename), "no filename specified"
     assert os.path.realpath(outfilename), "no save filename specified"
-    assert bin_format, 'You must specify a bin_format for the array, i=int, f=float'
 
+    bin_format = 'f' # Only one supported
     n = 0
     m = 0
     total = 0
