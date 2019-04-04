@@ -38,7 +38,7 @@ TRACK_CACHE_SIZE = 10 # number of track segments to cache.
 class genome_sql(base_track):
     """
     track definition, used for things like sequence reads across the genome
-    
+
     **Arguments**
         name (string)
             name for the track (defaults to filename)
@@ -46,15 +46,15 @@ class genome_sql(base_track):
         filename (string)
             directory location of the track file.
             only respected if dir_name is set.
-        
+
         new (Optional, default=False)
-            Use seqToTrk() in preference of this. But if you know what you are 
+            Use seqToTrk() in preference of this. But if you know what you are
             doing then this will generate a new (empty) db.
 
     """
     def __init__(self, name=None, new=False, filename=None, norm_factor=1.0, **kargs):
         base_track.__init__(self, name, new, filename, norm_factor)
-        
+
         if new:
             self.__setup_tables(filename)
 
@@ -149,7 +149,7 @@ class genome_sql(base_track):
         insert_data = (loc['left'], loc['right'], cds_loc['left'], cds_loc['right'], str(exonStarts), str(exonEnds), str(name), str(strand), feature_type)
         c.execute("INSERT INTO %s VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)" % table_name, insert_data)
 
-        c.close()          
+        c.close()
 
     def getFeatures(self, loc=None, **kargs):
         """
@@ -176,9 +176,9 @@ class genome_sql(base_track):
 
         result = self._connection.execute("SELECT * FROM %s WHERE (transcript_right >= ? AND transcript_left <= ?)" % table_name,
             (loc["left"], loc["right"]))
-      
-        result = result.fetchall() # safer for empty lists and reusing the cursor          
-        
+
+        result = result.fetchall() # safer for empty lists and reusing the cursor
+
         if result:
             # Repack item into a nice format:
             # (57049987, 57050281, 57049987, 57050281, '[1]', '[1]', 'SINE-AluJb', '-', 'SINE')
@@ -187,29 +187,29 @@ class genome_sql(base_track):
                 newr = {'loc': location(chr=loc['chr'], left=r[0], right=r[1]),
                     'cds_loc': location(chr=loc['chr'], left=r[2], right=r[3]),
                     'exonStarts': eval(r[4]),
-                    'exonEnds': eval(r[4]),
+                    'exonEnds': eval(r[5]),
                     'name': r[6], 'type': r[8], 'strand': r[7]}
                 newres.append(newr)
             result = newres
         if not result: # Compatability with chipFish
             result = []
-        
+
         return(result)
 
     def get_chromosome_names(self):
         """
         **Purpose**
             Return a list of all the valid chromosome names in the database
-            
+
         **Arguments**
             None
-            
+
         **Returns**
             A list of strings containing all of the chromosome names in the genome_sql
         """
         if not self._c:
             self._c = self._connection.cursor()
-        
+
         self._c.execute("SELECT chromosome FROM main")
         r = [i[0] for i in self._c.fetchall()]
         return(set(r))
@@ -218,10 +218,10 @@ class genome_sql(base_track):
         """
         **Purpose**
             Return the number total number of reads for this track.
-            
+
         **Arguments**
             None
-            
+
         **Returns**
             An integer containing the number of reads
         """
@@ -230,7 +230,7 @@ class genome_sql(base_track):
 
         self._c.execute("SELECT chromosome, num_features FROM main")
         r = [int(i[1]) for i in self._c.fetchall()]
-        
+
         return(sum(r))
 
     def __iter__(self):
@@ -239,17 +239,17 @@ class genome_sql(base_track):
         make the geneList behave like a normal iterator (list)
         """
         all_chrom_names = self.get_chromosome_names()
-        
+
         for c in all_chrom_names:
             table_name = "chr_%s" % c
-        
+
             result = self._connection.execute("SELECT * FROM %s" % table_name)
-      
+
             r = True # Survive first while
-      
+
             while r:
-                r = result.fetchone() # safer for empty lists and reusing the cursor          
-        
+                r = result.fetchone() # safer for empty lists and reusing the cursor
+
                 if r:
                     # This needs to be abstracted away
                     # Repack item into a nice format:
@@ -260,7 +260,7 @@ class genome_sql(base_track):
                         'exonEnds': eval(r[4]),
                         'name': r[6], 'type': r[8], 'strand': r[7]}
                     yield r
-                    
+
     def __len__(self):
         return(self.get_feature_count())
 
@@ -282,7 +282,7 @@ class genome_sql(base_track):
             for i in chr_table_res:
                 print(" ", i)
         c.close()
-        
+
     def bindSequence(self, path=None):
         """
         **Purpose**
@@ -297,30 +297,30 @@ class genome_sql(base_track):
             path specifying the locations of the FASTA files that make
             up the sequence data. They usually come in the form "chr1.fa"
             for human and mouse genomes.
-            
-            bindSequence will only work with multi-fasta files, i.e. the fasta genome should 
+
+            bindSequence will only work with multi-fasta files, i.e. the fasta genome should
             be in the form:
-            
+
             FILE: chr1.fa::
-            
-                >chr1 
+
+                >chr1
                 NNNNNNNNNNNNNNNNNNNNNNNN
-            
+
             FILE: chr2.fa::
-            
-                >chr2 
+
+                >chr2
                 NNNNNNNNNNNNNNNNNNNNNNNN
 
             etc.
-            
-            The names of the chromosomes will come from the names of the fasta files before the 
+
+            The names of the chromosomes will come from the names of the fasta files before the
             period and with 'chr' removed (if present), so for example:
-            
-            chr1.fa 
+
+            chr1.fa
 
             will result in '1' entries in the db.
-            
-            And similarly '1.fa' will result in chr names of '1'. 
+
+            And similarly '1.fa' will result in chr names of '1'.
 
         **Result**
 
@@ -329,7 +329,7 @@ class genome_sql(base_track):
         the sequence specified by the location.
         """
         raise NotImplementedError
-        
+
     def getSequence(self, loc=None, **kargs):
         """
         **Purpose**
@@ -349,15 +349,15 @@ class genome_sql(base_track):
         mask (Optional, default=False)
             'repeat mask' the returned sequence (i.e. convert lower-case
             acgt to NNNN). DOES NOT perform repeat masking. Only converts lower-cased
-            bases to NNN. 
+            bases to NNN.
 
         **Result**
 
         returns a string containing the sequence at 'coords'
         """
         raise NotImplementedError
-    
-    def getSequences(self, genelist=None, loc_key='loc', replace_loc_key=True, strand_key=False, 
+
+    def getSequences(self, genelist=None, loc_key='loc', replace_loc_key=True, strand_key=False,
         mask=False, pointify=False, delta=False, **kargs):
         """
         **Purpose**
@@ -428,11 +428,11 @@ class genome_sql(base_track):
 
 if __name__ == '__main__':
     gsql = genome_sql(new=True, filename='/tmp/test_genome_sql.sql')
-    gsql.add_feature(location(chr='chr1', left=110, right=120), 
-            location(chr='chr1', left=110, right=120), 
-            10, [1,2,3,4], [5,6,7,8], 
+    gsql.add_feature(location(chr='chr1', left=110, right=120),
+            location(chr='chr1', left=110, right=120),
+            10, [1,2,3,4], [5,6,7,8],
             'Nanog', '+')
-    
+
     print(gsql.getFeatures(loc='chr1:100-130'))
     print(gsql.getFeatures(loc='chr1:100-110'))    # Should still return the entry
     print(gsql.getFeatures(loc='chr1:200-330'))

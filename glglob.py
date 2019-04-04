@@ -103,7 +103,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         config.log.error("glglobs cannot be written to")
 
     def compare(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
-        row_cluster=True, col_cluster=True, bracket=None,
+        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None,
         jaccard=False, **kargs):
         """
         **Purpose**

@@ -52,18 +52,17 @@ try:
 except Exception:
     raise LibraryNotFoundError("Fatal - sklearn not available or not installed")
 
-# Seme required:
 try:
     import h5py
     config.H5PY_AVAIL = True
 except Exception:
-    config.log.warning('h5py not found. It is optional, but highly reccomended')
+    config.log.warning('Fatal - h5py not available or not installed')
 
 try:
     import networkx
     config.NETWORKX_AVAIL = True
 except Exception:
-    config.log.warning('networkx not found. It is optional, but highly reccomended') # pass silently as networkx is optional.
+    config.log.warning('Fatal - networkx not available or not installed') # pass silently as networkx is optional.
 
 try:
     import pygraphviz
@@ -93,7 +92,7 @@ except Exception:
 # Now import the rest of my libraries - assumes here they are available.
 # If I can get config and errors then these are probably available too.
 
-from .helpers import * # naughty, brings in data.py, cPickle, math, utils, config, sys, os, extra naughty as I probably don't need all that lot anyway now.
+from .helpers import glload, change_drawing_mode, fold2UpOrDown, fold2Down, fold2Up, XDown, XUp, lst_find, cat_columns, strandSorter
 from .location import location
 from .genelist import genelist
 from .expression import expression
@@ -109,7 +108,6 @@ from .pwm import pwm
 from .pwms import pwms
 from .ecrbase import ecrbase, tfbs_iter
 from .region import region
-#from .realtime2 import realtime2 # This is deprecated
 from .expression import expression
 from .logos import logo
 from .draw import draw
@@ -118,7 +116,6 @@ from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
-#from .rigidgrids import rigidgrid # Available only through expn objects in future?
 from . import realtime
 from . import gldata
 from . import utils
@@ -128,7 +125,7 @@ from . import cmaps
 from .tools.seqToTrk import seqToTrk
 from .tools.wigstep_to_flattrack import wigstep_to_flat
 from .tools.gerp_to_flattrack import gerp_to_flat
-from .tools.bigwig_to_flattrack import bedgraph_to_flat
+from .tools.bedgraph_to_flattrack import bedgraph_to_flat
 from .tools.bed_to_flattrack import bed_to_flat
 from .tools.wig_to_flattrack import wig_to_flat
 from .tools.rnaseq import rnaseqqc
@@ -156,5 +153,7 @@ __all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "
             "tfbs_iter",
             "strandSorter",
             'adjust_text',
-            "cmaps"] + dir(helpers)
+            "cmaps",
+            "change_drawing_mode", "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
+            ]
             # in future I want to get rid of dir() and control what gets exported.
