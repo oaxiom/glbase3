@@ -151,6 +151,46 @@ class genome_sql(base_track):
 
         c.close()
 
+    def find(self, name=None, greedy=True):
+        """
+        **Purpose**
+            Find an element in the 'name' key that matches the provided name or return None
+
+        **Arguments**
+            name (Required)
+                a name (e.g. ENST name, gene symbol, etc. )
+
+        **Results**
+            A lits of matches or None
+        """
+        assert name, 'You must provide a name'
+
+        all_results = []
+        for chrom in self.get_chromosome_names():
+            table_name = "chr_%s" % chrom
+            result = self._connection.execute("SELECT * FROM %s WHERE (name == ?)" % table_name, (name,))
+            result = result.fetchall()
+            if result:
+                all_results += (self.__format_results(result, chrom))
+
+        if not all_results:
+            all_results = None
+        return all_results
+
+    def __format_results(self, results, chrom):
+        '''
+        Internal function to pack the results into a nice dict
+        '''
+        newres = []
+        for r in results:
+            newr = {'loc': location(chr=chrom, left=r[0], right=r[1]),
+                'cds_loc': location(chr=chrom, left=r[2], right=r[3]),
+                'exonStarts': eval(r[4]),
+                'exonEnds': eval(r[5]),
+                'name': r[6], 'type': r[8], 'strand': r[7]}
+            newres.append(newr)
+        return newres
+
     def getFeatures(self, loc=None, **kargs):
         """
         **Purpose**
@@ -180,17 +220,7 @@ class genome_sql(base_track):
         result = result.fetchall() # safer for empty lists and reusing the cursor
 
         if result:
-            # Repack item into a nice format:
-            # (57049987, 57050281, 57049987, 57050281, '[1]', '[1]', 'SINE-AluJb', '-', 'SINE')
-            newres = []
-            for r in result:
-                newr = {'loc': location(chr=loc['chr'], left=r[0], right=r[1]),
-                    'cds_loc': location(chr=loc['chr'], left=r[2], right=r[3]),
-                    'exonStarts': eval(r[4]),
-                    'exonEnds': eval(r[5]),
-                    'name': r[6], 'type': r[8], 'strand': r[7]}
-                newres.append(newr)
-            result = newres
+            result = self.__format_results(result, loc['chr'])
         if not result: # Compatability with chipFish
             result = []
 
@@ -425,14 +455,3 @@ class genome_sql(base_track):
         the seq spans across.
         """
         raise NotImplementedError
-
-if __name__ == '__main__':
-    gsql = genome_sql(new=True, filename='/tmp/test_genome_sql.sql')
-    gsql.add_feature(location(chr='chr1', left=110, right=120),
-            location(chr='chr1', left=110, right=120),
-            10, [1,2,3,4], [5,6,7,8],
-            'Nanog', '+')
-
-    print(gsql.getFeatures(loc='chr1:100-130'))
-    print(gsql.getFeatures(loc='chr1:100-110'))    # Should still return the entry
-    print(gsql.getFeatures(loc='chr1:200-330'))

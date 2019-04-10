@@ -76,7 +76,7 @@ def bedgraph_to_flat(infilename, outfilename, name, gzip=None, all_in_mem=False,
 
     cleft = 0
     for line in oh:
-        print(line)
+        #print(line)
         if not "#" in line:
             line = line.split()
             f.add_score(chromosome=line[0].replace("chr", ""),
