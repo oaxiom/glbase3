@@ -12,7 +12,7 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def wig_to_flat(infilename, outfilename, name, gzip=None, **kargs):
+def wig_to_flat(infilenames, outfilename, name, gzip=False, **kargs):
     """
     **Purpose**
         Convert a variableStep wig file containing reads into a flat db)
@@ -29,14 +29,16 @@ def wig_to_flat(infilename, outfilename, name, gzip=None, **kargs):
         3131456 0.00975
 
         Note, that the flats DO NOT use strand.
-        
-        Note, also, that normalisation is NOT required at generation, and can instead be 
+
+        Note, also, that normalisation is NOT required at generation, and can instead be
         performed at runtime.
 
     **Arguments**
-        infilename
-            the name of the bed file(s) to read from. 
-            
+        infilenames
+            a filename, or list of filenames (if you want to merge wiggles)
+
+            the name of the bed file(s) to read from.
+
             You can send a lit of filenames
 
         outfilename
@@ -47,74 +49,107 @@ def wig_to_flat(infilename, outfilename, name, gzip=None, **kargs):
 
         gzip (Optional, default=False)
             The input file(s) is a gzip file.
-        
+
     **Returns**
         True on completion
         and a flat file in outfilename
 
     """
-    assert infilename, "no filename specified"
+    assert infilenames, "no filename specified"
     assert os.path.realpath(outfilename), "no save filename specified"
-    
-    n = 0
-    f = flat_track(filename=outfilename, new=True, name=name, bin_format='f') # always f
+    if not isinstance(infilenames, list):
+        infilenames = [infilenames]
 
-    config.log.info("Started %s -> %s" % (infilename, outfilename))
+    n = 0
+    flat = flat_track(filename=outfilename, new=True, name=name, bin_format='f') # always f
 
     s = time.time()
-    
+
     config.log.info('Preparse BED(s)')
-    chr_sizes = {}
-    this_chrom = []
-    this_chrom_pos = 0
-    this_chrom_name = None
-    
+
     cleft = 0
-    # Can only have one file
+    open_mode = None
     if not gzip:
-        oh = open(infilename, "rt")
+        open_mode = open
     else:
-        oh = opengzip.open(infilename, 'rt')
+        open_mode = opengzip.open
 
-    # Pre-parse to grab the maximum chromosome sizes:
-    for line in oh: # Skip glbase overhead:
-        if "#" in line:
-            continue
-        if 'variableStep' in line:
-            # commit last chrom:
-            if this_chrom_name:
-                f.add_chromosome_array(this_chrom_name.strip(), this_chrom) 
-                chr_sizes[this_chrom_name] = len(this_chrom)
-            # get new chrom
-            this_chrom_name = str(line.split(' ')[1].split('=')[1]).strip()
-            config.log.info('Parsing chr=%s' % this_chrom_name)
-            this_chrom_pos = 0
-            this_chrom = []
-            continue
-                       
-        line = line.split('\t')
-        pos = int(line[0])
-        sco = float(line[1])
-        while pos >= len(this_chrom):
-            this_chrom.append(0.0)
-        this_chrom[pos] = sco
+    chrom_name = None
+    list_of_chroms = {}
+    for f in infilenames:
+        config.log.info("Started %s " % (f, ))
+        oh = open_mode(f, 'rt')
 
-        if n % 1000000 == 0 and n>0:
-            config.log.info("%s,000,000 bps parsed" % ((n // 1000000),))
-        
-        n += 1 # need to do this 
-    oh.close()
-    total_read_count = int(n)
-    config.log.info('Total bp count %s' % total_read_count)
-    
+        # Pre-parse to grab the maximum chromosome sizes:
+        for line in oh: # Skip glbase overhead:
+            if "#" in line:
+                continue
+            if 'variableStep' in line:
+                # commit the size of the last chrom:
+                if chrom_name and list_of_chroms[chrom_name] < int(pos):
+                    list_of_chroms[chrom_name] = int(pos)+1 # store the chrom size
+
+                chrom_name = str(line.split(' ')[1].split('=')[1]).strip()
+
+                config.log.info('Found %s' % chrom_name)
+                if chrom_name not in list_of_chroms:
+                    list_of_chroms[chrom_name] = 0 # length of chrom;
+                continue
+
+            line = line.split('\t')
+            pos = line[0]
+        oh.close()
+        # store the final chrom
+        if chrom_name and list_of_chroms[chrom_name] < int(pos):
+            list_of_chroms[chrom_name] = int(pos)+1 # store the chrom size
+
     config.log.info('Observed chromsomes sizes:')
-    for ch in chr_sizes:
-        config.log.info('Chromosome: %s = %s' % (ch, chr_sizes[ch]))
+    for ch in sorted(list_of_chroms):
+        config.log.info('Chromosome: %s = %s' % (ch, list_of_chroms[ch]))
+
+    # Go back through, once for each chromosome to make a numpy array for each repeat
+    for chrom in list_of_chroms:
+        config.log.info('Building array for %s' % chrom)
+        for f in infilenames:
+            config.log.info("Started %s" % (f, ))
+            oh = open_mode(f, 'rt')
+
+            arr = [0] * list_of_chroms[chrom]
+            record = False
+            for line in oh:
+                if "#" in line:
+                    continue
+                if 'variableStep' in line:
+                    # commit this chrom:
+                    if record: # If I get here again, and record = True then the chrom is finished
+                        break
+
+                    # get new chrom
+                    this_chrom_name = str(line.split(' ')[1].split('=')[1]).strip()
+                    if this_chrom_name == chrom:
+                        record = True
+                        continue
+
+                if record:
+                    line = line.strip().split('\t')
+                    pos = int(line[0])
+                    sco = float(line[1])
+                    arr[pos] += sco
+
+                    n += 1
+                    if n % 10000000 == 0:
+                        config.log.info('Processed: {:,} bps'.format(n))
+                        #break
+
+            oh.close()
+        # Done this chrom, commit the array:
+        config.log.info('Finished %s' % chrom)
+        flat.add_chromosome_array(chrom, arr)
 
     config.log.info("Finalising library")
-    f.finalise()
+    flat.finalise()
 
     e = time.time()
     config.log.info("Took: %.1f seconds" % (e-s))
     return(True)
-    
+
