@@ -110,11 +110,11 @@ def wig_to_flat(infilenames, outfilename, name, gzip=False, **kargs):
     # Go back through, once for each chromosome to make a numpy array for each repeat
     for chrom in list_of_chroms:
         config.log.info('Building array for %s' % chrom)
+        arr = [0] * list_of_chroms[chrom]
         for f in infilenames:
             config.log.info("Started %s" % (f, ))
             oh = open_mode(f, 'rt')
 
-            arr = [0] * list_of_chroms[chrom]
             record = False
             for line in oh:
                 if "#" in line:
