@@ -472,7 +472,7 @@ class hic:
         return self.tad_calls
 
     def heatmap(self, filename, chr=None, loc=None,
-        bracket=None, colour_map=cm.inferno_r, **kargs):
+        bracket=None, colour_map=cm.inferno_r, log2=True, **kargs):
         """
         **Purpose**
             Draw an interaction heatmap
@@ -498,6 +498,9 @@ class hic:
 
             bracket (Optional, default=None)
                 clip the data within the ranges [low, high]
+
+            log2 (Optional, default=True)
+                transform the data to log2 before plotting;
 
         **Returns**
             None, and a file in filename.
@@ -534,15 +537,17 @@ class hic:
 
         if bracket: # done here so clustering is performed on bracketed data
             #data = self.draw.bracket_data(numpy.log2(self.matrix+0.1), bracket[0], bracket[1])
-            with numpy.errstate(divide='ignore'):
-                data = numpy.log2(data)
+            if log2:
+                with numpy.errstate(divide='ignore'):
+                    data = numpy.log2(data)
             # Faster numpy"
             data = numpy.clip(data, bracket[0], bracket[1])
             vmin = bracket[0]
             vmax = bracket[1]
         else:
-            with numpy.errstate(divide='ignore'):
-                data = numpy.log2(data)
+            if log2:
+                with numpy.errstate(divide='ignore'):
+                    data = numpy.log2(data)
             data[data == -numpy.inf] = 0
             vmin = data.min()
             vmax = data.max()
