@@ -1,6 +1,6 @@
 """
 
-Expression class 
+Expression class
 
 Basic handling for microarray and rna-seq and realtime PCR like data
 
@@ -25,7 +25,7 @@ class base_expression(genelist):
     def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent=False, **kargs):
         """
         See the documentation in the expression class.
-        
+
         This is the underlying base expression object and is not designed for direct usage.
         """
         '''
@@ -39,30 +39,30 @@ class base_expression(genelist):
             # probably should put some more sanity checking in here.
             assert loadable_list[0], "the list to load does not appear to be a proper list"
         '''
-        
+
         if "cv_err" in kargs or "err_up" in kargs or "err_dn" in kargs:
             raise NotImplementedError("Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented")
-            
+
         valig_args = ["cond_names", "name", "force_tsv", "nan_value"]
         for k in kargs:
             if k not in valig_args:
                 raise ArgumentError(self.__init__, k)
 
         genelist.__init__(self)
-        
+
         self.filename = filename
         self._conditions = [] # Provide a dummy conditions temporarily
         self.name = "None"
-                
+
         if "name" in kargs and kargs["name"]:
             self.name = kargs["name"]
         elif filename:
             self.name = "".join(self.filename.split(".")[:-1])
-        
+
         if not loadable_list and not expn:
             config.log.info("expression(): made an empty expression object")
             return()
-        
+
         if loadable_list:
             self.load_list(loadable_list, expn, **kargs)
         else:
@@ -75,14 +75,14 @@ class base_expression(genelist):
                 newf["err"] = {"code": kargs["err"]}
             elif "cv_err" in kargs and kargs["cv_err"]:
                 newf["cv_err"] = kargs["cv_err"]
-            
+
             if "force_tsv" in kargs and kargs["force_tsv"]:
                 newf["force_tsv"] = True
-                
+
             format = newf
-            
+
             self.loadCSV(filename=filename, format=format) # no need for error checking here - it's in genelist now.
-    
+
             if "cond_names" in kargs and kargs["cond_names"]:
                 self._conditions = kargs["cond_names"]
             else:
@@ -95,7 +95,7 @@ class base_expression(genelist):
                     reader = csv.reader(oh, dialect=format["dialect"])
                 else:
                     reader = csv.reader(oh)
-        
+
                 do = False
                 self._conditions = []
                 for index, column in enumerate(reader):
@@ -111,16 +111,16 @@ class base_expression(genelist):
                     if do:
                         #names = None # py3.6 has a different exec action
                         names = eval("%s" % format["conditions"]["code"]) # yay, more nice happy arbitrary code execution.
-            
+
                         if names:
                             self._conditions = [str(k) for k in names]
                         break
                 oh.close()
-                
-                if not silent: 
+
+                if not silent:
                     config.log.info("expression(): I found the following conditions:")
                     config.log.info("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
-  
+
         # coerce the conditions errs etc to floats
         for idx, i in enumerate(self):
             try:
@@ -128,8 +128,8 @@ class base_expression(genelist):
             except ValueError:
                 config.log.warning("line %s, contains missing data (%s), filling with 0" % (idx, i["conditions"]))
                 i["conditions"] = [0 for t in self._conditions] # Use conditions as the example I had here was also missing all of the other values.
-                
-            # These will bomb on missing data... 
+
+            # These will bomb on missing data...
             if "err" in i:
                 i["err"] = [float(t) for t in i["err"]]
             if "cv_err" in i:
@@ -144,25 +144,25 @@ class base_expression(genelist):
         """
         Bit of gotcha this one, but expression objects must have unique condition names
         or lots of things break. Here, check the condition names are unique.
-        
+
         """
         if len(self._conditions) > len(set(self._conditions)):
             raise ExpressionNonUniqueConditionNameError(self._conditions)
         return(False)
-        
+
     def __repr__(self):
         return("glbase.expression")
 
     def _load_numpy_back_into_linearData(self):
         """
         For routines that make a change in self.numpy_array_all_data
-        
+
         this must be called after to propogate the changes back into linearData
-        
+
         """
         for i, row in enumerate(self.numpy_array_all_data):
             self.linearData[i]["conditions"] = list(row)
-        self._optimiseData() 
+        self._optimiseData()
 
     def _optimiseData(self):
         """
@@ -174,14 +174,14 @@ class base_expression(genelist):
 
         # generate a serialised version of the array conditions.
         self.numpy_array_all_data = numpy.array([i["conditions"] for i in self.linearData])
-                
-        # could be done with dict comp:        
+
+        # could be done with dict comp:
         data = {}
-        for index, name in enumerate(self._conditions):  
+        for index, name in enumerate(self._conditions):
             if not name in data:
                 data[name] = self.numpy_array_all_data[:,index]
         self.serialisedArrayDataDict = data
-        
+
         # list;
         self.serialisedArrayDataList = [self.serialisedArrayDataDict[key] for key in self._conditions]
         #self.serialisedArrayDataList = all_array_data # This consumes massive amounts of memory.
@@ -195,7 +195,7 @@ class base_expression(genelist):
         """
         self.saveTSV(filename=filename, tsv=False, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
         config.log.info("saveCSV(): Saved '%s'" % filename)
-        
+
     def saveTSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
         """
         (Override)
@@ -203,11 +203,11 @@ class base_expression(genelist):
             Save the microarray data as a tsv file
             This is a little different from the normal genelist.saveTSV()
             as I want to make certain that the condition data is written in a sensible manner at
-            the end of the TSV. 
+            the end of the TSV.
             I also need to deal with grid like structures etc.
-            
-            As a general warning, use expression.save() in preference to this. 
-            This save is not guaranteed to survive reloading into glbase, and is particularly 
+
+            As a general warning, use expression.save() in preference to this.
+            This save is not guaranteed to survive reloading into glbase, and is particularly
             troublesome in the case of expression objects. Indeed, the default guesser when loading
             a genelist object will incorrectly load an expression object with error values
             and will probably bodge any other arrangement too.
@@ -215,19 +215,19 @@ class base_expression(genelist):
         **Arguments**
             filename
                 The filename (with a valid path) to save the file to.
-                
+
             interleave_errors (Optional, default=True)
                 By default the errors are interleaved so that the sample data will be arranged:
-                
+
                 Sample1 Err1 Sample2 Err2
-                
+
                 if interleave_errors=False then:
-                
+
                 Sample1 Sample2 Err1 Err2
-            
+
             no_col1_header (Optional, default=False)
                 In case you want a table like this:
-                
+
                     A   B   C   D
                 W   1   2   3   4
                 X   2   2   2   2
@@ -242,7 +242,7 @@ class base_expression(genelist):
         """
         self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
         config.log.info("saveTSV(): Saved '%s'" % filename)
-        
+
     def _save_TSV_CSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
         """
         Internal unified saveCSV/TSV for expression objects
@@ -278,16 +278,16 @@ class base_expression(genelist):
                 conds = ["mean_%s" % c for c in self.getConditionNames()]
                 errs = ["err_%s" % c for c in self.getConditionNames()]
                 paired = [val for pair in zip(conds, errs) for val in pair]
-                
+
                 if not no_header:
-                    title_row = [k for k in write_keys if k in list(self.keys())]            
+                    title_row = [k for k in write_keys if k in list(self.keys())]
                     writer.writerow(title_row + paired)
 
                 for data in self.linearData:
                     line = [data[k] for k in write_keys if k in data]
-                    
+
                     interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
-                    
+
                     writer.writerow(line + interleaved_data)# conditions go last.
                 oh.close()
             else:
@@ -299,21 +299,21 @@ class base_expression(genelist):
                     line = [data[k] for k in write_keys if k in data]
                     writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
                 oh.close()
-                
+
         else: # no error, very easy:
             if not no_header:
                 title_row = [k for k in write_keys if k in list(self.keys())]
                 if no_col1_header:
                     title_row[0] = ""
                 writer.writerow(title_row + self.getConditionNames())
-            
+
             for data in self.linearData:
                 line = [data[k] for k in write_keys if k in data]
                 writer.writerow(line + data["conditions"])# conditions go last.
             oh.close()
 
         return(None)
-        
+
     def sort(self, key, reverse=False):
         """
         This is slightly different from the vanilla genelist's sort - you can pass it the name of
@@ -345,7 +345,7 @@ class base_expression(genelist):
         else:
             if key in self._conditions:
                 name_index = self._conditions.index(key)
-                self.linearData = sorted(self.linearData, cmp=lambda x, y: cmp(x["conditions"][name_index],y["conditions"][name_index])) # the original sort() was overridden.
+                self.linearData = sorted(self.linearData, key=lambda x: x["conditions"][name_index]) # the original sort() was overridden.
                 if reverse:
                     self.linearData.reverse()
                 self._optimiseData()
@@ -362,26 +362,26 @@ class base_expression(genelist):
 
             This method should be used with care. Some sanity
             checking is done. But not very much.
-            
-            This load_list is modified for expression-like genelists. 
+
+            This load_list is modified for expression-like genelists.
             (eg. expression()). Here you can load keys into conditions based on
             their key names.
 
         **Arguments**
             list_to_load
                 must be a list of dicts.
-                
+
             expn (optional)
                 A list of key names to construct the expression data from
                 If not specified then it assumes your list already has a correctly formatted
-                "conditions" key. 
+                "conditions" key.
 
         **Returns**
             None. This is one of the few IN PLACE methods. and returns
             None.
         """
         assert list_to_load[0], "list_to_load does not appear to be a valid list"
-        
+
         __nan_warnings = False
         nans = frozenset(["Inf", "-Inf", "NA", "Nan", "NaN"])
 
@@ -392,7 +392,7 @@ class base_expression(genelist):
             for i in list_to_load:
                 new = i.copy()
                 nl = [i[k] for k in expn]
-                
+
                 # test for Inf, -Inf, NA, NaN, etc.
                 if True in [ti in nans for ti in nl]: # woah! Nan here.
                     t = []
@@ -405,7 +405,7 @@ class base_expression(genelist):
                     if not __nan_warnings:
                         __nan_warnings = True
                         config.log.warning("Expression list contains 'not a number' values, setting them to <nan_value=%s>" % nan_value)
-                        
+
                 new["conditions"] = nl
                 for k in expn:
                     del new[k]
@@ -420,7 +420,7 @@ class base_expression(genelist):
                 # conditions can get lost in a loadable list. fill in a dummy one
                 if len(self._conditions) != len(newl[0]["conditions"]):
                     self._conditions = ["cond_%s" % i for i in range(len(newl[0]["conditions"]))]
-                
+
         # Now call parent with new list
         genelist.load_list(self, newl, name)
 
@@ -429,15 +429,15 @@ class base_expression(genelist):
         **Purpose**
 
             Convert a pandas dataFrame to a genelist
-            
+
             NOTE: This is an INPLACE method that will REPLACE any exisiting data
-            in the 
+            in the
 
         **Arguments**
 
             pandas_data_frame (Required)
                 The pandas data frame to convert
-                
+
             condition_names (Required)
                 A list of Column names from the Pandas frame to use as expression data
 
@@ -450,12 +450,12 @@ class base_expression(genelist):
         assert isinstance(condition_names, list), 'condition_names must be a list of colun names'
         if len(self) >0:
             config.log.warning('expression.from_pandas() will overwrite the existing data in the expression')
-        
+
         newl = []
         key_names = pandas_data_frame.columns
         for index, row in pandas_data_frame.iterrows():
             newitem = {}
-            
+
             # load normal keys:
             for k, item in zip(key_names, row):
                 if k not in condition_names:
@@ -463,15 +463,15 @@ class base_expression(genelist):
             # load conditions, in-order:
             dict_items = dict(zip(key_names, row))
             newitem['conditions'] = [dict_items[z] for z in condition_names]
-            
+
             newl.append(newitem)
-            
+
         self._conditions = condition_names
         self.linearData = newl
         self._optimiseData()
 
         config.log.info("expression.from_pandas() imported dataFrame")
-        
+
     def getConditionNames(self):
         """
         returns a list of the condition headers
@@ -481,11 +481,11 @@ class base_expression(genelist):
     def setConditionNames(self, new_cond_names):
         """
         rename the conditions names for the expression data
-        
+
         THIS IS AN IN-PLACE method and returns None
         """
         assert len(new_cond_names) == len(self._conditions), "setConditionNames(): new and old condition names are different lengths (%s vs. %s)" % (len(new_cond_names), len(self._conditions))
-        
+
         self.__check_condition_names_are_unique()
         self._conditions = list(new_cond_names)
         self._optimiseData()
