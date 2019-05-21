@@ -13,7 +13,7 @@ print(sys.version)
 glbase3.version()
 glbase3.config.set_log_level(None) # Silence output
 
-# please maintain these in alphabetical order.
+# please maintain these in alphabetical order:
 from test_annotate import Test_Annotate
 from test_collisions import Test_Collisions_Overlaps
 from test_delayedlist import Test_Delayedlist
@@ -24,13 +24,13 @@ from test_fastq import Test_Fastq
 from test_flats import Test_Flat_Function
 from test_formats import Test_Formats
 from test_genelist import Test_GeneList
+from test_genome import Test_Genome
 from test_glglob import Test_glglob
 from test_location import Test_Location
+from test_panda_import import Test_PandasImportlist
 from test_track import Test_Track_Function
 from test_tsv_csv_behaviour import Test_TSVCSV
 from test_utils import Test_Utils
-from test_genome import Test_Genome
-from test_panda_import import Test_PandasImportlist
 
 def get_suite():
     suite = [

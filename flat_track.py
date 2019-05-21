@@ -1,12 +1,11 @@
 """
-track, part of chipFish
+flat_track, part of chipFish, and glbase3
 
-(c) 2008-2011 oAxiom
-
-Not for distribution.
+2008-2019 oAxiom
 
 TODO:
-. never (?) seen in the wild, but it is presumably possible to have blocks with missing blockIDs that would throw an error in __Get_block()
+. never (?) seen in the wild, but it is presumably possible to have blocks with missing blockIDs 
+  that would throw an error in __Get_block()
 . Related to the above. blockID n:0 is almost always empty and not required, but gets committed anyway.
 
 """
@@ -45,7 +44,7 @@ class flat_track(base_track):
                 directory location of the track file.
                 only respected if dir_name is set.
 
-            bin_format (Optional, default=None, collect from data if new=False)
+            bin_format (Optional, default=None, required if new=False)
                 the format to store the data in,
                 This is the same format as the python array, so "i" = integer,
                 "f" = float

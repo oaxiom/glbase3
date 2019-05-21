@@ -11,7 +11,7 @@ Requires:
 * networkx
 """
 
-import sys
+import sys, os
 
 #-----------------------------------------------------------------------
 # Load all of the global configuration options.

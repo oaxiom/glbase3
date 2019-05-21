@@ -38,7 +38,7 @@ def merge_hiccys(new_hic_filename, name, *hics):
         Save the result as a new hiccy File
 
         This algorithm assumes you know what you are doing, and you are trying to merge
-        hiccy objects with the
+        hiccy objects with the same resolution
 
     **Arguments**
         new_hic_filename (Required)
@@ -472,7 +472,7 @@ class hic:
         return self.tad_calls
 
     def heatmap(self, filename, chr=None, loc=None,
-        bracket=None, colour_map=cm.inferno_r, log2=True, **kargs):
+        bracket=None, colour_map=cm.inferno_r, log2=False, **kargs):
         """
         **Purpose**
             Draw an interaction heatmap
@@ -499,7 +499,7 @@ class hic:
             bracket (Optional, default=None)
                 clip the data within the ranges [low, high]
 
-            log2 (Optional, default=True)
+            log2 (Optional, default=False)
                 transform the data to log2 before plotting;
 
         **Returns**

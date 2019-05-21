@@ -2534,6 +2534,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl.linearData = []
         count = 0
 
+        # TODO: Could be done with: list(map(dict, frozenset(frozenset(i.items()) for i in marked_for_deletion)))
+        # Lazy at the moment, this function is very rarely used. Better to speed up *ByKey()
         unq = set()
         kord = list(self.linearData[0].keys())# fix the key order
 
