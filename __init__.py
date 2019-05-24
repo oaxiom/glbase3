@@ -116,6 +116,7 @@ from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
+from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
 from . import realtime
 from . import gldata
 from . import utils
@@ -137,24 +138,41 @@ def version():
 config.set_log_level('info')
 
 # export all of the libraries, methods and helpers.
-__all__ = ["genelist", "fastq", "expression", "genome", "genome_sql", "track", "flat_track", "delayedlist",
-            "glgo", "hic", # primary objects
+__all__ = ["genelist",
+            "fastq",
+            "expression",
+            "genome",
+            "genome_sql",
+            "track", # Deprecated? use flat_track
+            "flat_track",
+            "delayedlist",
+            "glgo",
+            "glglob",
+            "hic",# primary objects
             'config',
-            #"rigidgrid", # Temporarily unavailable
+            #"rigidgrid", # Unavailable
             'merge_hiccys', # hic support
             "location",
             "pwm", "pwms", # PWM object support
-            "flags",  "format",
-            "utils", "glload", "seqToTrk", "logo",
-            "glglob", "motif",  "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat',
-            "rnaseqqc", "gldata",
-            "gerp_to_flat", "draw", "fc",
-            "progressbar", "ecrbase", "region", "realtime",
-            #"realtime2", # This is deprecated
+            "flags",
+            "format",
+            "glload",
+            "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat",
+            "logo",
+            "motif",
+            "rnaseqqc",
+            "gldata",
+            "fc",
+            "ecrbase",
+            "region",
+            "realtime", #"realtime2", # This is deprecated
             "tfbs_iter",
-            "strandSorter",
+            'intervaltree',  # Useful utils to export
+            "utils",
             'adjust_text',
-            "cmaps",
-            "change_drawing_mode", "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
+            "change_drawing_mode",
+            "progressbar",
+            "draw",
+            "cmaps", "strandSorter",# Miscellaneous
+            "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
             ]
-            # in future I want to get rid of dir() and control what gets exported.

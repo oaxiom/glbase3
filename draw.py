@@ -1697,18 +1697,22 @@ class draw:
         **Returns**
             the actual filename used to save the image
         """
-        assert config.draw_mode in config.valid_draw_modes, "'%s' is not a supported drawing mode" % config.draw_mode
+        temp_draw_mode = config.draw_mode
+        if isinstance(config.draw_mode, str):
+            temp_draw_mode = [config.draw_mode] # for simple compat
 
-        # So that saving supports relative paths.
-        path, head = os.path.split(filename)
-        if "." in filename: # trust Ralf to send a filename without a . in it Now you get your own special exception!
-            save_name = "%s.%s" % (".".join(head.split(".")[:-1]), config.draw_mode) # this will delete .. in filename, e.g. file.meh.png
-        else:
-            save_name = "%s.%s" % (head, config.draw_mode)
+        for mode in temp_draw_mode:
+            assert mode in config.valid_draw_modes, "'%s' is not a supported drawing mode" % config.draw_mode
 
-        dpi = {"small": 75, "medium": 150, "large": 200, "huge": 300}
-        fig.savefig(os.path.join(path, save_name), dpi=dpi[size], bbox_inches=bbox_inches)
-        plot.close(fig) # Saves a huge amount of memory.
+            # So that saving supports relative paths.
+            path, head = os.path.split(filename)
+            if "." in filename: # trust Ralf to send a filename without a . in it Now you get your own special exception!
+                save_name = "%s.%s" % (".".join(head.split(".")[:-1]), mode) # this will delete .. in filename, e.g. file.meh.png
+            else:
+                save_name = "%s.%s" % (head, mode)
+
+            fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches)
+            plot.close(fig) # Saves a huge amount of memory.
         return(save_name)
 
     def do_common_args(self, ax, **kargs):

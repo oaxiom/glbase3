@@ -31,33 +31,25 @@ import time
 import sys
 import random
 
-def maximize_nonoverlapping_count(intervals):
-    # sort by the end-point
-    L = sorted(intervals, key=lambda start, end: (end, (end - start)),
-               reverse=True) # O(n*logn)
-    iv = build_interval_tree(intervals) # O(n*log n)
-    result = []
-    while L: # until there are intervals left to consider
-        # pop the interval with the smallest end-point, keep it in the result
-        result.append(L.pop()) # O(1)
-        # remove intervals that overlap with the popped interval
-        overlapping_intervals = iv.pop(result[-1]) # O(log n + m)
-        remove(overlapping_intervals, from_=L)
-    return result
+class intervaltree(object):
+    def __init__(self):
+        """
+        **Purpose**
+            Entry class for the intervaltree, a fast method of comparing and intersecting
+            intervals
 
-
-class IntervalTree(object):
-    def __init__( self ):
+        **Returns**
+            None
+        """
         self.chroms = {}
+        self.chroms_list = []
 
-    def insert(self, interval, linenum=0, other=None):
-        chrom = interval.chrom
-        start = interval.start
-        end = interval.end
-        if interval.chrom in self.chroms:
-            self.chroms[chrom] = self.chroms[chrom].insert( start, end, linenum, other )
+    def insert(self, chrom, left, right, linenum=0, other=None):
+        if chrom in self.chroms:
+            self.chroms[chrom] = self.chroms[chrom].insert(left, right, linenum, other)
         else:
-            self.chroms[chrom] = IntervalNode( start, end, linenum, other )
+            self.chroms[chrom] = intervalnode(left, right, linenum, other)
+        self.chroms_list = [(start, end, False) for start, end in self.chroms_list[chrom]]
 
     def intersect( self, interval, report_func ):
         chrom = interval.chrom
@@ -70,8 +62,40 @@ class IntervalTree(object):
         for item in self.chroms.itervalues():
             item.traverse( func )
 
-class IntervalNode(object):
-    def __init__( self, start, end, linenum=0, other=None ):
+    def maximize_nonoverlapping_count(self, chrom):
+        '''
+        **Purpose**
+            For a list of intervals, work out the maximal nonoverlapping set
+
+        **Arguments**
+            chrom (Required)
+                Chromosome name to sort on
+
+        **Returns**
+            A list of intervals in the form [(strt, end), ...]
+        '''
+        intervals = self.chroms_list[chrom]
+        # sort by the end-point
+        intervals.sort(key=lambda x: (x[1], (x[1] - x[0])))   # O(n*log n)
+
+        root = intervalnode(intervals[0][0], intervals[0][1], other=intervals[0])
+        tree = reduce(lambda tree, x: tree.insert(x[0], x[1], other=x), intervals[1:], root)
+
+        result = []
+
+        for smallest in intervals: # O(n) (without the loop body)
+            # pop the interval with the smallest end-point, keep it in the result
+            if smallest.removed:
+                continue # skip removed nodes
+            smallest[2] = True
+            result.append([smallest[0], smallest[1]]) # O(1)
+
+            # remove (mark) intervals that overlap with the popped interval
+            tree.intersect(smallest[0], smallest[1], lambda x: setattr(x.other, 'removed', True))
+        return result
+
+class intervalnode(object):
+    def __init__( self, start, end, linenum=0, other=None):
         # Python lacks the binomial distribution, so we convert a
         # uniform into a binomial because it naturally scales with
         # tree size.  Also, python's uniform is perfect since the
@@ -91,18 +115,18 @@ class IntervalNode(object):
         if start > self.start:
             # insert to right tree
             if self.right:
-                self.right = self.right.insert( start, end, linenum, other )
+                self.right = self.right.insert(start, end, linenum, other)
             else:
-                self.right = IntervalNode(start, end, linenum, other )
+                self.right = intervalnode(start, end, linenum, other)
             # rebalance tree
             if self.priority < self.right.priority:
                 root = self.rotateleft()
         else:
             # insert to left tree
             if self.left:
-                self.left = self.left.insert( start, end, linenum, other )
+                self.left = self.left.insert(start, end, linenum, other)
             else:
-                self.left = IntervalNode(start, end, linenum, other )
+                self.left = intervalnode(start, end, linenum, other)
             # rebalance tree
             if self.priority < self.left.priority:
                 root = self.rotateright()
@@ -189,9 +213,9 @@ if __name__ == "__main__":
         start = random.randint(0,1000000)
         end = start + random.randint(1, 1000)
         if test:
-            test = test.insert( start, end )
+            test = test.insert(start, end)
         else:
-            test = IntervalNode( start, end )
+            test = intervalnode(start, end)
         intlist.append( (start, end) )
 
     starttime = time.process_time()

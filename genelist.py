@@ -519,9 +519,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         if key in self.qkeyfind:
             if value in self.qkeyfind[key]:
-                item_indeces = self.qkeyfind[key][value]
-                return(self.linearData[min(item_indeces)])
-        return(None) # not found;
+                return self.linearData[min(self.qkeyfind[key][value])]
+        return None # not found;
 
     def _findDataByKeyGreedy(self, key, value): # override????? surely finditer?
         """
