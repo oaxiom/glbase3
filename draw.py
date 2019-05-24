@@ -491,7 +491,7 @@ class draw:
             ax4 = fig.add_axes(loc_col_colbar)
             ax4.imshow(col_colbar, aspect="auto",
                 origin='lower', extent=[0, len(col_colbar),  0, 1],
-                interpolation=config.get_interpolation_mode())
+                interpolation=config.get_interpolation_mode(filename))
             ax4.set_frame_on(False)
             ax4.tick_params(top=False, bottom=False, left=False, right=False)
             ax4.set_xticklabels("")
@@ -508,7 +508,8 @@ class draw:
             ax4 = fig.add_axes(loc_row_colbar)
             ax4.imshow(row_colbar, aspect="auto",
                 origin='lower', extent=[0, len(row_colbar),  0, 1],
-                interpolation=config.get_interpolation_mode())
+                interpolation=config.get_interpolation_mode(filename))
+
             ax4.set_frame_on(False)
             ax4.tick_params(top=False, bottom=False, left=False, right=False)
             ax4.set_xticklabels("")
@@ -1702,8 +1703,10 @@ class draw:
             temp_draw_mode = [config.draw_mode] # for simple compat
 
         for mode in temp_draw_mode:
-            assert mode in config.valid_draw_modes, "'%s' is not a supported drawing mode" % config.draw_mode
+            assert mode in config.valid_draw_modes, "'%s' is not a supported drawing mode" % temp_draw_mode
 
+            if mode == 'svg':
+                matplotlib.rcParams["image.interpolation"] = 'nearest'
             # So that saving supports relative paths.
             path, head = os.path.split(filename)
             if "." in filename: # trust Ralf to send a filename without a . in it Now you get your own special exception!

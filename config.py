@@ -11,7 +11,7 @@ import os, logging, subprocess
 
 # -------------- Versioning data
 
-   
+
 try:
     oh = open(os.path.join(os.path.split(__file__)[0], "version.num"), "rU")
     VERSION = "1.%s" % oh.readline().strip().replace("+", "") # The hg hook will put a plus as I call just before committing.
@@ -19,7 +19,7 @@ try:
 except Exception:
     VERSION = "version data not found"
 DATE = ""
-    
+
 __version__ = VERSION # There's a lot of needless redundancy here...
 version = VERSION # this is the valid one I want to use in future.
 
@@ -67,17 +67,19 @@ def change_draw_size(size):
     # This is usually correctly respected.
     assert size in ["small", "medium", "large", "huge"], "drawing size '%s' not found" % size
     draw_size = size
-    
+
 def change_draw_aspect(aspect):
     # This is often ignored though by the drawing methods themselves...
     assert size in ["normal", "square", "long"], "drawing aspect '%s' not found" % size
     draw_size = aspect
 
-def get_interpolation_mode():
+def get_interpolation_mode(filename):
     # Get a suitable interpolator for non-aliased heatmaps and hist2d's, etc.
-    if draw_mode in ("svg", 'pdf', 'eps', 'ps'):
+    # config.draw_mode is no longer reliable, so I have to get it from the actual filename now:
+    tmode = filename.split('.')[-1]
+    if tmode in ("svg", 'pdf', 'eps', 'ps'):
         return('nearest') # Yes, it really is nearest. Otherwise it will go to something like bilinear
-    return('none')
+    return('nearest') # seems fixed in newer matplotlibs?
 
 # -------------- set up the logger here.
 # You can access it using config.log()
@@ -95,7 +97,7 @@ logging.basicConfig(level=logging.DEBUG,
 log = logging.getLogger('glbase3')
 log.setLevel(logging.INFO) # The defult seemed to end up on DEBUG?
 mpl_logger = logging.getLogger('matplotlib') # Bodge to silence the matplotlib logging
-mpl_logger.setLevel(logging.WARNING) 
+mpl_logger.setLevel(logging.WARNING)
 
 # helpers [Should be deprecated. Call config.log.<level>() to call info]
 info = log.info
@@ -110,7 +112,7 @@ def silence_log(): # I think a NullHandler would be better for this?
     log.warning = lambda x:x
     log.error = lambda x:x
     log.debug = lambda x:x
-    # Keep critical    
+    # Keep critical
 
 if SILENT:
     log.setLevel(logging.CRITICAL) # not acutally silenced...
