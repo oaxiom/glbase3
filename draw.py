@@ -653,7 +653,7 @@ class draw:
             ax3.set_position(heatmap_location) # must be done early for imshow
             hm = ax3.imshow(data, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
                 origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
-                interpolation=config.get_interpolation_mode())
+                interpolation=config.get_interpolation_mode(filename))
         else:
             hm = ax3.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False)
 
@@ -760,7 +760,7 @@ class draw:
         plot_data = arraydata.T
         if imshow:
             hm = ax1.imshow(plot_data, cmap=cmap, vmin=vmin, vmax=vmax,
-                interpolation=config.get_interpolation_mode())
+                interpolation=config.get_interpolation_mode(filename))
         else:
             hm = ax1.pcolormesh(plot_data, cmap=cmap, vmin=vmin, vmax=vmax, antialiased=False)
 
@@ -894,7 +894,7 @@ class draw:
             if imshow:
                 hm = ax.imshow(list_of_data[index], cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
                     origin='lower', extent=[0, list_of_data[index].shape[1], 0, list_of_data[index].shape[0]],
-                    interpolation=config.get_interpolation_mode())
+                    interpolation=config.get_interpolation_mode(filename))
             else:
                 hm = ax.pcolormesh(list_of_data[index], cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False)
 
@@ -928,7 +928,7 @@ class draw:
             if imshow:
                 hm = ax.imshow(dd, cmap=cm.Paired, vmin=min(groups), vmax=max(groups), aspect="auto",
                     origin='lower', extent=[0, dd.shape[1], 0, dd.shape[0]],
-                    interpolation=config.get_interpolation_mode())
+                    interpolation=config.get_interpolation_mode(filename))
             else:
                 ax.pcolormesh(dd, vmin=min(groups), vmax=max(groups), antialiased=False, cmap=cm.Paired)
 
