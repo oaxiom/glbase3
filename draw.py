@@ -56,7 +56,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
-from matplotlib.colors import ColorConverter, rgb2hex
+from matplotlib.colors import ColorConverter, rgb2hex, ListedColormap
 import matplotlib.colors as matplotlib_colors
 import matplotlib.mlab as mlab
 from matplotlib.patches import Ellipse, Circle
@@ -105,7 +105,7 @@ class draw:
         vmin=0, vmax=None, colour_map=cm.RdBu_r, col_norm=False, row_norm=False, heat_wid=0.25, heat_hei=0.85,
         highlights=None, digitize=False, border=False, draw_numbers=False, draw_numbers_threshold=-9e14,
         draw_numbers_fmt='%.1f', draw_numbers_font_size=6, grid=False, row_color_threshold=None,
-        col_names=None, row_colbar=None, col_colbar=None,
+        col_names=None, row_colbar=None, col_colbar=None, optimal_ordering=False,
         **kargs):
         """
         my own version of heatmap.
@@ -201,6 +201,9 @@ class draw:
                 Should be a list of colours in the same order as the row names.
 
                 Note that unclustered data goes from the bottom to the top!
+
+            optimal_ordering (Optional, default=False)
+                See https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
 
         **Returns**
             The actual filename used to save the image.
@@ -381,7 +384,7 @@ class draw:
                 Z = kargs["row_tree"]["linkage"]
             else:
                 Y = pdist(data, metric=cluster_mode)
-                Z = linkage(Y, method='complete', metric=cluster_mode)
+                Z = linkage(Y, method='complete', metric=cluster_mode, optimal_ordering=optimal_ordering)
 
             if row_color_threshold:
                 row_color_threshold = row_color_threshold*((Y.max()-Y.min())+Y.min()) # Convert to local threshold.
@@ -436,7 +439,7 @@ class draw:
                 Z = kargs["col_tree"]["linkage"]
             else:
                 Y = pdist(transposed_data, metric=cluster_mode)
-                Z = linkage(Y, method='complete', metric=cluster_mode)
+                Z = linkage(Y, method='complete', metric=cluster_mode, optimal_ordering=optimal_ordering)
             a = dendrogram(Z, orientation='top', ax=ax2)
 
             ax2.tick_params(top=False, bottom=False, left=False, right=False)
@@ -470,7 +473,7 @@ class draw:
             edgecolors = 'none'
             if grid:
                 edgecolors = 'black'
-            hm = ax3.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False, edgecolors=edgecolors, lw=0.5)
+            hm = ax3.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False, edgecolors=edgecolors, lw=0.4)
 
         if col_colbar:
             # Must be reordered by the col_cluster if present
@@ -492,6 +495,21 @@ class draw:
             ax4.imshow(col_colbar, aspect="auto",
                 origin='lower', extent=[0, len(col_colbar),  0, 1],
                 interpolation=config.get_interpolation_mode(filename))
+
+            if 'imshow' in kargs and kargs['imshow']:
+                ax4.imshow(col_colbar, aspect="auto",
+                    origin='lower', extent=[0, len(col_colbar),  0, 1],
+                    interpolation=config.get_interpolation_mode(filename))
+            else:
+                # unpack the oddly contained data:
+                col_colbar = [tuple(i[0]) for i in col_colbar]
+                cols = list(set(row_colbar))
+                lcmap = ListedColormap(cols)
+                col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
+                ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
+                    vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
+                    antialiased=False, edgecolors=edgecolors, lw=0.4)
+
             ax4.set_frame_on(False)
             ax4.tick_params(top=False, bottom=False, left=False, right=False)
             ax4.set_xticklabels("")
@@ -506,9 +524,19 @@ class draw:
 
             row_colbar = numpy.array([[newd[c]] for c in row_colbar])#.transpose(1,0,2)
             ax4 = fig.add_axes(loc_row_colbar)
-            ax4.imshow(row_colbar, aspect="auto",
-                origin='lower', extent=[0, len(row_colbar),  0, 1],
-                interpolation=config.get_interpolation_mode(filename))
+            if 'imshow' in kargs and kargs['imshow']:
+                ax4.imshow(row_colbar, aspect="auto",
+                    origin='lower', extent=[0, len(row_colbar),  0, 1],
+                    interpolation=config.get_interpolation_mode(filename))
+            else:
+                # unpack the oddly contained data:
+                row_colbar = [tuple(i[0]) for i in row_colbar]
+                cols = list(set(row_colbar))
+                lcmap = ListedColormap(cols)
+                row_colbar_as_col_indeces = [cols.index(i) for i in row_colbar]
+                ax4.pcolormesh(numpy.array([row_colbar_as_col_indeces,]).T, cmap=lcmap,
+                    vmin=min(row_colbar_as_col_indeces), vmax=max(row_colbar_as_col_indeces),
+                    antialiased=False, edgecolors=edgecolors, lw=0.4)
 
             ax4.set_frame_on(False)
             ax4.tick_params(top=False, bottom=False, left=False, right=False)
