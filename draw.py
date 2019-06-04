@@ -492,10 +492,6 @@ class draw:
             col_colbar = numpy.array([newc,])#.transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
-            ax4.imshow(col_colbar, aspect="auto",
-                origin='lower', extent=[0, len(col_colbar),  0, 1],
-                interpolation=config.get_interpolation_mode(filename))
-
             if 'imshow' in kargs and kargs['imshow']:
                 ax4.imshow(col_colbar, aspect="auto",
                     origin='lower', extent=[0, len(col_colbar),  0, 1],
