@@ -26,29 +26,29 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         self.b = glbase3.genelist(filename="test_data/testB.csv", format=glbase3.format.sniffer)
         self.c = glbase3.genelist(filename="test_data/testC.csv", format=glbase3.format.sniffer)
         self.d = glbase3.genelist(filename="test_data/ccat_list.region", format=glbase3.format.ccat_output)
-        self.e = glbase3.genelist(filename="test_data/macs_list.xls", format=glbase3.format.macs_output)       
-        
-        fake1 = [{"name": "gene1"}, 
-            {"name": "gene2"}, 
-            {"name": "gene3"}, 
-            {"name": "gene4"}, 
+        self.e = glbase3.genelist(filename="test_data/macs_list.xls", format=glbase3.format.macs_output)
+
+        fake1 = [{"name": "gene1"},
+            {"name": "gene2"},
+            {"name": "gene3"},
+            {"name": "gene4"},
             {"name": "gene5"}]
         self.f1 = glbase3.genelist()
         self.f1.load_list(fake1)
-        
-        fake2 = [{"name": "gene4", "alt_key": "meh"}, 
-            {"name": "gene5"}, 
-            {"name": "gene6"}, 
-            {"name": "gene7"}, 
+
+        fake2 = [{"name": "gene4", "alt_key": "meh"},
+            {"name": "gene5"},
+            {"name": "gene6"},
+            {"name": "gene7"},
             {"name": "gene8"},
-            {"name": "gene9"}] 
+            {"name": "gene9"}]
         self.f2 = glbase3.genelist()
         self.f2.load_list(fake2)
-        
-        fake3 = [{"name": "gene4", "alt_key": False}, 
-            {"name": "gene4", "alt_key": True}, 
-            {"name": "gene5", "alt_key": False}, 
-            {"name": "gene6"}, 
+
+        fake3 = [{"name": "gene4", "alt_key": False},
+            {"name": "gene4", "alt_key": True},
+            {"name": "gene5", "alt_key": False},
+            {"name": "gene6"},
             {"name": "gene7"}]
         self.f3 = glbase3.genelist()
         self.f3.load_list(fake3)
@@ -59,7 +59,7 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         self.assertEqual(len(self.c), 6) # tests format=sniffer
         self.assertEqual(len(self.d), 114) # tests skiplines = -1
         self.assertEqual(len(self.e), 16) # tests a much more complex format.
-    
+
     def test_collisions(self):
         # only identical points:
         self.assertEqual(len(self.a.collide(genelist=self.b, delta=0)), 5) # first three worked out by hand.
@@ -86,8 +86,8 @@ class Test_Collisions_Overlaps(unittest.TestCase):
 
     def test_overlap_delta(self):
         self.assertEqual(len(self.a.overlap(genelist=self.b, delta=15)), 9) # zero based
-        self.assertEqual(len(self.a.overlap(genelist=self.c, delta=15)), 19) 
-        self.assertEqual(len(self.b.overlap(genelist=self.c, delta=15)), 3) 
+        self.assertEqual(len(self.a.overlap(genelist=self.c, delta=15)), 19)
+        self.assertEqual(len(self.b.overlap(genelist=self.c, delta=15)), 3)
         self.assertFalse(self.d.overlap(genelist=self.e, delta=500))  # no overlaps are now None
 
 		# funny mac bug/feature here where linux gets \n, mac gets \r\n...
@@ -109,17 +109,17 @@ class Test_Collisions_Overlaps(unittest.TestCase):
         self.assertEqual(qcollide(10, 20, 21, 21), False) # edge right
         self.assertEqual(qcollide(10, 20, 9, 9), False) # edge right
         self.assertEqual(qcollide(10, 20, 10, 20), True) # perfect match
-        
+
     def test_map(self):
         o = self.f1.map(genelist=self.f2, key="name")
         self.assertEqual(len(o), 2)
-        
+
     def test_map_not(self):
         o = self.f1.map(genelist=self.f2, key="name", logic="notright")
         self.assertEqual(len(o), 4)
         o = self.f2.map(genelist=self.f1, key="name", logic="notright")
         self.assertEqual(len(o), 3)
-        
+
     def test_map_lazygreedy(self):
         # default is greedy:
         o = self.f2.map(genelist=self.f3, key="name", greedy=False) # greedy=True is default behaviour
@@ -137,16 +137,16 @@ class Test_Collisions_Overlaps(unittest.TestCase):
 
     def test_collisions_add_tags(self):
         res = self.a.collide(genelist=self.b, delta=0, add_tags="score") # first three worked out by hand.
-        
+
         self.assertEqual(res[0]["score"], 7.0)
         self.assertEqual(res[1]["score"], 9.0)
         self.assertEqual(res[2]["score"], 11.0)
-    
+
     def test_buckets(self):
         glbase3.config.bucket_size = 100 # change to a smaller value for testing purposes.
 
         g = glbase3.genelist()
-        
+
         data = [{"loc": glbase3.location(loc="chr1:1000-1200")},
             {"loc": glbase3.location(loc="chr1:1200-1300")},
             {"loc": glbase3.location(loc="chr1:1200-1201")},
@@ -155,24 +155,24 @@ class Test_Collisions_Overlaps(unittest.TestCase):
             {"loc": glbase3.location(loc="chr1:1500-1600")},
             {"loc": glbase3.location(loc="chr1:1600-1600")}, # point locs on edges of buckets
             {"loc": glbase3.location(loc="chr1:1423-1423")}, # point locs in middle of buckets
-            {"loc": glbase3.location(loc="chr1:0-1500")}] # span much larger than bucket 
-        
+            {"loc": glbase3.location(loc="chr1:0-1500")}] # span much larger than bucket
+
         g.load_list(data)
-       
+
         left_buck = int((1299-1)/glbase3.config.bucket_size)*glbase3.config.bucket_size
         right_buck = int((1788)/glbase3.config.bucket_size)*glbase3.config.bucket_size
         buckets_reqd = list(range(left_buck, right_buck+glbase3.config.bucket_size, glbase3.config.bucket_size)) # make sure to get the right spanning and left spanning sites
-        
+
         loc_ids = set()
         if buckets_reqd:
             for buck in buckets_reqd:
                 if buck in g.buckets["1"]:
                     loc_ids.update(g.buckets["1"][buck]) # unique ids
-                
+
         self.assertSetEqual(loc_ids, set([0, 1, 2, 3, 4, 5, 6, 7, 8]))
         self.assertEqual(len(g.buckets), 1)
         self.assertEqual(len(g.buckets["1"]), 17)
-        
+
         glbase3.config.bucket_size = 10000 # change it back
 
     def test_remove_dupes_by_loc(self):
@@ -184,16 +184,16 @@ class Test_Collisions_Overlaps(unittest.TestCase):
             {"loc": glbase3.location(loc="chr1:1300-1400")},
             {"loc": glbase3.location(loc="chr1:1600-1600")},
             {"loc": glbase3.location(loc="chr1:1423-1423")},
-            {"loc": glbase3.location(loc="chr2:1000-1200")}]   
-        
-        g = glbase3.genelist()            
+            {"loc": glbase3.location(loc="chr2:1000-1200")}]
+
+        g = glbase3.genelist()
         g.load_list(data)
-        
-        newl = g.removeDuplicatesByLoc(delta=100, mode='pointify_expand')        
-        
+
+        newl = g.removeDuplicatesByLoc(delta=100, mode='pointify_expand')
+
         self.assertEqual(len(newl), 4)
-        
-    
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Collisions_Overlaps)
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -443,8 +443,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     self.buckets[chr] = {}
                 # work out the bucket(s) for the location.
                 # which bucket is left and right in?
-                left_buck = int(item[loc_key]["left"]/config.bucket_size)*config.bucket_size
-                right_buck = int((item[loc_key]["right"]+config.bucket_size)/config.bucket_size)*config.bucket_size
+                left_buck = (item[loc_key]["left"]//config.bucket_size)*config.bucket_size
+                right_buck = ((item[loc_key]["right"]+config.bucket_size)//config.bucket_size)*config.bucket_size
                 buckets_reqd = list(range(left_buck, right_buck, config.bucket_size))
 
                 #print n, item[loc_key], buckets_reqd, left_buck, right_buck, len(buckets_reqd)
@@ -456,8 +456,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         # Then to do a collision =
         """
-        left_buck = int(item[loc_key]["left"]/config.bucket_size)*config.bucket_size
-        right_buck = int(item[loc_key]["right"]/config.bucket_size)*config.bucket_size
+        left_buck = (item[loc_key]["left"]//config.bucket_size)*config.bucket_size
+        right_buck = (item[loc_key]["right"]//config.bucket_size)*config.bucket_size
         buckets_reqd = range(left_buck, right_buck, config.bucket_size)
 
         for buck in buckets_reqd:
@@ -1719,8 +1719,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             loc = loc.expand(distance)
 
             # work out which of the buckets required:
-            left_buck = int((loc["left"]-1)/config.bucket_size)*config.bucket_size
-            right_buck = int((loc["right"])/config.bucket_size)*config.bucket_size
+            left_buck = ((loc["left"]-1)//config.bucket_size)*config.bucket_size
+            right_buck = ((loc["right"])//config.bucket_size)*config.bucket_size
             buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
             # get the ids reqd.
@@ -2212,8 +2212,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     locA = locA.expand(delta)
 
                 # work out which of the buckets required:
-                left_buck = int((locA["left"]-1-delta)/config.bucket_size)*config.bucket_size
-                right_buck = int((locA["right"]+delta)/config.bucket_size)*config.bucket_size
+                left_buck = ((locA["left"]-1-delta)//config.bucket_size)*config.bucket_size
+                right_buck = ((locA["right"]+delta)//config.bucket_size)*config.bucket_size
                 buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
                 # get the ids reqd.
@@ -2395,8 +2395,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     # Do a collision check
 
                     # work out which of the buckets required:
-                    left_buck = int((locA["left"]-1-delta)/config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
-                    right_buck = int((locA["right"]+1+delta)/config.bucket_size)*config.bucket_size
+                    left_buck = ((locA["left"]-1-delta)//config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
+                    right_buck = ((locA["right"]+1+delta)//config.bucket_size)*config.bucket_size
                     buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
                     # get the ids reqd.
@@ -2437,8 +2437,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     # Do a collision check
 
                     # work out which of the buckets required:
-                    left_buck = int((locA["left"]-1-delta)/config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
-                    right_buck = int((locA["right"]+1+delta)/config.bucket_size)*config.bucket_size
+                    left_buck = ((locA["left"]-1-delta)//config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
+                    right_buck = ((locA["right"]+1+delta)//config.bucket_size)*config.bucket_size
                     buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
                     # get the ids reqd.
@@ -3283,8 +3283,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 loc = loc.expand(delta)
 
         # work out which of the buckets is required:
-        left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
-        right_buck = int((loc["right"]+delta)/config.bucket_size)*config.bucket_size
+        left_buck = ((loc["left"]-1-delta)//config.bucket_size)*config.bucket_size
+        right_buck = ((loc["right"]+delta)//config.bucket_size)*config.bucket_size
         buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
         # get the ids reqd.
@@ -3348,8 +3348,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 loc = loc.expand(delta)
 
         # work out which of the buckets is required:
-        left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
-        right_buck = int((loc["right"]+delta)/config.bucket_size)*config.bucket_size
+        left_buck = ((loc["left"]-1-delta)//config.bucket_size)*config.bucket_size
+        right_buck = ((loc["right"]+delta)//config.bucket_size)*config.bucket_size
         buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
 
         # get the ids reqd.
