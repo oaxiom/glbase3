@@ -499,7 +499,7 @@ class draw:
             else:
                 # unpack the oddly contained data:
                 col_colbar = [tuple(i[0]) for i in col_colbar]
-                cols = list(set(row_colbar))
+                cols = list(set(col_colbar))
                 lcmap = ListedColormap(cols)
                 col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
                 ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
