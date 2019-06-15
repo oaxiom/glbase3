@@ -27,7 +27,7 @@ class Test_Delayedlist(unittest.TestCase):
         spoof_gl = [{"name": "Lypla1"}, {"name": "Pdia4"}]
         self.b = glbase3.genelist()
         self.b.load_list(spoof_gl)
-    
+
     def test_len(self):
         self.b = glbase3.genelist(filename="test_data/array_data.csv", format=format)
         self.a = glbase3.delayedlist(filename="test_data/array_data.csv", format=format)
@@ -37,12 +37,12 @@ class Test_Delayedlist(unittest.TestCase):
         self.b = glbase3.genelist(filename="test_data/array_data.csv", format=format)
         self.a = glbase3.delayedlist(filename="test_data/array_data.csv.gz", format=format, gzip=True)
         self.assertEqual(len(self.a), len(self.b))
-        
+
         for item in self.a:
             self.assertEqual(item["name"], "Lypla1")
             self.assertEqual(item["array_systematic_name"], 'scl000965.1_10-S')
-            break 
-        
+            break
+
     def test_iteration(self):
         for item in self.a:
             self.assertEqual(item["name"], "Lypla1")
@@ -56,11 +56,9 @@ class Test_Delayedlist(unittest.TestCase):
             self.assertEqual(item["name"], "Lypla1")
             self.assertEqual(item["array_systematic_name"], 'scl000965.1_10-S')
             break
-    
+
     def test_map_assertion(self):
         self.a.reset()
-        #print self.a
-        #print self.b
         res = self.b.map(genelist=self.a, key='name') # only support map() this way around.
         newl = []
         for i in res:

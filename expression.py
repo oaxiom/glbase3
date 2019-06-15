@@ -3053,7 +3053,8 @@ class expression(base_expression):
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("gene_curve: Saved '%s'" % actual_filename)
 
-    def correlation_heatmap(self, axis="conditions", filename=None, label_key=None, mode="r2", aspect="square", bracket=(0,1), **kargs):
+    def correlation_heatmap(self, axis="conditions", filename=None, label_key=None, mode="r2", aspect="square", bracket=(0,1),
+        optimal_ordering=True, **kargs):
         """
         **Purpose**
             Plot a heatmap of the (R, R^2, Pearson or Spearman) correlation for all pairs of
@@ -3138,7 +3139,7 @@ class expression(base_expression):
 
         results = self.draw.heatmap(filename=filename, data=arr, square=square,
             bracket=bracket, aspect=aspect, row_names=labels, col_names=labels,
-            colbar_label="Correlation (%s)" % mode, **kargs)
+            colbar_label="Correlation (%s)" % mode, optimal_ordering=optimal_ordering, **kargs)
         config.log.info("correlation_heatmap: Saved '%s'" % results["real_filename"])
         return({"data": results["reordered_data"], "labels": results["reordered_cols"]})
 
