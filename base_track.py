@@ -240,9 +240,6 @@ class base_track:
         # do a commit
         self._save_meta_data()
         self._connection.commit()
-        self._connection.execute("VACUUM")
-        self._connection.execute("ANALYZE")
-        self._connection.commit()
 
     def old_heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
         bins=20, sort_by_intensity=True, **kargs):
