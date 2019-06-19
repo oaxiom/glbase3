@@ -467,7 +467,7 @@ class draw:
             ax3.set_position(heatmap_location) # must be done early for imshow
             hm = ax3.imshow(data, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
                 origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
-                interpolation=config.get_interpolation_mode()) # Yes, it really is nearest. Otherwise it will go to something like bilinear
+                interpolation=config.get_interpolation_mode(filename)) # Yes, it really is nearest. Otherwise it will go to something like bilinear
 
         else:
             edgecolors = 'none'
