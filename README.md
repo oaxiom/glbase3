@@ -34,7 +34,7 @@ and if it prompts you that there has been an update:
 
 To update to the most recent version (i.e. the version I am using).
 
-== Running the test suite ==
+### Running the test suite ###
 
 These should all pass:
 
@@ -47,11 +47,11 @@ The documentation can be found in:
 
 {{{glbase3/docs/build/html/index.html}}}
 
-== License ==
+### License ###
 
 glbase is distributed under the MIT license:
 {{{
-    Copyright (C) 2009-2016 Andrew Hutchins
+    Copyright (C) 2009-2019 Andrew Hutchins
     
     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
     
