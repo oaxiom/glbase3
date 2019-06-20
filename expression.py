@@ -814,7 +814,8 @@ class expression(base_expression):
                 item["conditions"] = [new_type(i) for i in item["conditions"]]
         return(None)
 
-    def heatmap(self, filename=None, row_label_key="name", row_color_threshold=None, **kargs):
+    def heatmap(self, filename=None, row_label_key="name", row_color_threshold=None,
+        optimal_ordering=True, **kargs):
         """
         **Purpose**
 
@@ -972,6 +973,12 @@ class expression(base_expression):
 
                 Note that unclustered data goes from the bottom to the top!
 
+            optimal_ordering (Optional, default=False)
+                An improved ordering for the tree, at some computational and memory cost.
+                Can be trouble on very large heatmaps
+
+                See https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
+
         **Result**
             saves an image to the 'filename' location and
 
@@ -1000,6 +1007,7 @@ class expression(base_expression):
             col_names=self.getConditionNames(),
             filename=filename,
             row_color_threshold=row_color_threshold,
+            optimal_ordering=optimal_ordering,
             **kargs)
 
         config.log.info("heatmap: Saved %s" % res["real_filename"])

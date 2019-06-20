@@ -476,20 +476,13 @@ class draw:
             hm = ax3.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False, edgecolors=edgecolors, lw=0.4)
 
         if col_colbar:
-            # Must be reordered by the col_cluster if present
-            named_color_dict = {}
-            colors_ = dict(list(matplotlib_colors.cnames.items())) # unique list of colors
-            named_color_dict = {c:matplotlib_colors.hex2color(colors_[c]) for c in colors_} # gets the total list of all matplotlib named colors
+            # Must be reordered by the col_cluster if present, done above;
+            newd = {}
+            colors_ = dict(list(matplotlib_colors.cnames.items()))
+            for c in colors_:
+                newd[c] = matplotlib_colors.hex2color(colors_[c])
 
-            # convert non-# to RGB:
-            newc = []
-            for c in col_colbar:
-                if '#' in c:
-                    newc.append(matplotlib_colors.hex2color(c))
-                else:
-                    newc.append(named_color_dict[c])
-
-            col_colbar = numpy.array([newc,])#.transpose(1,0,2)
+            col_colbar = numpy.array([[newd[c]] for c in col_colbar])#.transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
@@ -498,10 +491,17 @@ class draw:
                     interpolation=config.get_interpolation_mode(filename))
             else:
                 # unpack the oddly contained data:
+                print(col_colbar)
                 col_colbar = [tuple(i[0]) for i in col_colbar]
+                print(col_colbar)
                 cols = list(set(col_colbar))
                 lcmap = ListedColormap(cols)
                 col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
+
+
+                print(cols)
+
+                print(col_colbar_as_col_indeces)
                 ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
                     vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
                     antialiased=False, edgecolors=edgecolors, lw=0.4)
@@ -512,7 +512,7 @@ class draw:
             ax4.set_yticklabels("")
 
         if row_colbar:
-            # Must be reordered by the row_cluster if present
+            # Must be reordered by the row_cluster if present, done above;
             newd = {}
             colors_ = dict(list(matplotlib_colors.cnames.items()))
             for c in colors_:
