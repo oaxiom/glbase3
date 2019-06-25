@@ -491,17 +491,11 @@ class draw:
                     interpolation=config.get_interpolation_mode(filename))
             else:
                 # unpack the oddly contained data:
-                print(col_colbar)
                 col_colbar = [tuple(i[0]) for i in col_colbar]
-                print(col_colbar)
                 cols = list(set(col_colbar))
                 lcmap = ListedColormap(cols)
                 col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
 
-
-                print(cols)
-
-                print(col_colbar_as_col_indeces)
                 ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
                     vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
                     antialiased=False, edgecolors=edgecolors, lw=0.4)
