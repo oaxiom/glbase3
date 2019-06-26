@@ -142,6 +142,12 @@ def wig_to_flat(infilenames, outfilename, name, gzip=False, **kargs):
                         #break
 
             oh.close()
+        
+        # take the average
+        arr = numpy.array(arr)
+        arr /= len(infilenames)  
+        arr = list(arr)
+        
         # Done this chrom, commit the array:
         config.log.info('Finished %s' % chrom)
         flat.add_chromosome_array(chrom, arr)
