@@ -2707,7 +2707,7 @@ class expression(base_expression):
                 expn_values = utils.kde(expn_values, range=range, covariance=covariance, bins=bins)
                 ax.plot(expn_values, label=k)
             else:
-                ax.hist(expn_values, color=color, bins=bins, range=range, normed=True, histtype='stepfilled', label=k)
+                ax.hist(expn_values, color=color, bins=bins, range=range, density=True, histtype='stepfilled', label=k)
             all_data[k] = expn_values
 
         if legend:
