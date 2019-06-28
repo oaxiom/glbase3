@@ -482,7 +482,14 @@ class draw:
             for c in colors_:
                 newd[c] = matplotlib_colors.hex2color(colors_[c])
 
-            col_colbar = numpy.array([[newd[c]] for c in col_colbar])#.transpose(1,0,2)
+            new_colbar = []
+            for c in col_colbar:
+                if '#' in c:
+                    new_colbar.append([utils.hex_to_rgb(c)]) # needs to be tupled?
+                else: # must be a named color:
+                    new_colbar.append([newd[c]])
+
+            col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
@@ -512,7 +519,15 @@ class draw:
             for c in colors_:
                 newd[c] = matplotlib_colors.hex2color(colors_[c])
 
-            row_colbar = numpy.array([[newd[c]] for c in row_colbar])#.transpose(1,0,2)
+            new_colbar = []
+            for c in row_colbar:
+                if '#' in c:
+                    new_colbar.append([utils.hex_to_rgb(c)]) # needs to be tupled?
+                else: # must be a named color:
+                    new_colbar.append([newd[c]])
+
+            row_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
+
             ax4 = fig.add_axes(loc_row_colbar)
             if 'imshow' in kargs and kargs['imshow']:
                 ax4.imshow(row_colbar, aspect="auto",

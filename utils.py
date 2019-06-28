@@ -1184,18 +1184,9 @@ def fold_change(c1, c2, log=2, pad=1e-6):
 def rgba_to_hex(rgba_color):
     return ('#{r:02x}{g:02x}{b:02x}'.format(r=int(rgba_color[0]*255),g=int(rgba_color[1]*255),b=int(rgba_color[2]*255)))
 
+def hex_to_rgb(hex_str):
+    return tuple((int(hex_str.lstrip('#')[i:i+2], 16)/255) for i in (0, 2, 4))
+
 def qdeepcopy(anobject):
     # You should wrap me in a try: except:
     return(pickle.loads(pickle.dumps(anobject, -1)))
-
-if __name__ == "__main__":
-    # small tester for euclidean_distance()
-    X = numpy.array([[0, 1], [1, 1]])
-    print(euclidean_distances(X))
-    #array([[ 0.,  1.],
-    #       [ 1.,  0.]])
-    print(euclidean_distances(X, numpy.array([[0.0, 0.0]])))
-    #array([[ 1.        ],
-    #       [ 1.41421356]])
-
-    print(fold_change(100, 50, log=2, pad=1e-6))
