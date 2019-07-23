@@ -22,7 +22,7 @@ from .errors import AssertionError, ArgumentError, ExpressionNonUniqueConditionN
 from .utils import qdeepcopy
 
 class base_expression(genelist):
-    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent=False, **kargs):
+    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent:bool=False, **kargs):
         """
         See the documentation in the expression class.
 

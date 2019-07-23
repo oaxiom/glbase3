@@ -85,7 +85,7 @@ def get_interpolation_mode(filename):
 # You can access it using config.log()
 logging.basicConfig(level=logging.DEBUG,
                     format='%(levelname)-8s: %(message)s',
-                    datefmt='%m-%d %H:%M'),
+                    datefmt='%m-%d %H:%M')
                     #filename=os.path.join(os.path.expanduser("~"), "glbase.log"),
                     #filemode='w') # This should be optional?
 #console = logging.StreamHandler()

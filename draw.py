@@ -85,7 +85,7 @@ class draw:
         """please deprecate me"""
         pass
 
-    def bracket_data(self, data, min, max):
+    def bracket_data(self, data, min:int, max:int):
         """
         brackets the data between min and max (ie. bounds the data with no scaling)
 
@@ -101,11 +101,31 @@ class draw:
                     newd[x][y] = max
         return(newd)
 
-    def heatmap(self, filename=None, cluster_mode="euclidean", row_cluster=True, col_cluster=True,
-        vmin=0, vmax=None, colour_map=cm.RdBu_r, col_norm=False, row_norm=False, heat_wid=0.25, heat_hei=0.85,
-        highlights=None, digitize=False, border=False, draw_numbers=False, draw_numbers_threshold=-9e14,
-        draw_numbers_fmt='%.1f', draw_numbers_font_size=6, grid=False, row_color_threshold=None,
-        col_names=None, row_colbar=None, col_colbar=None, optimal_ordering=False,
+    def heatmap(self,
+        filename:str = None,
+        cluster_mode: str = "euclidean",
+        row_cluster:bool = True,
+        col_cluster:bool = True,
+        vmin = 0,
+        vmax = None,
+        colour_map=cm.RdBu_r,
+        col_norm:bool = False,
+        row_norm:bool = False,
+        heat_wid = 0.25,
+        heat_hei = 0.85,
+        highlights = None,
+        digitize:bool = False,
+        border:bool = False,
+        draw_numbers:bool = False,
+        draw_numbers_threshold = -9e14,
+        draw_numbers_fmt = '%.1f',
+        draw_numbers_font_size = 6,
+        grid:bool = False,
+        row_color_threshold:bool = None,
+        col_names:bool = None,
+        row_colbar:bool = None,
+        col_colbar:bool = None,
+        optimal_ordering:bool = False,
         **kargs):
         """
         my own version of heatmap.

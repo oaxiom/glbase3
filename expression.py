@@ -3264,7 +3264,7 @@ class expression(base_expression):
         return(cc)
 
     def barh_single_item(self, key=None, value=None, filename=None, tree=None,
-        plot_mean=True, plot_stdev=True, fold_change=False, tight_layout=False,
+        plot_mean=True, plot_stdev=False, fold_change=False, tight_layout=False,
         bar_cols=None, vert_space=0.75, hori_space=0.5, **kargs):
         """
         **Purpose**
@@ -3291,7 +3291,7 @@ class expression(base_expression):
             plot_mean (Optional, default=True)
                 plot a grey line showing the mean of all of the expression values
 
-            plot_stdev (Optional, default=True)
+            plot_stdev (Optional, default=False)
                 plot a blue line at 1x stdev and a red line at 2x stdev
 
             bar_cols (Optional, default=None)

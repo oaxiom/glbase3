@@ -9,6 +9,8 @@ Used in places like the CSV format language and in selecting criteria, etc...
 """
 
 import pickle, math, sys, os
+from typing import Union, Optional, Iterable, Iterator, Generator
+
 from . import utils, config
 
 from .data import *
@@ -18,16 +20,16 @@ from .errors import BadBinaryFileFormatError
 # ----------------------------------------------------------------------
 # Some helper functions
 
-def glload(filename):
+def glload(filename:str):
     """
     **Purpose**
         Load a glbase binary file
         (Actually a Python pickle)
-        
+
     **Arguments**
         filename (Required)
             the filename of the glbase binary file to load.
-            
+
     **Returns**
         The glbase object previously saved as a binary file
     """
@@ -39,7 +41,7 @@ def glload(filename):
         oh.close()
     except pickle.UnpicklingError:
         raise BadBinaryFileFormatError(filename)
-        
+
     # Recalculate the _optimiseData for old lists, and new features
     try:
         if newl.qkeyfind:
@@ -50,20 +52,20 @@ def glload(filename):
     except Exception:
         config.log.warning("Old glb format, will rebuild buckets and/or qkeyfind, consider resaving")
         newl._optimiseData()
-        
+
     try:
         cons = len(newl._conditions) # expression-like object
         config.log.info("Loaded '%s' binary file with %s items, %s conditions" % (filename, len(newl), cons))
     except AttributeError:
-        config.log.info("Loaded '%s' binary file with %s items" % (filename, len(newl)))   
+        config.log.info("Loaded '%s' binary file with %s items" % (filename, len(newl)))
     return(newl)
 
-def change_drawing_mode(mode):
+def change_drawing_mode(mode: Union[str, list]):
     """
     Change the output driver
 
     send me "png", "eps"|"ps" for your output needs
-    
+
     This is a duplication of config.change_draw_mode() ...
     """
     assert mode in config.valid_draw_modes, "Draw output mode '%s' is not recognised" % mode
