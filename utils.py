@@ -1191,7 +1191,7 @@ def qdeepcopy(anobject):
     # You should wrap me in a try: except:
     return(pickle.loads(pickle.dumps(anobject, -1)))
 
-def fastq(filename):
+def fastq(filename, gziped=False):
     """
     generator object to parse a fastQ file
 
@@ -1201,7 +1201,10 @@ def fastq(filename):
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
 
     """
-    oh1 = open(filename, "rU")
+    if gzip:
+        oh = gzip.open(filename, "rt")
+    else:
+        oh = open(filename, "rU")
 
     name = "dummy"
     while name != "":
@@ -1210,7 +1213,7 @@ def fastq(filename):
         strand = oh.readline().strip()
         qual = oh.readline().strip()
 
-        yield {"name": name1, "strand": strand1, "seq": seq1, "qual": qual1}
+        yield {"name": name, "strand": strand, "seq": seq, "qual": qual}
     return
 
 def fastqPE(filename1, filename2):

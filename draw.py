@@ -125,7 +125,7 @@ class draw:
         col_names:bool = None,
         row_colbar:bool = None,
         col_colbar:bool = None,
-        optimal_ordering:bool = False,
+        optimal_ordering:bool = True,
         **kargs):
         """
         my own version of heatmap.
