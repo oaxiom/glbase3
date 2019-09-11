@@ -333,7 +333,7 @@ class base_track:
 
     def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
         bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
-        pointify=True, respect_strand=False, cmap=cm.BuPu, norm_by_read_count=False,
+        pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
         log_pad=None, imshow=True,
         **kargs):
         """
@@ -408,7 +408,7 @@ class base_track:
 
         # get a sorted list of all the locs I am going to use.
         gl_sorted = genelist.deepcopy()
-        gl_sorted.sort('loc')
+        #gl_sorted.sort('loc')
         all_locs = gl_sorted['loc']
 
         if respect_strand:
@@ -420,7 +420,7 @@ class base_track:
         cached_chrom = None
         bin_size = None
 
-        number_of_tags_in_library = 1.0 # For code laziness
+        number_of_tags_in_library = False # For code laziness
         if norm_by_read_count:
             number_of_tags_in_library = self.get_total_num_reads() / float(1e6) # 1e6 for nice numbers
 
@@ -437,7 +437,7 @@ class base_track:
                 expected_width = len(l)
                 bin_size = int(expected_width / float(bins))
                 #print 'Binsize:', bin_size
-
+            '''
             # I can dispose and free memory as the locations are now sorted:
             # See if the read_extend is already in the cache:
             if l['chr'] != curr_cached_chrom:
@@ -446,7 +446,7 @@ class base_track:
                 cached_chrom = self.get_array_chromosome(l['chr'], read_extend=read_extend) # Will hit the DB if not already in cache
                 # if we are a flat_track, we need to put it to a numpy array:
                 if isinstance(cached_chrom, list):
-                    cached_chrom = numpy.array(cached_chrom, dtype=numpy.float_)
+                    cached_chrom = numpy.array(cached_chrom, dtype=numpy.float32)
 
             actual_width = cached_chrom.shape[0] - l['left']
 
@@ -455,6 +455,7 @@ class base_track:
                 continue
             else:
                 a = cached_chrom[l['left']:l['right']]
+            '''
             '''     # This is not working, it pads to the wrong size and eventually leads to obscure errors
             if l['right'] > cached_chrom.shape[0]:
                 # Trouble, need to fill in the part of the array with zeros
@@ -467,13 +468,15 @@ class base_track:
                 #config.log.error('Asked for part of the chomosome outside of the array')
             '''
 
+            a = self.get(l) # This is much faster than the chrom caching system...
+
             if respect_strand:
                 # positive strand is always correct, so I leave as is.
                 # For the reverse strand all I have to do is flip the array.
                 if read[1] in negative_strand_labels:
                     a = a[::-1]
-
-            a /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
+            if number_of_tags_in_library:
+                a /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
 
             # bin the data
             ret = utils.bin_data(a, bin_size)
