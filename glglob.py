@@ -1105,7 +1105,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         resolution = merge_peaks_distance # laziness hack!
 
         # Confirm that all lists contain a 'loc' key
-        print(['loc' in gl.keys() for gl in list_of_peaks])
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'One of your peak data (list_of_peaks) does not contain a "loc" key'
 
         # Make a super list of all the peaks.
@@ -1152,7 +1151,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             p.update(idx)
 
-        config.log.info("chip_seq_cluster_heatmap: Found %s unique genomic regions" % total_rows)
+        config.log.info("chip_seq_cluster_heatmap: Found {0:,} unique genomic regions".format(total_rows))
 
         # Get the size of each library if we need to normalize the data.
         if normalise:
@@ -1294,7 +1293,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for cid in ret_data:
             ret_data[cid]["genelist"]._optimiseData()
 
-        colbar_label = "tag density"
+        colbar_label = "Tag density"
 
         if log:
             for index in range(len(list_of_tables)):
@@ -1303,10 +1302,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 #list_of_tables[index] *= 1000
                 if log == 2:
                     list_of_tables[index] = numpy.log2(list_of_tables[index]+1)
-                    colbar_label = "tag density (log2)"
+                    colbar_label = "Tag density (log2)"
                 elif log == 10:
                     list_of_tables[index] = numpy.log10(list_of_tables[index]+1)
-                    colbar_label = "tag density (log10)"
+                    colbar_label = "Tag density (log10)"
 
         if normalise:
             colbar_label = "normalised %s" % colbar_label
@@ -1783,8 +1782,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         rets = {f['name']: [] for f in list_of_flats}
 
-        Zthresh = 1.2
-
         super_set_of_peaks = super_set_of_peaks.pointify().expand('loc', 100)
 
         # First I estimate the local background
@@ -1845,14 +1842,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             # Plot the histogram:
             if filename:
-                fig = plot.figure()
+                fig = self.draw.getfigure(**kargs)
                 ax = fig.add_subplot(111)
                 ax.hist(lam10, bins=50, range=[0,50], histtype='step', label='Background')
                 ax.hist(peaks, bins=50, range=[0,50], histtype='step', label='Peaks')
                 ax.axvline(avg, ls=':', color='red')
                 ax.axvline(avg+std, ls=':', color='green')
                 ax.legend()
-                fig.savefig('%s_%s.png' % (filename, sam_name))
+                self.draw.savefigure(fig, '{0}_{1}.png'.format(filename, sam_name))
 
             # redefine peaks:
             prog = progressbar(len(super_set_of_peaks))
@@ -1868,7 +1865,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 # First, filter on the global Z:
                 if p['%s_peak_score' % sam_name] > thresh:
                     # Then filter on the localz:
-                    if p['%s_peak_score' % sam_name] > (p['%s_lam10' % sam_name] + (p['%s_lam10std' % sam_name]*Zthresh)):
+                    if p['%s_peak_score' % sam_name] > (p['%s_lam10' % sam_name] + (p['%s_lam10std' % sam_name]*Z_threshold)):
                         rets[f['name']].append(p)
 
                 # Or a peak_score > thresh

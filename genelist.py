@@ -846,7 +846,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Saved FASTA file: %s" % filename)
         return(True)
 
-    def saveBED(self, filename=None, extra_keys=None, id=None, score=None, uniqueID=False, loc_only=False, **kargs):
+    def saveBED(self, filename=None, extra_keys=None, id=None, score=None, uniqueID=False, loc_only=False,
+        **kargs):
         """
         **Purpose**
             save the genelist in bed format
@@ -897,10 +898,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                 Note that anything in extra_keys will still be respected.
 
+            gzip (Optional, default=False)
+                gzip the output file
+
         **Returns**
             A saved bed file and None
         """
-        oh = open(filename, "w")
+        if 'gzip' in kargs and kargs['gzip']:
+            oh = gzip.open(filename, "wt")
+        else:
+            oh = open(filename, "w")
 
         for index, item in enumerate(self.linearData):
             todo = ["chr%s" % str(item["loc"]["chr"]), str(item["loc"]["left"]), str(item["loc"]["right"])]
