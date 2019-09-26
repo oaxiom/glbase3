@@ -1719,7 +1719,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return(expn)
 
-    def redefine_peaks(self, super_set_of_peaks, list_of_flats, filename=None, Z_threshold=1.2):
+    def redefine_peaks(self, super_set_of_peaks, list_of_flats, filename=None, Z_threshold=1.2,
+        peak_window=200, lambda_window=5000, **kargs):
         """
         **Purpose**
             A strategy for re-calling peaks from some arbitrary set of flat files.
@@ -1762,6 +1763,22 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             Z_threshold (Optional, default=1.2)
                 The Z score cut off to call a peak or non-peak.
 
+            peak_window (Optional, default=200)
+                The window around the peak center, or summit to measure the peak enrichment.
+
+            lambda_window (Optional, default=5000)
+                The window around the
+
+                Note that the actual window will be from the peak_window to the extent:
+
+                left flank = -lambda_window <- lambda_window-peak_window
+                right flank = peak_window -> lambda_window-peak_window
+
+                i.e. with the default settings:
+
+                    left flank      peak      right flank
+                |-----4900 bp-----|-200bp-|-----4900 bp-----|
+
         **Returns**
             A dictionary, in the form:
             {flat[0]['name']: genelist(),
@@ -1780,9 +1797,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert len(set([i['name'] for i in list_of_flats])) == len(list_of_flats), 'the "name" slots of the flats are not unique'
         assert 'loc' in super_set_of_peaks.keys(), 'super_set_of_peaks does not contain a "loc" (genomic location) key'
 
+        peak_window = peak_window // 2
+        lambda_window = lambda_window - peak_window
+
         rets = {f['name']: [] for f in list_of_flats}
 
-        super_set_of_peaks = super_set_of_peaks.pointify().expand('loc', 100)
+        super_set_of_peaks = super_set_of_peaks.pointify().expand('loc', peak_window) # Make peaks symmetric
 
         # First I estimate the local background
         for f in list_of_flats:
@@ -1800,16 +1820,16 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     this_chrom = p['loc']['chr']
 
                 # I guess this is possible to be longer than the chrom:
-                lambd_left = p['loc']['left']-4900
+                lambd_left = p['loc']['left']-lambda_window
                 lambd_left = (lambd_left if lambd_left>0 else 0)
-                lambd_rite = p['loc']['right']+4900
+                lambd_rite = p['loc']['right']+lambda_window
                 lambd_rite = (lambd_rite if lambd_rite<len(this_chrom) else len(this_chrom))
-                left_flank = this_data[lambd_left:p['loc']['left']-100]
-                rite_flank = this_data[p['loc']['right']+100:lambd_rite]
 
+                left_flank = this_data[lambd_left:p['loc']['left']-peak_window]
+                rite_flank = this_data[p['loc']['right']+peak_window:lambd_rite]
 
                 peak_data = this_data[p['loc']['left']:p['loc']['right']]
-                # The above can fail, as peaks can come from rich data, and then be tested against a sparse flat
+                # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
                 if len(peak_data) == 0:
                     p['%s_peak_score' % sam_name] = 0 # fill the entries in, with 0 due to missing data in the array.
                     p['%s_lam10' % sam_name] = 0
@@ -1838,7 +1858,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             config.log.info('Average STDev: %.3f' % std)
 
             thresh = avg + (std * Z_threshold)
-            config.log.info('Guessed threshold (For a Z of %s) actual threshold = %.5f' % (Z_threshold, thresh))
+            config.log.info('Guessed threshold (For a Z of %s) actual threshold = %.2f' % (Z_threshold, thresh))
 
             # Plot the histogram:
             if filename:
