@@ -1806,10 +1806,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         # First I estimate the local background
         for f in list_of_flats:
-            config.log.info
             sam_name  = f['name'].replace('.flat', '')
             lam10 = [] # For the histograms
             peaks = []
+            config.log.info('Doing {0}'.format(sam_name))
 
             this_chrom = None
             this_data = None
@@ -1887,8 +1887,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     # Then filter on the localz:
                     if p['%s_peak_score' % sam_name] > (p['%s_lam10' % sam_name] + (p['%s_lam10std' % sam_name]*Z_threshold)):
                         rets[f['name']].append(p)
-
-                # Or a peak_score > thresh
 
                 prog.update(i)
 

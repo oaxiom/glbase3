@@ -3516,7 +3516,7 @@ class expression(base_expression):
         return(actual_filename)
 
     def fc_scatter(self, cond1, cond2, filename=None, plot_diagonals=True, zoom_bracket=[-3,3],
-        label_key="name", **kargs):
+        label_key="name", text_threshold=1.0, alpha=0.2, **kargs):
         """
         **Purpose**
             Draw a scatter plot of the fold-changes between two conditions
@@ -3552,6 +3552,12 @@ class expression(base_expression):
                 the bracket to use for the zoomed in plot
 
             label_key (Optional, default="name")
+
+            text_threshold (Optional, default=1.0)
+                Only draw the gene label if > abs(text_threshold) in any direction
+
+            alpha (Optional, default=0.2)
+                Blening fraction for the alpha (opacity) channel for the dots.
 
         **Returns**
             None
@@ -3599,9 +3605,10 @@ class expression(base_expression):
         fig = self.draw.getfigure(**kargs)
 
         ax = fig.add_subplot(121)
-        ax.scatter(pt_x, pt_y, alpha=0.2, color=cols)
+        ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols)
         for i in range(len(labs)):
-            ax.text(pt_x[i], pt_y[i], labs[i], size=5, ha="center")
+            if abs(pt_x[i]) > text_threshold or abs(pt_y[i]) > text_threshold:
+                ax.text(pt_x[i], pt_y[i], labs[i], size=5, ha="center")
 
         # Diagonal slopes:
         ax.plot([5, -5], [5, -5], ":", color="grey")
@@ -3615,7 +3622,7 @@ class expression(base_expression):
         ax.set_ylabel(cond2)
 
         ax = fig.add_subplot(122)
-        ax.scatter(pt_x, pt_y, alpha=0.2, color=cols)
+        ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols)
         #for i in xrange(len(labs)):
         #    ax.text(pt_x[i], pt_y[i], labs[i], size=6, ha="center")
 
@@ -3626,8 +3633,8 @@ class expression(base_expression):
 
         minmax = max([abs(min(c1d)), max(c1d), abs(min(c2d)), max(c2d)])
 
-        ax.axvline(0, color="grey", ls="-.")
-        ax.axhline(0, color="grey", ls="-.")
+        ax.axvline(0, color="grey", ls=":")
+        ax.axhline(0, color="grey", ls=":")
         ax.set_xlim([-minmax,minmax])
         ax.set_ylim([-minmax,minmax])
         ax.set_xlabel(cond1)
