@@ -558,7 +558,7 @@ class hic:
         ax3.set_position(heatmap_location) # must be done early for imshow
         hm = ax3.imshow(data, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
-            interpolation=config.get_interpolation_mode())
+            interpolation=config.get_interpolation_mode(filename))
 
         #ax3.set_frame_on(True)
         ax3.set_position(heatmap_location)
