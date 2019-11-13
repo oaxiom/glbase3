@@ -1033,7 +1033,7 @@ class draw:
         #ax.axhline(0, ls=":", color="grey") # add a grey line at zero for better orientation
         if grid:
             ax.grid(axis="y", ls=":", color="grey", zorder=1000000)
-        r = ax.boxplot(data, showfliers=showfliers, whis=whis)
+        r = ax.boxplot(data, showfliers=showfliers, whis=whis, widths=0.5)
 
         plot.setp(r['medians'], color='red') # set nicer colours
         plot.setp(r['whiskers'], color='black', lw=1)

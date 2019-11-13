@@ -561,6 +561,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A new genelist or None
         """
+        assert key in self.keys(), '"{0}" key not found in this list'.format(key)
+
         if mode == "greedy":
             r = self._findDataByKeyGreedy(key, value)
         elif mode == "lazy":
