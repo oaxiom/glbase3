@@ -22,8 +22,8 @@ class _base_genelist:
     def __in__(self, key):
         """
         (Override)
-        
-        Confer: 
+
+        Confer:
         if "key" in genelist:
         """
         return(key in list(self.keys()))
@@ -33,29 +33,29 @@ class _base_genelist:
         Fixes:
         if genelist: # contains something
             True
-            
+
         and fixes:
-        
+
         len(genelist) = 0
         if genelist: # Would pass even if the genelist is empty
             False
-        
+
         """
         return(len(self) > 0)
 
     #def __copy__(self):
     #    raise Exception, "__copy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()"
-    
+
     def __shallowcopy__(self):
         raise Exception("__shallowcopy__() is NOT supposrted for genelists, use gl.deepcopy() or gl.shallowcopy()")
-    
+
     def __deepcopy__(self, fake_arg):
         raise Exception("__deepcopy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()")
-    
+
     def deepcopy(self):
         """
         Confer copy to mean a deepcopy as opposed to a shallowcopy.
-        
+
         This is required as genelists are compound lists.
         """
         return(pickle.loads(pickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
@@ -68,24 +68,24 @@ class _base_genelist:
         the shallow copy mechanism even though 90% of the operations are copies.
         """
         return(copy.copy(self)) # But doesnt this just call __copy__() anyway?
-        
+
     def __len__(self):
         """
         (Override)
         get the length of the list
         """
         return(len(self.linearData))
-        
+
     def __int__(self):
         """
         (Override)
         get the length of the list
         NOTE: It's possible this is a bug/feature.
         I don't remove it at the moment as I'm not sure if it is used anywhere.
-        
+
         """
         return(len(self.linearData))
-        
+
     def __iter__(self):
         """
         (Override)
@@ -99,9 +99,9 @@ class _base_genelist:
         (Override)
         confers a = geneList[0] behaviour
 
-        This is a very slow way to access the data, and may be a little inconsistent in the things 
+        This is a very slow way to access the data, and may be a little inconsistent in the things
         it returns.
-        
+
         NOTE:
         a = genelist[0] # returns a single dict
         a = genelist[0:10] # returns a new 10 item normal python list.
@@ -148,9 +148,9 @@ class _base_genelist:
         (Override)
         confer and like behaviour: c = a & b
         """
-        if not self.__eq__(gene_list): 
+        if not self.__eq__(gene_list):
             return(geneList()) # returns an empty list.
-            
+
         newl = self.shallowcopy()
         newl.linearData = []
         for item1 in self.linearData:
@@ -177,7 +177,7 @@ class _base_genelist:
             if item not in ulist:
                 ulist.append(item)
                 newl.linearData.append(copy.deepcopy(item))
-                
+
         newl._optimiseData()
         return(newl)
 
@@ -192,7 +192,7 @@ class _base_genelist:
             config.log.warning("No matching keys, the resulting list would be meaningless")
             return(False)
         newl = self.deepcopy()
-        newl.linearData.extend(copy.deepcopy(gene_list.linearData)) 
+        newl.linearData.extend(copy.deepcopy(gene_list.linearData))
         newl._optimiseData()
         return(newl)
 
@@ -229,7 +229,7 @@ class _base_genelist:
         (Internal)
         Are the lists equivalent?
         lists now, must only have one identical key.
-        
+
         This is just testing the keys...
         Wrong...
         """
@@ -257,7 +257,7 @@ class _base_genelist:
         return a list of all the valid keys for this geneList
         """
         return([key for key in self.linearData[0]]) # Not exhaustive
-     
+
     def _guessDataType(self, value):
         """
         (Internal)
@@ -272,14 +272,14 @@ class _base_genelist:
         Datatype coercion preference:
         float > list > int > location > string
         """
-        
+
         try: # see if the element is a float()
             if "." in value: # if no decimal point, prefer to save as a int.
                 return(float(value))
             else:
                 raise ValueError
         except ValueError:
-            try: 
+            try:
                 # Potential error here if it is a list of strings?
                 if '[' in value and ']' in value and ',' in value and '.' in value: # Probably a Python list of floats
                     return([float(i) for i in value.strip(']').strip('[').split(',')])
@@ -295,8 +295,8 @@ class _base_genelist:
                         return(location(loc=value))
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
                         return(str(value).strip())
-        return("") # return an empty datatype. 
-        # I think it is possible to get here. If the exception at int() or float() returns something other than a 
+        return("") # return an empty datatype.
+        # I think it is possible to get here. If the exception at int() or float() returns something other than a
         # ValueError (Unlikely, Impossible?)
 
     def _processKey(self, format, column):
@@ -318,11 +318,11 @@ class _base_genelist:
                     except IndexError:
                         d[key] = '' # Better than None for downstream compatability
                         continue
-                    
+
                 if isinstance(format[key], dict) and "code" in format[key]:
                     # a code block insertion goes here - any valid lib and one line python code fragment
                     # store it as a dict with the key "code"
-                    d[key] = eval(format[key]["code"]) 
+                    d[key] = eval(format[key]["code"])
                 elif isinstance(format[key], str) and "location" in format[key]:
                     # locations are very common, add support for them out of the box:
                     d[key] = eval(format[key])
@@ -330,7 +330,7 @@ class _base_genelist:
                     d[key] = self._guessDataType(column[format[key]])
             elif key == "gtf_decorators": # special exceptions for gtf files
                 gtf = column[format["gtf_decorators"]].strip()
-                for item in gtf.split(";"):
+                for item in gtf.split("; "):
                     if item:
                         item = item.strip()
                         ss = shlexsplit(item)
@@ -347,21 +347,21 @@ class _base_genelist:
             This is guaranteed to be available for all geneList representations, with
             the only exception being the delayedlists. As that wouldn't
             make any sense as delayedlists are not copied into memory.
-            
+
             You can use this method to cache the file. It's particularly useful for large files
-            that get processed once but are then used a lot. 
-            
+            that get processed once but are then used a lot.
+
             loading the list back into memory is relatively quick.
-            
+
             list = glload("path/to/filename.glb")
-            
+
             I generally used extension is glb. Although you can use
             whatever you like.
 
         **Arguments**
 
             filename
-                filename (and path, if you like) to save the file to 
+                filename (and path, if you like) to save the file to
 
             compressed (Optional, default=False)
                 use compression (not currently implemented)
@@ -388,9 +388,9 @@ class _base_genelist:
         **Purpose**
 
             Convert a pandas dataFrame to a genelist
-            
+
             NOTE: This is an INPLACE method that will REPLACE any exisiting data
-            in the 
+            in the
 
         **Arguments**
 
@@ -399,12 +399,12 @@ class _base_genelist:
 
         **Result**
             None
-            The object is populated by 
+            The object is populated by
 
         """
         if len(self) > 0:
             config.log.warning('genelist.from_pandas() will overwrite the existing data in the genelist')
-        
+
         newl = []
         key_names = pandas_data_frame.columns
         for index, row in pandas_data_frame.iterrows():
@@ -416,4 +416,3 @@ class _base_genelist:
         self._optimiseData()
 
         config.log.info("genelist.from_pandas() imported dataFrame")
-        
