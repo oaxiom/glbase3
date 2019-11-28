@@ -2348,7 +2348,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
         return(newl)
 
-    def removeDuplicatesByLoc(self, mode, key="loc", delta=200):
+    def removeDuplicatesByLoc(self, mode, key="loc", delta=200, use_strand=False):
         """
         **Purpose**
             Remove duplicates in the list based on a location tag.
@@ -2386,6 +2386,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                 Note that delta is NOT used when the mode = 'overlap'
 
+            use_strand (Optional, default=False)
+                use the 'strand' key in determining uniqueness
+
+                Note: that it assumes the format of the two strand keys are the same in each
+                list (ie. one of '+/-', '-1/+1', etc.)
+
         **Returns**
             A new genelist containing only unique sites
         """
@@ -2394,6 +2400,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             assert 'tss_loc' not in all_keys, 'removeDuplicatesByLoc will give incorrect results if your genelist contains both a loc and tss_loc key. Please delete one or the other key'
 
         assert mode in ('pointify_expand', 'overlap'), "mode is not one of 'pointify_expand', or 'overlap'"
+
+        if use_strand and 'strand' not in self.keys():
+            raise AssertionError('use_strand=True, but no "strand" key in this list')
+
+        if not use_strand and 'strand' in self.keys():
+            config.log.warning('use_strand=False, but this list has a "strand" key')
 
         if mode == 'pointify_expand':
             mask = [0] * len(self.linearData) # keep track of masked entries
@@ -2419,10 +2431,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                     for indexB in loc_ids:
                         if indexB != index:
-                            other = self.linearData[indexB]
+                            #other = self.linearData[indexB]
                             locB = self.linearData[indexB][key].pointify().expand(delta)
                             if locA.qcollide(locB):
-                                mask[indexB] = 1
+                                if use_strand:
+                                    strandA = self.linearData[index]['strand']
+                                    strandB = self.linearData[indexB]['strand']
+                                    if strandA == strandB: # Assumes both lists use the same strand format...
+                                        mask[indexB] = 1 # found an overlap
+                                else:
+                                    mask[indexB] = 1
 
                     mask[index] = 1
                     newl.append(item) # add in the item
@@ -2431,12 +2449,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             ov.load_list(newl)
         elif mode == 'overlap':
             # get the maximum peak size for a decent estimate of delta:
-            delta = 0 # This is a pad to make sure the correct buckets are selected. It should be the maximum peak width.
-            for i in self:
-                delta = max([delta, len(i['loc'])])
-            print('max delta = ', delta)
-            if delta > 1000:
-                config.log.warning("removeDuplicatesByLoc: The maximum peak size is >1000 bp, performance may be poor for removeDuplicatesByLoc()")
+            delta = max([len(i['loc']) for i in self.linearData])
+            config.log.info('removeDuplicatesByLoc: delta used from bucket searching {0}'.format(delta))
+
+            if delta > 2000:
+                config.log.warning("removeDuplicatesByLoc: The maximum location size is >2000 bp, performance may be poor for removeDuplicatesByLoc()")
 
             mask = [0] * len(self.linearData) # keep track of masked entries
             newl = []
@@ -2461,10 +2478,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                     for indexB in loc_ids:
                         if indexB != index:
-                            other = self.linearData[indexB]
+                            #other = self.linearData[indexB]
                             locB = self.linearData[indexB][key]
                             if locA.qcollide(locB):
-                                mask[indexB] = 1
+                                if use_strand:
+                                    strandA = self.linearData[index]['strand']
+                                    strandB = self.linearData[indexB]['strand']
+                                    if strandA == strandB: # Assumes both lists use the same strand format...
+                                        mask[indexB] = 1 # found an overlap
+                                else:
+                                    mask[indexB] = 1
 
                     mask[index] = 1
                     newl.append(item) # add in the item
@@ -2472,8 +2495,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             ov = self.shallowcopy()
             ov.load_list(newl)
 
-        config.log.info("Removed %s duplicates, %s remain" % ((len(self) - len(ov)), len(ov)))
-        return(ov)
+        config.log.info("Removed {0} duplicates, {1} remain".format((len(self) - len(ov)), len(ov)))
+        return ov
 
     def removeDuplicates(self, key=None, **kargs):
         """
