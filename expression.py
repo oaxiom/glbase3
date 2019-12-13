@@ -561,25 +561,22 @@ class expression(base_expression):
 
         newgl = self.deepcopy()
 
-        newtab = []
-        for name in conditions:
-            newtab.append(newgl.serialisedArrayDataDict[name])
+        newtab = [newgl.serialisedArrayDataDict[name] for name in conditions]
 
-        if "err" in self.linearData[0]:
-            # Make an err version of serialisedArrayDataDict
-            errs = numpy.copy([i["err"] for i in self.linearData])
+        # err is not stored as a serialisedArrayDataDict, so have to make one here:
+        if "err" in self.keys():
+            err_table = numpy.array([i["err"] for i in newgl.linearData])
 
-            err_tab = None
-            for name in conditions:
-                idx = newgl._conditions.index(name)
-                err_col = errs[:,idx]
-                if err_tab is None:
-                    err_tab = err_col
-                else:
-                    err_tab = numpy.vstack((err_tab, err_col))
+            err_serialisedArrayDataDict = {}
+            for index, name in enumerate(self._conditions):
+                if name in conditions: # only load those we are going to slice in
+                    err_serialisedArrayDataDict[name] = err_table[:,index]
 
-            for index, item in enumerate(newgl.linearData):
-                item["err"] = list(err_tab[:,index])
+            new_err_tab = numpy.array([err_serialisedArrayDataDict[name] for name in conditions]).T
+
+            # unpack it back into the err key:
+            for i, row in enumerate(new_err_tab):
+                newgl.linearData[i]["err"] = list(row)
 
         newgl._conditions = conditions
         newgl.numpy_array_all_data = numpy.array(newtab).T
