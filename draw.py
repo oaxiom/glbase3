@@ -222,7 +222,7 @@ class draw:
 
                 Note that unclustered data goes from the bottom to the top!
 
-            optimal_ordering (Optional, default=False)
+            optimal_ordering (Optional, default=True)
                 See https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
 
         **Returns**

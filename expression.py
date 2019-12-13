@@ -2721,7 +2721,7 @@ class expression(base_expression):
 
     def tree(self, mode="conditions", filename=None, row_name_key=None,
         cluster_mode="euclidean", color_threshold=None, label_size=7, cut=False,
-        radial=False,
+        radial=False, optimal_ordering=True,
         **kargs):
         """
         **Purpose**
@@ -2761,6 +2761,9 @@ class expression(base_expression):
             bracket (Optional, default=False)
                 The min and max to bracket the data. This is mainly here for compatibility with heatmap()
                 So that the row/col trees in heatmap and here exactly match
+
+            optimal_ordering (Optional, default=True)
+                See https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
 
         **Returns**
             if cut is False:
@@ -2809,7 +2812,7 @@ class expression(base_expression):
             color_threshold = cut
             color_threshold = color_threshold*((dist.max()-dist.min())+dist.min()) # convert to local measure
 
-        link = linkage(dist, 'complete', metric=cluster_mode)
+        link = linkage(dist, 'complete', metric=cluster_mode, optimal_ordering=optimal_ordering)
         a = dendrogram(link, orientation='left', labels=row_names,
             ax=ax,
             color_threshold=color_threshold, get_leaves=True)
