@@ -604,8 +604,8 @@ class expression(base_expression):
     def getExpressionTable(self):
         """
         **Purpose**
-            Return the entire expression table. Note that rows and columns are not labelled.
-            Will return a numpy array
+            Return the entire expression table as a numpy array.
+            Note that rows and columns are not labelled.
 
         **Arguments**
             None
