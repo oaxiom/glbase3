@@ -2418,7 +2418,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     # work out which of the buckets required:
                     left_buck = ((locA["left"]-1-delta)//config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
                     right_buck = ((locA["right"]+1+delta)//config.bucket_size)*config.bucket_size
-                    buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
+                    buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
 
                     # get the ids reqd.
                     loc_ids = set()
@@ -2450,7 +2450,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         elif mode == 'overlap':
             # get the maximum peak size for a decent estimate of delta:
             delta = max([len(i['loc']) for i in self.linearData])
-            config.log.info('removeDuplicatesByLoc: delta used from bucket searching {0}'.format(delta))
+            config.log.info('removeDuplicatesByLoc: delta used for bucket searching {0}'.format(delta))
 
             if delta > 2000:
                 config.log.warning("removeDuplicatesByLoc: The maximum location size is >2000 bp, performance may be poor for removeDuplicatesByLoc()")
@@ -2465,7 +2465,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     # work out which of the buckets required:
                     left_buck = ((locA["left"]-1-delta)//config.bucket_size)*config.bucket_size # Add an extra delta for accurate bucket spanning overlaps
                     right_buck = ((locA["right"]+1+delta)//config.bucket_size)*config.bucket_size
-                    buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
+                    buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
 
                     # get the ids reqd.
                     loc_ids = set()
