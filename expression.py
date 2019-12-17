@@ -16,7 +16,6 @@ from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plot
-from pylab import bivariate_normal, griddata # comes from where?
 import matplotlib.cm as cm
 
 from . import config, utils
