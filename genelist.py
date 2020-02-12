@@ -1482,7 +1482,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 and only keeps it if it is NOT in the left list.
 
         **Result**
-
             returns a new genelist-like object containing the overlapping
             objects, inheriting methods from the
             right hand side of the function.

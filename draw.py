@@ -2004,7 +2004,7 @@ class draw:
         return(self.savefigure(fig, filename))
 
     def nice_scatter(self, x=None, y=None, filename=None, do_best_fit_line=False,
-        print_correlation=False, spot_size=4, plot_diag_slope=True, label_fontsize=14,
+        print_correlation=False, spot_size=4, plot_diag_slope=False, label_fontsize=14,
         **kargs):
         """
         **Purpose**
