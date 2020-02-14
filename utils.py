@@ -1215,19 +1215,21 @@ def fastq(filename, gziped=False):
 
         yield {"name": name, "strand": strand, "seq": seq, "qual": qual}
     return
-
-def fastqPE(filename1, filename2):
+    
+def fastqPE(filename1, filename2, gzip=True):
     """
     generator object to parse fastQ PE files
-
     @HWI-M00955:51:000000000-A8WTD:1:1101:13770:1659 1:N:0:NNTNNNAGNNCNCTAT
     NGGTAAATGCGGGAGCTCCGCGCGCANNTGCGGCNNNGCATTGCCCATAATNNNNNNNCTACCGACGCTGACTNNNNNCTGTCTCTTATACACATNNNNGAGCCCACGNNNNCNNNCTAGNNNNNNNNNNNNNNNTTCTGCTTGTAAACA
     +
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
-
     """
-    oh1 = open(filename1, "rU")
-    oh2 = open(filename2, "rU")
+    if gzip:
+        oh1 = gzipfile.open(filename1, "rt")
+        oh2 = gzipfile.open(filename2, "rt")
+    else:
+        oh1 = open(filename1, "rt")
+        oh2 = open(filename2, "rt")
 
     name1 = "dummy"
     while name1 != "":
