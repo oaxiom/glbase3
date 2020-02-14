@@ -2334,7 +2334,7 @@ class draw:
             x_data = np.linspace(min(data[d]), max(data[d]), bins+2)
             # get the violin: required, even if not drawn.
             # Check that there is some variation. If no variation then utils.kde will break
-            if numpy.around(numpy.std(data[d]), 0) > 0:
+            if numpy.around(numpy.std(data[d]), 2) > 0:
                 y_violin = utils.kde(data[d], range=(min(data[d]), max(data[d])), bins=bins)
                 y_violin = ((y_violin / max(y_violin)) * 0.4) # normalise
                 y_violin = numpy.insert(y_violin, 0, 0)
