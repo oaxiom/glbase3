@@ -1482,7 +1482,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 and only keeps it if it is NOT in the left list.
 
         **Result**
-
             returns a new genelist-like object containing the overlapping
             objects, inheriting methods from the
             right hand side of the function.
@@ -1851,26 +1850,26 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Pointified peaklist '%s'" % self.name)
         return(newl)
 
-    def addFakeKey(self, key=None, value=None):
+    def addEmptyKey(self, key=None, value=None):
         """
         **Purpose**
-            You need to add a fake key ot the list so that it becomes compatible with some downstream function.
+            You need to add a empty key ot the list so that it becomes compatible with some downstream function.
             But you don't care what is in the key, or just want to set the key to a specific value for the entire list
 
             This is the one to use::
 
                 gl = genelist("a_bed.bed", format=format.minimal_bed)
 
-                print gl
+                print(gl)
                 0: loc: chr1:1000-2000
 
                 # Argh! I need a strand key for the downstream, but I don't actually care what's in strand!
 
-                gl = gl.addFakeKey("strand", "+")
+                gl = gl.addEmptyKey("strand", "+")
 
                 # Phew! That's better!
 
-                print gl
+                print(gl)
                 0: loc: chr1:1000-2000, strand: +
 
         **Arguments**
