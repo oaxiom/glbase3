@@ -57,8 +57,8 @@ class Test_GeneList(unittest.TestCase):
         self.assertTrue("name" in self.a.linearData[0]) # test original list intact  
         self.assertFalse("other-name" in self.a.linearData[0]) 
         
-    def test_addfakekey(self):       
-        b = self.a.addFakeKey("meh", "++")
+    def test_addEmptyKey(self):       
+        b = self.a.addEmptyKey("meh", "++")
         self.assertTrue("meh" in b.linearData[0])
         self.assertEqual(b.linearData[1]["meh"], "++")
         
@@ -107,6 +107,26 @@ class Test_GeneList(unittest.TestCase):
         self.assertEqual(len(dups), 2)
         
         #config.bucket_size = 10000 
+
+    def test_removeDuplicatesByLoc_delete_any_matches(self):
+        a = [{'loc': glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=100, right=200)},
+            {'loc':  glbase3.location(chr=1, left=130, right=230)},
+            {'loc':  glbase3.location(chr=1, left=130, right=230)},
+            {'loc':  glbase3.location(chr=1, left=9800, right=9990)}, # across bucket
+            {'loc':  glbase3.location(chr=1, left=10001, right=10200)},]
+        gl = glbase3.genelist()
+        gl.load_list(a)
+        dups = gl.removeDuplicatesByLoc('pointify_expand', 'loc', 10, delete_any_matches=True)
+        self.assertEqual(len(dups), 2)
+        dups = gl.removeDuplicatesByLoc('overlap', 'loc', 0, delete_any_matches=True)
+        self.assertEqual(len(dups), 2)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_GeneList)
