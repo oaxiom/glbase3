@@ -476,6 +476,8 @@ class base_track:
                 if read[1] in negative_strand_labels:
                     a = a[::-1]
             if number_of_tags_in_library:
+                #print(a, number_of_tags_in_library)
+                a = numpy.array(a, dtype=numpy.float)
                 a /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
 
             # bin the data

@@ -665,7 +665,9 @@ class expression(base_expression):
             s = numpy.std(expn)
 
         z = (expn - m) / s
+        z[numpy.isnan(z)] = 0
         self.numpy_array_all_data = z.T
+
         self._load_numpy_back_into_linearData()
 
     def column_Z(self, col_wise_variance=True):
@@ -680,7 +682,7 @@ class expression(base_expression):
                 For calculation of the Z-score, if set to True use only the variance in each
                 column.
 
-                If set to False use the entire
+                If set to False use the entire array
 
         '''
         expn = self.numpy_array_all_data
@@ -969,7 +971,7 @@ class expression(base_expression):
 
                 Note that unclustered data goes from the bottom to the top!
 
-            optimal_ordering (Optional, default=False)
+            optimal_ordering (Optional, default=True)
                 An improved ordering for the tree, at some computational and memory cost.
                 Can be trouble on very large heatmaps
 
