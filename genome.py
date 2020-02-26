@@ -16,7 +16,7 @@ from .errors import AssertionError
 from .location import location
 from .progress import progressbar
 from .format import sniffer, sniffer_tsv
-from .data import * 
+from .data import *
 
 class genome(genelist):
     """
@@ -61,7 +61,7 @@ class genome(genelist):
                 format = kargs["format"]
             else:
                 format = sniffer # sniffer
-            
+
             if "force_tsv" in kargs and kargs["force_tsv"]:
                 format["force_tsv"] = True
 
@@ -248,30 +248,30 @@ class genome(genelist):
             path specifying the locations of the FASTA files that make
             up the sequence data. They usually come in the form "chr1.fa"
             for human and mouse genomes.
-            
-            bindSequence will only work with multi-fasta files, i.e. the fasta genome should 
+
+            bindSequence will only work with multi-fasta files, i.e. the fasta genome should
             be in the form:
-            
+
             FILE: chr1.fa::
-            
-                >chr1 
+
+                >chr1
                 NNNNNNNNNNNNNNNNNNNNNNNN
-            
+
             FILE: chr2.fa::
-            
-                >chr2 
+
+                >chr2
                 NNNNNNNNNNNNNNNNNNNNNNNN
 
             etc.
-            
-            The names of the chromosomes will come from the names of the fasta files before the 
+
+            The names of the chromosomes will come from the names of the fasta files before the
             period and with 'chr' removed (if present), so for example:
-            
-            chr1.fa 
+
+            chr1.fa
 
             will result in '1' entries in the db.
-            
-            And similarly '1.fa' will result in chr names of '1'. 
+
+            And similarly '1.fa' will result in chr names of '1'.
 
         **Result**
 
@@ -326,17 +326,17 @@ class genome(genelist):
         mask (Optional, default=False)
             'repeat mask' the returned sequence (i.e. convert lower-case
             acgt to NNNN). DOES NOT perform repeat masking. Only converts lower-cased
-            bases to NNN. 
+            bases to NNN.
 
         **Result**
 
         returns a string containing the sequence at 'coords'
         """
-        
-        # This is old and ugly code. 
+
+        # This is old and ugly code.
         # But it works and has been pretty extensively tested and is 'fast enough'.
         # So don't go messing with it unless you have a very good reason.
-        
+
         valid_args = ["coords", "strand", "mask"]
         for key in kargs:
             assert key in valid_args, "getSequence() - Argument '%s' is not recognised" % key
@@ -344,14 +344,14 @@ class genome(genelist):
         assert loc or "coords" in kargs, "No valid coords or loc specified"
         assert self.bHasBoundSequence, "No Available genome FASTA files"
 
-        if "coords" in kargs: 
+        if "coords" in kargs:
             loc = kargs["coords"]
-            
+
         try:
             loc = location(loc=loc)
         except Exception:
             pass
-            
+
         assert isinstance(loc, location), "'loc' must be a proper genome location"
 
         left = loc["left"]
@@ -388,85 +388,89 @@ class genome(genelist):
 
         return(ret)
 
-    def getSequences(self, genelist=None, loc_key='loc', replace_loc_key=True, strand_key=False, 
-        mask=False, pointify=False, delta=False, **kargs):
+    def getSequences(self,
+        genelist = None,
+        loc_key = 'loc',
+        replace_loc_key = True,
+        strand_key = False,
+        mask = False,
+        pointify:bool = False,
+        delta = False,
+        **kargs):
         """
         **Purpose**
 
-        Get all of the sequences from a gene_list-like object (e.g. a peaklist,
-        microarray, etc) with some sort of valid location key (e.g. "chr1:10000-20000")
+            Get all of the sequences from a gene_list-like object (e.g. a peaklist,
+            microarray, etc) with some sort of valid location key (e.g. "chr1:10000-20000")
 
-        I've checked this extensively - if you provide the correct location
-        it will send back the correct sequence. Any further errors are
-        generally from wrong locations. So Heh.
+            I've checked this extensively - if you provide the correct location
+            it will send back the correct sequence. Any further errors are
+            generally from wrong locations. So Heh.
 
         **Arguments**
+            genelist (Required)
+                some sort of genelist-like object
 
-        genelist (Required)
-            some sort of genelist-like object
+            loc_key (Required)
+                the name of the location key (e.g. "loc", "tss_loc", "coords", etc..)
 
-        loc_key (Required)
-            the name of the location key (e.g. "loc", "tss_loc", "coords", etc..)
+            Optional Arguments
 
-        Optional Arguments
+            replace_loc_key (Optional, default=True)
+                If you specify a delta then the sequence will cover a different region than that
+                specified in the loc key. hence getSequences() replaces the "loc" key with
+                the new loc for which the sequence was taken from. If you set this to False
+                then the old loc key is NOT overwritten.
 
-        replace_loc_key (Optional, default=True)
-            If you specify a delta then the sequence will cover a different region than that
-            specified in the loc key. hence getSequences() replaces the "loc" key with
-            the new loc for which the sequence was taken from. If you set this to False
-            then the old loc key is NOT overwritten.
+            strand_key
+                If you want the list to respect the strand you must tell it the name of
+                a 'strand' key.
 
-        strand_key
-            If you want the list to respect the strand you must tell it the name of
-            a 'strand' key.
+            deltaleft=n
+                expand the coordinates left by n base pairs
+                Will respect the orientation of the strand.
+                (You must specify a 'strand_key')
 
-        deltaleft=n
-            expand the coordinates left by n base pairs
-            Will respect the orientation of the strand.
-            (You must specify a 'strand_key')
+            deltaright=n
+                expand the coordinates rightwards by n base pairs.
+                Will respect the orientation
+                of the strand.
+                (You must specify a 'strand_key')
 
-        deltaright=n
-            expand the coordinates rightwards by n base pairs.
-            Will respect the orientation
-            of the strand.
-            (You must specify a 'strand_key')
+            delta=n
+                expand the coordinates by n, added onto the left and right
 
-        delta=n
-            expand the coordinates by n, added onto the left and right
+            pointify (True|False, default=False)
+                turn the location into a single base pair based on the centre
+                of the coordinates (best used in combination with delta to
+                expand reads symmetrically, pointify will be performed before
+                the expansion of the coordinates)
 
-        pointify (True|False, default=False)
-            turn the location into a single base pair based on the centre
-            of the coordinates (best used in combination with delta to
-            expand reads symmetrically, pointify will be performed before
-            the expansion of the coordinates)
+            mask (default=False)
+                use the upper and lower case of the fasta files to 'mask'
+                the sequence. This will turn acgt to NNNN.
 
-        mask (default=False)
-            use the upper and lower case of the fasta files to 'mask'
-            the sequence. This will turn acgt to NNNN.
-
-            This is not a proper repeat masker and relies on your genome
-            being repeat masked. For human and mouse this is usually true,
-            but for other genomes has not been tested.
+                This is not a proper repeat masker and relies on your genome
+                being repeat masked. For human and mouse this is usually true,
+                but for other genomes has not been tested.
 
         **Result**
 
-        returns a copy of the original genelist-like object
-        with the new key "seq" containing the sequence.
-        Will add a new key "seq_loc" that contains the new location that
-        the seq spans across.
-        """
+            Returns a copy of the original genelist-like object
+            with the new key "seq" containing the sequence.
+            Will add a new key "seq_loc" that contains the new location that
+            the seq spans across.
 
+        """
         assert self.bHasBoundSequence, "No Available genome FASTA files"
         assert genelist, "Required argument: 'genelist' is missing or malformed"
         assert loc_key, "Required argument: 'loc_key' is missing or malformed"
         assert self.__repr__() != "glbase.delayedlist", "delayedlists cannot have sequence added, see delayedlist.getSequences()"
-        #assert "deltaleft" in kargs and "strand_key" in kargs, "You must specify a strand_key if you want to assymetrically expand the coordinates"
-        #assert "deltaright" in kargs and "strand_key" in kargs, "You must specify a strand_key if you want to assymetrically expand the coordinates"
 
         newl = []
 
         p = progressbar(len(genelist))
-        for index, item in enumerate(genelist): 
+        for index, item in enumerate(genelist):
             newloc = item[loc_key]
 
             if pointify:
@@ -476,19 +480,21 @@ class genome(genelist):
                 newloc = newloc.expand(delta)
 
             if "deltaleft" in kargs and kargs["deltaleft"]:
-                if "strand" in kargs and kargs["strand"]:
-                    if item[kargs["strand_key"]] in positive_strand_labels:
+                if strand_key:
+                    if item[strand_key] in positive_strand_labels:
                         newloc = newloc.expandLeft(kargs["deltaleft"])
-                    elif item[kargs["strand_key"]] in negative_strand_labels:
+                        print('-', item)
+                    elif item[strand_key] in negative_strand_labels:
+                        print('+', item)
                         newloc = newloc.expandRight(kargs["deltaleft"])
                 else:
                     newloc = newloc.expandLeft(kargs["deltaleft"])
 
             if "deltaright" in kargs and kargs["deltaright"]:
-                if "strand" in kargs and kargs["strand"]:
-                    if item[kargs["strand_key"]] in positive_strand_labels:
+                if strand_key:
+                    if item[strand_key] in positive_strand_labels:
                         newloc = newloc.expandLeft(kargs["deltaright"])
-                    elif item[kargs["strand_key"]] in negative_strand_labels:
+                    elif item[strand_key] in negative_strand_labels:
                         newloc = newloc.expandRight(kargs["deltaright"])
                 else:
                     newloc = newloc.expandRight(kargs["deltaright"])
@@ -507,7 +513,7 @@ class genome(genelist):
             item["seq_loc"] = newloc
             if seq: # only add if sequence found
                 newl.append(item)
-                
+
             p.update(index)
 
         newgl = genelist.shallowcopy()
@@ -515,7 +521,8 @@ class genome(genelist):
         newgl._optimiseData()
 
         if len(newl) > 0:
-            config.log.info("Got sequences for '%s'" % self.name)
+            config.log.info("Got sequences for {0} items".format(self.name))
         else:
             config.log.warning("No sequences found!")
-        return(newgl)
+
+        return newgl
