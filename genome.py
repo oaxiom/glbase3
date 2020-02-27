@@ -483,9 +483,7 @@ class genome(genelist):
                 if strand_key:
                     if item[strand_key] in positive_strand_labels:
                         newloc = newloc.expandLeft(kargs["deltaleft"])
-                        print('-', item)
                     elif item[strand_key] in negative_strand_labels:
-                        print('+', item)
                         newloc = newloc.expandRight(kargs["deltaleft"])
                 else:
                     newloc = newloc.expandLeft(kargs["deltaleft"])

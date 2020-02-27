@@ -275,26 +275,28 @@ class _base_genelist:
 
         try: # see if the element is a float()
             if "." in value: # if no decimal point, prefer to save as a int.
-                return(float(value))
+                return float(value)
+            elif 'e' in value: # See if we can coocere from scientific notation
+                return float(value)
             else:
                 raise ValueError
         except ValueError:
             try:
                 # Potential error here if it is a list of strings?
                 if '[' in value and ']' in value and ',' in value and '.' in value: # Probably a Python list of floats
-                    return([float(i) for i in value.strip(']').strip('[').split(',')])
+                    return [float(i) for i in value.strip(']').strip('[').split(',')]
                 elif '[' in value and ']' in value and ',' in value: # Probably a Python list of ints
-                    return([int(i) for i in value.strip(']').strip('[').split(',')])
+                    return [int(i) for i in value.strip(']').strip('[').split(',')]
                 else:
                     raise ValueError
             except ValueError:
                 try: # see if it's actually an int?
-                    return(int(value))
+                    return int(value)
                 except ValueError:
                     try: # see if I can cooerce it into a location:
-                        return(location(loc=value))
+                        return location(loc=value)
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
-                        return(str(value).strip())
+                        return str(value).strip()
         return("") # return an empty datatype.
         # I think it is possible to get here. If the exception at int() or float() returns something other than a
         # ValueError (Unlikely, Impossible?)
