@@ -66,7 +66,7 @@ def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False
     m = 0
     total = 0
 
-    f = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
+    flat = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
 
     config.log.info("Started %s -> %s" % (infilenames, outfilename))
 
@@ -84,7 +84,7 @@ def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False
         for line in oh:
             if not "#" in line:
                 line = line.split()
-                f.add_score(chromosome=line[0].replace("chr", ""),
+                flat.add_score(chromosome=line[0].replace("chr", ""),
                     left=int(line[1]),
                     right=int(line[2]),
                     score=float(line[3].strip()),
@@ -97,7 +97,7 @@ def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False
     e = time.time()
 
     config.log.info("Finalise library. Contains '{0:,}' bps of data".format(n))
-    f.finalise()
+    flat.finalise()
     config.log.info("Took: %s seconds" % (e-s))
-    return(True)
+    return True
 
