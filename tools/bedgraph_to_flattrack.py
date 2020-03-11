@@ -15,7 +15,7 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def bedgraph_to_flat(infilename, outfilename, name, gzip=None, all_in_mem=False, **kargs):
+def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False, **kargs):
     """
     **Purpose**
         Convert a bedGraph file to a flat file (Actually an SQL
