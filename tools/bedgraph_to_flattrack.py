@@ -68,31 +68,33 @@ def bedgraph_to_flat(infilename, outfilename, name, gzip=None, all_in_mem=False,
 
     config.log.info("Started %s -> %s" % (infilename, outfilename))
 
-    s = time.time()
+    open_mode = None
     if not gzip:
-        oh = open(infilename, "rt")
+        open_mode = open
     else:
-        oh = opengzip.open(infilename, 'rt')
+        open_mode = opengzip.open
 
-    cleft = 0
-    for line in oh:
-        #print(line)
-        if not "#" in line:
-            line = line.split()
-            f.add_score(chromosome=line[0].replace("chr", ""),
-                left=int(line[1]),
-                right=int(line[2]),
-                score=float(line[3].strip()),
-                all_in_mem=all_in_mem) # Do it all in memory. I hope you have enough!
+    s = time.time()
+    for f in infilenames:
+        config.log.info("Started {0}".format(f))
+        oh = open_mode(f, 'rt')
 
-            if n % 1000000 == 0:
-                print('Processed: {:,} bp'.format(n))
-                #break
-            n += int(line[2]) - int(line[1])
+        for line in oh:
+            if not "#" in line:
+                line = line.split()
+                f.add_score(chromosome=line[0].replace("chr", ""),
+                    left=int(line[1]),
+                    right=int(line[2]),
+                    score=float(line[3].strip()),
+                    all_in_mem=all_in_mem) # Do it all in memory. I hope you have enough!
+
+                if n % 1e6 == 0:
+                    print('Processed: {:,} bp'.format(n))
+                n += int(line[2]) - int(line[1])
 
     e = time.time()
 
-    config.log.info("Finalise library. Contains '%.1e' bps of data" % (int(m*1e6)))
+    config.log.info("Finalise library. Contains '{0:,}' bps of data".format(n))
     f.finalise()
     config.log.info("Took: %s seconds" % (e-s))
     return(True)
