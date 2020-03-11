@@ -56,8 +56,10 @@ def bedgraph_to_flat(infilename, outfilename, name, gzip=None, all_in_mem=False,
         and a flat file in outfilename
 
     """
-    assert os.path.realpath(infilename), "no filename specified"
+    assert infilenames, "no filename specified"
     assert os.path.realpath(outfilename), "no save filename specified"
+    if not isinstance(infilenames, list):
+        infilenames = [infilenames]
 
     bin_format = 'f' # Only one supported
     n = 0
