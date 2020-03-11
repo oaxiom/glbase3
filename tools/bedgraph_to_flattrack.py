@@ -68,7 +68,7 @@ def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False
 
     f = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
 
-    config.log.info("Started %s -> %s" % (infilename, outfilename))
+    config.log.info("Started %s -> %s" % (infilenames, outfilename))
 
     open_mode = None
     if not gzip:
