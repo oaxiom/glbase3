@@ -126,6 +126,7 @@ class base_expression(genelist):
             try:
                 # Nan policy:
                 if True in [t in nans for t in i["conditions"]]:
+                    config.log.warning("line {0}, contains Nan, filling with 0".format(idx))
                     newc = []
                     for c in i['conditions']:
                         if c in nans:
