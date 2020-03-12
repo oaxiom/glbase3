@@ -60,7 +60,7 @@ class base_expression(genelist):
             self.name = "".join(self.filename.split(".")[:-1])
 
         if not loadable_list and not expn:
-            config.log.info("expression(): made an empty expression object")
+            config.log.info("expression: made an empty expression object")
             return()
 
         if loadable_list:
@@ -109,8 +109,7 @@ class base_expression(genelist):
                         do = True # do anyway
 
                     if do:
-                        #names = None # py3.6 has a different exec action
-                        names = eval("%s" % format["conditions"]["code"]) # yay, more nice happy arbitrary code execution.
+                        names = eval("{0}".format(format["conditions"]["code"])) # yay, more nice happy arbitrary code execution.
 
                         if names:
                             self._conditions = [str(k) for k in names]
@@ -118,12 +117,22 @@ class base_expression(genelist):
                 oh.close()
 
                 if not silent:
-                    config.log.info("expression(): I found the following conditions:")
+                    config.log.info("expression: I found the following conditions:")
                     config.log.info("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
 
         # coerce the conditions errs etc to floats
+        nans = set(('nan', 'Nan', 'NaN'))
         for idx, i in enumerate(self):
             try:
+                # Nan policy:
+                if True in [t in nans for t in i["conditions"]]:
+                    newc = []
+                    for c in i['conditions']:
+                        if c in nans:
+                            newc.append(0.0) # nan policy
+                        else:
+                            newc.append(c)
+                    i['conditions'] = newc
                 i["conditions"] = [float(str(t).replace(",", "")) for t in i["conditions"]] # because somebody once sent me a file with ',' for thousands!
             except ValueError:
                 config.log.warning("line %s, contains missing data (%s), filling with 0" % (idx, i["conditions"]))
@@ -138,7 +147,7 @@ class base_expression(genelist):
         self.__check_condition_names_are_unique()
         self._optimiseData()
         if not silent:
-            config.log.info("expression(): loaded %s items, %s conditions" % (len(self), len(self.getConditionNames())))
+            config.log.info("expression: loaded %s items, %s conditions" % (len(self), len(self.getConditionNames())))
 
     def __check_condition_names_are_unique(self):
         """
