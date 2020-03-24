@@ -18,7 +18,7 @@ from .history import historyContainer
 from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 from .progress import progressbar
 from .base_genelist import _base_genelist
-from .format import sniffer, sniffer_tsv, _load_hmmer_tbl
+from .format import sniffer, sniffer_tsv, _load_hmmer_tbl, _load_hmmer_domtbl
 
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
     """
@@ -211,11 +211,15 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     except Exception:
                         pass
                     self._optimiseData()
-                    return(True)
+                    return True
                 if format["special"] == "hmmer_tbl":
                     self.linearData = _load_hmmer_tbl(filename)
                     self._optimiseData()
-                    return(True)
+                    return True
+                elif format['special'] == 'hmmer_domtbl':
+                    self.linearData = _load_hmmer_domtbl(filename)
+                    self._optimiseData()
+                    return True
         else:
             raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument')
 
@@ -230,7 +234,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "force_tsv" not in kargs and "force_tsv" not in format and len(list(self.keys())) == 1:
             config.log.warning("List contains only a single key, are you sure this is not a tsv?")
 
-        return(True) # must have made it to one - if it fails it should trigger
+        return True  # must have made it to one - if it fails it should trigger
 
     def loadCSV(self, filename=None, format=None, **kargs):
         """
@@ -402,7 +406,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.linearData = temp_data
 
         self._optimiseData()
-        return(True)
+        return True
 
     def _optimiseData(self):
         """
@@ -411,7 +415,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         self.dataByChr = None
         if not self.linearData: # list is empty, not possible to optimise anything...
-            return(False)
+            return False
 
         # Guess a loc key
         loc_key = None
@@ -490,24 +494,24 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             # Now to do a find you just go:
             # item_indeces = self.qkeyfind["name"]["Stat3"]
 
-        return(True)
+        return True
 
     def isChromosomeAvailable(self, chromosome):
         """
         you must check me before trying to access dataByChr[]
         """
         if chromosome in self.dataByChr:
-            return(True)
+            return True
         else:
-            return(False)
-        return(False)
+            return False
+        return False
 
     def getAllUnorderedData(self):
         """
         (Obselete?)
         return the list of unordered data
         """
-        return(self.linearData)
+        return self.linearData
 
     def _findDataByKeyLazy(self, key, value): # override????? surely find?
         """
@@ -534,7 +538,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if item_indeces:
             return([self.linearData[i] for i in item_indeces])
-        return(None)
+        return None
 
     def get(self, key, value, mode="greedy"):
         """
@@ -578,7 +582,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             newl = self.shallowcopy() # shallowcopy for once as we will load in our own list.
             newl.load_list(r)
             return(newl)
-        return(None)
+        return None
 
     def index(self, key, value):
         """
@@ -755,7 +759,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not self.linearData: # data is empty, fail graciously.
             config.log.error("csv file '%s' is empty, no file written" % filename)
             oh.close()
-            return(None)
+            return None
 
         if "tsv" in kargs and kargs["tsv"]:
             writer = csv.writer(oh, dialect=csv.excel_tab)
@@ -787,7 +791,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             writer.writerow(line)
         oh.close()
         config.log.info("Saved '%s'" % filename)
-        return(None)
+        return None
 
     def saveFASTA(self, filename=None, seq_key="seq", **kargs):
         """
@@ -846,7 +850,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             oh.write("%s\n" % item[seq_key])
         oh.close()
         config.log.info("Saved FASTA file: %s" % filename)
-        return(True)
+        return True
 
     def saveBED(self, filename=None, extra_keys=None, id=None, score=None, uniqueID=False, loc_only=False,
         **kargs):
@@ -1038,7 +1042,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             #break
         oh.close()
         config.log.info("Saved '%s' GTF file" % filename)
-        return(None)
+        return None
 
     def sort(self, key=None, reverse=False):
         """
@@ -1072,7 +1076,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if reverse:
             self.linearData.reverse()
         self._optimiseData()
-        return(True)
+        return True
 
     def shuffle(self, key=None, reverse=False):
         """
@@ -1093,7 +1097,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.linearData = newl
 
         self._optimiseData()
-        return(True)
+        return True
 
     def multi_sort(self, keys):
         """
@@ -1121,7 +1125,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 return 0
         self.linearData = sorted(self.linearData, cmp=comparer)
         self._optimiseData()
-        return(True)
+        return True
 
     def reverse(self):
         """
@@ -1137,7 +1141,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         self.linearData.reverse()
         self._optimiseData() # just in case.
-        return(True)
+        return True
 
     def getValuesInRange(self, key=None, low=None, high=None):
         """
@@ -1184,11 +1188,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         a = genelist[0:10] # returns a new genelist
         """
         if not self.linearData:
-            return(False)
+            return False
 
         if item in self.linearData[0]:
-            return(True)
-        return(False)
+            return True
+        return False
 
     def __repr__(self):
         """
@@ -1343,7 +1347,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             newl._optimiseData()
         else:
             config.log.info("getRowsByKey: Found 0 items")
-            return(None)
+            return None
 
         config.log.info("getRowsByKey: Found %s items" % len(newl))
         return(newl)
@@ -1596,7 +1600,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if len(newl.linearData):
             newl._optimiseData()
             return(newl)
-        return(None)
+        return None
 
     def _findNearbyGenes(self, coords, distance=10000):
         """
@@ -1612,7 +1616,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert "tss_loc" in self.linearData[0], "no available tss_loc key"
 
         if not self.isChromosomeAvailable(str(coords["chr"])):
-            return(False)
+            return False
 
         peakCentre = (coords["left"] + coords["right"]) / 2
 
@@ -1797,7 +1801,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if not newl:
             config.log.warning("Nothing nearby to annotate for list '%s'" % genelist.name)
-            return(None)
+            return None
 
         newgl = genelist.shallowcopy() # make a new copy, I need to copy to preserve the attributes.
         # or if it is a derived class.
@@ -2342,7 +2346,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             #self.draw._qhist(data=dist_array, filename="%s_distance.png" % filename_root, bins=bins, title=title)
 
         if len(newl) == 0:
-            return(None)
+            return None
 
         newl._optimiseData()
         return(newl)
@@ -2391,11 +2395,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                 Note: that it assumes the format of the two strand keys are the same in each
                 list (ie. one of '+/-', '-1/+1', etc.)
-            
+
             delete_any_matches (Optional, default=False)
                 By default, if there is a collision/overlap between two intervals then the
                 first one that the algorithm comes across is kept, and all subsequent ones are deleted
-            
+
                 If this is set to True then anytime there is a match, the both the original and the matching
                 interval are deleted. i.e. If there is a match then 0 matches will be retunred.
 
@@ -2711,7 +2715,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             elif operation == "cat":
                 item[result_key] = "%s%s" % (item[key1], item[key2])
 
-        return(None)
+        return None
 
     def load_list(self, list_to_load, name=False):
         """
@@ -2758,7 +2762,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.name = name
 
         self._optimiseData()
-        return(None)
+        return None
 
     def raw_data(self):
         """
@@ -2875,7 +2879,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 if i[k] == value:
                     return(i)
 
-        return(False)
+        return False
 
     def renameKey(self, old_key_name, new_key_name, keep_old_key=False, replace_existing_key=False):
         """
@@ -3313,7 +3317,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         # Easy rejection if the chr bucket is not available:
         if loc["chr"] not in self.buckets:
-            return(False)
+            return False
 
         if mode == "collide":
             loc = loc.pointify().expand(delta)
@@ -3338,8 +3342,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         for index in loc_ids:
             #print loc.qcollide(self.linearData[index]["loc"]), loc, self.linearData[index]["loc"]
             if loc.qcollide(self.linearData[index]["loc"]):
-                return(True)
-        return(False)
+                return True
+        return False
 
     def islocinlist_dist(self, loc, key="loc", mode="collide", delta=200):
         """
@@ -3801,7 +3805,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("bar_chart(): Saved '%s'" % actual_filename)
 
-        return(None)
+        return None
 
     def frequency_bar_chart(self, filename=None, random_backgrounds=None, key=None, percents=True,
         horizontal=False, **kargs):
@@ -4099,6 +4103,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         ax.legend(loc=2)
 
         self.draw.savefigure(fig, filename, **kargs)
-        return(None)
+        return None
 
 genelist = Genelist # Basically used only im map() for some dodgy old code I do not want to refactor.

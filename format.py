@@ -318,7 +318,37 @@ def _load_hmmer_tbl(filename):
             except ValueError:
                 res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": ll[4],
                     "gene": gene})
-    return(res)
+    return res
+
+hmmer_domtbl = fc(name="hmmer_domtbl",
+    description="hmmsearch/hmmscan --domtbl_out loader",
+    format={"special": "hmmer_domtbl"})
+
+def _load_hmmer_domtbl(filename):
+    """
+    # Unbelievably stupid format for hmmer:
+    Load the hmmer domtblout format table
+    """
+    oh = open(filename, "rt")
+    res = []
+    for line in oh:
+        if "#" in line:
+            continue
+
+        ll = line.split()
+
+        row = {"peptide": ll[0],
+            "dom_acc": ll[4], "dom_name": ll[3],
+            'e': ll[6],
+            "gene": ll[22]}
+
+        #try:
+        #    row[
+        #except ValueError:
+
+
+        res.append(row)
+    return res
 
 
 # --------------------- GO outputs
@@ -393,7 +423,9 @@ catalogue = fccatalogue([
     sam_tophat, sam_tophat_xs, sam,
     blast_tabular,
     rsem_gene, bowtie_loc_only,
-    bowtie, homer_peaks, hmmer_tbl, dfilter_bed,
+    bowtie, homer_peaks,
+    hmmer_tbl, hmmer_domtbl, #HMMER
+    dfilter_bed,
     # GO lists:
     go_GREAT_shown, go_DAVID,
     ncbi_gwas,
