@@ -340,7 +340,8 @@ def _load_hmmer_domtbl(filename):
         row = {"peptide": ll[0],
             "dom_acc": ll[4], "dom_name": ll[3],
             'e': ll[6],
-            "gene": ll[22]}
+            "gene": ll[22],
+            'name': ll[22]}
 
         #try:
         #    row[
