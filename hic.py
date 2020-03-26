@@ -657,7 +657,7 @@ class hic:
         ax.set_position(heatmap_location)
         hm = ax.imshow(dst, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
-            interpolation=config.get_interpolation_mode())
+            interpolation=config.get_interpolation_mode(filename))
 
         ax.set_xlim([0,data.shape[1]])
         ax.set_ylim([data.shape[1]/2,(data.shape[1]/2)+data.shape[1]/4]) # get the middle start position, then about 1/X of the way up
@@ -789,10 +789,28 @@ class hic:
         if chr and loc:
             raise AssertionError('chr and loc both contain values. You can only use one')
 
+        tad_calls = None
+
         if chr:
             data = self.mats[str(chr).replace('chr', '')]
             if self.tad_lookup:
                 tad_calls = self.tad_lookup[loc['chrom']]
+
+            mostLeft, mostRight = self.__find_binID_chromosome_span(str(chr).replace('chr', ''))
+
+            # I'm a bit confused by this code :*(
+            this_chrom = [0] * (mostRight-mostLeft+1)
+            cindex = expn.getConditionNames().index(expn_cond_name)
+            for i in expn.linearData:
+                # Take the old BinID and convert it to the new binID:
+                # If inside this part of the chromosome:
+                if i['loc']['chr'] == chr:
+                    local_bin_num = (self.bin_lookup_by_binID[i['bin#']][3] - mostLeft)
+                    this_chrom[local_bin_num] = i['conditions'][cindex]
+
+            plot_y = this_chrom
+            plot_x = numpy.arange(0, len(plot_y))
+
         elif loc:
             if not isinstance(loc, location):
                 loc = location(loc)
@@ -804,7 +822,7 @@ class hic:
             # I just assume the bins match
             this_chrom = [0] * (localRight-localLeft+1)
             cindex = expn.getConditionNames().index(expn_cond_name)
-            for i in expn:
+            for i in expn.linearData:
                 if i['loc']['chr'] == loc['chr']:
                     # Take the old BinID and convert it to the new binID:
                     # If inside this part of the chromosome:
@@ -814,7 +832,7 @@ class hic:
             plot_y = this_chrom
             plot_x = numpy.arange(0, len(plot_y))
 
-            tad_calls = None
+
             if self.tad_lookup:
                 tad_calls = self.tad_lookup[loc['chr']]
         else:
@@ -856,7 +874,7 @@ class hic:
         ax.set_position(heatmap_location)
         hm = ax.imshow(dst, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
-            interpolation=config.get_interpolation_mode())
+            interpolation=config.get_interpolation_mode(filename))
 
         ax.set_xlim([0,data.shape[1]])
         ax.set_ylim([data.shape[1]/2,(data.shape[1]+data.shape[1]/10)]) # the /10 determines how much it gets stretched.
