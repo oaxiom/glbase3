@@ -424,7 +424,6 @@ def convertFASTAtoDict(filename, gzip_input=False):
     result = []
     for line in openfile:
         line = line.strip()
-        print(line)
         if not line:
             continue
 
