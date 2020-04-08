@@ -116,7 +116,7 @@ from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
-from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
+#from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
 from . import realtime
 from . import gldata
 from . import utils

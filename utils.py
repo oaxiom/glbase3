@@ -423,6 +423,11 @@ def convertFASTAtoDict(filename, gzip_input=False):
 
     result = []
     for line in openfile:
+        line = line.strip()
+        print(line)
+        if not line:
+            continue
+
         if line[0] != ">": # not a FASTA block, so add this line to the sequence
             entry["seq"] += line.strip().replace('\r', '').replace("\n", "")
 

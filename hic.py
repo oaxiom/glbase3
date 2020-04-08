@@ -804,7 +804,7 @@ class hic:
             for i in expn.linearData:
                 # Take the old BinID and convert it to the new binID:
                 # If inside this part of the chromosome:
-                if i['loc']['chr'] == chr:
+                if str(i['loc']['chr']) == str(chr.replace('chr', '')):
                     local_bin_num = (self.bin_lookup_by_binID[i['bin#']][3] - mostLeft)
                     this_chrom[local_bin_num] = i['conditions'][cindex]
 
