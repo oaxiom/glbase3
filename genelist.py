@@ -272,7 +272,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.path = os.path.split(os.path.realpath(filename))[0]
         self.filename = os.path.split(os.path.realpath(filename))[1]
         self.fullfilename = filename
-        self.name = self.filename.split(".")[:-1]
+        self.name = '.'.join(self.filename.split(".")[:-1])
 
         # decide whether to respect the force_tsv arg.
         if not format:
