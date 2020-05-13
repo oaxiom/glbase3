@@ -1824,7 +1824,7 @@ class draw:
             if "title_fontsize" in kargs:
                 ax.set_title(kargs["title"], fontdict={'fontsize': kargs['title_fontsize']})
             else:
-                ax.set_title(kargs["title"])
+                ax.set_title(kargs["title"], fontdict={'fontsize': 6})
         if "xlims" in kargs:
             ax.set_xlim(kargs["xlims"])
         if "ylims" in kargs:

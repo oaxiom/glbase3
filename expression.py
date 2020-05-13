@@ -2718,7 +2718,7 @@ class expression(base_expression):
         return({"data": all_data, "labels": self._conditions})
 
     def tree(self, mode="conditions", filename=None, row_name_key=None,
-        cluster_mode="euclidean", color_threshold=None, label_size=7, cut=False,
+        cluster_mode="euclidean", color_threshold=None, label_size=6, cut=False,
         radial=False, optimal_ordering=True,
         **kargs):
         """
