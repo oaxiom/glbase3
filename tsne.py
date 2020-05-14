@@ -28,6 +28,7 @@ class tsne:
         self.configured = False
         self.trained = False
         self.clusters = False
+        self.cluster_labels = None
         self.__draw = draw()
 
     def __repr__(self):
@@ -79,10 +80,10 @@ class tsne:
         self.whiten = whiten
         self.configured = True
 
-    def train(self, num_pc):
+    def train(self, num_pc, perplexity=30):
         """
         **Purpose**
-            Train the MDS on the first <num_pc> components of a PCA
+            Train the tSNE on the first <num_pc> components of a PCA
 
             MDS is generally too computationally heavy to do on a full dataset, so you
             should choose the first few PCs to train the tSNE. Check the pca module
@@ -113,14 +114,18 @@ class tsne:
             self.__pcas = numpy.array([self.__transform[:,c-1] for c in num_pc]).T
         else:
             raise AssertionError('num_pcs must be either an integer or a list')
-        self.__model = TSNE(n_components=2, random_state=self.random_state) # I make this deterministic
+
+        self.__model = TSNE(n_components=2,
+            perplexity=perplexity,
+            init='pca',
+            random_state=self.random_state) # I make this deterministic
         self.npos = self.__model.fit_transform(self.__pcas)
 
         self.trained = True
 
     def scatter(self, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8,
         spot_size=40, label_font_size=7, cut=None, squish_scales=False,
-        only_plot_if_x_in_label=None, **kargs):
+        only_plot_if_x_in_label=None, draw_clusters=True, **kargs):
         """
         **Purpose**
             plot a scatter plot of the tSNE.
@@ -164,6 +169,9 @@ class tsne:
             squish_scales (Optional, default=False)
                 set the limits very aggressively to [minmin(x), minmax(y)]
 
+            draw_clusters (Optional, default=True)
+                colour the spots and label by clusters if True
+
         **Returns**
             None
         """
@@ -173,11 +181,15 @@ class tsne:
         xdata = self.npos[:, 0]
         ydata = self.npos[:, 1]
 
+        if not self.clusters: draw_clusters=False # set to false if no clusters available;
+
         return_data = self.__draw.unified_scatter(labels, xdata, ydata, x=1, y=2, filename=filename,
             mode='tSNE ', perc_weights=None,
             spot_cols=spot_cols, spots=spots, label=label, alpha=alpha,
             spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales,
-            only_plot_if_x_in_label=only_plot_if_x_in_label, **kargs)
+            only_plot_if_x_in_label=only_plot_if_x_in_label,
+            cluster_data=self.clusters, cluster_labels=self.cluster_labels, draw_clusters=draw_clusters,
+            **kargs)
 
         return return_data
 
@@ -200,15 +212,27 @@ class tsne:
         '''
         if self.clusters:
             config.log.warning('Overwriting exisitng cluster data')
-
         self.clusters = None
 
         valid_methods = {'KMeans'}
-
         assert method in valid_methods, 'method {0} not found'.format(method)
+
+        xdata = self.npos[:, 0]
+        ydata = self.npos[:, 1]
 
         if method == 'KMeans':
             assert num_clusters, 'if method is KMeans then you need a num_clusters'
-            k_means = KMeans(init='k-means++', n_clusters=3, n_init=10)
 
-        return self.clusters
+            mbk = MiniBatchKMeans(init='k-means++',
+                n_clusters=num_clusters,
+                batch_size=100,
+                n_init=50,
+                max_no_improvement=10,
+                verbose=1,
+                random_state=self.random_state)
+            labels = mbk.fit_predict(self.npos)
+            self.clusters = mbk
+            self.cluster_labels = labels
+
+        config.log.info('{0} clustered'.format(method))
+        return self.clusters, self.cluster_labels
