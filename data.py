@@ -44,29 +44,29 @@ compdict = {'A': 'T',
             }
 
 ignorekeys = frozenset( # these are functional tags - so I should ignore them.
-    ["dialect", 
+    ["dialect",
     "duplicates_key",
-    "skiplines", 
-    "debug", 
-    "special", 
-    "skiptill", 
+    "skiplines",
+    "debug",
+    "special",
+    "skiptill",
     "force_tsv",
-    "gtf_decorators", 
-    "endwith", 
+    "gtf_decorators",
+    "endwith",
     "__description__",
-    "commentlines", 
-    "keepifxin", 
+    "commentlines",
+    "keepifxin",
     '__column_must_be_used',
     '__ignore_empty_columns'
-    ]) 
+    ])
 
 typical_headers = frozenset(["chipseq_loc", "loc", "chr", "#",
-"Gene Name", "", "GenBank", "RefSeq",
-"Systematic", "mm8.refGene.chrom", "mm8", "loc", 'chromosome',
-"mm9.refGene.chrom", "mm9",
-"======================================================================", # stupid sissrs format garbage.
-"=====================================================================", # stupid sissrs format garbage.
-"======================================================================="] # stupid sissrs format garbage.
+    "Gene Name", "GenBank", "RefSeq",
+    "Systematic", "mm8.refGene.chrom", "mm8", "loc", 'chromosome',
+    "mm9.refGene.chrom", "mm9",
+    "======================================================================", # stupid sissrs format garbage.
+    "=====================================================================", # stupid sissrs format garbage.
+    "======================================================================="] # stupid sissrs format garbage.
 ) # typical header labels;
 
 positive_strand_labels = frozenset(["+", "1", "f", "F", 1])

@@ -231,8 +231,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         else:
             self.loadCSV(filename=filename, format=format, gzip=gzip, **kargs)
 
-        if "force_tsv" not in kargs and "force_tsv" not in format and len(list(self.keys())) == 1:
-            config.log.warning("List contains only a single key, are you sure this is not a tsv?")
+        #if "force_tsv" not in kargs and "force_tsv" not in format and len(list(self.keys())) == 1:
+        #    config.log.warning("List contains only a single key, are you sure this is not a tsv?")
 
         return True  # must have made it to one - if it fails it should trigger
 
@@ -366,7 +366,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             # This is cryptically called column, when it is actually row.\
             # there is a reason for that, it is so that in the formats it appears:
             # "refseq": column[1] # see :)
-            #print index, column # debug for when all else fails!
+            #print(index, column) # debug for when all else fails!
             self.__deathline = column # For debugging purposes
             self.__deathindx = index
 
@@ -388,7 +388,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             if "debug" in format and format["debug"]:
                 debug_line += 1
-                print("%s:'%s'" % (index, column))
+                print("{0}:'{1}'".format(index, column))
                 if isinstance(format["debug"], int) and debug_line > format["debug"]:
                     break # If an integer, collect that many items.
 
@@ -400,7 +400,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # passed all the tests
                 temp_data.append(self._processKey(format, column))
 
-            #print temp_data[-1] # tells you what got loaded onto the list.
+            #print(temp_data[-1]) # tells you what got loaded onto the list.
         oh.close()
 
         self.linearData = temp_data
@@ -2074,14 +2074,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if not config.SILENT:
             if "logic" in kargs and kargs["logic"]:
-                config.log.info( "%s (%s) two lists using '%s', found: %s non-overlapping sites" % (compare_mode, kargs["logic"], loc_key, len_res))
+                config.log.info( "{0} ({1}) two lists using '{2}', found {3} non-overlapping sites".format(compare_mode, kargs["logic"], loc_key, len_res))
             else:
                 try:
                     #print len(self), len(genelist), len_res
                     perc = (len_res/ float(len(self)+len(genelist)-len_res) ) # This is actually the Jaccard index
                 except ZeroDivisionError: # This can occur if you collide two identical lists
                     perc = 1.0
-                config.log.info("%s(): found: %s (Jaccard=%.3f) overlaps in [%s&%s] with '%s' key" % (compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
+                config.log.info("{0}(): found {1} (Jaccard={2:.3f}) overlaps in [{3} & {4}] with '{5}' key".format(compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
 
         return(newl)
 
