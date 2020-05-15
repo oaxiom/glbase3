@@ -841,6 +841,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             columns as each peak list.
             The values will be filled with 0 or 1, if it was a peak or not a peak.
         """
+        assert list_of_peaks, 'list_of_peaks is empty'
+        assert len(list_of_peaks[0]) > 0, 'list_of_peaks lists appear to be empty'
+
         # get a non-redundant list of genomic regions based on resolution.
         chr_blocks = {} # stores a binary identifier
         pil_blocks = {}
