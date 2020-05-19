@@ -46,7 +46,7 @@ class Test_Formats(unittest.TestCase):
         self.assertEqual(set(observed_keys), expected_keys)
 
     def test_catalogue(self):
-        self.assertEqual(len(gl.format.catalogue), 32) # will need to be updated each time I register a format
+        self.assertEqual(len(gl.format.catalogue), 33) # will need to be updated each time I register a format
 
     def test_sam_tophat_xs(self):
         newgl = gl.genelist("test_data/test.sam", format=gl.format.sam_tophat_xs)

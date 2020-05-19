@@ -698,8 +698,8 @@ class draw:
         if len(data) <= 1: row_cluster = False # clustering with a single point?
         if len(data[0]) <= 1: col_cluster = False # ditto.
 
-        if not "aspect" in kargs:
-            kargs["aspect"] = "long"
+        if "size" not in kargs:
+            kargs["size"] = (3,6)
         fig = self.getfigure(**kargs)
 
         # ---------------- (heatmap) -----------------------

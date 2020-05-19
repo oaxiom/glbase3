@@ -406,9 +406,8 @@ class base_track:
 
         table = []
 
-        # get a sorted list of all the locs I am going to use.
         gl_sorted = genelist.deepcopy()
-        #gl_sorted.sort('loc')
+        #gl_sorted.sort('loc') # No need to sort anymore;
         all_locs = gl_sorted['loc']
 
         if respect_strand:

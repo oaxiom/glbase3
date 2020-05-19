@@ -1331,7 +1331,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         elif bracket:
             bracket = bracket # Fussyness for clarity.
         else: # guess a range:
-            bracket = [tab_mean+tab_stdev, tab_mean+(tab_stdev*2.0)]
+            bracket = [tab_mean, tab_mean+(tab_stdev*2.0)]
             config.log.info("chip_seq_cluster_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))
 
         #real_filename = self.draw.heatmap2(filename=filename, row_cluster=False, col_cluster=False,
@@ -1822,20 +1822,22 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             this_data = None
             prog = progressbar(len(super_set_of_peaks))
             for i, p in enumerate(super_set_of_peaks):
-                if p['loc']['chr'] != this_chrom:
-                    this_data = f.get_array_chromosome(p['loc']['chr'])
-                    this_chrom = p['loc']['chr']
+                p_loc = p['loc']
+                p_loc_chrom = p_loc['chrom']
+                if p_loc_chrom != this_chrom:
+                    this_data = f.get_array_chromosome(p_loc_chrom)
+                    this_chrom = p_loc_chrom
 
                 # I guess this is possible to be longer than the chrom:
-                lambd_left = p['loc']['left']-lambda_window
+                lambd_left = p_loc['left']-lambda_window
                 lambd_left = (lambd_left if lambd_left>0 else 0)
-                lambd_rite = p['loc']['right']+lambda_window
+                lambd_rite = p_loc['right']+lambda_window
                 lambd_rite = (lambd_rite if lambd_rite<len(this_chrom) else len(this_chrom))
 
-                left_flank = this_data[lambd_left:p['loc']['left']-peak_window]
-                rite_flank = this_data[p['loc']['right']+peak_window:lambd_rite]
+                left_flank = this_data[lambd_left:p_loc['left']-peak_window]
+                rite_flank = this_data[p_loc['right']+peak_window:lambd_rite]
 
-                peak_data = this_data[p['loc']['left']:p['loc']['right']]
+                peak_data = this_data[p_loc['left']:p_loc['right']]
                 # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
                 if len(peak_data) == 0:
                     p['%s_peak_score' % sam_name] = 0 # fill the entries in, with 0 due to missing data in the array.
