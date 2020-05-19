@@ -4,7 +4,7 @@ flat_track, part of chipFish, and glbase3
 2008-2019 oAxiom
 
 TODO:
-. never (?) seen in the wild, but it is presumably possible to have blocks with missing blockIDs 
+. never (?) seen in the wild, but it is presumably possible to have blocks with missing blockIDs
   that would throw an error in __Get_block()
 . Related to the above. blockID n:0 is almost always empty and not required, but gets committed anyway.
 
@@ -363,7 +363,7 @@ class flat_track(base_track):
             return(int(self.meta_data['total_read_count']))
         return(None)
 
-    def get(self, loc, strand="+", mask_zero=False, **kargs):
+    def get(self, loc, c=None, left=None, rite=None, strand="+", mask_zero=False, **kargs):
         """
         **Purpose**
             get the data between location 'loc'
@@ -381,16 +381,15 @@ class flat_track(base_track):
         **Returns**
             an 'array('i', [0, 1, 2 ... n])' contiginous array
         """
-        try:
-            if loc["chr"]: pass
-        except TypeError: # probably a location string. try to cooerce
-            loc = location(loc=loc)
-            # Don't catch any exceptions here. Should break.
-
-        # get is hitting location too hard. Unfold here:
-        c = str(loc['chr'])
-        left = int(loc['left'])
-        rite = int(loc['right'])
+        if loc:
+            try:
+                if loc["chr"]: pass
+            except TypeError: # probably a location string. try to cooerce
+                loc = location(loc=loc)
+                # Don't catch any exceptions here. Should break.
+            c = str(loc['chr'])
+            left = int(loc['left'])
+            rite = int(loc['right'])
 
         left_most_block = int(abs(math.floor(left / self.block_size)))
         right_most_block = int(abs(math.ceil((rite+1) / self.block_size)))

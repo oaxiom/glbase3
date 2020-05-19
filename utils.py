@@ -61,7 +61,7 @@ def expandDegenerateMotifs(motif):
     #print newlist
     iti(newlist, 0, None, l)
 
-    return(l)
+    return l
 
 def iti(_fm, _fmcpos, _cl, _list): # my iterator
     """
@@ -90,8 +90,8 @@ def iti(_fm, _fmcpos, _cl, _list): # my iterator
                 # convert the list back to a string
                 _copy = string.join(_cl, '')
                 _list.append(_copy)
-        return(True)
-    return(True)
+        return True
+    return True
 
 def movingAverage(listIn, window=20, normalise=False, bAbsiscaCorrect=True):
     """
@@ -122,7 +122,7 @@ def movingAverage(listIn, window=20, normalise=False, bAbsiscaCorrect=True):
         else:
             y.append(score)
 
-    return(x, y)
+    return (x, y)
 
 def cumulative_line(listIn, percent=True):
     """
@@ -152,7 +152,7 @@ def cumulative_line(listIn, percent=True):
         a = (numpy.array(n) / float(s)) * 100
     else:
         a = n
-    return(a)
+    return a
 
 def osc(last, type):
     """
@@ -162,34 +162,34 @@ def osc(last, type):
     if type == "r":
         if last == "a": return("g")
         if last == "g": return("a")
-        return("a")
+        return "a"
     if type == "y":
         if last == "c": return("t")
         if last == "t": return("c")
-        return("c")
+        return"c"
     if type == "k":
         if last == "g": return("t")
         if last == "t": return("g")
-        return("g")
+        return "g"
     if type == "m":
         if last == "a": return("c")
         if last == "c": return("a")
-        return("a")
+        return "a"
     if type == "s":
         if last == "g": return("c")
         if last == "c": return("g")
-        return("g")
+        return "g"
     if type == "w":
         if last == "a": return("t")
         if last == "t": return("a")
-        return("a")
+        return "a"
     if type == "n":
         if last == "a": return("c")
         if last == "c": return("g")
         if last == "g": return("t")
         if last == "t": return("a")
-        return("a")
-    return(type)
+        return "a"
+    return type
 
 def rc(seq):
     """
@@ -209,7 +209,7 @@ def rc(seq):
     tseq = [compdict[i] for i in seq] # new list
     tseq.reverse()
 
-    return("".join(tseq))
+    return "".join(tseq)
 
 def rc_expanded(seq):
     """
@@ -238,7 +238,7 @@ def rc_expanded(seq):
     tseq = [compdict[i] for i in seq] # new list
     tseq.reverse()
 
-    return("".join(tseq))
+    return "".join(tseq)
 
 def expandElement(_element, _preserve=True): #
     """
@@ -261,7 +261,7 @@ def expandElement(_element, _preserve=True): #
         for right in range(4):
             lib.append(dir[left]+_element+dir[right])
 
-    return  lib
+    return lib
 
 def expandElementRightOnly(_element, _preserve=True): #
     """
@@ -285,7 +285,7 @@ def expandElementRightOnly(_element, _preserve=True): #
     for right in range(4):
         lib.append(_element+dir[right])
 
-    return  lib
+    return lib
 
 def expandElementRightOnly_degenerate(_element, _preserve=True): #
     """
@@ -345,37 +345,7 @@ def expandElementRightOnly_degenerate_n(_element, _preserve=True): #
     for right in range(5):
         lib.append(_element+dir[right])
 
-    return  lib
-
-def convertCSVtoFASTA(csvfilename, outfile, sequenceCol, fastaNameCol = None):
-    """
-    csvfilename = the csv filename to load without the path, assumed to be in environment.mouseGenomePath
-    outfile = outfile name, also in environment.mouseGenomePath
-    sequenceCol (integer) = the number of the column (starts from 0)
-    fastaNameCol (integer) (optional) = the column to use as a FASTA name, otherwise will default to 0..n
-    ignores a row if the first column begins with "#"
-    """
-    ofh = open(os.path.join(sys.path[0], csvfilename), "rb")
-    sfh = open(os.path.join(sys.path[0], outfile), "wb")
-
-    csvreader = csv.reader(ofh)
-
-    fastanameseries = 0
-
-    for n in csvreader:
-        t = n[0]
-        if t[0] != "#":
-            seq = n[sequenceCol]
-            if fastaNameCol:
-                fastname = n[fastaNameCol]
-                sfh.write('>'+fastname+'\r\n')
-            else: # no fasta name so use the series
-                sfh.write('>'+str(fastanameseries)+'\r\n')
-                fastanameseries += 1
-            sfh.write(seq+'\r\n')
-
-    ofh.close()
-    sfh.close()
+    return lib
 
 def convertFASTAtoCSV(filename):
     """
@@ -439,7 +409,7 @@ def convertFASTAtoDict(filename, gzip_input=False):
                 # convert the list to a tuple
                 result.append(entry) # You have to think about this one, but it works as it appends a view!
                 # And so will not miss the last item!
-    return(result)
+    return result
 
 def scanNumberOfBasePairs(fastafilehandle):
     """
@@ -468,48 +438,19 @@ def scanNumberOfBasePairs(fastafilehandle):
             a[dict["c"]] += lcline.count("c")
             a[dict["g"]] += lcline.count("g")
             a[dict["t"]] += lcline.count("t")
-    return(a)
-
-def removeDuplicatesFromCSV(path, csvfile, outfile, column_no = 3, bKeepEmptyCols=False):
-    """
-    delete duplicates based on the column no
-    """
-    inf = open(os.path.join(path, csvfile), "rb")
-    outf = open(os.path.join(path, outfile), "wb")
-
-    reader = csv.reader(inf)
-    writer = csv.writer(outf)
-    ulist = []
-
-    for line in reader:
-        if line[column_no] in ulist:
-            # don't write this enty,
-            print("Duplicate:", line[column_no])
-        else:
-            # add to ulist and write to file;
-            if line[column_no]: # if column is empty don't add it to the list, but write to file
-                ulist.append(line[column_no])
-                writer.writerow(line) # if I tab this in - don't keep empty rows
-            else: # col is empty;
-                #print "Duplicate: <empty>"
-                if bKeepEmptyCols: writer.writerow(line)
-    inf.close()
-    outf.close()
+    return a
 
 def collide(Aleft, Aright, Bleft, Bright):
-    """
-    optimised for speed.
-    """
     # quickest rejections first;
     if Aright < Bleft:
-        return(False)
+        return False
     if Aleft > Bright:
-        return(False)
+        return False
 
-    if Aleft == Bleft: return(1) # I have to cheat here otherwise it returns 0 which will evaluate as False;
-    if Aleft == Bright: return(1)
-    if Aright == Bleft: return(1)
-    if Aright == Bright: return(1)
+    if Aleft == Bleft: return 1 # I have to cheat here otherwise it returns 0 which will evaluate as False;
+    if Aleft == Bright: return 1
+    if Aright == Bleft: return 1
+    if Aright == Bright: return 1
 
     if Aleft <= Bright and Aright >= Bright:
         A = abs(Aleft - Bright)
@@ -517,7 +458,7 @@ def collide(Aleft, Aright, Bleft, Bright):
         C = abs(Aleft - Bleft)
         D = abs(Aright - Bleft)
         closest = min(A, B, C, D)
-        return(closest) # Bright point is within A, thus collision
+        return closest # Bright point is within A, thus collision
 
     if Aright >= Bleft and Aleft <= Bleft:
         A = abs(Aleft - Bright)
@@ -525,7 +466,7 @@ def collide(Aleft, Aright, Bleft, Bright):
         C = abs(Aleft - Bleft)
         D = abs(Aright - Bleft)
         closest = min(A, B, C, D)
-        return(closest) # Bleft point is within A, thus collision.
+        return closest # Bleft point is within A, thus collision.
 
     if Bleft <= Aright and Bright >= Aright:
         A = abs(Aleft - Bright)
@@ -533,7 +474,7 @@ def collide(Aleft, Aright, Bleft, Bright):
         C = abs(Aleft - Bleft)
         D = abs(Aright - Bleft)
         closest = min(A, B, C, D)
-        return(closest) # Aright point is within B, thus collision
+        return closest # Aright point is within B, thus collision
 
     if Bright >= Aleft and Bleft <= Aleft:
         A = abs(Aleft - Bright)
@@ -541,10 +482,10 @@ def collide(Aleft, Aright, Bleft, Bright):
         C = abs(Aleft - Bleft)
         D = abs(Aright - Bleft)
         closest = min(A, B, C, D)
-        return(closest) # Aleft point is within B, thus collision.
+        return closest # Aleft point is within B, thus collision.
 
     #print "unhandled!"
-    return(False)
+    return False
 
 def qcollide(Aleft, Aright, Bleft, Bright):
     """
@@ -552,24 +493,24 @@ def qcollide(Aleft, Aright, Bleft, Bright):
     """
     # quickest rejections first;
     if Aright < Bleft:
-        return(False)
+        return False
     if Aleft > Bright:
-        return(False)
+        return False
 
     if Aleft <= Bright and Aright >= Bright:
-        return(True) # Bright point is within A, collision
+        return True  # Bright point is within A, collision
 
     if Aright >= Bleft and Aleft <= Bleft:
-        return(True) # Bleft point is within A, collision.
+        return True # Bleft point is within A, collision.
 
     if Bleft <= Aright and Bright >= Aright:
-        return(True) # Aright point is within B, collision
+        return True # Aright point is within B, collision
 
     if Bright >= Aleft and Bleft <= Aleft:
-        return(True) # Aleft point is within B, collision.
+        return True # Aleft point is within B, collision.
 
     #print "unhandled!"
-    return(False)
+    return False
 
 def removeDuplicatesFromListOfDicts(list_of_dicts, key):
     """
@@ -591,7 +532,7 @@ def removeDuplicatesFromListOfDicts(list_of_dicts, key):
                 ulist.append(line[key])
             newlist.append(line)
     #print ">> Duplicates Found:", dupecount
-    return(newlist)
+    return newlist
 
 def removeDuplicatesFrom2DList(_list, column_no = 3):
     """
@@ -614,76 +555,7 @@ def removeDuplicatesFrom2DList(_list, column_no = 3):
                 ulist.append(line[column_no])
             newlist.append(line)
     #print ">> Duplicates Found:", dupecount
-    return(newlist)
-
-def removeDuplicatesFromCSV_2Cols(path, csvfile, outfile, column_no1 = 0, column_no2 = 1):
-    """
-    delete duplicates based on the column no1 and 2
-    """
-    inf = open(os.path.join(path, csvfile), "rb")
-    outf = open(os.path.join(path, outfile), "wb")
-
-    reader = csv.reader(inf)
-    writer = csv.writer(outf)
-    ulist = []
-
-    for line in reader:
-        if line[column_no1]+line[column_no2] in ulist:
-            # don't write this enty,
-            print("duplicate:", line[column_no1]+line[column_no2])
-        else:
-            # add to ulist and write to file;
-            ulist.append(line[column_no1]+line[column_no2])
-            writer.writerow(line)
-    inf.close()
-    outf.close()
-
-def keepRowOnlyIfColXHasValue(path, _in, _out, _colX):
-    """
-    what it says
-    """
-    print("keepRowOnlyIfColXHasValue(",path, _in, _out, _colX,")")
-    inf = open(os.path.join(path, _in), "rb")
-    outf = open(os.path.join(path, _out), "wb")
-
-    reader = csv.reader(inf)
-    writer = csv.writer(outf)
-
-    for line in reader:
-        if len(line) > _colX:
-            if line[_colX]:
-                writer.writerow(line)
-    inf.close()
-    outf.close()
-
-def FASTAToCSV(filename):
-    """
-    load a fasta file and output it into a big list;
-    expects filename to be correct
-    """
-    #try:
-    openfile = open(filename, "rb")
-    savefile = open(filename+'_out.csv', "wb")
-    #except IOError:
-    #    print "Error opening File: %s" % filename
-    #    sys.exit()
-
-    writer = csv.writer(savefile)
-
-    record = ""
-    entry = Node("empty")
-    for line in openfile:
-        if line[:1] != ">": # not a FASTA block, so add this line to the sequence
-            entry.seq += line.replace("\r", "").replace("\n", "")
-
-        if line[:1] == ">": # fasta start block
-            # start recording
-            # add the old Node to the list
-            if entry.name != "empty":
-                # convert the list to a tuple
-                writer.writerow([entry.name, "", "", entry.seq])
-                del entry
-            entry = Node(line) # make a new node
+    return newlist
 
 def FASTAToLIST(filename):
     """
@@ -721,50 +593,11 @@ def loadTSVAsLIST(file):
     newl = []
     for line in reader:
         newl.append(line)
-    return(newl)
-
-def renameDuplicatesFromCSV(path, csvfile, outfile, column_no = 3, bKeepEmptyCols=False):
-    """
-    append _1 .. _n to duplicates based on the column no
-    """
-    inf = open(os.path.join(path, csvfile), "rb")
-    outf = open(os.path.join(path, outfile), "wb")
-
-    reader = csv.reader(inf)
-    writer = csv.writer(outf)
-    ulist = []
-    nFound = {}
-
-    for line in reader:
-        if line[column_no] in ulist:
-            # don't write this enty,
-            print("Duplicate:", line[column_no])
-            if bKeepEmptyCols:
-                if column_no == 0:
-                    writer.writerow(["%s_%s" % (line[column_no], nFound[line[column_no]])] + line[column_no+1:])
-                elif column_no == len(line):
-                    writer.writerow(line[:column_no] + ["%s_1" % line[column_no]])
-                else:
-                    writer.writerow(line[:column_no] + ["%s_1" % line[column_no]] + line[column_no+1:])
-                nFound[line[column_no]] += 1
-        else:
-            # add to ulist and write to file;
-            if line[column_no]: # if column is empty don't add it to the list, but write to file
-                ulist.append(line[column_no])
-                # add a key to the nTimeFound dict;
-                nFound[line[column_no]] = 1
-                writer.writerow(line) # if I tab this in - don't keep empty rows
-
-            else: # col is empty;
-                #print "Duplicate: <empty>"
-                if bKeepEmptyCols: writer.writerow(line)
-    inf.close()
-    outf.close()
+    return newl
 
 # This code comes from http://www.johndcook.com/standard_deviation.html
 # the point of all this complexity is to allow incremental computation of mean and std in
 # a numerically stable way.
-# Taken from ACT
 class accumulate_mean:
     def __init__(self):
         self.m_n = self.m_oldM = self.m_newM = 0
@@ -799,19 +632,14 @@ class accumulate_mean:
     def value(self):
         return self.val
 
-"""
-    It's hard to believe, but these custom routines below are 10x as
-    fast as their numpy equivalents...
-    Numpy is a dog.
-"""
 def mean(intList):
     try:
         return sum(intList) / float(len(intList))
     except TypeError:
-        return(intList) # intList is probably a single int -
+        return intList # intList is probably a single int -
 
 def std(intList):
-    return(math.sqrt(mean([(abs(x - mean(intList) ) ** 2) for x in intList])))
+    return math.sqrt(mean([(abs(x - mean(intList) ) ** 2) for x in intList]))
 
 def transpose(list):
     """
@@ -831,7 +659,7 @@ def transpose(list):
     for r in range(rows):
         for c in range(cols):
             newl[r][c] = list[c][r]
-    return(newl)
+    return newl
 
 def isPalindromic(seq):
     """
@@ -839,28 +667,28 @@ def isPalindromic(seq):
     returns True or False
     """
     if rc_expanded(seq.lower()) == seq.lower():
-        return(True)
-    return(False)
+        return True
+    return False
 
 def isPalindrome(seq):
     """
     is a sequence a palindrome?
     """
     if rc_expanded(seq.lower()) == seq.lower():
-        return(True)
-    return(False)
+        return True
+    return False
 
 def bin_data(array_like, bin_size):
     """
     This is an old alias, please use bin_sum_data or bin_mean_data
     """
-    return([sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)])
+    return [sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)]
 
 def bin_sum_data(array_like, bin_size):
-    return([sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)])
+    return [sum(array_like[i:i+bin_size]) for i in range(0, len(array_like), bin_size)]
 
 def bin_mean_data(array_like, bin_size):
-    return([(sum(array_like[i:i+bin_size]) / float(len(array_like[i:i+bin_size]))) for i in range(0, len(array_like), bin_size)])
+    return [(sum(array_like[i:i+bin_size]) / float(len(array_like[i:i+bin_size]))) for i in range(0, len(array_like), bin_size)]
 
 def scale_data(array_like, range=(0, 100)):
     """
@@ -875,7 +703,7 @@ def scale_data(array_like, range=(0, 100)):
         val = array_like[int(math.floor(f)):int(math.floor(f+s))]
         if len(val) >= 1: # when s < 1.0 sometimes the recovered array will be empty
             scaled[fi] += numpy.average(val)
-    return(scaled)
+    return scaled
 
 def kde(val_list, range=(0,1), covariance=0.02, bins=20):
     """
@@ -894,53 +722,7 @@ def kde(val_list, range=(0,1), covariance=0.02, bins=20):
 
     kk = kde.evaluate(a) # resacle to get in integer range.
 
-    return(numpy.array(kk, dtype=numpy.float64))
-
-# I think this is non-functional below:
-class pp:
-    reachability_distance = None
-    done = False
-
-def _core_distance(pt, epsilon, MinPts):
-    return()
-
-def _optics_update(N, p, Seeds, eps, Minpts):
-
-    coredist = core_distance(p, eps, MinPts)
-
-    for o in N:
-        if (o is not processed):
-            new_reach_dist = max(coredist, dist(p,o))
-
-            if not o.reachability_distance: # o is not in Seeds
-                o.reachability_distance = new_reach_dist
-                Seeds.insert(o, new_reach_dist)
-            else: # o in Seeds, check for improvement
-                if (new_reach_dist < o.reachability_distance):
-                    o.reachability_distance = new_reach_dist
-                    Seeds.move_up(o, new_reach_dist)
-
-def OPTICS(DB, eps, MinPts):
-
-    #for p in DB:
-    #   p.reachability_distance = None
-    ordered = []
-
-    for p in DB:
-        if not p.done:
-            N = getNeighbors(p, eps)
-            p.done = True
-            ordered.append(p)
-            Seeds = heapq([])
-
-            if not core_distance(p, eps, Minpts):
-                _optics_update(N, p, Seeds, eps, Minpts)
-                for q in Seeds:
-                    Np = getNeighbors(q, eps)
-                    q.done = True
-                    ordered.append(q)
-                    if not core_distance(q, eps, Minpts):
-                        _optics_update(Np, q, Seeds, eps, Minpts)
+    return numpy.array(kk, dtype=numpy.float64)
 
 def fold_change(c1, c2, log=2, pad=1e-6):
     """
@@ -977,7 +759,7 @@ def hex_to_rgb(hex_str):
 
 def qdeepcopy(anobject):
     # You should wrap me in a try: except:
-    return(pickle.loads(pickle.dumps(anobject, -1)))
+    return pickle.loads(pickle.dumps(anobject, -1))
 
 def fastq(filename, gziped=False):
     """

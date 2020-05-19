@@ -937,8 +937,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         return(e)
 
     def chip_seq_cluster_heatmap(self, list_of_peaks, list_of_trks, filename=None, normalise=False, bins=20,
-        pileup_distance=1000, merge_peaks_distance=400, sort_clusters=True, cache_data=False, log=2, bracket=None,
-        range_bracket=None, frames=False, titles=None, read_extend=200, imshow=True, cmap=cm.YlOrRd,
+        pileup_distance=1000, merge_peaks_distance=400, sort_clusters=True, cache_data=False, bracket=None,
+        range_bracket=None, frames=False, titles=None, read_extend=200, imshow=True, cmap=cm.plasma,
+        log_pad=None, log=2,
         size=None, **kargs):
         """
         **Purpose**
@@ -1120,25 +1121,30 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         p = progressbar(len(list_of_peaks))
         for idx, gl in enumerate(list_of_peaks):
             for p1 in gl["loc"]:
-                p1 = p1.pointify().expand(merge_peaks_distance)
-                if not p1["chr"] in chr_blocks:
-                    chr_blocks[p1["chr"]] = {}
+                #p1 = p1.pointify().expand(merge_peaks_distance) # about 10% of the time is in __getitem__ from the loc, so unpack it;
+                cpt = (p1.loc["left"] + p1.loc['right']) // 2
+                p1_chr = p1['chr']
+                p1_left = cpt - merge_peaks_distance
+                p1_right = cpt + merge_peaks_distance
+                if not p1_chr in chr_blocks:
+                    chr_blocks[p1_chr] = {}
 
                 binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
 
-                for p2 in chr_blocks[p1["chr"]]: # p2 is now a block_id tuple
+                for p2 in chr_blocks[p1_chr]: # p2 is now a block_id tuple
                     #if p1.qcollide(p2):
-                    if p1["right"] >= p2[0] and p1["left"] <= p2[1]: # unfolded for speed.
-                        binary = chr_blocks[p1["chr"]][p2]["binary"] # preserve the old membership
+                    if p1_right >= p2[0] and p1_left <= p2[1]: # unfolded for speed.
+                        binary = chr_blocks[p1_chr][p2]["binary"] # preserve the old membership
 
                         # remove the original entry
-                        del chr_blocks[p1["chr"]][p2]
+                        del chr_blocks[p1_chr][p2]
                         total_rows -= 1
 
                         # Add in a new merged peak:
-                        p1 = location(chr=p1["chr"],
-                            left=int((p1["left"]+p2[0])/2.0),
-                            right=int((p1["right"]+p2[1])/2.0)).pointify().expand(merge_peaks_distance)
+                        cpt = (((p1_left+p2[0])//2) + ((p1_right+p2[1])//2)) // 2 # pointify()
+
+                        p1_left=cpt-merge_peaks_distance
+                        p1_right=cpt+merge_peaks_distance
                         # Don't get confused here, p1 is added onto the block heap below:
                         break
 
@@ -1146,9 +1152,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 binary[idx] = 1
 
                 # Add p1 onto the blocklist
-                block_id = (p1["left"], p1["right"])
-                if block_id not in chr_blocks[p1["chr"]]:
-                    chr_blocks[p1["chr"]][block_id] = {"binary": binary,
+                block_id = (p1_left, p1_right)
+                if block_id not in chr_blocks[p1_chr]:
+                    chr_blocks[p1_chr][block_id] = {"binary": binary,
                         "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
                     total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
 
@@ -1159,7 +1165,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # Get the size of each library if we need to normalize the data.
         if normalise:
             # get and store the read_counts for each library to reduce an sqlite hit.
-            read_totals = [trk.get_total_num_reads() for trk in list_of_trks]
+            read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
 
         # I will need to go back through the chr_blocks data and add in the pileup data:
         bin_size = int((resolution+resolution+pileup_distance) / bins)
@@ -1175,7 +1181,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # this_loc will not be valid and I test it for length below, so I need to fake one.
 
         else:
-            # No cahced data, so we have to collect ourselves.
+            # No cached data, so we have to collect ourselves.
             config.log.info('chip_seq_cluster_heatmap: Collecting pileup data...')
             p = progressbar(len(list_of_trks))
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
@@ -1195,26 +1201,25 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             left = len(data)
 
                         dd = data[left:right]
+                        #dd = trk.get(loc=None, c=chrom, left=left, rite=right) # single gets are faster than the above messy stuff;
 
-                        #print "dd", left, right, len(dd), block_len,
                         if len(dd) < block_len: # This should be a very rare case...
                             num_missing = block_len - len(dd)
                             ad = numpy.zeros(num_missing)
                             dd = numpy.append(dd, ad)
-                        #print "fixed", len(dd)
 
-                        pil_data = numpy.array(utils.bin_sum_data(dd, bin_size), dtype=numpy.float32)
                         if normalise:
-                            # normalise before or after bin?
-                            pil_data /= read_totals[pindex]
-                        chr_blocks[chrom][block_id]["pil"][pindex] = pil_data
+                            # normalise before bin?
+                            pil_data = [av/read_totals[pindex] for av in pil_data]
+
+                        chr_blocks[chrom][block_id]["pil"][pindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
                 p.update(pindex)
 
             if cache_data: # store the generated data for later.
                 oh = open(cache_data, "wb")
                 pickle.dump(chr_blocks, oh, -1)
                 oh.close()
-                config.log.info("chip_seq_cluster_heatmap: Saved pileup data to cache file: '%s'" % cache_data)
+                config.log.info("chip_seq_cluster_heatmap: Saved pileup data to cache file: '{0}'".format(cache_data))
 
         # assign each item to a group and work out all of the possible groups
         cluster_ids = []
@@ -1256,16 +1261,16 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             row = chr_blocks[chrom][block_id]["pil"][peaks]
                             if list_of_tables[peaks] is None:
                                 # append together all pileup data in a long row and stick on the tab array.
-                                list_of_tables[peaks] = row
+                                list_of_tables[peaks] = [row,]
                             else:
-                                list_of_tables[peaks] = numpy.vstack((list_of_tables[peaks], row)) # yes, arg 1 is a tuple.
+                                list_of_tables[peaks].append(row)
 
                             # store the pileup_data for later.
                             if (cluster_index+1) not in pileup_data:
                                 pileup_data[cluster_index+1] = [None for i in list_of_peaks]
 
                             if pileup_data[cluster_index+1][peaks] is None: # numpy testing.
-                                pileup_data[cluster_index+1][peaks] = row
+                                pileup_data[cluster_index+1][peaks] = numpy.array(row, dtype=numpy.float64)
                             else:
                                 pileup_data[cluster_index+1][peaks] += row
 
@@ -1280,7 +1285,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # finish off the pileup_data:
         for cid in pileup_data:
             for pid in range(len(pileup_data[cid])):
-                pileup_data[cid][pid] /= len(ret_data[cid]["genelist"])
+                pileup_data[cid][pid] /= len(ret_data[cid]["genelist"])# for i in pileup_data[cid][pid]]
 
         self.__pileup_data = pileup_data
         self.__pileup_names = [g.name for g in list_of_peaks] # names for each sample, taken from peaks.
@@ -1289,9 +1294,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         config.log.info("chip_seq_cluster_heatmap: There are %s groups" % len(sorted_clusters))
 
-        # I will need the max of all the tables for some calcs below:
-        tab_max = max([tab.max() for tab in list_of_tables])
-
         # rebuild the genelist quickdata and make genelist valid:
         for cid in ret_data:
             ret_data[cid]["genelist"]._optimiseData()
@@ -1299,35 +1301,37 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         colbar_label = "Tag density"
 
         if log:
+            if not log_pad:
+                log_pad = 0.1
+
             for index in range(len(list_of_tables)):
-                # multiply the data so that max() = 100000
-                #list_of_tables[index] /= tab_max
-                #list_of_tables[index] *= 1000
                 if log == 2:
-                    list_of_tables[index] = numpy.log2(list_of_tables[index]+1)
-                    colbar_label = "Tag density (log2)"
+                    list_of_tables[index] = numpy.log2(numpy.array(list_of_tables[index])+log_pad)
+                    colbar_label = "Log2(Tag density)"
                 elif log == 10:
-                    list_of_tables[index] = numpy.log10(list_of_tables[index]+1)
-                    colbar_label = "Tag density (log10)"
+                    list_of_tables[index] = numpy.log10(numpy.array(list_of_tables[index])+log_pad)
+                    colbar_label = "Log10(Tag density)"
+                else:
+                    list_of_tables[index] = numpy.array(list_of_tables[index])
 
         if normalise:
-            colbar_label = "normalised %s" % colbar_label
+            colbar_label = "Normalised %s" % colbar_label
 
         self.__pileup_y_label = colbar_label
 
         tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
         tab_min = min([tab.min() for tab in list_of_tables])
-        tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
-        tab_mean = numpy.average([numpy.average(tab) for tab in list_of_tables])
+        #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
+        tab_mean = utils.mean([numpy.average(tab) for tab in list_of_tables])
         tab_stdev = numpy.std(numpy.array([tab for tab in list_of_tables]))
 
-        config.log.info("chip_seq_cluster_heatmap: min=%.2f, max=%.2f, median=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_median, tab_mean, tab_stdev))
+        config.log.info("chip_seq_cluster_heatmap: min=%.2f, max=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_mean, tab_stdev))
         if range_bracket:
             bracket = [tab_max*range_bracket[0], tab_max*range_bracket[1]]
         elif bracket:
             bracket = bracket # Fussyness for clarity.
         else: # guess a range:
-            bracket = [tab_median+tab_stdev, tab_median+(tab_stdev*2.0)]
+            bracket = [tab_mean+tab_stdev, tab_mean+(tab_stdev*2.0)]
             config.log.info("chip_seq_cluster_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))
 
         #real_filename = self.draw.heatmap2(filename=filename, row_cluster=False, col_cluster=False,

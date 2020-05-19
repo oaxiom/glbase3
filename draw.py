@@ -621,7 +621,7 @@ class draw:
             "reordered_data": data})
 
     def heatmap2(self, filename=None, cluster_mode="euclidean", row_cluster=True, col_cluster=True,
-        vmin=0, vmax=None, colour_map=cm.YlOrRd, col_norm=False, row_norm=False, heat_wid=0.25,
+        vmin=0, vmax=None, colour_map=cm.plasma, col_norm=False, row_norm=False, heat_wid=0.25,
         imshow=False,
         **kargs):
         """
