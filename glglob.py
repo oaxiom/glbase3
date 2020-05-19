@@ -1846,11 +1846,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     peaks.append(0) # Still need to fill in to get a correct average.
                     continue
 
-                p['%s_lam10' % sam_name] = numpy.average(left_flank + rite_flank)
-                p['%s_lam10std' % sam_name] = numpy.std(left_flank + rite_flank)
-                lam10.append(numpy.average(left_flank + rite_flank)) # For the global Z
+                p['%s_lam10' % sam_name] = utils.mean(left_flank + rite_flank)
+                p['%s_lam10std' % sam_name] = utils.std(left_flank + rite_flank)
+                lam10.append(utils.mean(left_flank + rite_flank)) # For the global Z
 
-                p['%s_peak_score' % sam_name] = numpy.max(peak_data) # should this be the max?
+                p['%s_peak_score' % sam_name] = max(peak_data) # should this be the max?
                 #p['%s_enrichment' % sam_name] = p['%s_peak_score' % sam_name] / p['%s_lam10' % sam_name]
                 peaks.append(p['%s_peak_score' % sam_name])
 
