@@ -85,7 +85,10 @@ class draw:
         """please deprecate me"""
         pass
 
-    def bracket_data(self, data, min:int, max:int):
+    def bracket_data(self,
+        data,
+        min:int,
+        max:int):
         """
         brackets the data between min and max (ie. bounds the data with no scaling)
 

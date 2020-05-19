@@ -1203,14 +1203,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         dd = data[left:right]
                         #dd = trk.get(loc=None, c=chrom, left=left, rite=right) # single gets are faster than the above messy stuff;
 
-                        if len(dd) < block_len: # This should be a very rare case...
-                            num_missing = block_len - len(dd)
-                            ad = numpy.zeros(num_missing)
-                            dd = numpy.append(dd, ad)
+                        #if len(dd) < block_len: # This should be a very rare case...
+                        #    num_missing = block_len - len(dd)
+                        #    ad = numpy.zeros(num_missing)
+                        #    dd = numpy.append(dd, ad)
 
                         if normalise:
                             # normalise before bin?
-                            pil_data = [av/read_totals[pindex] for av in pil_data]
+                            pil_data = [av/read_totals[pindex] for av in dd]
 
                         chr_blocks[chrom][block_id]["pil"][pindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
                 p.update(pindex)
