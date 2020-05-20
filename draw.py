@@ -800,8 +800,8 @@ class draw:
         freq_plot =    [0.42,   0.05,  0.4,   0.85]
 
         # Now do the plots:
-        plot.subplot(111)
-        plot.cla()
+        #plot.subplot(111)
+        #plot.cla()
 
         fig = self.getfigure(**kargs)
 

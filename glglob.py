@@ -1203,10 +1203,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         dd = data[left:right]
                         #dd = trk.get(loc=None, c=chrom, left=left, rite=right) # single gets are faster than the above messy stuff;
 
-                        #if len(dd) < block_len: # This should be a very rare case...
-                        #    num_missing = block_len - len(dd)
-                        #    ad = numpy.zeros(num_missing)
-                        #    dd = numpy.append(dd, ad)
+                        if len(dd) < block_len: # This should be a very rare case...
+                            num_missing = block_len - len(dd)
+                            ad = numpy.zeros(num_missing)
+                            dd = numpy.append(dd, ad)
+                            dd = list(dd)
 
                         if normalise:
                             # normalise before bin?
@@ -1278,6 +1279,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         if cluster_index+1 not in ret_data:
                             ret_data[cluster_index+1] = {"genelist": genelist(name="cluster_%s" % (cluster_index+1,)), "cluster_membership": cluster_id["id"]}
                         #print (chrom, int(block_id[0]), int(block_id[1]))
+                        print("chr%s:%s-%s" % (chrom, int(block_id[0]), int(block_id[1])))
                         this_loc = location(loc="chr%s:%s-%s" % (chrom, int(block_id[0]), int(block_id[1]))) # does not include the pileup_distance
                         ret_data[cluster_index+1]["genelist"].linearData.append({"loc": this_loc})
                         groups.append(cluster_index+1)
@@ -1702,16 +1704,17 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             pb = progressbar(all_chroms)
             curr_chrom = None
             for p in peaks:
-                if p['loc']['chr'] != curr_chrom:
+                p_loc = p['loc']
+                if p_loc['chr'] != curr_chrom:
                     del curr_data
-                    curr_data = t.get_array_chromosome(p['loc']['chr'], read_extend=read_extend) # this is a numpy array
-                    curr_chrom = p['loc']['chr']
+                    curr_data = t.get_array_chromosome(p_loc['chr'], read_extend=read_extend) # this is a numpy array
+                    curr_chrom = p_loc['chr']
                     pb.update(curr_n)
                     curr_n += 1
 
-                d = curr_data[p['loc']['left']:p['loc']['right']]
+                d = curr_data[p_loc['left']:p_loc['right']]
 
-                if len(d) == 0: # fell off edgor of array
+                if len(d) == 0: # fell off edge of array
                     p["conditions"][it] = 0 # Need to put a value in here
                     continue
 
@@ -1823,7 +1826,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             prog = progressbar(len(super_set_of_peaks))
             for i, p in enumerate(super_set_of_peaks):
                 p_loc = p['loc']
-                p_loc_chrom = p_loc['chrom']
+                p_loc_chrom = p_loc['chr']
                 if p_loc_chrom != this_chrom:
                     this_data = f.get_array_chromosome(p_loc_chrom)
                     this_chrom = p_loc_chrom
