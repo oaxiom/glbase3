@@ -35,11 +35,13 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
     #if config.PYDOT_AVAIL:
     #    from bayes import bayes # Requires graphviz, but will probably port it later.
 
-from .som import SOM
-from .somde import somde
-from .pca import pca
-from .mds import mds
-from .tsne import tsne
+if config.SKLEARN_AVAIL:
+    #from .learning import learning
+    from .pca import pca
+    from .mds import mds
+    from .tsne import tsne
+    from .som import SOM
+    from .somde import somde
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .mdsquish import mdsquish
@@ -147,41 +149,55 @@ class expression(base_expression):
             assert config.PYDOT_AVAIL, "Asking for a network object but pydot is not available"
             assert config.PYGRAPHVIZ_AVAIL, "Asking for a network object but pygraphviz is not available"
             self.network = network(self)
-            return(self.network)
+            return self.network
+
         elif name == "svd":
-            return(self.get_svd())
+            return self.get_svd()
+
         elif name == "pca":
-            return(self.get_pca())
+            return self.get_pca()
+
         elif name == "stats":
             self.stats = stats(self)
-            return(self.stats)
+            return self.stats
+
         elif name == "mdsquish":
             assert config.NETWORKX_AVAIL, "Asking for mdsquish but networkx is not available"
             assert config.PYDOT_AVAIL, "Asking for a mdsquish object but pydot is not available"
             assert config.PYGRAPHVIZ_AVAIL, "Asking for a network object but pygraphviz is not available"
             self.mdsquish = mdsquish(self)
-            return(self.mdsquish)
+            return self.mdsquish
+
         elif name == "som":
             assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
             sq = math.ceil(math.sqrt(len(self)))
             self.som = SOM(parent=self, name=self.name)
-            return(self.som)
+            return self.som
+
         elif name == 'somde':
             sq = math.ceil(math.sqrt(len(self)))
             self.somde = somde(parent=self, name=self.name)
-            return(self.somde)
+            return self.somde
+
         elif name == 'mds':
             self.mds = mds(parent=self, name=self.name)
-            return(self.mds)
+            return self.mds
+
         elif name == 'tsne':
             self.tsne = tsne(parent=self, name=self.name)
-            return(self.tsne)
+            return self.tsne
+
         elif name == "bayes":
             assert config.NETWORKX_AVAIL, "Asking for a bayes object but networkx/graphviz is not available"
             assert config.PYDOT_AVAIL, "Asking for a bayes object but pydot is not available"
             assert config.PYGRAPHVIZ_AVAIL, "Asking for a network object but pygraphviz is not available"
             self.bayes = bayes(self)
-            return(self.bayes)
+            return self.bayes
+
+        elif name == 'learning':
+            assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
+            self.learning = learning(self)
+            return self.learning
 
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__repr__(), name))
 
