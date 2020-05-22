@@ -18,6 +18,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import MiniBatchKMeans, AgglomerativeClustering
 from sklearn.neighbors import kneighbors_graph
 from sklearn.neighbors.nearest_centroid import NearestCentroid
+from scipy.cluster.hierarchy import dendrogram
 
 from . import config
 from .draw import draw
@@ -220,6 +221,7 @@ class tsne:
         if self.clusters:
             config.log.warning('Overwriting exisitng cluster data')
         self.clusters = None
+        self.__cluster_mode = method
 
         valid_methods = {'KMeans', 'AgglomerativeClustering'}
         assert method in valid_methods, 'method {0} not found'.format(method)
@@ -245,14 +247,24 @@ class tsne:
         elif method == 'AgglomerativeClustering':
             knn_graph = kneighbors_graph(self.npos, num_clusters, include_self=False)
 
-            mag = AgglomerativeClustering(
+            self.__model = AgglomerativeClustering(
                 linkage='ward',
                 connectivity=knn_graph,
                 n_clusters=num_clusters,
                 affinity='euclidean')
 
-            labels = mag.fit_predict(self.npos)
-            self.clusters = mag
+            self.__full_model = AgglomerativeClustering( # For the tree;
+                distance_threshold=0,
+                n_clusters=None,
+                linkage='ward',
+                connectivity=knn_graph,
+                affinity='euclidean'
+                )
+
+            self.__full_model_fp = self.__full_model.fit(self.npos)
+
+            labels = self.__model.fit_predict(self.npos)
+            self.clusters = self.__model
             self.cluster_labels = labels
 
             clf = NearestCentroid()
@@ -261,3 +273,45 @@ class tsne:
 
         config.log.info('tsne.cluster: {0} clustered'.format(method))
         return self.clusters, self.cluster_labels, self.centroids
+
+    def cluster_tree(self, filename, **kargs):
+        """
+        **Purpose**
+            Draw the relationship between clusters as a tree.
+            Only valid if clusering mode was 'AgglomerativeClsutering'
+
+        **Arguments**
+            filename (Required)
+                filename to save the image to
+        """
+        assert filename, 'You must specify a filename'
+        assert self.__cluster_mode == 'AgglomerativeClustering', 'cluster_tree can only be used if the cluster method was AgglomerativeClustering'
+
+        fig = self.__draw.getfigure()
+
+        # Create linkage matrix and then plot the dendrogram
+
+        # create the counts of samples under each node
+        counts = numpy.zeros(self.__full_model_fp.children_.shape[0])
+        n_samples = len(self.__full_model_fp.labels_)
+        for i, merge in enumerate(self.__full_model_fp.children_):
+            current_count = 0
+            for child_idx in merge:
+                if child_idx < n_samples:
+                    current_count += 1  # leaf node
+                else:
+                    current_count += counts[child_idx - n_samples]
+            counts[i] = current_count
+
+        linkage_matrix = numpy.column_stack([
+            self.__full_model_fp.children_,
+            self.__full_model_fp.distances_,
+            counts]).astype(float)
+
+        ax = fig.add_subplot(111)
+        # Plot the corresponding dendrogram
+        dendrogram(linkage_matrix, ax=ax,
+            truncate_mode='level', p=self.__model.n_clusters,
+            **kargs)
+
+        self.__draw.savefigure(fig, filename)
