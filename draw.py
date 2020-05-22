@@ -56,6 +56,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
+from cycler import cycler # colours
 from matplotlib.colors import ColorConverter, rgb2hex, ListedColormap
 import matplotlib.colors as matplotlib_colors
 import matplotlib.mlab as mlab
@@ -2385,7 +2386,7 @@ class draw:
         spots=True, label=False, alpha=0.8, perc_weights=None, spot_cols='grey', overplot=None,
         spot_size=40, label_font_size=7, label_style=None, cut=None, squish_scales=False, only_plot_if_x_in_label=None,
         adjust_labels=False, cmap=None,
-        cluster_data=None, draw_clusters=None, cluster_labels=None,
+        cluster_data=None, draw_clusters=None, cluster_labels=None, cluster_centroids=None,
         **kargs):
         '''
         Unified for less bugs, more fun!
@@ -2430,28 +2431,24 @@ class draw:
 
         if draw_clusters:
             # unpack the cluster_data for convenience
-            colors = cm.get_cmap('tab20').colors
+            ax.set_prop_cycle(cycler(color=plot.get_cmap('tab20c').colors))
             n_clusters = cluster_data.n_clusters
 
-            for labelk, col in zip(range(n_clusters), colors):
-                col = [col,]
-
-                cluster_center = cluster_data.cluster_centers_[labelk]
+            for labelk in range(n_clusters):
+                cluster_center = cluster_centroids[labelk]
                 this_x = [xdata[i] for i, l in enumerate(cluster_labels) if l == labelk]
                 this_y = [ydata[i] for i, l in enumerate(cluster_labels) if l == labelk]
-                ax.scatter(this_x, this_y, s=spot_size+1, alpha=alpha, edgecolors="none", c=col, zorder=5)
+                ax.scatter(this_x, this_y, s=spot_size+1, alpha=1.0, edgecolors="none", zorder=5)
 
                 #ax.plot(xdata[labelk], ydata[labelk], 'w', markerfacecolor=col, marker='.')
 
-                ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor='none', markeredgecolor='black', markersize=6, zorder=6)
-
-                ax.text(cluster_center[0], cluster_center[1], 'Cluster {0}'.format(labelk), ha='center', zorder=7)
+                ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor='none', markeredgecolor='black', alpha=0.4, markersize=6, zorder=6)
+                ax.text(cluster_center[0], cluster_center[1], labelk, ha='center', zorder=7)
 
             ax.scatter(xdata, ydata, s=spot_size,
                         alpha=alpha, edgecolors="none",
                         c=spot_cols, cmap=cmap,
                         zorder=2)
-
         elif spots:
             ax.scatter(xdata, ydata, s=8,
                 alpha=alpha, edgecolors="none",
@@ -2461,7 +2458,6 @@ class draw:
             # if spots is false then the axis limits are set to 0..1. I will have to send my
             # own semi-sensible limits:
             squish_scales = True
-
 
         if overplot:
             ax.scatter(newx, newy, s=spot_size+1, alpha=alpha, edgecolors="none", c=newcols, zorder=5)

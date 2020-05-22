@@ -2,7 +2,7 @@
 
 tSNE analysis for glbase expression objects.
 
-This should really be merged with MDS
+This should really be merged with MDS and inherited...
 
 """
 
@@ -15,7 +15,9 @@ from mpl_toolkits.mplot3d import Axes3D, art3d
 import scipy.cluster.vq
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from sklearn.cluster import MiniBatchKMeans
+from sklearn.cluster import MiniBatchKMeans, AgglomerativeClustering
+from sklearn.neighbors import kneighbors_graph
+from sklearn.neighbors.nearest_centroid import NearestCentroid
 
 from . import config
 from .draw import draw
@@ -188,7 +190,7 @@ class tsne:
             spot_cols=spot_cols, spots=spots, label=label, alpha=alpha,
             spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales,
             only_plot_if_x_in_label=only_plot_if_x_in_label,
-            cluster_data=self.clusters, cluster_labels=self.cluster_labels, draw_clusters=draw_clusters,
+            cluster_data=self.clusters, cluster_labels=self.cluster_labels, cluster_centroids=self.centroids, draw_clusters=draw_clusters,
             **kargs)
 
         return return_data
@@ -206,18 +208,20 @@ class tsne:
 
                 Implemented:
                     'KMeans': The k-means (MiniBatchKMeans) algorithm. Requires a 'num_clusters' argument
+                    'AgglomerativeClustering': AgglomerativeClustering. Requires a 'num_clusters' argument
 
             num_clusters (Required)
-                The expected number of clusters
+                The expected number of clusters.
 
         **Returns**
-            A dict containing
+            THe cluster model and cluster labels
+
         '''
         if self.clusters:
             config.log.warning('Overwriting exisitng cluster data')
         self.clusters = None
 
-        valid_methods = {'KMeans'}
+        valid_methods = {'KMeans', 'AgglomerativeClustering'}
         assert method in valid_methods, 'method {0} not found'.format(method)
 
         xdata = self.npos[:, 0]
@@ -236,6 +240,24 @@ class tsne:
             labels = mbk.fit_predict(self.npos)
             self.clusters = mbk
             self.cluster_labels = labels
+            self.centroids = mbk.cluster_centers_
+
+        elif method == 'AgglomerativeClustering':
+            knn_graph = kneighbors_graph(self.npos, num_clusters, include_self=False)
+
+            mag = AgglomerativeClustering(
+                linkage='ward',
+                connectivity=knn_graph,
+                n_clusters=num_clusters,
+                affinity='euclidean')
+
+            labels = mag.fit_predict(self.npos)
+            self.clusters = mag
+            self.cluster_labels = labels
+
+            clf = NearestCentroid()
+            clf.fit(self.npos, labels)
+            self.centroids = clf.centroids_
 
         config.log.info('tsne.cluster: {0} clustered'.format(method))
-        return self.clusters, self.cluster_labels
+        return self.clusters, self.cluster_labels, self.centroids
