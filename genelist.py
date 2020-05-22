@@ -160,7 +160,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             else:
                 raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer')
 
-            config.log.info("genelist(): loaded '%s' found %s items" % (filename, len(self.linearData)))
+            config.log.info("genelist: loaded '{0}' found {1} items".format(filename, len(self.linearData)))
         elif loadable_list:
             self.load_list(loadable_list)
 
@@ -1382,14 +1382,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A new expression-object containing only the items that pass.
         """
-        assert key, "filter_by_value(): 'key' argument is required"
-        assert evaluator in ("gt", "lt", "gte", "lte", "equal", ">", "<", ">=", "<=", "=="), "filter_by_value(): evaluator argument '%s' not recognised" % evaluator
+        assert key, "filter_by_value: 'key' argument is required"
+        assert evaluator in ("gt", "lt", "gte", "lte", "equal", ">", "<", ">=", "<=", "=="), "filter_by_value: evaluator argument '%s' not recognised" % evaluator
 
         if self.__repr__() == "glbase.expression" and key in self._conditions:
-            assert key in self._conditions, "filter_by_value():'%s' not found in this expression object" % key
+            assert key in self._conditions, "filter_by_value:'%s' not found in this expression object" % key
             its_a_condition = True
         else:
-            assert key in list(self.keys()), "filter_by_value(): no key named '%s' found in this genelist object" % key
+            assert key in list(self.keys()), "filter_by_value: no key named '%s' found in this genelist object" % key
             its_a_condition = False
 
         new_expn = []
@@ -1502,7 +1502,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if repr(genelist) == "glbase.delayedlist": # delayedlists will fail an assertion
             gene_list = genelist
         else:
-            assert genome or genelist or peaklist or microarray, "map(): No valid genelist specified"
+            assert genome or genelist or peaklist or microarray, "map: No valid genelist specified"
 
         if genelist:
             gene_list = genelist
@@ -1559,7 +1559,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                                     elif "err" in new_entry: # Only one list has an err key, output a warning and kill it.
                                         if not __warning_assymetric_errs:
                                             __warning_assymetric_errs = True
-                                            config.log.warning("map(): Only one of the two lists has an 'err' key, deleting it")
+                                            config.log.warning("map: Only one of the two lists has an 'err' key, deleting it")
                                         del new_entry["err"]
 
                         newl.linearData.append(new_entry)
@@ -1570,7 +1570,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if "image_filename" in kargs and kargs["image_filename"]:
             if not greedy:
-                config.log.warning("map(): greedy=False, this can lead to inaccurate results in the Venn diagram")
+                config.log.warning("map: greedy=False, this can lead to inaccurate results in the Venn diagram")
 
             venn_proportional = False
             if "venn_proportional" in kargs and kargs["venn_proportional"]:
@@ -1893,7 +1893,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             item[key] = value
 
         newl._optimiseData()
-        config.log.info("addFakeKey(): Added a new key '%s'" % key)
+        config.log.info("addEmptyKey: Added a new key '%s'" % key)
         return(newl)
 
     def expand(self, key="loc", base_pairs=None, side="both"):
@@ -2081,7 +2081,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     perc = (len_res/ float(len(self)+len(genelist)-len_res) ) # This is actually the Jaccard index
                 except ZeroDivisionError: # This can occur if you collide two identical lists
                     perc = 1.0
-                config.log.info("{0}(): found {1} (Jaccard={2:.3f}) overlaps in [{3} & {4}] with '{5}' key".format(compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
+                config.log.info("{0}: found {1} (Jaccard={2:.3f}) overlaps in [{3} & {4}] with '{5}' key".format(compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
 
         return(newl)
 
@@ -2173,10 +2173,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert compare_mode, "compare_mode cannot be False"
 
         if image_filename:
-            config.log.warning("_unified_collide_overlap(): use of image_filename to draw a Venn is not recommended. The values in the Venn")
+            config.log.warning("_unified_collide_overlap: use of image_filename to draw a Venn is not recommended. The values in the Venn")
             config.log.warning("                   may not match the actual overlap values (due to multiple overlaps for a single location)")
             if "logic" in kargs and kargs["logic"] != "and":
-                config.log.warning("_unified_collide_overlap(): The output to the Venn (image_filename) when logic != 'and' is not correct")
+                config.log.warning("_unified_collide_overlap: The output to the Venn (image_filename) when logic != 'and' is not correct")
 
         __add_tag_keys_warning = False
         __add_tag_keys_float_warning = False
@@ -2185,11 +2185,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "genelist" in kargs:
             gene_list = kargs["genelist"]
         else:
-            raise AssertionError("_unified_collide_overlap(): No valid genelist-like object") # bodge the error as I do loading at the same time.
+            raise AssertionError("_unified_collide_overlap: No valid genelist-like object") # bodge the error as I do loading at the same time.
             # yes it could be done in a one line assert, but how then do I load gene_list?
 
-        assert loc_key in self[0], "_unified_collide_overlap(): The 'loc_key' '%s' not found in this list" % (loc_key, )
-        assert loc_key in gene_list[0], "_unified_collide_overlap(): The 'loc_key' '%s' not found in the other list" % (loc_key, )
+        assert loc_key in self[0], "_unified_collide_overlap: The 'loc_key' '%s' not found in this list" % (loc_key, )
+        assert loc_key in gene_list[0], "_unified_collide_overlap: The 'loc_key' '%s' not found in the other list" % (loc_key, )
 
         merge = False
         if "merge" in kargs:
@@ -2560,7 +2560,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
 
-        config.log.info("removeDuplicates(): %s duplicates, list now %s items long" % (len(self) - len(newl), len(newl)))
+        config.log.info("removeDuplicates: %s duplicates, list now %s items long" % (len(self) - len(newl), len(newl)))
         return(newl)
 
     def removeExactDuplicates(self):
@@ -2589,7 +2589,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
 
-        config.log.info("removeExactDuplicates(): %s exact duplicates" % (len(self) - len(newl)))
+        config.log.info("removeExactDuplicates: %s exact duplicates" % (len(self) - len(newl)))
         return(newl)
 
     def removeEmptyDataByKey(self, key=None):
@@ -3024,7 +3024,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             newl.linearData.append(newk)
 
         newl._optimiseData()
-        config.log.info("splitKeyValue(): split '%s' into ~'%s'%s'%s' key value pairs" % (key, len(k), val_sep, len(v)))
+        config.log.info("splitKeyValue: split '%s' into ~'%s'%s'%s' key value pairs" % (key, len(k), val_sep, len(v)))
         return(newl)
 
     def splitKey(self, key, key_names, keep_original=False):
@@ -3803,7 +3803,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         fig.tight_layout()
 
         actual_filename = self.draw.savefigure(fig, filename)
-        config.log.info("bar_chart(): Saved '%s'" % actual_filename)
+        config.log.info("bar_chart: Saved '%s'" % actual_filename)
 
         return None
 
@@ -3974,7 +3974,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.draw.do_common_args(ax, **kargs)
 
         actual_filename = self.draw.savefigure(fig, filename)
-        config.log.info("frequency_bar_chart(): Saved '%s'" % actual_filename)
+        config.log.info("frequency_bar_chart: Saved '%s'" % actual_filename)
 
         # turn the result into a genelist:
         gl = genelist(name="bar_chart result")
@@ -4020,9 +4020,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Retuns**
             A new genelist, with the item(s) removed
         """
-        assert key, "remove(): You must specify a key"
-        assert value, "remove(): You must specify a value"
-        assert key in list(self.keys()), "remove(): key '%s was not found in this genelist" % key
+        assert key, "remove: You must specify a key"
+        assert value, "remove: You must specify a value"
+        assert key in list(self.keys()), "remove: key '%s was not found in this genelist" % key
 
         newl = self.shallowcopy() # Just use a view as we are not really modifying the data.
         newl.linearData = [] # get a new view
@@ -4035,7 +4035,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 removed += 1
 
         newl._optimiseData()
-        config.log.info("remove(): removed %s items" % removed)
+        config.log.info("remove: removed %s items" % removed)
         return(newl)
 
     def cumulative_annotation_plot(self, filename, peaklists, randoms=None, annotation_range=(100, 50000, 500), **kargs):
@@ -4061,7 +4061,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A file saved in filename.
         """
-        assert filename, "cumulative_annotation_plot(): You must provide a filename"
+        assert filename, "cumulative_annotation_plot: You must provide a filename"
 
         xs = list(range(100, 50000, 500))
         result = []

@@ -32,7 +32,7 @@ class tsne:
         self.__draw = draw()
 
     def __repr__(self):
-        return("<glbase.mds>")
+        return("<glbase.tsne>")
 
     def __str__(self):
         ret = ["tSNE object",
@@ -85,7 +85,7 @@ class tsne:
         **Purpose**
             Train the tSNE on the first <num_pc> components of a PCA
 
-            MDS is generally too computationally heavy to do on a full dataset, so you
+            tSNE is generally too computationally heavy to do on a full dataset, so you
             should choose the first few PCs to train the tSNE. Check the pca module
             for a PCA interface you can use to select the best PCs
 
@@ -175,7 +175,7 @@ class tsne:
         **Returns**
             None
         """
-        assert filename, "scatter: Must provide a filename"
+        assert filename, "tsne.scatter: Must provide a filename"
 
         labels = self.labels
         xdata = self.npos[:, 0]
@@ -193,7 +193,7 @@ class tsne:
 
         return return_data
 
-    def cluster(self, method=None, num_clusters=None):
+    def cluster(self, method=None, num_clusters=None, filename=None):
         '''
         **Purpose**
             Report louvain or leiden clusters for a trained 2D tSNE
@@ -206,6 +206,9 @@ class tsne:
 
                 Implemented:
                     'KMeans': The k-means (MiniBatchKMeans) algorithm. Requires a 'num_clusters' argument
+
+            num_clusters (Required)
+                The expected number of clusters
 
         **Returns**
             A dict containing
@@ -234,5 +237,5 @@ class tsne:
             self.clusters = mbk
             self.cluster_labels = labels
 
-        config.log.info('{0} clustered'.format(method))
+        config.log.info('tsne.cluster: {0} clustered'.format(method))
         return self.clusters, self.cluster_labels
