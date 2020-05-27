@@ -103,8 +103,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         config.log.error("glglobs cannot be written to")
 
     def compare(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
-        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None,
-        jaccard=False, **kargs):
+        mode='fast',
+        row_cluster=True, col_cluster=True, bracket=None,
+        pearson_tsv=None,
+        jaccard=False,
+        **kargs):
         """
         **Purpose**
             perform a square comparison between the genelists according
@@ -163,13 +166,245 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             returns the distance matrix if succesful or False|None if not.
             Saves an image to 'filename' containing a grid heatmap
         """
+        valid_modes = ['fast', 'slow']
         valid_methods = ["overlap", "collide", "map"]
         valid_dist_score = ["euclidean"]
         distance_score = "euclidean" # override for the moment
+        assert mode in valid_modes, "must use a valid method for comparison ({0})".format(", ".join(valid_modes))
         assert method in valid_methods, "must use a valid method for comparison (%s)" % ", ".join(valid_methods)
         assert filename, "Filename must be valid"
         assert key in self.linearData[0].linearData[0], "key '%s' not found" % (key,) # just check one of the lists
         assert distance_score in valid_dist_score, "%s is not a valid distance metric" % (distance_score,)
+
+        if mode == 'slow':
+            return self.__compare_slow(key=key, filename=filename, method=method, delta=delta,
+                matrix_tsv=matrix_tsv, pearson_tsv=pearson_tsv,
+                row_cluster=row_cluster, col_cluster=col_cluster, bracket=bracket,
+                jaccard=jaccard,
+                **kargs)
+        elif mode == 'fast':
+            return self.__compare_fast(key=key, filename=filename, method=method, delta=delta,
+                matrix_tsv=matrix_tsv, pearson_tsv=pearson_tsv,
+                row_cluster=row_cluster, col_cluster=col_cluster, bracket=bracket,
+                jaccard=jaccard,
+                **kargs)
+
+    def __compare_fast(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
+        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None, bin_size=5000,
+        jaccard=False, **kargs):
+        """
+        **Purpose**
+            The new style faster O(lin*lin/23) version
+
+        """
+        assert not jaccard, 'Jaccard not implemented for compare mode=fast'
+        assert method != 'map', 'method=map not implemented when mode=fast'
+
+        mat = {}
+        num_samples = len(self.linearData)
+
+        if jaccard:
+            if not bracket:
+                bracket = [0.0, 0.4]
+        else: # Integers will do fine to store the overlaps
+            if not bracket:
+                bracket = [-0.2, 1]
+
+        matrix = zeros( (len(self), len(self)), dtype=numpy.float64 ) # Must be float;
+
+        config.log.info('Stage 1: Overlaps')
+        p = progressbar(num_samples)
+        # Prep the overlap table;
+        for ia, this_peak_list in enumerate(self.linearData):
+            for la in this_peak_list.linearData:
+                chrom = la['loc']['chr']
+                if chrom not in mat:
+                    mat[chrom] = {}
+
+                # check for an overlap;
+                left = la['loc']['left'] - delta # overlap;
+                rite = la['loc']['left'] + delta
+                if method == 'collide':
+                    ctr = (left + rite) // 2
+                    left = ctr - delta
+                    rite = ctr + delta
+
+                hit = None
+
+                # super-fast mode (genome is binned)
+                bin = (int(left / bin_size)*bin_size, int(rite / bin_size)*bin_size) # still keep proper locations if you want an accurate matrix_tsv
+                if bin not in mat[chrom]:
+                    mat[chrom][bin] = [0] * num_samples # no hit found
+                mat[chrom][bin][ia] = 1
+
+                '''
+                # fast mode (jiggle algortihm)
+                for l in mat[chrom]:
+
+
+                    if rite >= l[0] and left <= l[1]:
+                        newctr = ((l[0] + left) // 2 + (l[1] + rite) // 2 ) // 2
+
+                        hit = l
+                        #hit = (newctr-delta, newctr+delta)
+                        #if hit != l:
+                        #    mat[chrom][hit] = mat[chrom][l] # jiggle together the peak overlaps;
+                        #    del mat[chrom][l] # delete the old one, and expand the coords to jiggle the peak
+                        break
+                if hit:
+                    mat[chrom][hit][ia] = 1
+                else:
+                    mat[chrom][(left,rite)] = [0] * num_samples # no hit found
+                '''
+                p.update(ia)
+
+        # TOFIX: output the full matrix;
+        if matrix_tsv:
+            names = [i.name for i in self.linearData]
+            oh = open(matrix_tsv, "w")
+            oh.write("%s\n" % "\t".join([] + names))
+
+            for ia, la in enumerate(names):
+                oh.write("%s" % la)
+                for ib, lb in enumerate(names):
+                    oh.write("\t%s" % matrix[ia,ib])
+                oh.write("\n")
+            oh.close()
+
+        # Go through the table once more and merge overlapping peaks?
+
+        # You can now dispose of the location data and convert the matrices to numpy arrays
+        config.log.info('Stage 2: Clean matrix')
+        total_num_peaks = 0
+        for chrom in mat:
+            mat[chrom] = numpy.array([mat[chrom][loc] for loc in mat[chrom]])
+            total_num_peaks += mat[chrom].shape[0]
+        config.log.info('Total number of peaks = {0:,}'.format(total_num_peaks))
+
+        # Now it's simpler, take the column sums;
+        config.log.info('Stage 3: Correlations')
+
+        peak_lengths = [len(a) for a in self.linearData]
+
+        # convert to the triangular matrix:
+        p = progressbar(len(peak_lengths))
+        for ia, la in enumerate(peak_lengths):
+            for ib, lb in enumerate(peak_lengths):
+                if ia == ib:
+                    matrix[ia, ib] = peak_lengths[ia] # should be filled in with the maximum possible overlap.
+                    continue
+                elif ia < ib: # make search triangular
+                    continue
+
+                # the overlap is each row sums to 2
+                res = 1 # If two lists collide to produce 0 hits it eventually ends up with nan, so put in a psudoe overlap;
+                for chrom in mat:
+                    #print(mat[chrom][ia,:], mat[chrom][ib:,])
+                    s = mat[chrom][:,ia] + mat[chrom][:,ib] # down, across
+                    res += len(s[s>=2])
+
+                #config.log.info('{0
+
+                if jaccard:
+                    res = (res / float(len(la) + len(lb) - res))
+
+                matrix[ia, ib] = res
+
+            p.update(ia)
+
+        # fill in the gaps in the triangle
+        for ia, la in enumerate(self.linearData):
+            for ib, lb in enumerate(self.linearData):
+                if ia < ib:
+                    matrix[ia,ib] = matrix[ib,ia]
+
+
+        # Normalise
+        if jaccard:
+            result_table = matrix # normalised already;
+        else:
+            # data must be normalised to the maximum possible overlap.
+            for ia, la in enumerate(peak_lengths):
+                for ib, lb in enumerate(peak_lengths):
+                    matrix[ia,ib] = (matrix[ia,ib] / min([la, lb]))
+
+            print(matrix)
+
+            corr_result_table = zeros( (len(self), len(self)) ) # square matrix to store the data.
+            # convert the data to a pearson score.
+            for ia, this_col in enumerate(matrix):
+                for ib, other_col in enumerate(matrix):
+                    if ia != ib:
+                        corr_result_table[ia,ib] = pearsonr(this_col, other_col)[0] # [0] = r score, [1] = p-value
+                    else:
+                        corr_result_table[ia,ib] = 1.0
+
+            result_table = corr_result_table
+
+        if pearson_tsv:
+            names = [i.name for i in self.linearData]
+            oh = open(pearson_tsv, "w")
+            oh.write("%s\n" % "\t".join([] + names))
+
+            for ia, la in enumerate(names):
+                oh.write("%s" % la)
+                for ib, lb in enumerate(names):
+                    oh.write("\t%s" % corr_result_table[ia,ib])
+                oh.write("\n")
+            oh.close()
+
+        # need to add the labels and serialise into a dict of lists.
+        dict_of_lists = {}
+        row_names = []
+        for index, item in enumerate(self.linearData):
+            dict_of_lists[item.name] = result_table[index]
+            row_names.append(item.name) # preserve order of row names.
+
+        if "output_pair_wise_correlation_plots" in kargs and kargs["output_pair_wise_correlation_plots"]:
+            # output the plot matrices.
+            for ia, la in enumerate(self.linearData):
+                for ib, lb in enumerate(self.linearData):
+                    plot_data = []
+                    if ia != ib:
+                        x = matrix[ia,]
+                        y = matrix[ib,]
+                        self.draw._scatter(x, y, xlabel=row_names[ia], ylabel=row_names[ib],
+                            filename="dpwc_plot_%s_%s.png" % (row_names[ia], row_names[ib]))
+
+        if "aspect" in kargs:
+            aspect = kargs["aspect"]
+        else:
+            aspect = "normal"
+
+        # respect heat_wid, hei if present
+        square = True
+        if "heat_hei" in kargs or "heat_wid" in kargs:
+            square=False
+
+        #print dict_of_lists
+        if jaccard:
+            colbar_label = 'Jaccard index'
+        else:
+            colbar_label = 'Pearson correlation'
+
+        # draw the heatmap and save:
+        ret = self.draw.heatmap(data=dict_of_lists, filename=filename,
+            colbar_label=colbar_label, bracket=bracket,
+            square=square, cmap=cm.hot, cluster_mode="euclidean", row_cluster=row_cluster, col_cluster=col_cluster,
+            row_names=row_names, col_names=row_names, aspect=aspect, **kargs)
+
+        config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])
+        return(dict_of_lists)
+
+
+
+    def __compare_slow(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
+        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None,
+        jaccard=False, **kargs):
+        """
+        **Purpose**
+            The old-style all-vs all intersect based
+        """
 
         config.log.info("This may take a while, all lists are intersected by '%s' with '%s' key" % (method, key))
 

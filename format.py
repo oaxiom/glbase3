@@ -17,6 +17,7 @@ See below for the catalogue of file formats
 
 import csv, re, copy
 
+import gzip as gzipfile
 from .format_container import fc
 from .helpers import lst_find
 
@@ -294,12 +295,16 @@ hmmer_tbl = fc(name="hmmer_tbl",
     format={"special": "hmmer_tbl"})
 
 
-def _load_hmmer_tbl(filename):
+def _load_hmmer_tbl(filename, gzip=False):
     """
     # Unbelievably stupid format for hmmer:
     Load the hmmer tbl_out table
     """
-    oh = open(filename, "rt")
+    if gzip:
+        oh = gzipfile.open(filename, "rt")
+    else:
+        oh = open(filename, "rt")
+
     res = []
     for line in oh:
         if "#" not in line:
@@ -324,12 +329,15 @@ hmmer_domtbl = fc(name="hmmer_domtbl",
     description="hmmsearch/hmmscan --domtbl_out loader",
     format={"special": "hmmer_domtbl"})
 
-def _load_hmmer_domtbl(filename):
+def _load_hmmer_domtbl(filename, gzip=False):
     """
     # Unbelievably stupid format for hmmer:
     Load the hmmer domtblout format table
     """
-    oh = open(filename, "rt")
+    if gzip:
+        oh = gzipfile.open(filename, "rt")
+    else:
+        oh = open(filename, "rt")
     res = []
     for line in oh:
         if "#" in line:
@@ -346,7 +354,6 @@ def _load_hmmer_domtbl(filename):
         #try:
         #    row[
         #except ValueError:
-
 
         res.append(row)
     return res

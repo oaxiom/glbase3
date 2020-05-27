@@ -213,11 +213,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     self._optimiseData()
                     return True
                 if format["special"] == "hmmer_tbl":
-                    self.linearData = _load_hmmer_tbl(filename)
+                    self.linearData = _load_hmmer_tbl(filename, gzip=gzip)
                     self._optimiseData()
                     return True
                 elif format['special'] == 'hmmer_domtbl':
-                    self.linearData = _load_hmmer_domtbl(filename)
+                    self.linearData = _load_hmmer_domtbl(filename, gzip=gzip)
                     self._optimiseData()
                     return True
         else:
