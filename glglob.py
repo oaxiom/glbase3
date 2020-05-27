@@ -224,15 +224,16 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 # check for an overlap;
                 left = la['loc']['left'] - delta # overlap;
                 rite = la['loc']['left'] + delta
+                ctr = (left + rite) // 2
                 if method == 'collide':
-                    ctr = (left + rite) // 2
                     left = ctr - delta
                     rite = ctr + delta
 
                 hit = None
 
                 # super-fast mode (genome is binned)
-                bin = (int(left / bin_size)*bin_size, int(rite / bin_size)*bin_size) # still keep proper locations if you want an accurate matrix_tsv
+                bin = int(ctr / bin_size)*bin_size# still keep proper locations if you want an accurate matrix_tsv
+                bin = (bin, bin+bin_size)
                 if bin not in mat[chrom]:
                     mat[chrom][bin] = [0] * num_samples # no hit found
                 mat[chrom][bin][ia] = 1
@@ -258,20 +259,24 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 '''
                 p.update(ia)
 
-        # TOFIX: output the full matrix;
+        # output the full location matrix;
         if matrix_tsv:
             names = [i.name for i in self.linearData]
             oh = open(matrix_tsv, "w")
-            oh.write("%s\n" % "\t".join([] + names))
+            oh.write("%s\n" % "\t".join(['loc',] + names))
 
-            for ia, la in enumerate(names):
-                oh.write("%s" % la)
-                for ib, lb in enumerate(names):
-                    oh.write("\t%s" % matrix[ia,ib])
-                oh.write("\n")
+            for chrom in mat:
+                for bin in sorted(mat[chrom]):
+                    line = ['chr{0}:{1}-{2}'.format(chrom, bin[0], bin[1]), ]
+
+                    line += [str(i) for i in mat[chrom][bin]]
+
+                    oh.write('{0}\n'.format('\t'.join(line)))
+
             oh.close()
 
         # Go through the table once more and merge overlapping peaks?
+        # Only if the jiggle=True
 
         # You can now dispose of the location data and convert the matrices to numpy arrays
         config.log.info('Stage 2: Clean matrix')
@@ -282,7 +287,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         config.log.info('Total number of peaks = {0:,}'.format(total_num_peaks))
 
         # Now it's simpler, take the column sums;
-        config.log.info('Stage 3: Correlations')
+        config.log.info('Stage 3: Collect overlaps')
 
         peak_lengths = [len(a) for a in self.linearData]
 
@@ -293,17 +298,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 if ia == ib:
                     matrix[ia, ib] = peak_lengths[ia] # should be filled in with the maximum possible overlap.
                     continue
-                elif ia < ib: # make search triangular
+                elif ia < ib: # make triangular
                     continue
 
                 # the overlap is each row sums to 2
-                res = 1 # If two lists collide to produce 0 hits it eventually ends up with nan, so put in a psudoe overlap;
+                res = 1 # If two lists collide to produce 0 hits it eventually ends up with nan, so put in a pseudo overlap;
                 for chrom in mat:
                     #print(mat[chrom][ia,:], mat[chrom][ib:,])
                     s = mat[chrom][:,ia] + mat[chrom][:,ib] # down, across
                     res += len(s[s>=2])
-
-                #config.log.info('{0
 
                 if jaccard:
                     res = (res / float(len(la) + len(lb) - res))
@@ -318,7 +321,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 if ia < ib:
                     matrix[ia,ib] = matrix[ib,ia]
 
-
+        config.log.info('Stage 4: Correlations')
         # Normalise
         if jaccard:
             result_table = matrix # normalised already;
@@ -395,8 +398,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])
         return(dict_of_lists)
-
-
 
     def __compare_slow(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
         row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None,
