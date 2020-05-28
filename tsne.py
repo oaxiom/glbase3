@@ -13,51 +13,12 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
 from . import config
-from .draw import draw
 from .genelist import genelist
 from .base_manifold import base_manifold
 
 class tsne(base_manifold):
     def __init__(self, parent=None, name='none'):
         base_manifold.__init__(self, parent=parent, name=name, manifold_type='tsne')
-
-    def configure(self, rowwise=False, feature_key_name=None, whiten=False,
-        random_state=None, **kargs):
-        """
-        **Purpose**
-            Configure the tSNE
-
-        **Arguments**
-            rowwise (Optional, default=False)
-                perform PCA/tSNE on the rows, rather than the columns
-
-            feature_key_name (Optional, default=False)
-                if rowwise=True then this must be set to a key name
-                in the expression object ot extract the row labels from.
-
-            random_state (Optional, default=None)
-                tSNE is non-determinisic
-                set this to the seed you wish to use, otherwise a random number used
-
-            whiten (Optional, default=False)
-                set the data to unit variance
-
-        """
-        if rowwise:
-            # rowwise here is not needed
-            assert feature_key_name, 'If rowwise=True then feature_key_name must also be valid'
-            assert feature_key_name in list(self.parent.keys()), 'feature_key_name "%s" not found in this expression object' % feature_key_name
-            self.labels = self.parent[feature_key_name]
-            self.data_table = self.parent.getExpressionTable()
-        else:
-            self.labels = self.parent.getConditionNames()
-            self.data_table = self.parent.getExpressionTable().T
-
-        self.random_state = random_state
-        random.seed(self.random_state)
-
-        self.whiten = whiten
-        self.configured = True
 
     def train(self, num_pc, perplexity=30):
         """
@@ -97,7 +58,9 @@ class tsne(base_manifold):
         self.__model = TSNE(n_components=2,
             perplexity=perplexity,
             init='pca',
-            random_state=self.random_state) # I make this deterministic
+            random_state=self.random_state,
+            verbose=self.verbose)
+
         self.npos = self.__model.fit_transform(self.__pcas)
 
         self.trained = True

@@ -47,8 +47,13 @@ class base_manifold:
             ]
         return("\n".join(ret))
 
-    def configure(self, rowwise=False, feature_key_name=None, whiten=False,
-        random_state=None, **kargs):
+    def configure(self,
+        rowwise: str = False,
+        feature_key_name: str = None,
+        whiten: bool = False,
+        random_state = None,
+        verbose: int = 2,
+        **kargs):
         """
         **Purpose**
             Configure the {0} Manifold
@@ -81,6 +86,8 @@ class base_manifold:
 
         self.random_state = random_state
         random.seed(self.random_state)
+
+        self.verbose = verbose
 
         self.whiten = whiten
         self.configured = True
