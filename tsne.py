@@ -32,6 +32,7 @@ class tsne:
         self.trained = False
         self.clusters = False
         self.cluster_labels = None
+        self.centroids = None
         self.__draw = draw()
 
     def __repr__(self):

@@ -47,7 +47,7 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .mdsquish import mdsquish
 
 class expression(base_expression):
-    def __init__(self, loadable_list=None, filename=None, format=None, expn=None, **kargs):
+    def __init__(self, loadable_list=None, filename=None, format=None, expn=None, gzip=False, **kargs):
         """
         **Purpose**
             The base container for expression data.
@@ -107,6 +107,9 @@ class expression(base_expression):
 
             silent (Optional, default=False)
                 Do not output any reports (primarily this is for internal functions)
+
+            gzip (Optional)
+                is the filename gzipped?
         """
         if loadable_list:
             base_expression.__init__(self, loadable_list=loadable_list, expn=expn, **kargs)

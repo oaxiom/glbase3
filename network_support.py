@@ -115,7 +115,7 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         new_ep.append(((x, y), (dx,dy)))
     edge_pos = numpy.asarray(new_ep)
 
-    if not cb.iterable(width):
+    if not numpy.iterable(width):
         #print [G.get_edge_data(n[0], n[1])['weight'] for n in edgelist]
         # see if I can find an edge attribute:
         if 'weight' in G.get_edge_data(edgelist[0][0], edgelist[0][1]): # Test an edge
@@ -125,14 +125,14 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     else:
         lw = width
 
-    if not is_string_like(edge_color) and cb.iterable(edge_color) and len(edge_color) == len(edge_pos):
+    if not is_string_like(edge_color) and numpy.iterable(edge_color) and len(edge_color) == len(edge_pos):
         if numpy.alltrue([cb.is_string_like(c) for c in edge_color]):
             # (should check ALL elements)
             # list of color letters such as ['k','r','k',...]
             edge_colors = tuple([colorConverter.to_rgba(c, alpha) for c in edge_color])
         elif numpy.alltrue([not cb.is_string_like(c) for c in edge_color]):
             # If color specs are given as (rgb) or (rgba) tuples, we're OK
-            if numpy.alltrue([cb.iterable(c) and len(c) in (3, 4) for c in edge_color]):
+            if numpy.alltrue([numpy.iterable(c) and len(c) in (3, 4) for c in edge_color]):
                 edge_colors = tuple(edge_color)
             else:
                 # numbers (which are going to be mapped with a colormap)
@@ -156,8 +156,8 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     edge_collection.set_label(label)
     ax.add_collection(edge_collection)
 
-    if cb.is_numlike(alpha):
-        edge_collection.set_alpha(alpha)
+    #if cb.is_numlike(alpha):
+    edge_collection.set_alpha(alpha)
 
     if edge_colors is None:
         if edge_cmap is not None:

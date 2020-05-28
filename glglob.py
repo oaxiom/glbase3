@@ -257,7 +257,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 else:
                     mat[chrom][(left,rite)] = [0] * num_samples # no hit found
                 '''
-                p.update(ia)
+            p.update(ia)
 
         # output the full location matrix;
         if matrix_tsv:
@@ -274,6 +274,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     oh.write('{0}\n'.format('\t'.join(line)))
 
             oh.close()
+            config.log.info('compare: save {0} matrix_tsv'.format(matrix_tsv))
 
         # Go through the table once more and merge overlapping peaks?
         # Only if the jiggle=True
@@ -355,6 +356,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     oh.write("\t%s" % corr_result_table[ia,ib])
                 oh.write("\n")
             oh.close()
+            config.log.info('compare: save {0} pearson_tsv'.format(pearson_tsv))
 
         # need to add the labels and serialise into a dict of lists.
         dict_of_lists = {}
