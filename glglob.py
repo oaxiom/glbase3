@@ -1516,8 +1516,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         # Also add it into the return data.
                         if cluster_index+1 not in ret_data:
                             ret_data[cluster_index+1] = {"genelist": genelist(name="cluster_%s" % (cluster_index+1,)), "cluster_membership": cluster_id["id"]}
-                        #print (chrom, int(block_id[0]), int(block_id[1]))
-                        print("chr%s:%s-%s" % (chrom, int(block_id[0]), int(block_id[1])))
                         this_loc = location(loc="chr%s:%s-%s" % (chrom, int(block_id[0]), int(block_id[1]))) # does not include the pileup_distance
                         ret_data[cluster_index+1]["genelist"].linearData.append({"loc": this_loc})
                         groups.append(cluster_index+1)
