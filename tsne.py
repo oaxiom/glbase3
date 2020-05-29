@@ -2,8 +2,6 @@
 
 tSNE analysis for glbase expression objects.
 
-This should really be merged with MDS and inherited...
-
 """
 
 from operator import itemgetter

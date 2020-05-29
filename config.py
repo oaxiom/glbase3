@@ -39,6 +39,7 @@ NETWORKX_AVAIL = False # optional
 PYDOT_AVAIL = False # optional
 NUMEXPR_AVAIL = False # Optional
 PYGRAPHVIZ_AVAIL = False # Optional
+UMAP_LEARN_AVAIL = False # Optional
 
 # Some simple options for printing genelists
 NUM_ITEMS_TO_PRINT = 3 # number of items to print by default.
@@ -83,19 +84,13 @@ def get_interpolation_mode(filename):
 
 # -------------- set up the logger here.
 # You can access it using config.log()
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(levelname)-8s: %(message)s',
                     datefmt='%m-%d %H:%M')
-                    #filename=os.path.join(os.path.expanduser("~"), "glbase.log"),
-                    #filemode='w') # This should be optional?
-#console = logging.StreamHandler()
-#console.setLevel(logging.INFO)
-#console.setFormatter(logging.Formatter('%(levelname)-8s: %(message)s'))# # console
-#logging.getLogger('').addHandler(console)
 
 # use config.log. ... () to get to the logger
 log = logging.getLogger('glbase3')
-log.setLevel(logging.INFO) # The defult seemed to end up on DEBUG?
+
 mpl_logger = logging.getLogger('matplotlib') # Bodge to silence the matplotlib logging
 mpl_logger.setLevel(logging.WARNING)
 

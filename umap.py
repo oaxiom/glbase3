@@ -58,9 +58,9 @@ class umap(base_manifold):
             raise AssertionError('num_pcs must be either an integer or a list')
 
         self.__model = UMAP(
+            n_components=2,
             n_neighbors=2,
-            perplexity=perplexity,
-            init='pca',
+            metric='correlation',
             random_state=self.random_state,
             verbose=self.verbose)
 

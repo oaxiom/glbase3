@@ -11,7 +11,7 @@ Requires:
 * networkx
 """
 
-import sys, os
+import sys, os, logging
 
 #-----------------------------------------------------------------------
 # Load all of the global configuration options.
@@ -82,11 +82,19 @@ try:
 except Exception:
     pass # pass silently as pygraphviz is optional.
 
+#try:
+#    import numexpr
+#    config.NUMEXPR_AVAIL = True
+#except Exception:
+#    pass # pass silently as numexpr is optional.
+
 try:
-    import numexpr
-    config.NUMEXPR_AVAIL = True
+    import umap
+    config.UMAP_LEARN_AVAIL = True
+    umap_log = logging.getLogger("umap")
+    umap_log.setLevel(logging.CRITICAL) # silence debug output
 except Exception:
-    pass # pass silently as numexpr is optional.
+    pass # pass silently as umap is optional.
 
 # ----------------------------------------------------------------------
 # Now import the rest of my libraries - assumes here they are available.

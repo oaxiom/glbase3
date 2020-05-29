@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.cluster import MiniBatchKMeans, AgglomerativeClustering
 from sklearn.neighbors import kneighbors_graph
-from sklearn.neighbors.nearest_centroid import NearestCentroid
+from sklearn.neighbors import NearestCentroid
 from scipy.cluster.hierarchy import dendrogram
 
 from . import config

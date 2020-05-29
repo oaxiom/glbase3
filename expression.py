@@ -42,6 +42,7 @@ if config.SKLEARN_AVAIL:
     from .tsne import tsne
     from .som import SOM
     from .somde import somde
+    from .umap import umap
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .mdsquish import mdsquish
@@ -189,6 +190,11 @@ class expression(base_expression):
         elif name == 'tsne':
             self.tsne = tsne(parent=self, name=self.name)
             return self.tsne
+
+        elif name == 'umap':
+            assert config.NETWORKX_AVAIL, "Asking for a UMAP object but umap-learn is not available"
+            self.umap = umap(parent=self, name=self.name)
+            return self.umap
 
         elif name == "bayes":
             assert config.NETWORKX_AVAIL, "Asking for a bayes object but networkx/graphviz is not available"

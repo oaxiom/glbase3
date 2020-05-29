@@ -60,6 +60,20 @@ class Test_Manifold(unittest.TestCase):
         self.assertTrue(fq_eq(ret[2][0][0], -0.52325895))
         self.assertTrue(fq_eq(ret[2][1][1], 0.449152 ))
 
+    def test_umap(self):
+        if gl.config.UMAP_LEARN_AVAIL:
+            mds = self.expn.mds.configure(whiten=True, random_state=42, verbose=False)
+            self.assertTrue(self.expn.mds.whiten)
+            self.expn.mds.train(2)
+            self.assertTrue(self.expn.mds.trained)
+            self.expn.mds.scatter(filename='/tmp/mds_scat.png')
+            ret = self.expn.mds.cluster(num_clusters=2, method='KMeans', filename='/tmp/mds_scat_clus.png')
+
+            print(ret)
+            self.assertListEqual(list(ret[1]), [1, 1, 0, 1])
+            self.assertTrue(fq_eq(ret[2][0][0], -0.52325895))
+            self.assertTrue(fq_eq(ret[2][1][1], 0.449152 ))
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Manifold)
     unittest.TextTestRunner(verbosity=2).run(suite)
