@@ -184,6 +184,8 @@ class base_manifold:
             THe cluster model and cluster labels
 
         '''.format(self.manifold_type)
+        assert self.trained, '{0} not trained'.format(self.manifold_type)
+
         if self.clusters:
             config.log.warning('Overwriting exisitng cluster data')
         self.clusters = None

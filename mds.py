@@ -17,7 +17,7 @@ from .base_manifold import base_manifold
 
 class mds(base_manifold):
     def __init__(self, parent=None, name='none'):
-        base_manifold.__init__(self, parent=parent, name=name, manifold_type='mds')
+        base_manifold.__init__(self, parent=parent, name=name, manifold_type='MDS')
 
     def train(self, num_pc):
         """
