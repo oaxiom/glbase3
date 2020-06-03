@@ -2063,20 +2063,22 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             for i, p in enumerate(super_set_of_peaks):
                 p_loc = p['loc']
                 p_loc_chrom = p_loc['chr']
+                p_loc_left = p_loc['left']
+                p_loc_rite = p_loc['right']
                 if p_loc_chrom != this_chrom:
                     this_data = f.get_array_chromosome(p_loc_chrom)
                     this_chrom = p_loc_chrom
 
                 # I guess this is possible to be longer than the chrom:
-                lambd_left = p_loc['left']-lambda_window
+                lambd_left = p_loc_left-lambda_window
                 lambd_left = (lambd_left if lambd_left>0 else 0)
-                lambd_rite = p_loc['right']+lambda_window
+                lambd_rite = p_loc_rite+lambda_window
                 lambd_rite = (lambd_rite if lambd_rite<len(this_chrom) else len(this_chrom))
 
-                left_flank = this_data[lambd_left:p_loc['left']-peak_window]
-                rite_flank = this_data[p_loc['right']+peak_window:lambd_rite]
+                left_flank = this_data[lambd_left:p_loc_left-peak_window]
+                rite_flank = this_data[p_loc_rite+peak_window:lambd_rite]
 
-                peak_data = this_data[p_loc['left']:p_loc['right']]
+                peak_data = this_data[p_loc_left:p_loc_rite]
                 # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
                 if len(peak_data) == 0:
                     p['%s_peak_score' % sam_name] = 0 # fill the entries in, with 0 due to missing data in the array.
@@ -2085,9 +2087,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     peaks.append(0) # Still need to fill in to get a correct average.
                     continue
 
-                p['%s_lam10' % sam_name] = utils.mean(left_flank + rite_flank)
+                mean = utils.mean(left_flank + rite_flank)
+                p['%s_lam10' % sam_name] = mean
                 p['%s_lam10std' % sam_name] = utils.std(left_flank + rite_flank)
-                lam10.append(utils.mean(left_flank + rite_flank)) # For the global Z
+                lam10.append(mean) # For the global Z
 
                 p['%s_peak_score' % sam_name] = max(peak_data) # should this be the max?
                 #p['%s_enrichment' % sam_name] = p['%s_peak_score' % sam_name] / p['%s_lam10' % sam_name]

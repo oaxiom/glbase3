@@ -37,7 +37,7 @@ class base_manifold:
         self.__draw = draw()
 
     def __repr__(self):
-        return("<glbase.{0}>".format(self.manifold_type))
+        return "<glbase.{0}>".format(self.manifold_type)
 
     def __str__(self):
         ret = ["{0}} object".format(self.manifold_type),
@@ -45,7 +45,7 @@ class base_manifold:
             "\tConfigured: %s" % self.configured,
             "\tTrained   : %s" % self.trained,
             ]
-        return("\n".join(ret))
+        return "\n".join(ret)
 
     def configure(self,
         rowwise: str = False,

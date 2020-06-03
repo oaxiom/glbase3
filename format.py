@@ -347,7 +347,10 @@ def _load_hmmer_domtbl(filename, gzip=False):
 
         row = {"peptide": ll[0],
             "dom_acc": ll[4], "dom_name": ll[3],
-            'e': ll[6],
+            'dom_loc': (int(ll[17]), int(ll[18])),
+            'e': float(ll[6]),
+            'tlen': int(ll[2]),
+            'qlen': int(ll[5]),
             "gene": ll[22],
             'name': ll[22]}
 
