@@ -1014,6 +1014,54 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         config.log.info("overlap_heatmap: Saved overlap heatmap to '%s'" % ret["real_filename"])
         return(tab)
 
+    def __peak_cluster(self, list_of_peaks, merge_peaks_distance):
+        # Merge overlapping peaks
+        chr_blocks = {}
+        total_rows = 0
+        #merged_peaks = {}
+        p = progressbar(len(list_of_peaks))
+        for idx, gl in enumerate(list_of_peaks):
+            for p1 in gl["loc"]:
+                #p1 = p1.pointify().expand(merge_peaks_distance) # about 10% of the time is in __getitem__ from the loc, so unpack it;
+                cpt = (p1.loc["left"] + p1.loc['right']) // 2
+                p1_chr = p1['chr']
+                p1_left = cpt - merge_peaks_distance
+                p1_right = cpt + merge_peaks_distance
+                if not p1_chr in chr_blocks:
+                    chr_blocks[p1_chr] = {}
+
+                binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
+
+                for p2 in chr_blocks[p1_chr]: # p2 is now a block_id tuple
+                    #if p1.qcollide(p2):
+                    if p1_right >= p2[0] and p1_left <= p2[1]: # unfolded for speed.
+                        binary = chr_blocks[p1_chr][p2]["binary"] # preserve the old membership
+
+                        # remove the original entry
+                        del chr_blocks[p1_chr][p2]
+                        total_rows -= 1
+
+                        # Add in a new merged peak:
+                        cpt = (((p1_left+p2[0])//2) + ((p1_right+p2[1])//2)) // 2 # pointify()
+
+                        p1_left=cpt-merge_peaks_distance
+                        p1_right=cpt+merge_peaks_distance
+                        # Don't get confused here, p1 is added onto the block heap below:
+                        break
+
+                # modify binary to signify membership for this peaklist
+                binary[idx] = 1
+
+                # Add p1 onto the blocklist
+                block_id = (p1_left, p1_right)
+                if block_id not in chr_blocks[p1_chr]:
+                    chr_blocks[p1_chr][block_id] = {"binary": binary,
+                        "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
+                    total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
+
+            p.update(idx)
+        return total_rows, chr_blocks
+
     def chip_seq_cluster(self, list_of_peaks, merge_peaks_distance=400, sort_clusters=True,
         _get_chr_blocks=False, **kargs):
         """
@@ -1088,63 +1136,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         total_rows = 0
         resolution = merge_peaks_distance # laziness hack!
 
-        # Make a super list of all the peaks. why? It's not actually used...
-        #mega_list_of_peaks = sum([gl["loc"] for gl in list_of_peaks], [])
-        #mega_list_of_peaks = [p.pointify().expand(merge_peaks_distance) for p in mega_list_of_peaks]
-        #config.log.info("chip_seq_cluster: Started with %s redundant peaks" % len(mega_list_of_peaks))
-        '''
-        newl = []
-        for l in list_of_peaks:
-            newl.append(l.deepcopy().pointify().expand('loc', merge_peaks_distance))
-        list_of_peaks = newl
-        '''
-
-        # Merge overlapping peaks
-        merged_peaks = {}
-        p = progressbar(len(list_of_peaks))
-        for idx, gl in enumerate(list_of_peaks):
-            for p1 in gl["loc"]:
-                p1 = p1.pointify().expand(merge_peaks_distance)
-                if not p1["chr"] in chr_blocks:
-                    chr_blocks[p1["chr"]] = {}
-
-                binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
-
-                for p2 in chr_blocks[p1["chr"]]: # p2 is now a block_id tuple
-                    #if p1.qcollide(p2):
-                    if p1["right"] >= p2[0] and p1["left"] <= p2[1]: # unfolded for speed.
-                        binary = chr_blocks[p1["chr"]][p2]["binary"] # preserve the old membership
-
-                        # remove the original entry
-                        del chr_blocks[p1["chr"]][p2]
-                        total_rows -= 1
-
-                        # Add in a new merged peak:
-                        p1 = location(chr=p1["chr"],
-                            left=int((p1["left"]+p2[0])/2.0),
-                            right=int((p1["right"]+p2[1])/2.0)).pointify().expand(merge_peaks_distance)
-                        # Don't get confused here, p1 is added onto the block heap below:
-                        break
-
-                # modify binary to signify membership for this peaklist
-                binary[idx] = 1
-
-                # Add p1 onto the blocklist
-                block_id = (p1["left"], p1["right"])
-                if block_id not in chr_blocks[p1["chr"]]:
-                    chr_blocks[p1["chr"]][block_id] = {"binary": binary,
-                        "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
-                        # pil is not needed here, but kept for compatability with _heatmap function
-                    total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
-
-            p.update(idx)
-
+        peak_lengths = sum([len(p) for p in list_of_peaks])
+        config.log.info("chip_seq_cluster_heatmap: Started with %s redundant peaks".format(peak_lengths))
+        total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
         config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
 
         if _get_chr_blocks:
-            return(chr_blocks)
-        # Convert the chr_blocks into a expression object
+            return chr_blocks
 
+        # Convert the chr_blocks into a expression object
         tab = []
         for chrom in chr_blocks:
             for loc in chr_blocks[chrom]:
@@ -1153,26 +1153,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 #print cid
                 tab.append({'loc': l, 'conditions': chr_blocks[chrom][loc]['binary'], 'cid': cid})
 
-        '''
-        # I want to sort the groups from the most complex to the least complex.
-        if sort_clusters:
-            sorted_clusters = []
-            for c in cluster_ids:
-                sorted_clusters.append({"id": c, "score": sum(c)})
-            sorted_clusters = sorted(sorted_clusters, key=itemgetter("score"))
-            # This result is actually least to most, but as the heatmap is drawn bottom to top it makes sense to
-            # preserve this order.
-        else:
-            pass
-            #URK!
-        '''
-
         #print tab
         e = expression(loadable_list=tab, cond_names=[p.name for p in list_of_peaks])
         if sort_clusters:
             e.sort('cid')
 
-        return(e)
+        return e
 
     def chip_seq_cluster_heatmap(self, list_of_peaks, list_of_trks, filename=None, normalise=False, bins=20,
         pileup_distance=1000, merge_peaks_distance=400, sort_clusters=True, cache_data=False, bracket=None,
@@ -1349,56 +1335,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # Confirm that all lists contain a 'loc' key
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'One of your peak data (list_of_peaks) does not contain a "loc" key'
 
-        # Make a super list of all the peaks.
-        mega_list_of_peaks = sum([gl["loc"] for gl in list_of_peaks], [])
-        mega_list_of_peaks = [p.pointify().expand(merge_peaks_distance) for p in mega_list_of_peaks]
-        config.log.info("chip_seq_cluster_heatmap: Started with %s redundant peaks" % len(mega_list_of_peaks))
-
-        # Merge overlapping peaks
-        merged_peaks = {}
-        p = progressbar(len(list_of_peaks))
-        for idx, gl in enumerate(list_of_peaks):
-            for p1 in gl["loc"]:
-                #p1 = p1.pointify().expand(merge_peaks_distance) # about 10% of the time is in __getitem__ from the loc, so unpack it;
-                cpt = (p1.loc["left"] + p1.loc['right']) // 2
-                p1_chr = p1['chr']
-                p1_left = cpt - merge_peaks_distance
-                p1_right = cpt + merge_peaks_distance
-                if not p1_chr in chr_blocks:
-                    chr_blocks[p1_chr] = {}
-
-                binary = [0 for x in range(len(list_of_peaks))] # set-up here in case I need to modify it.
-
-                for p2 in chr_blocks[p1_chr]: # p2 is now a block_id tuple
-                    #if p1.qcollide(p2):
-                    if p1_right >= p2[0] and p1_left <= p2[1]: # unfolded for speed.
-                        binary = chr_blocks[p1_chr][p2]["binary"] # preserve the old membership
-
-                        # remove the original entry
-                        del chr_blocks[p1_chr][p2]
-                        total_rows -= 1
-
-                        # Add in a new merged peak:
-                        cpt = (((p1_left+p2[0])//2) + ((p1_right+p2[1])//2)) // 2 # pointify()
-
-                        p1_left=cpt-merge_peaks_distance
-                        p1_right=cpt+merge_peaks_distance
-                        # Don't get confused here, p1 is added onto the block heap below:
-                        break
-
-                # modify binary to signify membership for this peaklist
-                binary[idx] = 1
-
-                # Add p1 onto the blocklist
-                block_id = (p1_left, p1_right)
-                if block_id not in chr_blocks[p1_chr]:
-                    chr_blocks[p1_chr][block_id] = {"binary": binary,
-                        "pil": [0 for x in range(len(list_of_peaks))]} # one for each gl, load pil with dummy data.
-                    total_rows += 1 # because the result is a dict of dicts {"<chrname>": {"bid": {data}}, so hard to keep track of the total size.
-
-            p.update(idx)
-
-        config.log.info("chip_seq_cluster_heatmap: Found {0:,} unique genomic regions".format(total_rows))
+        peak_lengths = sum([len(p) for p in list_of_peaks])
+        config.log.info("chip_seq_cluster_heatmap: Started with %s redundant peaks".format(peak_lengths))
+        total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
+        config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
 
         # Get the size of each library if we need to normalize the data.
         if normalise:
@@ -1581,7 +1521,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames)
 
         config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
-        return(ret_data)
+        return ret_data
 
     def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, **kargs):
         """
