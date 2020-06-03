@@ -11,6 +11,7 @@ import sys, os, csv, string, math, numpy, pickle
 from numpy import array, zeros, object_, arange
 from copy import deepcopy
 from operator import itemgetter
+from statistics import pstdev, mean
 
 from . import config, utils
 from .flags import *
@@ -1134,10 +1135,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         chr_blocks = {} # stores a binary identifier
         pil_blocks = {}
         total_rows = 0
-        resolution = merge_peaks_distance # laziness hack!
 
         peak_lengths = sum([len(p) for p in list_of_peaks])
-        config.log.info("chip_seq_cluster_heatmap: Started with %s redundant peaks".format(peak_lengths))
+        config.log.info("chip_seq_cluster_heatmap: Started with {0} redundant peaks".format(peak_lengths))
         total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
         config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
 
@@ -1153,7 +1153,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 #print cid
                 tab.append({'loc': l, 'conditions': chr_blocks[chrom][loc]['binary'], 'cid': cid})
 
-        #print tab
         e = expression(loadable_list=tab, cond_names=[p.name for p in list_of_peaks])
         if sort_clusters:
             e.sort('cid')
@@ -1321,10 +1320,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             represents binding (True) or not (False) in each original list_of_peaks.
         """
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
-
-        # Currently untested:
-        #chr_blocks = self.chip_seq_cluster(list_of_peaks=list_of_peaks, merge_peaks_distance=merge_peaks_distance,
-        #   sort_clusters=sort_clusters, _get_chr_blocks=True)
+        assert len(list_of_peaks) == len(list_of_trks), 'len(list_of_peaks) != len(list_of_trks)'
 
         # get a non-redundant list of genomic regions based on resolution.
         chr_blocks = {} # stores a binary identifier
@@ -1336,7 +1332,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'One of your peak data (list_of_peaks) does not contain a "loc" key'
 
         peak_lengths = sum([len(p) for p in list_of_peaks])
-        config.log.info("chip_seq_cluster_heatmap: Started with %s redundant peaks".format(peak_lengths))
+        config.log.info("chip_seq_cluster_heatmap: Started with {0} redundant peaks".format(peak_lengths))
         total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
         config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
 
@@ -1500,7 +1496,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
         tab_min = min([tab.min() for tab in list_of_tables])
         #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
-        tab_mean = utils.mean([numpy.average(tab) for tab in list_of_tables])
+        tab_mean = mean([numpy.average(tab) for tab in list_of_tables])
         tab_stdev = numpy.std(numpy.array([tab for tab in list_of_tables]))
 
         config.log.info("chip_seq_cluster_heatmap: min=%.2f, max=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_mean, tab_stdev))
@@ -1989,22 +1985,23 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         rets = {f['name']: [] for f in list_of_flats}
 
         super_set_of_peaks = super_set_of_peaks.pointify().expand('loc', peak_window) # Make peaks symmetric
+        super_set_of_peaks = [p['loc'].loc for p in super_set_of_peaks]
 
         # First I estimate the local background
         for f in list_of_flats:
             sam_name  = f['name'].replace('.flat', '')
-            lam10 = [] # For the histograms
-            peaks = []
             config.log.info('Doing {0}'.format(sam_name))
 
             this_chrom = None
             this_data = None
             prog = progressbar(len(super_set_of_peaks))
+
             for i, p in enumerate(super_set_of_peaks):
-                p_loc = p['loc']
-                p_loc_chrom = p_loc['chr']
-                p_loc_left = p_loc['left']
-                p_loc_rite = p_loc['right']
+                p_loc_chrom = p['chr']
+                p_loc_left = p['left']
+                p_loc_rite = p['right']
+
+                # Chrom cache version
                 if p_loc_chrom != this_chrom:
                     this_data = f.get_array_chromosome(p_loc_chrom)
                     this_chrom = p_loc_chrom
@@ -2017,34 +2014,25 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 left_flank = this_data[lambd_left:p_loc_left-peak_window]
                 rite_flank = this_data[p_loc_rite+peak_window:lambd_rite]
-
                 peak_data = this_data[p_loc_left:p_loc_rite]
+
                 # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
                 if len(peak_data) == 0:
-                    p['%s_peak_score' % sam_name] = 0 # fill the entries in, with 0 due to missing data in the array.
-                    p['%s_lam10' % sam_name] = 0
-                    p['%s_lam10std' % sam_name] = 0
-                    peaks.append(0) # Still need to fill in to get a correct average.
+                    p['peak_score'] = 0 # fill the entries in, with 0 due to missing data in the array.
+                    p['lam10'] = 0
+                    p['lam10std'] = 0
                     continue
 
-                mean = utils.mean(left_flank + rite_flank)
-                p['%s_lam10' % sam_name] = mean
-                p['%s_lam10std' % sam_name] = utils.std(left_flank + rite_flank)
-                lam10.append(mean) # For the global Z
-
-                p['%s_peak_score' % sam_name] = max(peak_data) # should this be the max?
-                #p['%s_enrichment' % sam_name] = p['%s_peak_score' % sam_name] / p['%s_lam10' % sam_name]
-                peaks.append(p['%s_peak_score' % sam_name])
-
-                #std = numpy.std(p['%s_lam10' % sam_name])
-                #if numpy.std(p['%s_lam10' % sam_name]) == 0:
-                #    print(numpy.std(p['%s_lam10' % sam_name]))
-                #Z = (p['%s_peak_score' % sam_name] - p['%s_lam10' % sam_name]) / numpy.std(p['%s_lam10' % sam_name])
-                #p['%s_localZ' % sam_name] = Z
+                all_lambda = left_flank + rite_flank
+                mean_lambda = sum(all_lambda) / len(all_lambda)
+                p['lam10'] = mean_lambda
+                p['lam10std'] = pstdev(all_lambda)
+                p['peak_score'] = max(peak_data) # should this be the max?
                 prog.update(i)
 
-            avg = numpy.average(lam10)
-            std = numpy.std(lam10)
+            lam10 = [p['lam10'] for p in super_set_of_peaks]
+            avg = mean(lam10)
+            std = pstdev(lam10)
             config.log.info('Average background: %.3f' % avg)
             config.log.info('Average STDev: %.3f' % std)
 
@@ -2056,7 +2044,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 fig = self.draw.getfigure(**kargs)
                 ax = fig.add_subplot(111)
                 ax.hist(lam10, bins=50, range=[0,50], histtype='step', label='Background')
-                ax.hist(peaks, bins=50, range=[0,50], histtype='step', label='Peaks')
+                ax.hist([p['peak_score'] for p in super_set_of_peaks], bins=50, range=[0,50], histtype='step', label='Peaks')
                 ax.axvline(avg, ls=':', color='red')
                 ax.axvline(avg+std, ls=':', color='green')
                 ax.legend()
@@ -2065,19 +2053,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # redefine peaks:
             prog = progressbar(len(super_set_of_peaks))
             for i, p in enumerate(super_set_of_peaks):
-                # Data is done' don't grab twice:
-
-                # A simple filter for >max value in the peak:
-                # This sort of thing is never a good idea:
-                #if p['%s_peak_score' % sam_name] < 10: # simple filter for weak peaks
-                #    continue
-                # There are a bunch of zero cases you should just delete
-
                 # First, filter on the global Z:
-                if p['%s_peak_score' % sam_name] > thresh:
+                if p['peak_score'] > thresh:
                     # Then filter on the localz:
-                    if p['%s_peak_score' % sam_name] > (p['%s_lam10' % sam_name] + (p['%s_lam10std' % sam_name]*Z_threshold)):
-                        rets[f['name']].append(p)
+                    if p['peak_score'] > (p['lam10'] + (p['lam10std']*Z_threshold)):
+                        p_add = {'loc': location(chr=p['chr'], left=p['left'], right=p['right'])}
+                        p_add['peak_height'] = p['peak_score']
+                        p_add['Z-score'] = (p['peak_score'] - p['lam10'] / p['lam10std'])
+                        rets[f['name']].append(p_add)
 
                 prog.update(i)
 

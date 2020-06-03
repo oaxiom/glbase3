@@ -196,12 +196,11 @@ class flat_track(base_track):
                 if local_pos >= 0 and local_pos < TRACK_BLOCK_SIZE: # within the span to increment.
                     self.cache[blockID][local_pos] = score
                     #print local_pos, local_pos >= 0 and local_pos <= TRACK_BLOCK_SIZE
-            #print self.cache[blockID]
         if not all_in_mem:
             self.__flush_cache() # I can go over the CACHE in this routine.
         # But putting this here means I don't have to hit the db every blockID
         # Should help speed where I use a lot of new blocks.
-        return(None)
+        return None
 
     def add_chromosome_array(self, chromosome=None, arr=None):
         '''
@@ -226,7 +225,7 @@ class flat_track(base_track):
         lright = len(arr)
 
         # Find the first non-zero value, and go from there.
-        left_most_block = int(abs(math.floor(lleft / self.block_size))) # bodge for now
+        left_most_block = int(abs(math.floor(lleft / self.block_size)))
         right_most_block = int(abs(math.ceil((lright+1) / self.block_size)))
 
         blocks_required = ["%s:%s" % (chrom, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
@@ -260,7 +259,7 @@ class flat_track(base_track):
         self.__flush_cache(all=True) # Flush everything to help with memory usage
         # But putting this here means I don't have to hit the db every blockID
         # Should help speed where I use a lot of new blocks.
-        return(None)
+        return None
 
     def __has_block(self, blockID):
         """
@@ -277,8 +276,8 @@ class flat_track(base_track):
         result = c.fetchone()
         c.close()
         if result:
-            return(True)
-        return(False)
+            return True
+        return False
 
     def __commit_block(self, blockID, data):
         """
@@ -316,7 +315,7 @@ class flat_track(base_track):
             self.cacheQ.insert(0, blockID) # put the ID at the front.
         self.cache[blockID] = data
 
-        return(False)
+        return False
 
     def __flush_cache(self, all=False):
         """
@@ -329,7 +328,7 @@ class flat_track(base_track):
             self.__commit_block(blockID, self.cache[blockID])
             del self.cache[blockID]
 
-        return(True)
+        return True
 
     def __get_block(self, blockID):
         """
@@ -432,7 +431,7 @@ class flat_track(base_track):
                     mask.append(0)
             # This may produce a warning, but apparently I can safely ignore it
             ret_array = numpy.ma.masked_array(ret_array, mask=mask)
-        return(ret_array)
+        return ret_array
 
     def get_array_chromosome(self, chrom=None, **kargs): # kargs for compat with trk
         """
@@ -475,7 +474,7 @@ class flat_track(base_track):
             #print this_block_array_data
             ret_array += this_block_array_data
 
-        return(ret_array)
+        return ret_array
 
     def finalise(self):
         """
