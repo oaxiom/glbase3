@@ -2059,7 +2059,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     if p['peak_score'] > (p['lam10'] + (p['lam10std']*Z_threshold)):
                         p_add = {'loc': location(chr=p['chr'], left=p['left'], right=p['right'])}
                         p_add['peak_height'] = p['peak_score']
-                        p_add['Z-score'] = (p['peak_score'] - p['lam10'] / p['lam10std'])
+                        try:
+                            p_add['Z-score'] = ((p['peak_score'] - p['lam10']) / p['lam10std'])
+                        except ZeroDivisionError:
+                            p_add['Z-score'] = 100
                         rets[f['name']].append(p_add)
 
                 prog.update(i)
