@@ -2037,7 +2037,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             config.log.info('Average STDev: %.3f' % std)
 
             thresh = avg + (std * Z_threshold)
-            config.log.info('Guessed threshold (For a Z of %s) actual threshold = %.2f' % (Z_threshold, thresh))
+            config.log.info('Guessed threshold value of {1:.2f} (For a Z of {0})'.format(Z_threshold, thresh))
 
             # Plot the histogram:
             if filename:
@@ -2078,3 +2078,279 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             config.log.info('    %s: %s peaks' % (f, len(rets[f])))
 
         return(rets)
+
+    def chip_seq_heatmap(self,
+        list_of_peaks,
+        list_of_trks,
+        filename:str = None,
+        normalise=False,
+        bins:int = 100,
+        pileup_distance:int = 1000,
+        cache_data=False,
+        bracket=None,
+        range_bracket=None,
+        frames=True,
+        row_labels=None,
+        col_labels=None,
+        read_extend:int = 200,
+        imshow:bool = True,
+        cmap=cm.plasma,
+        log_pad=None,
+        log=2,
+        size=None,
+        **kargs):
+        """
+        **Purpose**
+            Draw heatmaps for the indicated list of peaks.
+
+            peaks will be piled up on top of each other in proportional blocks (separated by a line).
+
+            pileups will be plotted above, and each
+
+        **Arguments**
+            list_of_peaks (Required)
+                A list of genelists of peaks from your ChIP-seq data to interrogate.
+                The peaks will be stacked from bottom to top
+
+            list_of_trks (Required)
+                A list of trks to draw the sequence tag reads from to build the pileups.
+
+            filename (Optional, default=None)
+                If set to a string a heatmap & pileup will be saved to filename.
+
+            normalise (Optional, default=False)
+                Normalize the read pileup data within each library to the size of the
+                library to assist in cross-comparison of ChIP-seq libraries.
+
+            pileup_distance (Optional, default=1000)
+                distance around the particular bin to draw in the pileup.
+
+            read_extend (Optional, default=200)
+                The size in base pairs to extend the read. If a strand is present it will expand
+                from the 3' end of the read.
+
+            row_labels (Optional, default= from the peak.name)
+                row labels for the heatmaps;
+
+            col_labels (Optional, default=from the trk['name'])
+                column labels
+
+            bins (Optional, default=100)
+                number of bins to use for the pileup. Best to use conservative numbers (30-200) as
+                large numbers of bins can consume huge amounts of memory.
+
+            log (Optional, default=2)
+                Use logarithms for the heatmap. Possible options are 2 and 10.
+
+            cmap (Optional, default=matplotlib.cm.plasma)
+                A colour map for the heatmap.
+
+            range_bracket (Optional, default=None, exclusive with range_bracket)
+                Okay, hold your hats, this is complicated.
+                range_bracket will bracket the range of values as a fraction between [min(data), max(data)]
+                i.e. If range_bracket=0.5 (the default) then the data is bracketed as:
+                [max(data)*range_bracket[0], max(data)*range_bracket[1]]. The practical upshot of this is it allows you to shift
+                the colour bracketing on the heatmap around without having to spend a long time finding
+                a suitable bracket value.
+
+                Bracketing is performed AFTER log.
+
+                Typical bracketing would be something like [0.4, 0.9]
+
+                By default glbase attempts to guess the best range to draw based on the
+                median and the stdev. It may not always succeed.
+
+            bracket (Optional, default=None, exclusive with range_bracket)
+                chip_seq_heatmap() will make a guess on the best bracket values and will output that
+                as information. You can then use those values to set the bracket manually here.
+                This is bracketing the data AFTER log transforming.
+
+            cache_data (Optional, default=False)
+                cache the pileup data into the file specified in cache_data. This speeds up reanalysis.
+                Note that storage of data is AFTER normalisation, resolution, pileup_distance,
+                bins, but before heatmap drawing.
+
+                This allows you to store the slow part of chip_seq_heatmap()
+                and so iterate through different heatmap drawing options without having to
+                do the whole pileup again.
+
+                note that if cache_data file does not exist then it will be created and
+                pileup data generated. If the file does exist, data will be read from that
+                file and used for heatmap drawing.
+
+            frames (Optional, default=True)
+                Draw black frames around the heatmaps and category maps.
+
+            imshow (Optional, default=False)
+                Embed the heatmap as an image inside a vector file. (Uses matplotlib imshow
+                to draw the heatmap part of the figure. Allows very large matrices to
+                be saved as a reasonably sized svg/pdf, with the heatmap part as a raster image
+                and all other elements as vectors).
+
+        **Returns**
+            Returns None
+        """
+        assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
+        assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
+
+        total_rows = 0
+
+        # Get the size of each library if we need to normalize the data.
+        if normalise:
+            # get and store the read_counts for each library to reduce an sqlite hit.
+            read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
+
+        # I will need to go back through the chr_blocks data and add in the pileup data:
+        bin_size = int((pileup_distance+pileup_distance) / bins)
+        #block_len = pileup_distance+pileup_distance # get the block size
+        data = None
+
+        # Populate the datastores:
+        matrix = {}
+        pileup = {}
+        for tindex, _ in enumerate(list_of_trks):
+            matrix[tindex] = {} # Populate the final matrix
+            pileup[tindex] = {} # Populate the final matrix
+            for plidx, peaklist in enumerate(list_of_peaks): # Could be moved out to go faster...
+                matrix[tindex][plidx] = {} # Populate the final matrix
+                pileup[tindex][plidx] = {} # Populate the final matrix
+                for pindex, peak in enumerate(peaklist):
+                    matrix[tindex][plidx][pindex] = None
+                    pileup[tindex][plidx][pindex] = None
+
+        # Populate the order data so I can use the chromosome cache system;
+        porder = {}
+        for plidx, peaklist in enumerate(list_of_peaks): # Could be moved out to go faster...
+            porder[plidx] = {} # make an index hitter so that order is preserved:
+            for pindex, peak in enumerate(peaklist):
+                p_loc_chrom = peak['loc']['chr']
+                if p_loc_chrom not in porder[plidx]:
+                    porder[plidx][p_loc_chrom] = []
+                porder[plidx][p_loc_chrom].append(pindex)
+
+        # sort out cached_data
+        if cache_data and os.path.isfile(cache_data): # reload previously cached data.
+            oh = open(os.path.realpath(cache_data), "rb")
+            matrix = pickle.load(oh)
+            oh.close()
+            config.log.info("chip_seq_heatmap: Reloaded previously cached pileup data: '%s'" % cache_data)
+            # sanity check the matrix data
+            assert isinstance(matrix, dict), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert isinstance(matrix[0], dict), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert isinstance(matrix[0][0], (numpy.ndarray, numpy.generic)), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert len(matrix) == len(list_of_trks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert len(matrix[0]) == len(list_of_peaks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            for it, t in enumerate(list_of_peaks):
+                for ip, p in enumerate(list_of_peaks):
+                    print(matrix[it][ip].shape, (len(p), bins), matrix[it][ip])
+                    assert matrix[it][ip].shape == (len(p), bins), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+        else:
+            # No cached data, so we have to collect ourselves.
+            config.log.info('chip_seq_heatmap: Collecting pileup data...')
+            p = progressbar(len(list_of_trks))
+            # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
+            for tindex, trk in enumerate(list_of_trks):
+                for plidx, peaklist in enumerate(list_of_peaks):
+                    for chrom in porder[plidx]:
+                        # The chr_blocks iterates across all chromosomes, so this only hits the db once per chromosome:
+                        data = trk.get_array_chromosome(chrom, read_extend=read_extend) # This will use the fast cache version if available.
+
+                        for pidx, peak in enumerate(porder[plidx][chrom]): # peak is the index to look into
+                            left = peaklist.linearData[peak]['loc']['left']
+                            rite = peaklist.linearData[peak]['loc']['right']
+                            cpt = (left + rite) // 2
+                            left = cpt - pileup_distance
+                            rite = cpt + pileup_distance
+
+                            # It's possible to ask for data beyond the edge of the actual data. Skip these ones
+                            if rite > len(data):
+                                rite = len(data)
+                            if left > len(data):
+                                left = len(data)
+
+                            dd = data[left:rite]
+
+                            if normalise:
+                                pil_data = [av/read_totals[tindex] for av in dd]
+
+                            # Fill in the matrix table:
+                            #pileup[tindex][plidx][pidx] += pil_data
+                            matrix[tindex][plidx][peak] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)]
+                            #print(matrix[tindex][plidx][pidx])
+                            #chr_blocks[chrom][block_id]["pil"][tindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
+                p.update(tindex)
+
+            # convert to numpy arrays;
+            for tindex, _ in enumerate(list_of_trks):
+                for plidx, peaklist in enumerate(list_of_peaks):
+                    twoD_list = []
+                    for pindex, _ in enumerate(peaklist): # preserve original order;
+                        twoD_list.append(matrix[tindex][plidx][pindex])
+                    matrix[tindex][plidx] = numpy.array(twoD_list)
+
+            if cache_data: # store the generated data for later.
+                oh = open(cache_data, "wb")
+                pickle.dump(matrix, oh, -1)
+                oh.close()
+                config.log.info("chip_seq_heatmap: Saved pileup data to cache file: '{0}'".format(cache_data))
+
+        colbar_label = "Tag density"
+
+        '''
+        if log:
+            if not log_pad:
+                log_pad = 0.1
+
+            for index in range(len(list_of_tables)):
+                if log == 2:
+                    list_of_tables[index] = numpy.log2(numpy.array(list_of_tables[index])+log_pad)
+                    colbar_label = "Log2(Tag density)"
+                elif log == 10:
+                    list_of_tables[index] = numpy.log10(numpy.array(list_of_tables[index])+log_pad)
+                    colbar_label = "Log10(Tag density)"
+                else:
+                    list_of_tables[index] = numpy.array(list_of_tables[index])
+        '''
+
+        if normalise:
+            colbar_label = "Normalised %s" % colbar_label
+
+        if not row_labels:
+            row_labels = [p.name for p in list_of_peaks]
+
+        if not col_labels:
+            col_labels = [t['name'] for t in list_of_trks]
+
+        '''
+        # Suggest brackets:
+        tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
+        tab_min = min([tab.min() for tab in list_of_tables])
+        #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
+        tab_mean = mean([numpy.average(tab) for tab in list_of_tables])
+        tab_stdev = numpy.std(numpy.array([tab for tab in list_of_tables]))
+
+        config.log.info("chip_seq_heatmap: min=%.2f, max=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_mean, tab_stdev))
+        if range_bracket:
+            bracket = [tab_max*range_bracket[0], tab_max*range_bracket[1]]
+        elif bracket:
+            bracket = bracket # Fussyness for clarity.
+        else: # guess a range:
+            bracket = [tab_mean, tab_mean+(tab_stdev*2.0)]
+            config.log.info("chip_seq_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))
+        '''
+        if filename:
+            real_filename = self.draw.grid_heatmap(
+                data_dict_grid=matrix,
+                filename=filename,
+                row_labels=row_labels,
+                col_labels=col_labels,
+                colbar_label=colbar_label,
+                imshow=imshow,
+                size=size,
+                colour_map=cmap,
+                bracket=bracket,
+                frames=frames
+                )
+
+        config.log.info("chip_seq_heatmap: Saved overlap heatmap to '{0}'".format(real_filename))
+        return None

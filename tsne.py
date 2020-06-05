@@ -35,6 +35,9 @@ class tsne(base_manifold):
 
                 If it is a list tSNE will only use those specific PCs.
 
+                If it equals == 'all_matrix' then it attempts to use the entire raw matrix;
+                 (Use at your own risk!)
+
         **Returns**
             None
         """
@@ -50,6 +53,8 @@ class tsne(base_manifold):
             self.__transform = self.__model.fit_transform(self.data_table)
             # get only the specific PCs
             self.__pcas = numpy.array([self.__transform[:,c-1] for c in num_pc]).T
+        elif isinstance(num_pc, str) and num_pc == 'all_matrix':
+            self.__pcas = self.data_table
         else:
             raise AssertionError('num_pcs must be either an integer or a list')
 

@@ -62,6 +62,7 @@ import matplotlib.colors as matplotlib_colors
 import matplotlib.mlab as mlab
 from matplotlib.patches import Ellipse, Circle
 import matplotlib.lines as mlines
+import matplotlib.gridspec as gridspec
 from .adjustText import adjust_text
 
 from . import config, cmaps, utils
@@ -1023,6 +1024,125 @@ class draw:
 
         return(self.savefigure(fig, filename))
 
+    def grid_heatmap(self,
+        data_dict_grid:dict = None,
+        filename:str = None,
+        row_labels=None,
+        col_labels=None,
+        titles=None,
+        vmin:int = 0,
+        vmax=None,
+        colour_map=cm.YlOrRd,
+        col_norm=False,
+        row_norm=False,
+        heat_wid=0.25,
+        frames=False,
+        imshow=False,
+        size=None,
+        **kargs):
+        """
+        **Purpose**
+            Draw a grid-based-heatmap figure, i.e. containing multiple heatmaps, with row and column labels
+
+        **Arguments**
+            data_dict_grid (Required)
+                Should be adict in the form (for a 2x3 grid):
+                    {
+                        0: {0: numpy.array, 1: numpy.array},
+                        1: {0: numpy.array, 1: numpy.array},
+                        2: {0: numpy.array, 1: numpy.array}
+                    }
+
+            row_labels (Required)
+                Row labels for the heatmaps;
+
+            col_labels (Required)
+                Col labels for the heatmaps;
+
+            filename (Required)
+                The filename to save the heatmap to.
+
+            size (Optional, default=None)
+                override the guessed figure size with your own dimensions.
+
+        **Returns**
+            The actual filename used to save the image.
+        """
+        assert filename, "heatmap() - no specified filename"
+
+        num_cols = len(data_dict_grid)
+        num_rows = len(data_dict_grid[1])
+
+        hei_rats = []
+        for pindex, _ in enumerate(data_dict_grid[0]): # must be all the same size...
+            hei_rats.append(data_dict_grid[0][pindex].shape[0])
+
+        # work out a suitable size for the figure.
+        if size:
+            fig = self.getfigure(size=size)
+        else: # guess:
+            fig = self.getfigure(size=(0.15+(2*num_cols), 7))
+
+        gs = gridspec.GridSpec(num_rows, num_cols, height_ratios=hei_rats,
+            top=0.90, bottom=0.05, left=0.1, right=0.95,
+            hspace=0.05, wspace=0.05)
+
+        if not "colbar_label" in kargs:
+            kargs["colbar_label"] = "density"
+
+        if "cmap" in kargs:
+            colour_map = kargs["cmap"]
+
+        # ---------------- (heatmap) -----------------------
+        for col in range(num_cols):
+            for row in range(num_rows):
+                data = data_dict_grid[col][row] # Yeah... That weird way around;
+                ax = fig.add_subplot(gs[row, col])
+
+                if "bracket" in kargs and kargs['bracket']: # done here so clustering is performed on bracketed data
+                    data = self.bracket_data(data, kargs["bracket"][0], kargs["bracket"][1])
+                    vmin = kargs["bracket"][0]
+                    vmax = kargs["bracket"][1]
+                else:
+                    vmin = data.min()
+                    vmax = data.max()
+
+                if imshow:
+                    hm = ax.imshow(data,
+                        cmap=colour_map,
+                        vmin=vmin, vmax=vmax,
+                        aspect="auto",
+                        origin='lower',
+                        extent=[0, data.shape[1], 0, data.shape[0]],
+                        interpolation=config.get_interpolation_mode(filename))
+                else:
+                    hm = ax.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False)
+
+                if col_labels and row == 0:
+                    ax.set_title(col_labels[col], fontsize=6)
+
+                if row_labels and col == 0:
+                    ax.set_ylabel(row_labels[row], fontsize=6)
+
+                ax.set_frame_on(frames)
+
+                ax.set_xlim([0,data.shape[1]])
+                ax.set_ylim([0,data.shape[0]])
+
+                ax.tick_params(top=False, bottom=False, left=False, right=False)
+                [t.set_visible(False) for t in ax.get_yticklabels()] # generally has to go last.
+                [t.set_visible(False) for t in ax.get_xticklabels()]
+
+        scalebar_location = [0.05,  0.97,   0.90,   0.02]
+        ax0 = fig.add_subplot()
+        ax0.set_position(scalebar_location)
+        ax0.set_frame_on(False)
+        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
+        cb.set_label(kargs["colbar_label"], fontsize=6)
+        [label.set_fontsize(6) for label in ax0.get_xticklabels()]
+
+        return self.savefigure(fig, filename)
+
     def boxplot(self, data=None, filename=None, labels=None, showfliers=True, whis=1.5,
         tight_layout=False, grid=True, **kargs):
         """
@@ -1053,7 +1173,7 @@ class draw:
 
         self.do_common_args(ax, **kargs)
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _scatter(self, x=None, y=None, filename=None, **kargs):
         """
@@ -2642,11 +2762,11 @@ class draw:
 
         #plot_hei = (0.8) - (0.04*len(labs))
 
-        if 'figsize' not in kargs: # TODO: Sensible sizes'
+        if 'figsize' not in kargs: # TODO: Sensible sizes
             kargs['figsize'] = [4,3]
 
         fig = self.getfigure(**kargs)
-        #fig.subplots_adjust(left=0.35, right=0.95, bottom=plot_hei,)
+        fig.subplots_adjust(left=0.35, right=0.95, bottom=plot_hei)
         ax = fig.add_subplot(111)
         ax.set_prop_cycle('color', cols)
 
@@ -2666,7 +2786,7 @@ class draw:
 
         ax.set_title(title, size=6)
         ax.legend()
-        plot.legend(loc='upper left', bbox_to_anchor=(0.0, -0.4), prop={'size': 6})
+        plot.legend(loc='upper left')#, bbox_to_anchor=(0.0, -0.4), prop={'size': 6})
         [t.set_fontsize(6) for t in ax.get_yticklabels()]
         [t.set_fontsize(6) for t in ax.get_xticklabels()]
 
