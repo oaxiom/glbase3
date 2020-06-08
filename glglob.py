@@ -2359,9 +2359,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
 
-                range = tab_max - tab_min
-                top = tab_min + range*range_bracket[0]
-                bot = tab_min + range*range_bracket[1]
+                tab_range = tab_max - tab_min
+                top = tab_min + tab_range*range_bracket[0]
+                bot = tab_min + tab_range*range_bracket[1]
                 brackets.append([top, bot])
                 config.log.info("chip_seq_heatmap: trk={0}, suggested bracket=({1:.2f}, {2:.2f})".format(list_of_trks[tindex]['name'], brackets[tindex][0], brackets[tindex][1]))
         else:
@@ -2382,9 +2382,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                     config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
 
-                    range = tab_max -tab_min
-                    top = tab_min + range*range_bracket[0]
-                    bot = tab_min + range*range_bracket[1]
+                    tab_range = tab_max -tab_min
+                    top = tab_min + tab_range*range_bracket[0]
+                    bot = tab_min + tab_range*range_bracket[1]
                     brackets.append([top, bot])
 
                 bracket = [max([b[0] for b in brackets]), max([b[1] for b in brackets])]
