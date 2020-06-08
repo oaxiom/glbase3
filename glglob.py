@@ -2097,6 +2097,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         cmap=cm.plasma,
         log_pad=None,
         log=2,
+        per_column_bracket=False,
         size=None,
         **kargs):
         """
@@ -2145,8 +2146,24 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             cmap (Optional, default=matplotlib.cm.plasma)
                 A colour map for the heatmap.
 
-            range_bracket (Optional, default=None, exclusive with range_bracket)
+            ######## Bracket system:
+
+            There area bunch of args here.
+
+            per_column_bracket sets a bracket for each column (track) in the heatmaps. If this is True,
+            you should use the range_bracket system.
+
+            If per_column_bracket is False, then you can use the range_bracket system (recommended),
+            but you cna also set your own bracket with the bracket option.
+
+            per_column_bracket (Optional, default=False)
+                Have a bracket for each column, or (when False) a single bracket for all of the data
+
+            range_bracket (Optional, default=[0.4, 0.9], exclusive with range_bracket)
+                chip_seq_heatmap can have column-wise (track-wise) specific brackets. So, only range_bracket is valid
+
                 Okay, hold your hats, this is complicated.
+
                 range_bracket will bracket the range of values as a fraction between [min(data), max(data)]
                 i.e. If range_bracket=0.5 (the default) then the data is bracketed as:
                 [max(data)*range_bracket[0], max(data)*range_bracket[1]]. The practical upshot of this is it allows you to shift
@@ -2159,11 +2176,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 By default glbase attempts to guess the best range to draw based on the
                 median and the stdev. It may not always succeed.
-
-            bracket (Optional, default=None, exclusive with range_bracket)
-                chip_seq_heatmap() will make a guess on the best bracket values and will output that
-                as information. You can then use those values to set the bracket manually here.
-                This is bracketing the data AFTER log transforming.
 
             cache_data (Optional, default=False)
                 cache the pileup data into the file specified in cache_data. This speeds up reanalysis.
@@ -2211,7 +2223,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for tindex, _ in enumerate(list_of_trks):
             matrix[tindex] = {} # Populate the final matrix
             pileup[tindex] = {} # Populate the final matrix
-            for plidx, peaklist in enumerate(list_of_peaks): # Could be moved out to go faster...
+            for plidx, peaklist in enumerate(list_of_peaks):
                 matrix[tindex][plidx] = {} # Populate the final matrix
                 pileup[tindex][plidx] = {} # Populate the final matrix
                 for pindex, peak in enumerate(peaklist):
@@ -2220,7 +2232,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         # Populate the order data so I can use the chromosome cache system;
         porder = {}
-        for plidx, peaklist in enumerate(list_of_peaks): # Could be moved out to go faster...
+        for plidx, peaklist in enumerate(list_of_peaks):
             porder[plidx] = {} # make an index hitter so that order is preserved:
             for pindex, peak in enumerate(peaklist):
                 p_loc_chrom = peak['loc']['chr']
@@ -2242,7 +2254,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             assert len(matrix[0]) == len(list_of_peaks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
             for it, t in enumerate(list_of_peaks):
                 for ip, p in enumerate(list_of_peaks):
-                    print(matrix[it][ip].shape, (len(p), bins), matrix[it][ip])
                     assert matrix[it][ip].shape == (len(p), bins), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
         else:
             # No cached data, so we have to collect ourselves.
@@ -2262,7 +2273,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             left = cpt - pileup_distance
                             rite = cpt + pileup_distance
 
-                            # It's possible to ask for data beyond the edge of the actual data. Skip these ones
+                            # It's possible to ask for data beyond the edge of the actual data. truncate...
                             if rite > len(data):
                                 rite = len(data)
                             if left > len(data):
@@ -2296,21 +2307,29 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         colbar_label = "Tag density"
 
-        '''
+
         if log:
             if not log_pad:
                 log_pad = 0.1
 
-            for index in range(len(list_of_tables)):
-                if log == 2:
-                    list_of_tables[index] = numpy.log2(numpy.array(list_of_tables[index])+log_pad)
-                    colbar_label = "Log2(Tag density)"
-                elif log == 10:
-                    list_of_tables[index] = numpy.log10(numpy.array(list_of_tables[index])+log_pad)
-                    colbar_label = "Log10(Tag density)"
-                else:
-                    list_of_tables[index] = numpy.array(list_of_tables[index])
-        '''
+            if not range_bracket: # suggest reasonable range;
+                range_bracket = [0.6, 0.9]
+
+            for tindex, _ in enumerate(list_of_trks):
+                for plidx, peaklist in enumerate(list_of_peaks):
+
+                    if log == 2:
+                        matrix[tindex][plidx] = numpy.log2(matrix[tindex][plidx]+log_pad)
+                        colbar_label = "Log2(Tag density)"
+                    elif log == 10:
+                        matrix[tindex][plidx] = numpy.log10(matrix[tindex][plidx]+log_pad)
+                        colbar_label = "Log10(Tag density)"
+                    else:
+                        raise AssertionError('log={0} not found'.format(log))
+
+        else:
+            if not range_bracket: # suggest reasonable range;
+                range_bracket = [0.0, 0.1]
 
         if normalise:
             colbar_label = "Normalised %s" % colbar_label
@@ -2321,23 +2340,57 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if not col_labels:
             col_labels = [t['name'] for t in list_of_trks]
 
-        '''
-        # Suggest brackets:
-        tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
-        tab_min = min([tab.min() for tab in list_of_tables])
-        #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
-        tab_mean = mean([numpy.average(tab) for tab in list_of_tables])
-        tab_stdev = numpy.std(numpy.array([tab for tab in list_of_tables]))
+        bracket = None
+        brackets = None
 
-        config.log.info("chip_seq_heatmap: min=%.2f, max=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_mean, tab_stdev))
-        if range_bracket:
-            bracket = [tab_max*range_bracket[0], tab_max*range_bracket[1]]
-        elif bracket:
-            bracket = bracket # Fussyness for clarity.
-        else: # guess a range:
-            bracket = [tab_mean, tab_mean+(tab_stdev*2.0)]
-            config.log.info("chip_seq_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))
-        '''
+        if per_column_bracket:
+            # Suggest brackets:
+
+            t_stats = []
+            brackets = []
+            for tindex, _ in enumerate(list_of_trks): # I can have track-wise brackets;
+                for plidx, peaklist in enumerate(list_of_peaks):
+                    tab_max = max([tab.max() for tab in matrix[tindex][plidx]]) # need to get new tab_max for log'd values.
+                    tab_min = min([tab.min() for tab in matrix[tindex][plidx]])
+                    #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
+                    tab_mean = mean([numpy.average(tab) for tab in matrix[tindex][plidx]])
+                    tab_std = numpy.std(numpy.array([tab for tab in matrix[tindex][plidx]]))
+                    t_stats.append((tab_max, tab_min, tab_mean, tab_std))
+
+                config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
+
+                range = tab_max - tab_min
+                top = tab_min + range*range_bracket[0]
+                bot = tab_min + range*range_bracket[1]
+                brackets.append([top, bot])
+                config.log.info("chip_seq_heatmap: trk={0}, suggested bracket=({1:.2f}, {2:.2f})".format(list_of_trks[tindex]['name'], brackets[tindex][0], brackets[tindex][1]))
+        else:
+            # Suggest brackets:
+            if bracket:
+                pass # USe the arg
+            else: # Guess a bracket for all heatmaps;
+                t_stats = []
+                brackets = []
+                for tindex, _ in enumerate(list_of_trks): # I can have track-wise brackets;
+                    for plidx, peaklist in enumerate(list_of_peaks):
+                        tab_max = max([tab.max() for tab in matrix[tindex][plidx]]) # need to get new tab_max for log'd values.
+                        tab_min = min([tab.min() for tab in matrix[tindex][plidx]])
+                        #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
+                        tab_mean = mean([numpy.average(tab) for tab in matrix[tindex][plidx]])
+                        tab_std = numpy.std(numpy.array([tab for tab in matrix[tindex][plidx]]))
+                        t_stats.append((tab_max, tab_min, tab_mean, tab_std))
+
+                    config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
+
+                    range = tab_max -tab_min
+                    top = tab_min + range*range_bracket[0]
+                    bot = tab_min + range*range_bracket[1]
+                    brackets.append([top, bot])
+
+                bracket = [max([b[0] for b in brackets]), max([b[1] for b in brackets])]
+                brackets = None
+                config.log.info("chip_seq_heatmap: suggested bracket=({0:.2f}, {1:.2f})".format(bracket[0], bracket[1]))
+
         if filename:
             real_filename = self.draw.grid_heatmap(
                 data_dict_grid=matrix,
@@ -2349,6 +2402,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 size=size,
                 colour_map=cmap,
                 bracket=bracket,
+                brackets=brackets,
                 frames=frames
                 )
 

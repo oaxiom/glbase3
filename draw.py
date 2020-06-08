@@ -1084,7 +1084,11 @@ class draw:
             fig = self.getfigure(size=(0.15+(2*num_cols), 7))
 
         gs = gridspec.GridSpec(num_rows, num_cols, height_ratios=hei_rats,
-            top=0.90, bottom=0.05, left=0.1, right=0.95,
+            top=0.95, bottom=0.08, left=0.1, right=0.95,
+            hspace=0.02, wspace=0.05)
+
+        gs2 = gridspec.GridSpec(1, num_cols,
+            top=0.07, bottom=0.05, left=0.1, right=0.95,
             hspace=0.05, wspace=0.05)
 
         if not "colbar_label" in kargs:
@@ -1099,10 +1103,16 @@ class draw:
                 data = data_dict_grid[col][row] # Yeah... That weird way around;
                 ax = fig.add_subplot(gs[row, col])
 
-                if "bracket" in kargs and kargs['bracket']: # done here so clustering is performed on bracketed data
-                    data = self.bracket_data(data, kargs["bracket"][0], kargs["bracket"][1])
-                    vmin = kargs["bracket"][0]
-                    vmax = kargs["bracket"][1]
+                if "brackets" in kargs and kargs['brackets']: # done here so clustering is performed on bracketed data
+                    bracket = kargs['brackets'][col]
+                    data = self.bracket_data(data, bracket[0], bracket[1])
+                    vmin = bracket[0]
+                    vmax = bracket[1]
+                elif "bracket" in kargs and kargs['bracket']:
+                    bracket = kargs['bracket']
+                    data = self.bracket_data(data, bracket[0], bracket[1])
+                    vmin = bracket[0]
+                    vmax = bracket[1]
                 else:
                     vmin = data.min()
                     vmax = data.max()
@@ -1133,13 +1143,15 @@ class draw:
                 [t.set_visible(False) for t in ax.get_yticklabels()] # generally has to go last.
                 [t.set_visible(False) for t in ax.get_xticklabels()]
 
-        scalebar_location = [0.05,  0.97,   0.90,   0.02]
-        ax0 = fig.add_subplot()
-        ax0.set_position(scalebar_location)
-        ax0.set_frame_on(False)
-        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
-        cb.set_label(kargs["colbar_label"], fontsize=6)
-        [label.set_fontsize(6) for label in ax0.get_xticklabels()]
+
+            ax = fig.add_subplot(gs2[0, col])
+
+            #ax0 = fig.add_subplot()
+            #ax0.set_position(scalebar_location)
+            #ax0.set_frame_on(False)
+            cb = fig.colorbar(hm, cax=ax, orientation="horizontal", cmap=colour_map)
+            cb.set_label(kargs["colbar_label"], fontsize=6)
+            [label.set_fontsize(6) for label in ax.get_xticklabels()]
 
         return self.savefigure(fig, filename)
 
