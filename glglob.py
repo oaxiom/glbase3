@@ -2252,8 +2252,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             assert isinstance(matrix[0][0], (numpy.ndarray, numpy.generic)), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
             assert len(matrix) == len(list_of_trks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
             assert len(matrix[0]) == len(list_of_peaks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
-            for it, t in enumerate(list_of_peaks):
+            for it, t in enumerate(list_of_trks):
                 for ip, p in enumerate(list_of_peaks):
+                    #print(matrix[it][ip].shape, (len(p), bins))
                     assert matrix[it][ip].shape == (len(p), bins), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
         else:
             # No cached data, so we have to collect ourselves.

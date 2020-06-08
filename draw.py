@@ -1081,14 +1081,14 @@ class draw:
         if size:
             fig = self.getfigure(size=size)
         else: # guess:
-            fig = self.getfigure(size=(0.15+(2*num_cols), 7))
+            fig = self.getfigure(size=(0.1+(2*num_cols), 1+num_rows)) # simpler jsut to use the number of rows
 
         gs = gridspec.GridSpec(num_rows, num_cols, height_ratios=hei_rats,
-            top=0.95, bottom=0.08, left=0.1, right=0.95,
-            hspace=0.02, wspace=0.05)
+            top=0.95, bottom=0.08, left=0.05, right=0.98,
+            hspace=0.03, wspace=0.05)
 
         gs2 = gridspec.GridSpec(1, num_cols,
-            top=0.07, bottom=0.05, left=0.1, right=0.95,
+            top=0.07, bottom=0.05, left=0.05, right=0.98,
             hspace=0.05, wspace=0.05)
 
         if not "colbar_label" in kargs:
