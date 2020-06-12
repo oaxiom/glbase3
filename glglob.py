@@ -2083,22 +2083,23 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         list_of_peaks,
         list_of_trks,
         filename:str = None,
-        normalise=False,
+        normalise = False,
         bins:int = 100,
         pileup_distance:int = 1000,
         cache_data=False,
         bracket=None,
         range_bracket=None,
-        frames=True,
-        row_labels=None,
-        col_labels=None,
+        frames = True,
+        row_labels = None,
+        col_labels = None,
         read_extend:int = 200,
         imshow:bool = True,
-        cmap=cm.plasma,
-        log_pad=None,
-        log=2,
-        per_column_bracket=False,
-        size=None,
+        cmap = cm.plasma,
+        log_pad = None,
+        log = 2,
+        per_column_bracket:bool = False,
+        sort_by_sum_intensity:bool = False,
+        size = None,
         **kargs):
         """
         **Purpose**
@@ -2145,6 +2146,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             cmap (Optional, default=matplotlib.cm.plasma)
                 A colour map for the heatmap.
+
+            sort_by_sum_intensity (Optional, default=False)
+                False: USe the order that the peaks arrived in
+                True: Sort by the sums of intensities across all columns. (Sorting is before bracket)
 
             ######## Bracket system:
 
@@ -2308,7 +2313,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         colbar_label = "Tag density"
 
-
         if log:
             if not log_pad:
                 log_pad = 0.1
@@ -2327,10 +2331,30 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         colbar_label = "Log10(Tag density)"
                     else:
                         raise AssertionError('log={0} not found'.format(log))
-
         else:
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.0, 0.1]
+
+        if sort_by_sum_intensity:
+            for plidx, peaklist in enumerate(list_of_peaks):
+                new_order = []
+                heat_sums = None
+                for tindex, _ in enumerate(list_of_trks):
+                    s = numpy.sum(matrix[tindex][plidx], axis=1)
+                    if heat_sums is None:
+                        heat_sums = s
+                    else:
+                        heat_sums += s
+
+                # pack, unpack, sort;
+                d = [(i, v) for i, v in enumerate(heat_sums)]
+                #print(d)
+                d = sorted(d, key=itemgetter(1))
+                new_order = list([i[0] for i in d])
+                #print(new_order)
+                for tindex, _ in enumerate(list_of_trks):
+                    matrix[tindex][plidx] = matrix[tindex][plidx][new_order,:]
+
 
         if normalise:
             colbar_label = "Normalised %s" % colbar_label
@@ -2341,10 +2365,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if not col_labels:
             col_labels = [t['name'] for t in list_of_trks]
 
-        bracket = None
+
         brackets = None
 
         if per_column_bracket:
+            bracket = None
             # Suggest brackets:
 
             t_stats = []
