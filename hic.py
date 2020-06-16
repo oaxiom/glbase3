@@ -1256,7 +1256,6 @@ class hic:
                 if data.shape != mat.shape:
                     interpolator_func = interpolate.interp2d(range(data.shape[0]), range(data.shape[1]), data, kind='linear')
                     data = interpolator_func(int_range, int_range)
-                    print('resize', data.shape, int_range)
 
                 mat += data
                 p.update(aidx)
