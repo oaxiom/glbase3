@@ -434,13 +434,15 @@ class hic:
 
         return True
 
-    def save_np3_column_matrix(self, filename):
+    def save_np3_column_matrix(self, filename, nohead=False):
         """
         **Purpose**
             Some other tools ask for a n+3 chromosome matrix,
 
             In the form
             chrom   left    right   0   0   0   0   0   0    .... #bins
+
+            if nohead=True, then save just the matrix
 
             These tables are chromsome local only.
 
@@ -469,9 +471,12 @@ class hic:
             mat = self.mats[chrom].value
             bins = self.bin_lookup_by_chrom[chrom]
             for m, b in zip(mat, bins):
-                lin = [chrom_name, b[1], b[2]] + list(m)
-                lin = [str(i) for i in lin]
-                oh.write('%s\n' % '\t'.join(lin))
+                if nohead:
+                    lin = [str(i) for i in m]
+                else:
+                    lin = [chrom_name, b[1], b[2]] + list(m)
+                    lin = [str(i) for i in lin]
+                oh.write('{0}\n'.format('\t'.join(lin)))
             oh.close()
 
             config.log.info('Saved save_np3_column_matrix() "%s"' % actual_filename)
