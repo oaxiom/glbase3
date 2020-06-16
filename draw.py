@@ -1039,6 +1039,7 @@ class draw:
         frames=False,
         imshow=False,
         size=None,
+        dpi:int = 80,
         **kargs):
         """
         **Purpose**
@@ -1071,7 +1072,7 @@ class draw:
         assert filename, "heatmap() - no specified filename"
 
         num_cols = len(data_dict_grid)
-        num_rows = len(data_dict_grid[1])
+        num_rows = len(data_dict_grid[0])
 
         hei_rats = []
         for pindex, _ in enumerate(data_dict_grid[0]): # must be all the same size...
@@ -1153,7 +1154,7 @@ class draw:
             cb.set_label(kargs["colbar_label"], fontsize=6)
             [label.set_fontsize(6) for label in ax.get_xticklabels()]
 
-        return self.savefigure(fig, filename)
+        return self.savefigure(fig, filename, dpi=dpi)
 
     def boxplot(self, data=None, filename=None, labels=None, showfliers=True, whis=1.5,
         tight_layout=False, grid=True, **kargs):
@@ -1871,7 +1872,7 @@ class draw:
         # See savefigure() for the actual specification
         return(plot.figure(figsize=data[aspect][size]))
 
-    def savefigure(self, fig, filename, size=config.draw_size, bbox_inches=None):
+    def savefigure(self, fig, filename, size=config.draw_size, bbox_inches=None, dpi=None):
         """
         **Purpose**
             Save the figure
@@ -1903,7 +1904,7 @@ class draw:
             else:
                 save_name = "%s.%s" % (head, mode)
 
-            fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches)
+            fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches, dpi=dpi)
             plot.close(fig) # Saves a huge amount of memory.
         return(save_name)
 

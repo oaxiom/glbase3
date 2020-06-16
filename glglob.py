@@ -1852,7 +1852,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert isinstance(trks, list), 'measure_density: trks must be a list'
         assert 'loc' in list(peaks.keys()), 'measure_density: no loc key found in peaks'
         all_trk_names = [t["name"] for t in trks]
-        assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track["name"] to unique names'
+        assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track.meta_data["name"] to unique names'
 
         peaks = peaks.deepcopy()
         if pointify:
@@ -2099,6 +2099,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         log = 2,
         per_column_bracket:bool = False,
         sort_by_sum_intensity:bool = False,
+        sort_by_intensity:bool = False,
         size = None,
         **kargs):
         """
@@ -2150,6 +2151,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             sort_by_sum_intensity (Optional, default=False)
                 False: USe the order that the peaks arrived in
                 True: Sort by the sums of intensities across all columns. (Sorting is before bracket)
+
+                Note, exclusive with sort_by_intensity
+
+            sort_by_intensity (Optional, defualt=False)
+                False: No sorting
+                True: Sort by the sum of each row, but independently for each heatmap;
+
+                Note, exclusive with sort_by_sum_intensity
 
             ######## Bracket system:
 
@@ -2209,6 +2218,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         """
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
+        assert not (sort_by_sum_intensity and sort_by_intensity), 'sort_by_sum_intensity and sort_by_intensity cannot both be True'
 
         total_rows = 0
 
@@ -2259,10 +2269,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             assert len(matrix[0]) == len(list_of_peaks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
             for it, t in enumerate(list_of_trks):
                 for ip, p in enumerate(list_of_peaks):
-                    #print(matrix[it][ip].shape, (len(p), bins))
-                    assert matrix[it][ip].shape == (len(p), bins), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+                    assert matrix[it][ip].shape == (len(p), bins), '{0} ({1} {2}) does not match the expected data, suggest you rebuild'.format(cache_data, t['name'], p.name)
         else:
             # No cached data, so we have to collect ourselves.
+            expected_len = pileup_distance * 2
             config.log.info('chip_seq_heatmap: Collecting pileup data...')
             p = progressbar(len(list_of_trks))
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
@@ -2286,15 +2296,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 left = len(data)
 
                             dd = data[left:rite]
+                            while len(dd) < expected_len: # pad out any missing 0
+                                dd.append(0)
 
                             if normalise:
-                                pil_data = [av/read_totals[tindex] for av in dd]
+                                dd = [av/read_totals[tindex] for av in dd]
 
                             # Fill in the matrix table:
                             #pileup[tindex][plidx][pidx] += pil_data
                             matrix[tindex][plidx][peak] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)]
-                            #print(matrix[tindex][plidx][pidx])
-                            #chr_blocks[chrom][block_id]["pil"][tindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
                 p.update(tindex)
 
             # convert to numpy arrays;
@@ -2302,8 +2312,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 for plidx, peaklist in enumerate(list_of_peaks):
                     twoD_list = []
                     for pindex, _ in enumerate(peaklist): # preserve original order;
+                        #print(len(matrix[tindex][plidx][pindex]))
                         twoD_list.append(matrix[tindex][plidx][pindex])
+                        #print(matrix[tindex][plidx][pindex])
+
+                    #print(twoD_list)
                     matrix[tindex][plidx] = numpy.array(twoD_list)
+                    #print(matrix[tindex][plidx])
+                    #print(matrix[tindex][plidx].shape)
 
             if cache_data: # store the generated data for later.
                 oh = open(cache_data, "wb")
@@ -2335,7 +2351,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.0, 0.1]
 
-        if sort_by_sum_intensity:
+        if sort_by_sum_intensity:# i.e. sort for all columns and preserve row order
             for plidx, peaklist in enumerate(list_of_peaks):
                 new_order = []
                 heat_sums = None
@@ -2346,13 +2362,21 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     else:
                         heat_sums += s
 
-                # pack, unpack, sort;
                 d = [(i, v) for i, v in enumerate(heat_sums)]
-                #print(d)
                 d = sorted(d, key=itemgetter(1))
                 new_order = list([i[0] for i in d])
-                #print(new_order)
                 for tindex, _ in enumerate(list_of_trks):
+                    matrix[tindex][plidx] = matrix[tindex][plidx][new_order,:]
+
+        elif sort_by_intensity:# i.e. each heatmap is independent
+            for plidx, peaklist in enumerate(list_of_peaks):
+                new_order = []
+                heat_sums = None
+                for tindex, _ in enumerate(list_of_trks):
+                    heat_sums = numpy.sum(matrix[tindex][plidx], axis=1)
+                    d = [(i, v) for i, v in enumerate(heat_sums)]
+                    d = sorted(d, key=itemgetter(1))
+                    new_order = list([i[0] for i in d])
                     matrix[tindex][plidx] = matrix[tindex][plidx][new_order,:]
 
 
@@ -2429,7 +2453,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 colour_map=cmap,
                 bracket=bracket,
                 brackets=brackets,
-                frames=frames
+                frames=frames,
+                dpi=300,
                 )
 
         config.log.info("chip_seq_heatmap: Saved overlap heatmap to '{0}'".format(real_filename))

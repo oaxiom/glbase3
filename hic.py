@@ -15,7 +15,7 @@ from operator import itemgetter
 from shutil import copyfile
 
 import matplotlib.cm as cm
-from scipy import ndimage
+from scipy import ndimage, interpolate
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
@@ -158,7 +158,7 @@ class hic:
         self.hdf5_handle.visit(print)
 
     def __len__(self):
-        return(self.num_bins)
+        return self['num_bins']
 
     def __getitem__(self, index):
         """
@@ -168,10 +168,10 @@ class hic:
 
         and inherits normal genelist slicing behaviour
         """
-        return(self.hdf5_handle.attrs[index])
+        return self.hdf5_handle.attrs[index]
 
     def keys(self):
-        return(self.hdf5_handle.keys())
+        return self.hdf5_handle.keys()
 
     def _optimiseData(self):
         pass
@@ -237,7 +237,49 @@ class hic:
         #print (binLeft, binRight, newloc, mostLeft, mostRight)
         assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
 
-        return(binLeft, binRight, newloc, mostLeft, mostRight)
+        return (binLeft, binRight, newloc, mostLeft, mostRight)
+
+    def __quick_find_binID_spans(self, loc_chrom=None, loc_left=None, loc_rite=None):
+        """
+        (Internal)
+
+        Fing the binIDs for the span loc.
+
+        Returns a tuple containing the local binIDs for these coordinates,
+
+        """
+        # These are in global bins.
+        binLeft = 1e50
+        binRight = -1
+        mostLeft = 1e50
+        mostRight = -1
+
+        #print(self.bin_lookup_by_chrom[loc['chr']])
+        for bin in self.bin_lookup_by_chrom[loc_chrom]:
+            # bin = (binID, left, right)
+            #print(bin, loc)
+            if bin[2] > loc_left and bin[0] < binLeft:
+                binLeft = bin[0]
+            if loc_rite > bin[1] and bin[0] > binRight:
+                binRight = bin[0]
+
+            # To work out the local bin positions:
+            if bin[0] < mostLeft:
+                mostLeft = bin[0]
+            if bin[0] > mostRight:
+                mostRight = bin[0]
+
+        # in case locations are asked for off the edge of the chromsome:
+        if binLeft < 0:
+            binLeft = 0
+        if binRight > mostRight:
+            binRight = mostRight
+
+        binLeft = binLeft - mostLeft
+        binRight = binRight - mostLeft
+        assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
+
+        return (binLeft, binRight)
 
     def __find_binID_chromosome_span(self, chrom):
         """
@@ -264,7 +306,7 @@ class hic:
         mostRight = self.bin_lookup_by_binID[mostRight][3] # Convert to newBinID:
         mostLeft = self.bin_lookup_by_binID[mostLeft][3]
 
-        return(mostLeft, mostRight)
+        return (mostLeft, mostRight)
 
     def load_hicpro_matrix(self, matrix_filename, bed_file):
         """
@@ -281,6 +323,7 @@ class hic:
 
         # First go through the bed file and get all the bins, chroms and sizes.
         bins = []
+        bin_size = None
         self.all_chrom_names = []
         oh = open(bed_file, 'r')
         for lin in oh:
@@ -294,14 +337,17 @@ class hic:
                 pass # It's chrX chrVII etc.
 
             bins.append((chr, int(lin[1]), int(lin[2]), int(lin[3])))
+            if not bin_size:
+                bin_size = int(lin[2]) - int(lin[1])
             if chr not in self.all_chrom_names:
                 self.all_chrom_names.append(chr)
 
         oh.close()
         self.all_chrom_names = set(self.all_chrom_names)
         self.hdf5_handle.attrs['num_bins'] = len(bins)
+        self.hdf5_handle.attrs['bin_size'] = bin_size
 
-        config.log.info('Found %s bins' % self['num_bins'])
+        config.log.info('Found {0} bins, each bin = {1} bp'.format(self['num_bins'], self['bin_size']))
         # the bins are not sorted,
         bin_order = sorted(bins, key=lambda v: (isinstance(v[0], str), v[0], v[1])) # Sort chroms by str, then int
         bin_lookup = {} # python 3: no need OrderedDict
@@ -386,7 +432,7 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        return(True)
+        return True
 
     def save_np3_column_matrix(self, filename):
         """
@@ -1165,3 +1211,117 @@ class hic:
 
         self.tsne_trained = chrom
         config.log.info("tsne: Trained tSNE")
+
+    def square_plot(self,
+        filename:str = None,
+        center_anchors = None,
+        distal_anchors = None,
+        window:int = None,
+        bracket = None,
+        log2 = None,
+        colour_map = cm.plasma,
+        **kargs
+        ):
+        """
+        **Purpose**
+            Draw a square plot for HiC intensity,
+            Take the center_anchor points, and then draw out to eith ther distal anchors, or to some <window>
+            Take the average of the matrix;
+        """
+        assert self.readonly, 'must be readonly to draw a square_plot. set new=False'
+        assert filename, 'You need a filename to save the image to'
+        assert not (distal_anchors and window), 'Only one of distal_anchors or window can be valid'
+        if not window: assert distal_anchors, 'distal_anchors not True'
+        if not distal_anchors: assert window, 'window not True'
+
+        if distal_anchors:
+            raise NotImplementedError('distal_anchors not implemented')
+
+        num_bins = (window * 2 ) // self['bin_size']
+
+        mat = numpy.zeros((num_bins, num_bins))
+        int_range = numpy.arange(num_bins)
+
+        if distal_anchors:
+            for anchor, distal in zip(center_anchors, distal_anchors):
+                pass # Not implemented yet.
+
+        elif window:
+            p = progressbar(len(center_anchors))
+            for aidx, anchor in enumerate(center_anchors):
+                localLeft, localRight = self.__quick_find_binID_spans(anchor['loc']['chr'], anchor['loc']['left']-window, anchor['loc']['right']+window)
+
+                data = self.mats[anchor['loc']['chr']][localLeft:localRight, localLeft:localRight]
+
+                if data.shape != mat.shape:
+                    interpolator_func = interpolate.interp2d(range(data.shape[0]), range(data.shape[1]), data, kind='linear')
+                    data = interpolator_func(int_range, int_range)
+                    print('resize', data.shape, int_range)
+
+                mat += data
+                p.update(aidx)
+
+            mat /= len(center_anchors)
+
+        fig = self.draw.getfigure(**kargs)
+
+        # positions of the items in the plot:
+        heatmap_location  = [0.05,   0.01,   0.90,   0.90]
+        scalebar_location = [0.05,   0.97,   0.90,   0.02]
+
+        if not "colbar_label" in kargs:
+            colbar_label = "Density"
+
+        if bracket: # done here so clustering is performed on bracketed data
+            #data = self.draw.bracket_data(numpy.log2(self.matrix+0.1), bracket[0], bracket[1])
+            if log2:
+                with numpy.errstate(divide='ignore'):
+                    mat = numpy.log2(mat)
+                colbar_label = "Log2(Density)"
+            data = numpy.clip(data, bracket[0], bracket[1])
+            vmin = bracket[0]
+            vmax = bracket[1]
+        else:
+            if log2:
+                with numpy.errstate(divide='ignore'):
+                    data = numpy.log2(data)
+                colbar_label = "Log2(Density)"
+            mat[mat == -numpy.inf] = 0
+            vmin = mat.min()
+            vmax = mat.max()
+
+        # ---------------- (heatmap) -----------------------
+        ax = fig.add_subplot(121)
+
+        ax.set_position(heatmap_location) # must be done early for imshow
+        hm = ax.imshow(mat, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+            origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
+            interpolation=config.get_interpolation_mode(filename))
+
+        #ax3.set_frame_on(True)
+        ax.set_position(heatmap_location)
+        ax.set_xlim([0,mat.shape[1]])
+        ax.set_ylim([0,mat.shape[0]])
+        ax.set_yticklabels("")
+        ax.set_xticklabels("")
+
+        ax.axvline(mat.shape[0] // 2, ls=":", color="grey")
+        ax.axhline(mat.shape[1] // 2, ls=":", color="grey")
+
+        ax.tick_params(top=False, bottom=False, left=False, right=False)
+        [t.set_fontsize(5) for t in ax.get_yticklabels()] # generally has to go last.
+        [t.set_fontsize(5) for t in ax.get_xticklabels()]
+
+        ax0 = fig.add_subplot(122)
+        ax0.set_position(scalebar_location)
+        ax0.set_frame_on(False)
+
+        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
+        cb.set_label(colbar_label, fontsize=6)
+        cb.ax.tick_params(labelsize=6)
+        #[label.set_fontsize(5) for label in ax0.get_xticklabels()]
+
+        actual_filename = self.draw.savefigure(fig, filename, dpi=300)
+        config.log.info("heatmap: Saved '%s'" % actual_filename)
+
+        return mat
