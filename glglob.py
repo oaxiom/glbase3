@@ -1901,6 +1901,101 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return(expn)
 
+    def measure_enrichment(self, trks, peaks, log=False,
+        read_extend=0, peak_window=100,local_lambda=5000,
+        **kargs):
+        """
+        **Purpose**
+            get the seq tag enrichment from the trks,
+            and return as an expression object
+
+        **Arguments**
+            trks (Required)
+                a list of tracks/flats
+
+            peaks (Required)
+                a list of peaks, a genelist containing a 'loc' key
+
+            read_extend (Optional, default=200)
+                read extend the sequence tags in the tracks by xbp
+
+            log (Optional, default=False)
+                log transform the resulting matrix
+
+            peak_window (Optional, default=100)
+                window around the center of the peak to score the peak enrichment.
+
+            local_lambda (Optional, default=5000)
+                Number of base pairs around the peak to score the local lambda
+
+        **Returns**
+            an expression object, with the conditions as the tag density from the tracks
+
+        """
+        assert isinstance(trks, list), 'measure_enrichment: trks must be a list'
+        assert 'loc' in list(peaks.keys()), 'measure_enrichment: no loc key found in peaks'
+        all_trk_names = [t["name"] for t in trks]
+        assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track.meta_data["name"] to unique names'
+
+        peaks = peaks.deepcopy()
+        peaks.sort('loc')
+
+        newl = []
+        curr_chrom = None
+        curr_data = None
+        curr_n = 0
+        for p in peaks:
+            p["conditions"] = [0.0 for t in trks]
+
+        all_chroms = len(set([i['chr'] for i in peaks['loc']])) * len(trks)
+        all_sizes = [t.get_total_num_reads() / 1e6 for t in trks]
+
+        for it, t in enumerate(trks):
+            pb = progressbar(all_chroms)
+            curr_chrom = None
+            for p in peaks:
+                p_loc = p['loc']
+                cpt = (p_loc['left'] + p_loc['right']) / 2
+                p_left = int(cpt - peak_window)
+                p_rite = int(cpt + peak_window)
+                p_lam_left = p_left - local_lambda
+                p_lam_rite = p_rite + local_lambda
+                #print(p_lam_left, p_left, cpt, p_rite, p_lam_rite)
+
+                if p_loc['chr'] != curr_chrom:
+                    del curr_data
+                    curr_data = t.get_array_chromosome(p_loc['chr'], read_extend=read_extend) # this is a numpy array
+                    curr_chrom = p_loc['chr']
+                    pb.update(curr_n)
+                    curr_n += 1
+
+                lam = curr_data[p_lam_left:p_left] + curr_data[p_rite:p_lam_rite]
+                if len(lam) == 0: # Probably a bad locus;
+                    continue
+                lam = mean(lam)
+                pea = curr_data[p_left:p_rite]
+                if len(pea) == 0:
+                    continue
+                pea = max(curr_data[p_left:p_rite])
+                #print(lam, pea, mean(curr_data[p_lam_left:p_left]) + mean(curr_data[p_rite:p_lam_rite]))
+
+                #if len(pea) == 0: # fell off edge of array
+                #    p["conditions"][it] = 0 # Need to put a value in here
+                #    continue
+
+                try:
+                    p["conditions"][it] = pea / lam
+                except ZeroDivisionError:
+                    pass
+                    #p["conditions"][it] = 100 # Don't append these, otherwise it distorts the results;
+                    # I reason that if lam == 0 then there is something wrong with this locus;
+
+        expn = expression(loadable_list=peaks.linearData, cond_names=[t["name"] for t in trks])
+        if log:
+            expn.log(2, .1)
+
+        return(expn)
+
     def redefine_peaks(self, super_set_of_peaks, list_of_flats, filename=None, Z_threshold=1.2,
         peak_window=200, lambda_window=5000, **kargs):
         """
