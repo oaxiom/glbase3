@@ -164,9 +164,8 @@ class hic:
         """
         Confers:
 
-        a = expn["condition_name"]
+        a = hic["condition_name"]
 
-        and inherits normal genelist slicing behaviour
         """
         return self.hdf5_handle.attrs[index]
 
@@ -416,7 +415,7 @@ class hic:
                 if bin_lookup[oldbinID][0] == chrom:
                     flat_bin.append([oldbinID, bin_lookup[oldbinID][1], bin_lookup[oldbinID][2], bin_lookup[oldbinID][3]]) # i.e. oldId, left, right, newID
             flat_bin = numpy.array(flat_bin)
-            grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin)
+            grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin, chunks=True, compression='lzf')
 
             #self.hdf5_handle.create_dataset('bin_lookup', (len(to_store), 1), dtype='S10', data=to_store)
 

@@ -1,10 +1,10 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 """
 
 Part of glbase,
 converts a sequence file to a track (graph)-like display
 
-This module is incorrectly named.
+Uses the new flat_track2
 
 """
 
@@ -15,7 +15,7 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def is_pe_inner_loop(f, chr_sizes, infilename, gzip):
+def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
     # PE version, assumes l and r are frags
     n = 0
     for ch in sorted(chr_sizes.keys()):
@@ -23,7 +23,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip):
         this_chrom = [0] * (chr_sizes[ch]+1)
 
         for file in infilename:
-            config.log.info("Collecting %s" % (file,))
+            config.log.info("Collecting from %s" % (file,))
             if not gzip:
                 oh = open(file, "rt")
             else:
@@ -46,14 +46,14 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip):
                     this_chrom[bp] += 1
 
                 if n % 1000000 == 0 and n>0:
-                    config.log.info("%s,000,000 tags parsed" % ((n // 1000000),))
+                    config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
                 n += 1 # need to do this
             oh.close()
         config.log.info('Committing %s' % ch)
-        f.add_chromosome_array(ch.strip(), this_chrom)
+        f.add_chromosome_array(ch.strip(), numpy.array(this_chrom))
         del this_chrom
 
-def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
+def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend, tot_tag_count):
     # SE version, assumes l and r need read extension based on strand
     n = 0
     for ch in sorted(chr_sizes.keys()):
@@ -61,7 +61,7 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
         this_chrom = [0] * (chr_sizes[ch]+1)
 
         for file in infilename:
-            config.log.info("Collecting %s" % (file,))
+            config.log.info("Collecting from %s" % (file,))
             if not gzip:
                 oh = open(file, "rt")
             else:
@@ -74,7 +74,6 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
                 line = line.split('\t')
                 if line[0] != ch:
                     continue
-                #print line
 
                 # We assume a strict BED file
                 l = int(line[1])
@@ -87,17 +86,15 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend):
                 else:
                     raise AssertionError('strand %s not found' % s)
 
-                #print l, r
-
                 for bp in range(l, r):
                     this_chrom[bp] += 1
 
                 if n % 1000000 == 0 and n>0:
-                    config.log.info("%s,000,000 tags parsed" % ((n // 1000000),))
+                    config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
                 n += 1 # need to do this
             oh.close()
         config.log.info('Committing %s' % ch)
-        f.add_chromosome_array(ch.strip(), this_chrom)
+        f.add_chromosome_array(ch.strip(), numpy.array(this_chrom))
         del this_chrom
 
 def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=False, gzip=None, **kargs):
@@ -191,8 +188,8 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
             line = line.split('\t')
             # We assume a strict BED file,
             ch = line[0]
-            #l = int(line[1]) # Don't need, assume rightmost only
             r = int(line[2])+5000+read_extend # pad out any likely read extension
+
             if ch not in chr_sizes:
                 chr_sizes[ch] = r
             if r > chr_sizes[ch]:
@@ -202,17 +199,18 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
             n += 1 # need to do this
         oh.close()
     total_read_count = int(n)
+    f.set_total_num_reads(total_read_count)
     config.log.info('Total read count %s' % total_read_count)
 
     config.log.info('Observed chromsomes sizes:')
     for ch in chr_sizes:
-        config.log.info('Chromosome: %s = %s' % (ch, chr_sizes[ch]))
+        config.log.info('Chromosome: {0} = {1:,} bp'.format(ch, chr_sizes[ch]))
 
     if isPE:
-        is_pe_inner_loop(f, chr_sizes, infilename, gzip)
+        is_pe_inner_loop(f, chr_sizes, infilename, gzip, total_read_count)
         f.meta_data['isPE'] = True
     else:
-        is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend)
+        is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend, total_read_count)
         f.meta_data['isPE'] = False
 
     f.meta_data['total_read_count'] = total_read_count
@@ -223,4 +221,3 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
     e = time.time()
     config.log.info("Took: %.1f seconds" % (e-s))
     return(True)
-

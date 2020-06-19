@@ -1,36 +1,36 @@
 """
-flat_track, part of chipFish, and glbase3
+flat_track2, part of chipFish, and glbase3
 
-2008-2019 oAxiom
+2020 oAxiom
 
-TODO:
-. never (?) seen in the wild, but it is presumably possible to have blocks with missing blockIDs
-  that would throw an error in __Get_block()
-. Related to the above. blockID n:0 is almost always empty and not required, but gets committed anyway.
+New reimplementation using hdf5.
 
 """
 
-import pickle, sys, os, struct, configparser, math, sqlite3, zlib # renamed to configparser in >2.6
+import pickle, sys, os, struct, configparser, math, zlib
 
 from .location import location
 from .data import positive_strand_labels, negative_strand_labels
 
 from array import array
-from .base_track import base_track
 from .draw import draw
 from .progress import progressbar
 from . import config
 
 import numpy
 import matplotlib.pyplot as plot
+import matplotlib.cm as cm
 
-from .track import track # All the benefits of track.
+if config.H5PY_AVAIL:
+    import h5py
+else:
+    raise AssertionError('flat_track now requires h5py, but it is not avaialble')
 
-TRACK_BLOCK_SIZE = 1000000 # should go in opt, or in META? required on a per-flat basis.
-CACHE_SIZE = 100000 # maximum number of blocks to keep in memory.
+positive_strand_labels = frozenset(["+", "1", "f", "F", 1])
+negative_strand_labels = frozenset(["-", "0", "r", "R", -1, 0, "-1"])
 
-class flat_track(base_track):
-    def __init__(self, name=None, new=False, filename=None, bin_format=None):
+class flat_track():
+    def __init__(self, name=None, new=False, filename=None, bin_format='f'):
         """
         **Purpose**
             track definition, used for things like sequence reads across the genome
@@ -50,157 +50,66 @@ class flat_track(base_track):
                 "f" = float
 
         """
-        base_track.__init__(self, name, new, filename)
-
-        if new: assert bin_format, 'if new=True you must specify a bin_format'
-
-        if bin_format: # Change the bin_format of the db.
-            self.meta_data["bin_format"] = bin_format
-            self.bin_format = bin_format
-        else:
-            self.bin_format = self.meta_data["bin_format"] # I unload this one
-
-        self.bin_len = struct.calcsize(self.bin_format)
-        self.block_size = TRACK_BLOCK_SIZE # size of the blocks
+        self.readonly = True
 
         if new:
-            self.__setup_tables(filename)
+            self.readonly = False
+            self.hdf5_handle = h5py.File(filename, 'w')  # This should be x to stop overwriting an exisiting file
 
-        # internals
-        self.cache = {}
-        self.cacheQ = []
+            # h5py hierarchy (Made at load_time)
+            # Things stored:
+            self.hdf5_handle.attrs['name'] = name
+            self.hdf5_handle.attrs['bin_format'] = bin_format
+            self.hdf5_handle.attrs['num_reads'] = 0
+            self.hdf5_handle.attrs['version'] = '5.0' # Fifth major revision in the flat format
+            self.chrom_names = []
+            self.meta_data = self.hdf5_handle.attrs
 
-        # Update any metadata etc, primarily the bin_format
-        self._save_meta_data()
+            self.draw = draw()
+            config.log.info('Setup new "{0}" flat file' .format(filename))
+
+        else: # old
+            try:
+                self.hdf5_handle = h5py.File(filename, 'r')
+            except OSError:
+                config.log.error('Either this is not a flat_track file, or it is the old version 4 flat tracks')
+                config.log.error('Please regenerate your flat_tracks. The new v5 format is ~4x faster on reads')
+                config.log.error('and about the same to generate the track. File size is about 2x bigger')
+                sys.exit()
+
+            self.meta_data = self.hdf5_handle.attrs
+
+            self.chrom_names = [i[0] for i in self.hdf5_handle['all_chrom_names'][()]]# flatten
+            self.chrom_names = [n.decode("ascii", "ignore") for n in self.chrom_names]
+
+            self.mats = {}
+            for chrom in self.chrom_names:
+                self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
+
+            self.draw = draw()
+            config.log.info('Bound "%s" flat file' % filename)
 
     def __repr__(self):
-        return("glbase.flat_track")
+        return "glbase.flat_track"
 
-    def __setup_tables(self, filename):
+    def keys(self):
+        return self.hdf5_handle.keys()
+
+    def _optimiseData(self):
+        pass
+
+    def close(self):
+        self.hdf5_handle.flush()
+        self.hdf5_handle.close()
+
+    def __getitem__(self, index):
         """
-        No pre-defined file - I want a new database track.
+        Confers:
+
+        a = flat["condition_name"]
+
         """
-        # If I make it here then base_genelist has made self._connection valid.
-
-        c = self._connection.cursor()
-
-        c.execute("CREATE TABLE data (blockID TEXT PRIMARY KEY, array TEXT)")
-
-        self._connection.commit()
-        c.close()
-
-    def add_read(self, loc, strand="+", increment=1):
-        """
-        **Purpose**
-            Add a location to the track.
-            Increments the score by 'increment' from loc["left"] to
-            loc["right"]
-
-        **Arguments**
-            loc
-
-            strand
-
-            increment
-
-        **Returns**
-            True, if completes succesfully, or exception.
-        """
-        left_most_block = int(abs(math.floor(loc["left"] / self.block_size)))
-        right_most_block = int(abs(math.ceil((loc["right"]+1) / self.block_size)))
-
-        blocks_required = ["%s:%s" % (loc["chr"], b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
-
-        for blockID in blocks_required:
-            # this is the span location of the block
-            #block_loc = location(chr=blockID.split(":")[0], left=blockID.split(":")[1], right=int(blockID.split(":")[1])+self.block_size-1)
-
-            # check if the block already exists
-            if not self.__has_block(blockID): # not present, make a new one.
-                self.__new_block(blockID)
-            else:
-                if not blockID in self.cacheQ: # not on cache, add it;
-                    self.cacheQ.insert(0, blockID) # put the ID at the front.
-                    self.cache[blockID] = self.__get_block(blockID)
-            # block should now be on cache and accesable.
-
-            bleft = int(blockID.split(":")[1])
-            lleft = int(loc["left"])
-            lright = int(loc["right"])
-            # modify the data
-            for pos in range(self.block_size): # iterate through the array.
-                local_pos = bleft + pos # only require "left"
-                # some funny stuff here:
-                # right is inc'd by 1
-                # as that is what is usually expected from 10-20.
-                # (i.e. coords are NOT 0-based and are closed).
-                if local_pos >= lleft and local_pos <= lright: # within the span to increment.
-                    self.cache[blockID][pos] += increment
-
-            self.__flush_cache()
-        return(True)
-
-    def add_score(self, loc=None, chromosome=None, left=None, right=None, score=0, all_in_mem=False, **kargs):
-        """
-        **Purpose**
-            adds a already known score at a particular location (or span). This will overwrite any previously
-            exisiting value stored in the db.
-
-        **Arguments**
-            loc
-                location.
-
-            score
-                the value to insert at that location
-
-        **Returns**
-            Nothing
-        """
-        if loc:
-            chrom = loc["chr"]
-            left = loc["left"]
-            right = loc["right"]
-        else:
-            chrom = chromosome
-        lleft = int(left)
-        lright = int(right)
-
-        left_most_block = int(abs(math.floor(left / self.block_size)))
-        right_most_block = int(abs(math.ceil((right+1) / self.block_size)))
-
-        blocks_required = ["%s:%s" % (chrom, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
-
-        for blockID in blocks_required:
-            # this is the span location of the block
-            #block_loc = location(chr=blockID.split(":")[0], left=blockID.split(":")[1], right=int(blockID.split(":")[1])+self.block_size-1)
-
-            if blockID not in self.cacheQ:
-                if not self.__has_block(blockID): # A db hit, but only a check
-                    self.__new_block(blockID) # no db hit
-                else: # retrieve from db, big db hit
-                    if not blockID in self.cacheQ: # not on cache, get it;
-                        self.cacheQ.insert(0, blockID) # put the ID at the front.
-                        self.cache[blockID] = self.__get_block(blockID)
-
-            # block should now be on cache and accesable.
-            bleft = int(blockID.split(":")[1])
-            bright = bleft + TRACK_BLOCK_SIZE
-            # modify the data
-            #print blockID, lleft, lright, bleft, bright, score,
-            for pos in range(lleft, lright): # iterate through the array.
-                local_pos = pos - bleft # only require "left"
-                # some funny stuff here:
-                # right is inc'd by 1
-                # as that is what is usually expected from 10-20.
-                # (i.e. coords are NOT 0-based and are closed).
-                if local_pos >= 0 and local_pos < TRACK_BLOCK_SIZE: # within the span to increment.
-                    self.cache[blockID][local_pos] = score
-                    #print local_pos, local_pos >= 0 and local_pos <= TRACK_BLOCK_SIZE
-        if not all_in_mem:
-            self.__flush_cache() # I can go over the CACHE in this routine.
-        # But putting this here means I don't have to hit the db every blockID
-        # Should help speed where I use a lot of new blocks.
-        return None
+        return self.hdf5_handle.attrs[index]
 
     def add_chromosome_array(self, chromosome=None, arr=None):
         '''
@@ -218,149 +127,40 @@ class flat_track(base_track):
                 and extend for the complete chromosomes.
         '''
         assert chromosome, 'You must specify a chromosome'
-        assert arr, 'You must provide the chromsosome data as arr'
+        assert isinstance(arr, numpy.ndarray), 'arr is not a numpy array'
 
-        chrom = chromosome.replace('chr', '')
-        lleft = 0
-        lright = len(arr)
+        # TODO: Check chrom does not already exist
 
-        # Find the first non-zero value, and go from there.
-        left_most_block = int(abs(math.floor(lleft / self.block_size)))
-        right_most_block = int(abs(math.ceil((lright+1) / self.block_size)))
+        grp = self.hdf5_handle.create_group('matrix_{0}'.format(chromosome))
+        grp.create_dataset('mat', arr.shape, dtype=numpy.float32, data=arr, chunks=True, compression='lzf')
+        config.log.info('Added chrom={0} to table'.format(chromosome))
 
-        blocks_required = ["%s:%s" % (chrom, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
+        self.chrom_names.append(chromosome)
 
-        for blockID in blocks_required:
-            #print blockID
-            #This routine should only be used at creation time, so we can assume a new block is required
-            self.__new_block(blockID) # all in mem.
-
-            # block should now be on cache and accesable.
-            bleft = int(blockID.split(":")[1])
-            bright = bleft + TRACK_BLOCK_SIZE
-            #print blockID, bleft, bright, arr[bleft:bright], array(self.bin_format, arr[bleft:bright])
-            self.cache[blockID] = array(self.bin_format, arr[bleft:bright])
-            # modify the data
-            #print blockID, lleft, lright, bleft, bright
-            '''
-            for pos in xrange(bleft, bright): # iterate through the array.
-                local_pos = pos - bleft # pos in blockID coords
-                # some funny stuff here:
-                # right is inc'd by 1
-                # as that is what is usually expected from 10-20.
-                # (i.e. coords are NOT 0-based and are closed).
-                if pos >= 0 and pos < lright: #stop it falling of arr
-                    self.cache[blockID][local_pos] = arr[pos]
-
-                #print local_pos, local_pos >= 0 and local_pos <= TRACK_BLOCK_SIZE
-            '''
-            #print
-            #print self.cache[blockID]
-        self.__flush_cache(all=True) # Flush everything to help with memory usage
-        # But putting this here means I don't have to hit the db every blockID
-        # Should help speed where I use a lot of new blocks.
         return None
 
-    def __has_block(self, blockID):
-        """
-        checks if the data base has that block already.
-        returns only True or False,
-        does not return the block, you must use __get_block()
-        to get the actual block.
-        """
-        if blockID in self.cache:
-            return(True) # on cache, so must exist.
+    def get_all_chrom_names(self):
+        return self.chrom_names
 
-        c = self._connection.cursor()
-        c.execute("SELECT blockID FROM data WHERE blockID=?", (blockID, ))
-        result = c.fetchone()
-        c.close()
-        if result:
-            return True
-        return False
-
-    def __commit_block(self, blockID, data):
-        """
-        update the block with new data.
-        commit block to db.
-        """
-        # see if tyhe block is in the database:
-        c = self._connection.cursor()
-        c.execute("SELECT blockID FROM data WHERE blockID=?", (blockID, ))
-        result = c.fetchone()
-
-        d = self._format_data(data)
-
-        if result: # has a block already, modify it.
-            # update the block data.
-
-            c.execute("UPDATE data SET array=? WHERE blockID=?", (d, blockID))
-        else:
-            c.execute("INSERT INTO data VALUES (?, ?)", (blockID, d))
-        c.close()
-
-    def __new_block(self, blockID, data=None):
-        """
-        add a data block to the db in data table.
-        returns only True, does not return the block.
-        use self.__get_block() to get a block.
-
-        new_block DOES NOT WRITE INTO THE DB!
-        You need to flush the cache for that to happen
-        """
-        if not data: # fill a blank entry
-            data = array(self.bin_format, [0 for x in range(self.block_size)]) # Numpy arrays may be faster here.
-
-        if not blockID in self.cacheQ: # not on cache
-            self.cacheQ.insert(0, blockID) # put the ID at the front.
-        self.cache[blockID] = data
-
-        return False
-
-    def __flush_cache(self, all=False):
-        """
-        check the cache is not over the size limit. If it is, take the last
-        n>CACHE_SIZE entries commit to the db.
-
-        """
-        while len(self.cacheQ) > CACHE_SIZE or (all and self.cacheQ):
-            blockID = self.cacheQ.pop()
-            self.__commit_block(blockID, self.cache[blockID])
-            del self.cache[blockID]
-
-        return True
-
-    def __get_block(self, blockID):
-        """
-        get the block identified by chr and left coordinates and return a Python Object.
-        """
-        if blockID in self.cache:
-            return(self.cache[blockID])
-
-        # not on the cache. get the block and put it on the cache.
-        c = self._connection.cursor()
-        c.execute("SELECT array FROM data WHERE blockID=?", (blockID, ))
-        result = c.fetchone()
-        c.close()
-
-        if result:
-            # Add it to the cache:
-            # This seems to make little difference to speed, and consumes too much memory if >10 flats. (16Gb machine)
-            #self.cache[blockID] = self._unformat_data(result[0]) # flats are never too big, so I don't bother flushing the cache
-            return(self._unformat_data(result[0]))
-        else:
-            raise Exception("No Block! blockID=%s" % blockID) # Not possible
-
-    def get_total_num_reads(self):
+    def set_total_num_reads(self, num_reads):
         """
         **Purpose**
             Get the total number of reads in this library,
             generally for normalization purposes. Number of tags must be set at creation time,
             not always avaialble for all flats
         """
-        if 'total_read_count' in self.meta_data:
-            return(int(self.meta_data['total_read_count']))
-        return(None)
+        assert not self.readonly, 'Trying to set_total_num_reads, but read only'
+        self.hdf5_handle.attrs['num_reads'] = num_reads
+        return None
+
+    def get_total_num_reads(self):
+        """
+        **Purpose**
+            Get the total number of reads in this library,
+            generally for normalization purposes. Number of tags must be set at creation time,
+            not always available for all flats
+        """
+        return self.hdf5_handle.attrs['num_reads']
 
     def get(self, loc, c=None, left=None, rite=None, strand="+", mask_zero=False, **kargs):
         """
@@ -390,38 +190,8 @@ class flat_track(base_track):
             left = int(loc['left'])
             rite = int(loc['right'])
 
-        left_most_block = int(abs(math.floor(left / self.block_size)))
-        right_most_block = int(abs(math.ceil((rite+1) / self.block_size)))
+        ret_array = self.mats[c][left:rite]
 
-        blocks_required = ["%s:%s" % (c, b) for b in range(left_most_block * self.block_size, right_most_block * self.block_size, self.block_size)]
-
-        ret_array = [] # faster than array
-
-        for blockID in blocks_required:
-            # this is the span location of the block
-            #block_loc = location(chr=blockID.split(":")[0], left=blockID.split(":")[1], right=int(blockID.split(":")[1])+self.block_size-1)
-            block_loc_left = int(blockID.split(":")[1]) # this is all you actually need for the block location
-            # check if the block already exists
-            if self.__has_block(blockID): # it does, get it.
-                this_block_array_data = self.__get_block(blockID)
-            else: # block not in db, fake a block instead.
-                this_block_array_data = [0] * self.block_size
-
-            # This feels like it would be a bit slow...
-            # Work out the spans to reduce iteration:
-            left_most = left - block_loc_left
-            if left_most < 0: left_most = 0
-            rite_most = rite - block_loc_left
-            if rite_most > self.block_size: rite_most = self.block_size
-            #print left_most, rite_most
-
-            for pos in range(left_most, rite_most): #self.block_size): # iterate through the array.
-                local_pos = block_loc_left + pos
-                if local_pos >= left and local_pos <= (rite+1): # within the span to increment.
-                    if pos >= len(this_block_array_data): # stop edge falloffs
-                        ret_array.append(0)
-                    else:
-                        ret_array.append(this_block_array_data[pos])
         if mask_zero:
             mask = []
             for dd in ret_array:
@@ -431,6 +201,7 @@ class flat_track(base_track):
                     mask.append(0)
             # This may produce a warning, but apparently I can safely ignore it
             ret_array = numpy.ma.masked_array(ret_array, mask=mask)
+
         return ret_array
 
     def get_array_chromosome(self, chrom=None, **kargs): # kargs for compat with trk
@@ -438,61 +209,28 @@ class flat_track(base_track):
         **Purpose**
             Get the enrire array for the chromosome chrom.
 
+            Shouldn't be needed in this implementation
+
         **Arguments**
             chrom (Required)
                 chromsome name to collect.
 
         """
-        #What is the maximum blockID size?
-        c = self._connection.cursor()
-        c.execute("SELECT blockID FROM data") # get all blockIDs
-        result = c.fetchall()
-        # get biggest blockID:
-        biggest_block = -1
-        for b in result:
-            bid, pos = b[0].split(':')
-            pos = int(pos)
-            if chrom.replace('chr', '') == bid:
-                if pos > biggest_block:
-                    biggest_block = pos
+        if 'chr' not in chrom:
+            chrom = 'chr{0}'.format(chrom)
 
-        right_most_block = int(abs(math.ceil((biggest_block+1) / self.block_size)))
-
-        blocks_required = ["%s:%s" % (chrom, b) for b in range(0, right_most_block * self.block_size, self.block_size)] # always in order?
-        ret_array = [] # faster than array
-
-        for blockID in blocks_required:
-            # this is the span location of the block
-            #block_loc = location(chr=blockID.split(":")[0], left=blockID.split(":")[1], right=int(blockID.split(":")[1])+self.block_size-1)
-            block_loc_left = int(blockID.split(":")[1]) # this is all you actually need for the block location
-            # check if the block already exists
-            if self.__has_block(blockID): # it does, get it.
-                this_block_array_data = self.__get_block(blockID)
-            else: # block not in db, fake a block instead.
-                this_block_array_data = [0] * self.block_size
-
-            #print this_block_array_data
-            ret_array += this_block_array_data
-
-        return ret_array
+        assert chrom in self.chrom_names, 'chromosome {0} not in this flat, available chroms are: "{1}"'.format(chrom, ', '.join(self.chrom_names))
+        return self.mats[chrom]
 
     def finalise(self):
         """
-        {Override)
-        I have to override the base_track class
-        finalise the database (shrink unused edit space)
-        dump useless bits etc.
-        You must call this! to finalise the db.
-        Or get() will not work!
-        This copies the cache onto disk and closes the db.
+        Kept here for placeholder work and API compatability
         """
-        for blockID in self.cache:
-            self.__commit_block(blockID, self.cache[blockID])
-        self.cache = {} # Kill caches.
-        self.cacheQ = []
-        self._save_meta_data()
-        self._connection.commit() # commit all the __commit_block()
-        base_track.finalise(self)
+        assert not self.readonly, 'readonly!'
+        # Write the chorm names to the hdf5
+        print(self.chrom_names)
+        dat = [str(n).encode("ascii", "ignore") for n in self.chrom_names]
+        self.hdf5_handle.create_dataset('all_chrom_names', (len(self.chrom_names), 1), 'S10', dat)
 
     def pileup(self, genelists=None, filename=None, window_size=None, average=True,
         background=None, mask_zero=False, respect_strand=True, norm_by_read_count=False, **kargs):
@@ -699,4 +437,215 @@ class flat_track(base_track):
         config.log.info("pileup(): Saved '%s'" % actual_filename)
 
         return(all_hists, bkgd)
+
+    def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
+        bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
+        pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
+        log_pad=None, imshow=True,
+        **kargs):
+        """
+        **Purpose**
+            Draw a heatmap of the seq tag density drawn from a genelist with a "loc" key.
+
+        **Arguments**
+            genelist (Required)
+                a genelist with a 'loc' key.
+
+            filename (Optional)
+                filename to save the heatmap into
+                Can be set to None if you don't want the png heatmap.
+
+            raw_heatmap_filename (Optional)
+                Save a tsv file that contains the heatmap values for each row of the genelist.
+
+            distance (Optional, default=1000)
+                Number of base pairs around the location to extend the search
+
+            pointify (Optional, default=True)
+                Take the middle point of the 'loc' in the genelist, used in combination with distance
+
+                You can set this to False and distance to 0 and heatmap will use whatever locations are specified in
+                the genelist. Note that the locations must all be the same lengths.
+
+            bins (Optional, default=100)
+                Number of bins to use. (i.e. the number of columns)
+
+            read_extend (Optional, default=200)
+                number of base pairs to extend the sequence tag by.
+
+                NOTE: This value is ignored by flat-tracks
+
+            respect_strand (Optional, default=False)
+                Use the strand in the genelist to orientate each genomic location (for example when doing TSS
+                or TTS).
+
+            log (Optional, default=2)
+                log transform the data, optional, the default is to transform by log base 2.
+                Note that this parameter only supports "e", 2, and 10 for bases for log
+                if set to None no log transform takes place.
+
+            log_pad (Optional, default=None)
+                a Pad value for the log. If None then heatmap() guesses from the min of 0.1 or data.min()
+
+            norm_by_read_count (Optional, default=False)
+                Normalise the heatmap by the total number of tags in the seq library.
+                Should not be used if the norm_factor system is being used.
+
+            sort_by_intensity (Optional, default=True)
+                sort the heatmap so that the most intense is at the top and the least at
+                the bottom of the heatmap.
+
+            cmap (Optional, default=?)
+                A matplotlib cmap to use for coloring the heatmap
+
+            imshow (Optional, default=True)
+                Embed the heatmap as an image inside a vector file.
+
+        **Results**
+            file in filename and the heatmap table, and the
+            'sorted_original_genelist' (a copy of the genelist) sorted into the same order
+            as the heatmap
+        """
+        assert genelist, "must provide a genelist"
+        assert "loc" in list(genelist.keys()), "appears genelist has no 'loc' key"
+        assert "left" in list(genelist.linearData[0]["loc"].keys()), "appears the loc key data is malformed"
+        assert log in ("e", math.e, 2, 10, None), "this 'log' base not supported"
+
+        table = []
+
+        gl_sorted = genelist.deepcopy()
+        #gl_sorted.sort('loc') # No need to sort anymore;
+        all_locs = gl_sorted['loc']
+
+        if respect_strand:
+            strands = gl_sorted['strand']
+        else:
+            strands = ['+'] * len(all_locs) # Fake strand labels for code simplicity
+
+        curr_cached_chrom = None
+        cached_chrom = None
+        bin_size = None
+
+        number_of_tags_in_library = False # For code laziness
+        if norm_by_read_count:
+            number_of_tags_in_library = self.get_total_num_reads() / float(1e6) # 1e6 for nice numbers
+
+        p = progressbar(len(genelist))
+        for idx, read in enumerate(zip(all_locs, strands)):
+            l = read[0]
+            if pointify:
+                l = l.pointify()
+            if distance:
+                l = l.expand(distance)
+
+            if not bin_size: # I need to sample from an example size.
+                # assume all sizes are the same!
+                expected_width = len(l)
+                bin_size = int(expected_width / float(bins))
+                #print 'Binsize:', bin_size
+            '''
+            # I can dispose and free memory as the locations are now sorted:
+            # See if the read_extend is already in the cache:
+            if l['chr'] != curr_cached_chrom:
+                curr_cached_chrom = l['chr']
+                # flat_tracks ignore read_extend, but tracks require it
+                cached_chrom = self.get_array_chromosome(l['chr'], read_extend=read_extend) # Will hit the DB if not already in cache
+                # if we are a flat_track, we need to put it to a numpy array:
+                if isinstance(cached_chrom, list):
+                    cached_chrom = numpy.array(cached_chrom, dtype=numpy.float32)
+
+            actual_width = cached_chrom.shape[0] - l['left']
+
+            if actual_width < expected_width:
+                #print "!", a.shape
+                continue
+            else:
+                a = cached_chrom[l['left']:l['right']]
+            '''
+            '''     # This is not working, it pads to the wrong size and eventually leads to obscure errors
+            if l['right'] > cached_chrom.shape[0]:
+                # Trouble, need to fill in the part of the array with zeros
+                # Possible error here it l['left'] is also off the array?
+
+                a = cached_chrom[l['left']:cached_chrom.shape[0]] # stop wrap around
+                a = numpy.pad(a, (0,expected_width-actual_width), mode='constant')
+                print 'padded'
+                #print a, a.shape
+                #config.log.error('Asked for part of the chomosome outside of the array')
+            '''
+
+            a = self.get(l) # This is much faster than the chrom caching system...
+
+            if respect_strand:
+                # positive strand is always correct, so I leave as is.
+                # For the reverse strand all I have to do is flip the array.
+                if read[1] in negative_strand_labels:
+                    a = a[::-1]
+            if number_of_tags_in_library:
+                #print(a, number_of_tags_in_library)
+                a = numpy.array(a, dtype=numpy.float)
+                a /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
+
+            # bin the data
+            ret = utils.bin_data(a, bin_size)
+            if ret: # Python list, so testable
+                table.append(numpy.array(ret))
+            p.update(idx)
+
+        # sort the data by intensity
+        # no convenient numpy. So have to do myself.
+        mag_tab = []
+        for index, row in enumerate(table):
+            mag_tab.append({"n": index, "sum": row.max()}) # Shouldn't this be sum?
+
+        data = numpy.array(table)
+        if sort_by_intensity:
+            mag_tab = sorted(mag_tab, key=itemgetter("sum"))
+            data = numpy.array([data[item["n"],] for item in mag_tab])
+            data = numpy.delete(data, numpy.s_[-1:], 1) # Nerf the last column.
+
+        # Get the sorted_locs for reporting purposes:
+        temp_gl_copy = genelist.deepcopy().linearData # deepcopy for fastness
+        sorted_locs = [temp_gl_copy[i['n']] for i in mag_tab] # need to sort them by intensity, if done that way
+        sorted_locs.reverse() # Make it into the intuitive order.
+        gl = Genelist()
+        gl.load_list(sorted_locs)
+        sorted_locs = gl
+
+        if log:
+            if not log_pad:
+                log_pad = min([0.1, max([0.1, numpy.min(data)])])
+
+            if log == "e" or log == math.e:
+                data = numpy.log(data+log_pad)
+            elif log == 2:
+                data = numpy.log2(data+log_pad)
+            elif log == 10:
+                data = numpy.log10(data+log_pad)
+
+        # draw heatmap
+
+        if not self._draw:
+            self._draw = draw()
+
+        if filename:
+            if not bracket:
+                m = data.mean()
+                ma = data.max()
+                mi = data.min()
+                std = data.std()
+                bracket=[m, m+(std*2.0)]
+                config.log.info("track.heatmap(): I guessed the bracket ranges as [%.3f, %.3f]" % (bracket[0], bracket[1]))
+            elif len(bracket) == 1: # Assume only minimum.
+                bracket = [bracket[0], data.max()]
+
+            filename = self._draw.heatmap2(data=data, filename=filename, bracket=bracket, colour_map=cmap,
+                imshow=imshow, **kargs)
+
+        if raw_heatmap_filename:
+            numpy.savetxt(raw_heatmap_filename, data, delimiter="\t")
+            config.log.info("track.heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
+
+        config.log.info("track.heatmap(): Saved heatmap tag density to '%s'" % filename)
+        return({"data": data, 'sorted_original_genelist': sorted_locs})
 
