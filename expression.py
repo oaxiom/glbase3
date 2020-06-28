@@ -3405,7 +3405,7 @@ class expression(base_expression):
             ax.barh(y, data, xerr=err, ec="none", color=bar_cols, height=0.5, error_kw={'linewidth': 0.3, 'capthick': 0.3}, capsize=2.0)
         else:
             # no error bars, solid black is better
-            ax.barh(y, data, ec="none", fc="black", height=0.5)
+            ax.barh(y, data, ec="none", color=bar_cols, height=0.5)
 
         ax.set_yticklabels(conds)
         ax.set_yticks(y)#+0.25) # 0.25 should be half of the height of the bars so that text aligns with the bar

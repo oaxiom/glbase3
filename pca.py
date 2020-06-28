@@ -330,7 +330,7 @@ class pca:
         return(return_data)
 
     def scatter3d(self, x, y, z, filename=None, spot_cols=None, label=False, stem=True,
-        label_font_size=6, rotation=134, elevation=48, interactive=False, squish_scales=False,
+        label_font_size=6, rotation=134, elevation=48, squish_scales=False,
         spot_size=40, depthshade=True, **kargs):
         """
         **Purpose**
@@ -364,13 +364,6 @@ class pca:
             elevation (Optional, default=48
                 The rotation along the Z plane.
 
-            interactive (Optional, default=False)
-                if True then spawn the matplotlib show() view. Note that this will pause
-                execution of your script.
-                Note that by default glbase uses a non-GUI matplotlib setting.
-
-                You will need to fiddle around with matplotlib.use() before importing glbase
-
             depthshade (Optional, default=True)
                 turn on or off matplotlib depth shading of the points in the 3D acise
 
@@ -391,7 +384,15 @@ class pca:
         if spot_cols:
             cols = spot_cols
 
-        ax.scatter(xdata, ydata, zdata, edgecolors="none", c=cols, s=spot_size, depthshade=depthshade)
+        sc = ax.scatter(xdata, ydata, zdata,
+            #edgecolors="none",
+            c=cols,
+            s=spot_size,
+            depthshade=depthshade
+            )
+
+        sc.set_edgecolor('none')
+
         if label:
             for i, lab in enumerate(self.labels):
                 ax.text(xdata[i], ydata[i], zdata[i], lab, size=label_font_size, ha="center", va="bottom")
@@ -417,12 +418,7 @@ class pca:
         ax.set_ylim([min(ydata), max(ydata)])
         ax.set_zlim([min(zdata), max(zdata)])
 
-        #print [min(xdata), max(xdata)]
-
         #self.__draw.do_common_args(ax, **kargs)
-
-        if interactive:
-            fig.show() # hope you are not on a cluster!
 
         real_filename = self.__draw.savefigure(fig, filename)
 

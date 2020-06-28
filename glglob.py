@@ -2394,9 +2394,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             while len(dd) < expected_len: # pad out any missing 0
                                 dd.append(0)
 
-                            if normalise:
-                                dd = [av/read_totals[tindex] for av in dd]
-
                             # Fill in the matrix table:
                             #pileup[tindex][plidx][pidx] += pil_data
                             matrix[tindex][plidx][peak] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)]
@@ -2446,6 +2443,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.0, 0.1]
 
+        if normalise:
+            colbar_label = "Normalised %s" % colbar_label
+
+            # Data is always saved unnormalised;
+            for plidx, peaklist in enumerate(list_of_peaks):
+                for tindex, _ in enumerate(list_of_trks):
+                    matrix[tindex][plidx] /= read_totals[tindex]
+
         if sort_by_sum_intensity:# i.e. sort for all columns and preserve row order
             for plidx, peaklist in enumerate(list_of_peaks):
                 new_order = []
@@ -2474,9 +2479,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     new_order = list([i[0] for i in d])
                     matrix[tindex][plidx] = matrix[tindex][plidx][new_order,:]
 
-
-        if normalise:
-            colbar_label = "Normalised %s" % colbar_label
 
         if not row_labels:
             row_labels = [p.name for p in list_of_peaks]

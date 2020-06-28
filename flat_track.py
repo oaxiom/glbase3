@@ -71,10 +71,15 @@ class flat_track():
         else: # old
             try:
                 self.hdf5_handle = h5py.File(filename, 'r')
-            except OSError:
-                config.log.error('Either this is not a flat_track file, or it is the old version 4 flat tracks')
-                config.log.error('Please regenerate your flat_tracks. The new v5 format is ~4x faster on reads')
-                config.log.error('and about the same to generate the track. File size is about 2x bigger')
+            except OSError as e:
+                print(e)
+                # Check it's the h5py old error
+                if 'file signature not found' in str(e):
+                    config.log.error('Either this is not a flat_track file, or it is the old version 4 flat tracks')
+                    config.log.error('Please regenerate your flat_tracks. The new v5 format is ~4x faster on reads')
+                    config.log.error('and about the same to generate the track. File size is about 2x bigger')
+                elif 'Unable to open file' in str(e): # file not found
+                    config.log.error('File not found: {0}'.format(filename))
                 sys.exit()
 
             self.meta_data = self.hdf5_handle.attrs

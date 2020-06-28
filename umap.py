@@ -59,7 +59,7 @@ class umap(base_manifold):
 
         self.__model = UMAP(
             n_components=2,
-            n_neighbors=2,
+            n_neighbors=n_neighbors,
             metric='correlation',
             random_state=self.random_state,
             verbose=self.verbose)
