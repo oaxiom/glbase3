@@ -7,8 +7,6 @@ Inspired from the progress bar in urlgrabber.
 
 """
 
-
-
 import sys
 
 from . import config
@@ -44,8 +42,11 @@ class progressbar:
             new_value (Required)
                 should be some number between 0 .. maximum_value
         """
+        if config.SILENT:
+            return None
+
         if self.maximum == -1:
-            return(False) # disable progress bar in wierd situations
+            return False # disable progress bar in wierd situations
 
         t_percent_done = int(((new_value+1) / self.maximum) * self.__barwidth)
 
@@ -53,21 +54,10 @@ class progressbar:
             percent_done = int(((new_value+1) / self.maximum) *100)
 
             bar = "".join(["=" for x in range(t_percent_done)] + ["-" for x in range(self.__barwidth-t_percent_done)])
-            if not config.SILENT: self.__writer.write("\r[%s] %s%% (%s/%s)" % (bar, percent_done, new_value+1, self.maximum))
+            self.__writer.write("\r[%s] %s%% (%s/%s)" % (bar, percent_done, new_value+1, self.maximum))
             self.__last_percent = t_percent_done
 
         if new_value+1 >= self.maximum: # if the last line, reset the console so the result overprints the progress bar.
-            if not config.SILENT: self.__writer.write("\r") # pad out to overwrite the previous bar.
-            if not config.SILENT: self.__writer.write("\r                                                        ") # pad out to overwrite the previous bar.
-            if not config.SILENT: self.__writer.write("\r") # pad out to overwrite the previous bar.
-
-if __name__ == "__main__":
-    """
-    A quick tester.
-    """
-    import time
-
-    p = progressbar(100)
-    for i in range(100):
-        time.sleep(0.1)
-        p.update(i)
+            self.__writer.write("\r") # pad out to overwrite the previous bar.
+            self.__writer.write("\r                                                        ") # pad out to overwrite the previous bar.
+            self.__writer.write("\r") # pad out to overwrite the previous bar.
