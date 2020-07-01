@@ -550,7 +550,7 @@ class hic:
                 continue
             lin = lin.strip().split('\t')
 
-            if not lin[6]: # balanced is blank;
+            if len(lin) < 8: # balanced is blank;
                 continue
 
             # First check the two bins are on the same chromosome:
