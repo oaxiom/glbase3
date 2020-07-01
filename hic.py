@@ -464,12 +464,9 @@ class hic:
         # First go through the file and get all the bins, chroms and sizes.
         bins = []
         bin_size = None
-        self.all_chrom_names = set([])
 
-        bin_id = 0
-        bin_lookup_by_chr_left = {}
-        bin_lookup_by_id = {}
-
+        # Sample the files to get the chromosome sizes:
+        max_chrom_size = {}
         config.log.info('Preparse {0}'.format(matrix_filename))
         oh = gzip.open(matrix_filename, 'rt')
         for lin in oh:
@@ -478,26 +475,44 @@ class hic:
 
             lin = lin.strip().split('\t')
 
-            chr = lin[0]
-
+            chr1 = lin[0]
             if not bin_size: # sample the bin size;
                 bin_size = int(lin[2]) - int(lin[1])
-            if chr not in self.all_chrom_names:
-                self.all_chrom_names.add(chr)
+            if chr1 not in self.all_chrom_names:
+                max_chrom_size[chr1] = 0
+            if int(lin[2]) > max_chrom_size[chr1]:
+                max_chrom_size[chr1] = int(lin[2])
 
-            bin_loc = (chr, int(lin[1]))
-            if bin_loc not in bin_lookup_by_chr_left:
-                bin_lookup_by_chr_left[bin_loc] = bin_id
-                bin_lookup_by_id[bin_id] = (chr, int(lin[1]))
-                bin_id += 1
+            # same for other read, as you could imagine a situation where a right bin is not seen in the left bin?
+            chr2 = lin[3]
+            if chr2 not in self.all_chrom_names:
+                max_chrom_size[chr2] = 0
+            if int(lin[5]) > max_chrom_size[chr2]:
+                max_chrom_size[chr2] = int(lin[5])
+
+        for chrom in sorted(max_chrom_size):
+            config.log.info('Observed chrom {0} sizes = {1:,} bp'.format(chrom, max_chrom_size[chrom]))
+
+        # Build the bin lookups based on the maximum chromsome sizes and the sampled
+        # binsizes;
+        bin_id = 0
+        bin_lookup_by_chr_left = {}
+        bin_lookup_by_id = {}
+        for chrom in max_chrom_size:
+            for left in range(0, max_chrom_size[chrom]+bin_size, bin_size):
+                bin_loc = (chrom, left)
+                if bin_loc not in bin_lookup_by_chr_left:
+                    bin_lookup_by_chr_left[bin_loc] = bin_id
+                    bin_lookup_by_id[bin_id] = bin_loc
+                    bin_id += 1
 
         oh.close()
 
-        self.all_chrom_names = set(self.all_chrom_names)
+        self.all_chrom_names = set(max_chrom_size)
         self.hdf5_handle.attrs['num_bins'] = bin_id
         self.hdf5_handle.attrs['bin_size'] = bin_size
 
-        config.log.info('Found {0} bins, each bin = {1} bp'.format(self['num_bins'], self['bin_size']))
+        config.log.info('Found {0:,} bins, each bin = {1:,} bp'.format(self['num_bins'], self['bin_size']))
         # the bins are not sorted,
         bin_order = sorted(bins, key=lambda v: (v[0], v[1]))
 
@@ -506,15 +521,16 @@ class hic:
         for chrom in self.all_chrom_names:
             self.chrom_edges[chrom] = [1e20,-1]
 
-            for bin in bin_lookup_by_id:
-                if bin_lookup_by_id[bin][0] != chrom:
+            for bin in bin_lookup_by_chr_left:
+                if bin[0] != chrom:
                     continue
 
                 # get the edges:
-                if bin < self.chrom_edges[chrom][0]:
-                    self.chrom_edges[chrom][0] = bin
-                if bin > self.chrom_edges[chrom][1]:
-                    self.chrom_edges[chrom][1] = bin
+                bin_id = bin_lookup_by_chr_left[bin]
+                if bin_id < self.chrom_edges[chrom][0]:
+                    self.chrom_edges[chrom][0] = bin_id
+                if bin_id > self.chrom_edges[chrom][1]:
+                    self.chrom_edges[chrom][1] = bin_id
 
         # Have to then convert them all to the new bins:
         # Although not strictly necessary in the matrix-based, I preserve this fiddly step so that
@@ -523,7 +539,7 @@ class hic:
         bins = {} # The bin -> matrix convertor
         for chrom in self.all_chrom_names:
             # Now I know how big the arrays need to be, and all of the chromosomes:
-            size =  self.chrom_edges[chrom][1]-self.chrom_edges[chrom][0]
+            size = self.chrom_edges[chrom][1]-self.chrom_edges[chrom][0]
             matrices[chrom] = numpy.zeros((size+1, size+1), dtype='float32')
             # TODO: Support inter-chromosomal contacts with a sparse array:
 
@@ -540,16 +556,15 @@ class hic:
             # First check the two bins are on the same chromosome:
             if lin[0] == lin[3]:
                 chrom = lin[0]
-                chrom_edge = self.chrom_edges[chrom][0]
 
                 bin1 = bin_lookup_by_chr_left[(chrom, int(lin[1]))]
                 bin2 = bin_lookup_by_chr_left[(chrom, int(lin[4]))]
 
-                x = bin1-chrom_edge
-                y = bin2-chrom_edge
+                x = bin1-self.chrom_edges[chrom][0]
+                y = bin2-self.chrom_edges[chrom][0]
 
-                matrices[chrom][x,y] = float(lin[6])*100 # i.e. weight
-                matrices[chrom][y,x] = float(lin[6])*100
+                matrices[chrom][x,y] = float(lin[7]) # i.e. weight
+                matrices[chrom][y,x] = float(lin[7])
             else:
                 # TODO: Support for interchrom with a sparse array:
                 pass
@@ -564,10 +579,12 @@ class hic:
             grp = self.hdf5_handle.create_group('bin_lookup/chrom_%s' % chrom)
             flat_bin = []
 
-            for bin_id in bin_lookup:
-                if bin_lookup[bin_id][0] == chrom:
-                    flat_bin.append([bin_id-self.chrom_edges[chrom][0], bin_lookup[oldbinID][1], bin_lookup[oldbinID][2], bin_id]) # i.e. oldId, left, right, newID
+            for bin in bin_lookup_by_chr_left:
+                if bin[0] == chrom:
+                    bin_id = bin_lookup_by_chr_left[bin]
+                    flat_bin.append([bin_id-self.chrom_edges[chrom][0], bin[1], bin[1]+bin_size, bin_id]) # i.e. oldId, left, right, newID
             flat_bin = numpy.array(flat_bin)
+
             grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin, chunks=True, compression='lzf')
 
             #self.hdf5_handle.create_dataset('bin_lookup', (len(to_store), 1), dtype='S10', data=to_store)
@@ -579,7 +596,7 @@ class hic:
             config.log.info('Added chrom=%s to table' % chrom)
             grp = self.hdf5_handle.create_group('matrix_%s' % chrom)
             grp.create_dataset('mat', matrices[chrom].shape, dtype=numpy.float32, data=matrices[chrom])
-        config.log.info('Saved all matrices to hdf5')
+        config.log.info('Saved matrices to hdf5')
 
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
@@ -1394,7 +1411,7 @@ class hic:
         if distal_anchors:
             raise NotImplementedError('distal_anchors not implemented')
 
-        num_bins = (window * 2 ) // self['bin_size']
+        num_bins = (window * 2) // self['bin_size']
 
         mat = numpy.zeros((num_bins, num_bins))
         int_range = numpy.arange(num_bins)
@@ -1406,9 +1423,12 @@ class hic:
         elif window:
             p = progressbar(len(center_anchors))
             for aidx, anchor in enumerate(center_anchors):
-                localLeft, localRight = self.__quick_find_binID_spans(anchor['loc']['chr'], anchor['loc']['left']-window, anchor['loc']['right']+window)
+                chrom = anchor['loc']['chr']
+                if 'chr' not in chrom:
+                    chrom = 'chr{0}'.format(chrom)
+                localLeft, localRight = self.__quick_find_binID_spans(chrom, anchor['loc']['left']-window, anchor['loc']['right']+window)
 
-                data = self.mats[anchor['loc']['chr']][localLeft:localRight, localLeft:localRight]
+                data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
                     interpolator_func = interpolate.interp2d(range(data.shape[0]), range(data.shape[1]), data, kind='linear')
