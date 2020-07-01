@@ -3656,21 +3656,22 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             rand = rand*100
             err = [(numpy.array(back[k]))for k in kord]
             err = [numpy.std(i)*100 for i in err]
-            ax.bar(x_bar + width, rand, width, color="black", yerr=err, ecolor="black", label="Background")
+            ax.bar(x_bar + width, rand, width, color="grey", yerr=err, ec='none', ecolor="black", label="Background")
         else:
             rand = None # spoof entries for the return()
             err = None
 
         ax.set_xticklabels(labels)
-        ax.set_ylim([0,max(max(rand), max(data))])
-        ax.legend()
+        ymax = max(max(rand), max(data))
+        ax.set_ylim([0,ymax + (ymax/10)])
+        ax.legend(prop={'size':6})
 
-        ax.set_ylabel("Percent in category", size=20)
+        ax.set_ylabel("Percent in category", size=6)
 
-        ax.set_xticks(x_bar+width)
+        ax.set_xticks(x_bar)
         fig.autofmt_xdate()
-        [t.set_fontsize(7) for t in ax.get_xticklabels()]
-        [t.set_fontsize(7) for t in ax.get_yticklabels()]
+        [t.set_fontsize(6) for t in ax.get_xticklabels()]
+        [t.set_fontsize(6) for t in ax.get_yticklabels()]
 
         self.draw.do_common_args(ax, **kargs)
         if filename:

@@ -10,7 +10,7 @@ TODO:
 
 '''
 
-import pickle, numpy, math
+import pickle, numpy, math, gzip
 from operator import itemgetter
 from shutil import copyfile
 
@@ -414,6 +414,159 @@ class hic:
             for oldbinID in bin_lookup:
                 if bin_lookup[oldbinID][0] == chrom:
                     flat_bin.append([oldbinID, bin_lookup[oldbinID][1], bin_lookup[oldbinID][2], bin_lookup[oldbinID][3]]) # i.e. oldId, left, right, newID
+            flat_bin = numpy.array(flat_bin)
+            grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin, chunks=True, compression='lzf')
+
+            #self.hdf5_handle.create_dataset('bin_lookup', (len(to_store), 1), dtype='S10', data=to_store)
+
+        # A sparse array would be better. The matrix is only around ~40% full in 100k, and
+        # likely this gets much lower as the resolution drops...
+        config.log.info('Loaded matrix %s*%s' % (self['num_bins'], self['num_bins']))
+        for chrom in self.all_chrom_names:
+            config.log.info('Added chrom=%s to table' % chrom)
+            grp = self.hdf5_handle.create_group('matrix_%s' % chrom)
+            grp.create_dataset('mat', matrices[chrom].shape, dtype=numpy.float32, data=matrices[chrom])
+        config.log.info('Saved all matrices to hdf5')
+
+        dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
+        self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
+
+        return True
+
+    def load_cooler_pixels_dump(self, matrix_filename):
+        """
+        **Purpose**
+            Load a file output by cooler with the command:
+
+            cooler dump --header --join --balanced ${out}.cooler | gzip > ${out}
+
+            e.g:
+
+            chrom1	start1	end1	chrom2	start2	end2	count	balanced
+            chr1	0	150000	chr1	0	150000	22	0.00115439
+            chr1	0	150000	chr1	150000	300000	129
+            chr1	0	150000	chr1	300000	450000	6
+            chr1	0	150000	chr1	450000	600000	10
+            chr1	0	150000	chr1	600000	750000	37
+            chr1	0	150000	chr1	750000	900000	34	0.00165211
+            chr1	0	150000	chr1	900000	1050000	15
+            chr1	0	150000	chr1	1050000	1200000	9
+            chr1	0	150000	chr1	1200000	1350000	8
+
+            Only rows with a balanced score are kept. Otherwise set to 0.
+
+        **Arguments**
+            filename (Required)
+                the Filename to load.
+        """
+        assert not self.readonly, 'To load, this must be read-only, set new=True'
+
+        # First go through the file and get all the bins, chroms and sizes.
+        bins = []
+        bin_size = None
+        self.all_chrom_names = set([])
+
+        bin_id = 0
+        bin_lookup_by_chr_left = {}
+        bin_lookup_by_id = {}
+
+        config.log.info('Preparse {0}'.format(matrix_filename))
+        oh = gzip.open(matrix_filename, 'rt')
+        for lin in oh:
+            if 'chrom1' in lin:
+                continue
+
+            lin = lin.strip().split('\t')
+
+            chr = lin[0]
+
+            if not bin_size: # sample the bin size;
+                bin_size = int(lin[2]) - int(lin[1])
+            if chr not in self.all_chrom_names:
+                self.all_chrom_names.add(chr)
+
+            bin_loc = (chr, int(lin[1]))
+            if bin_loc not in bin_lookup_by_chr_left:
+                bin_lookup_by_chr_left[bin_loc] = bin_id
+                bin_lookup_by_id[bin_id] = (chr, int(lin[1]))
+                bin_id += 1
+
+        oh.close()
+
+        self.all_chrom_names = set(self.all_chrom_names)
+        self.hdf5_handle.attrs['num_bins'] = bin_id
+        self.hdf5_handle.attrs['bin_size'] = bin_size
+
+        config.log.info('Found {0} bins, each bin = {1} bp'.format(self['num_bins'], self['bin_size']))
+        # the bins are not sorted,
+        bin_order = sorted(bins, key=lambda v: (v[0], v[1]))
+
+        # Get the edges of the chroms, and so the matrix sizes
+        self.chrom_edges = {}
+        for chrom in self.all_chrom_names:
+            self.chrom_edges[chrom] = [1e20,-1]
+
+            for bin in bin_lookup_by_id:
+                if bin_lookup_by_id[bin][0] != chrom:
+                    continue
+
+                # get the edges:
+                if bin < self.chrom_edges[chrom][0]:
+                    self.chrom_edges[chrom][0] = bin
+                if bin > self.chrom_edges[chrom][1]:
+                    self.chrom_edges[chrom][1] = bin
+
+        # Have to then convert them all to the new bins:
+        # Although not strictly necessary in the matrix-based, I preserve this fiddly step so that
+        # when I implement the inter-chrom interactions it is easier.
+        matrices = {}
+        bins = {} # The bin -> matrix convertor
+        for chrom in self.all_chrom_names:
+            # Now I know how big the arrays need to be, and all of the chromosomes:
+            size =  self.chrom_edges[chrom][1]-self.chrom_edges[chrom][0]
+            matrices[chrom] = numpy.zeros((size+1, size+1), dtype='float32')
+            # TODO: Support inter-chromosomal contacts with a sparse array:
+
+        oh = gzip.open(matrix_filename, 'rt')
+        p = progressbar(self['num_bins'] * self['num_bins']) # expected maximum
+        for idx, lin in enumerate(oh):
+            if 'chrom1' in lin:
+                continue
+            lin = lin.strip().split('\t')
+
+            if not lin[6]: # balanced is blank;
+                continue
+
+            # First check the two bins are on the same chromosome:
+            if lin[0] == lin[3]:
+                chrom = lin[0]
+                chrom_edge = self.chrom_edges[chrom][0]
+
+                bin1 = bin_lookup_by_chr_left[(chrom, int(lin[1]))]
+                bin2 = bin_lookup_by_chr_left[(chrom, int(lin[4]))]
+
+                x = bin1-chrom_edge
+                y = bin2-chrom_edge
+
+                matrices[chrom][x,y] = float(lin[6])*100 # i.e. weight
+                matrices[chrom][y,x] = float(lin[6])*100
+            else:
+                # TODO: Support for interchrom with a sparse array:
+                pass
+
+            p.update(idx)
+        p.update(self['num_bins'] * self['num_bins']) # the above is unlikely to make it to 100%, so fix the progressbar.
+        oh.close()
+
+        # save the bin data as an emulated dict:
+        grp = self.hdf5_handle.create_group('bin_lookup')
+        for chrom in self.all_chrom_names:
+            grp = self.hdf5_handle.create_group('bin_lookup/chrom_%s' % chrom)
+            flat_bin = []
+
+            for bin_id in bin_lookup:
+                if bin_lookup[bin_id][0] == chrom:
+                    flat_bin.append([bin_id-self.chrom_edges[chrom][0], bin_lookup[oldbinID][1], bin_lookup[oldbinID][2], bin_id]) # i.e. oldId, left, right, newID
             flat_bin = numpy.array(flat_bin)
             grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin, chunks=True, compression='lzf')
 

@@ -1491,7 +1491,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if normalise:
             colbar_label = "Normalised %s" % colbar_label
 
-        self.__pileup_y_label = colbar_label
+        self.__pileup_y_label = "Tag density" # Trust me, you don't want to log them...
 
         tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
         tab_min = min([tab.min() for tab in list_of_tables])
@@ -1578,7 +1578,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             for cfig, data in enumerate(self.__pileup_data[cid]):
                 ax = fig.add_subplot(1, len(self.__pileup_data[cid]), cfig+1)
-                #print data
                 x = numpy.arange(len(data))
                 ax.plot(x, data)
 

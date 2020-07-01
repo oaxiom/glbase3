@@ -1964,7 +1964,7 @@ class expression(base_expression):
         config.log.info("scatter: Saved '%s'" % real_filename)
         return(True)
 
-    def boxplot(self, filename=None, draw_outliers=True, whis=1.5, **kargs):
+    def boxplot(self, filename=None, showfliers=True, whis=1.5, **kargs):
         """
         **Purpose**
 
@@ -1991,7 +1991,7 @@ class expression(base_expression):
                 log=True
                 log="e"
 
-            draw_outliers (Optional, default=True)
+            showfliers (Optional, default=True)
                 draw the 9/95 % outlier ticks on the plot
 
             whis (Optional, default=1.5)
@@ -2013,7 +2013,7 @@ class expression(base_expression):
 
         # do plot
         actual_filename = self.draw.boxplot(data=data, filename=filename,
-            labels=self.getConditionNames(), showfliers=draw_outliers, **kargs)
+            labels=self.getConditionNames(), showfliers=showfliers, **kargs)
 
         config.log.info("boxplot: Saved %s" % actual_filename)
         return(actual_filename)
