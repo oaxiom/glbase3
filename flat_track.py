@@ -195,6 +195,9 @@ class flat_track():
             left = int(loc['left'])
             rite = int(loc['right'])
 
+        if 'chr' not in c:
+            c = 'chr{0}'.format(c)
+
         ret_array = self.mats[c][left:rite]
 
         if mask_zero:
