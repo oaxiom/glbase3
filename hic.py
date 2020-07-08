@@ -276,7 +276,7 @@ class hic:
 
         binLeft = binLeft - mostLeft
         binRight = binRight - mostLeft
-        assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
+        assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 3 bins'
 
         return (binLeft, binRight)
 
