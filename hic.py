@@ -71,8 +71,9 @@ def merge_hiccys(new_hic_filename, name, *hics):
     # For the first one to merge, do an OS copy for speed and setup
     copyfile(hics[0], new_hic_filename)
 
-    newhic = hic(filename=new_hic_filename, name=name, new=False)
-    newhic.readonly = False # Make it editable
+    newhic = hic(filename=new_hic_filename, name=name, new=False, _readplus=True)
+
+    print(newhic.mats['chr10'])
 
     # I bind all the hics:
     hics = [hic(filename=f, name=f) for f in hics[1:]]
@@ -81,19 +82,20 @@ def merge_hiccys(new_hic_filename, name, *hics):
         data = numpy.array(newhic.mats[chrom])
         for h in hics:
             newdata = h.mats[chrom]
+
             if newdata.shape != data.shape:
                 newdata = reshap_mats(newdata, data.shape[0], data.shape[1])
             data += newdata
 
-    data /= len(hics)
-    newhic.mats[chrom] = data
+        data /= (len(hics)+1)
+        newhic.mats[chrom][:] = data
 
     newhic.close()
-    config.log.info('Merged %s matrices' % (len(hics)+1,))
+    config.log.info('Merged {0} matrices'.format(len(hics)+1,))
 
 # I'm not using the base_genelist class, so, you need to add in defs as needed.
 class hic:
-    def __init__(self, filename=None, name='', new=False, inter_chrom_only=True):
+    def __init__(self, filename=None, name='', new=False, inter_chrom_only=True, _readplus=False):
         """
         **Purpose**
             store for HiC data.
@@ -135,11 +137,15 @@ class hic:
             self.all_chrom_names = [] # Made into a set later
             self.draw = draw()
         else: # old
-            self.hdf5_handle = h5py.File(filename, 'r')
+            if _readplus:
+                self.hdf5_handle = h5py.File(filename, 'r+')
+                self.readonly = False
+            else:
+                self.hdf5_handle = h5py.File(filename, 'r')
             # TODO: fetch it back out as a set:
             self.tad_lookup = None
 
-            dat = self.hdf5_handle['all_chrom_names'].value
+            dat = self.hdf5_handle['all_chrom_names'][()]
             dat = [i[0] for i in dat]# flatten
             self.all_chrom_names = [n.decode("ascii", "ignore") for n in dat]
 
@@ -148,7 +154,7 @@ class hic:
             self.bin_lookup_by_binID = {}
             self.bin_lookup_by_chrom = {}
             for chrom in self.all_chrom_names:
-                flat_bin = self.hdf5_handle['bin_lookup/chrom_%s/bins' % chrom].value
+                flat_bin = self.hdf5_handle['bin_lookup/chrom_%s/bins' % chrom][()]
                 self.bin_lookup_by_chrom[chrom] = [(row[0], row[1], row[2], row[3]) for row in flat_bin]
 
                 for row in flat_bin:
