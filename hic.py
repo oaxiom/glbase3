@@ -31,6 +31,15 @@ if config.H5PY_AVAIL:
 else:
     raise AssertionError('Asked for a hic, but h5py is not avaialble')
 
+def reshap_mats(mat, dimX, dimY):
+    '''
+    Sometimes the matrices are slightly off, reshape them to the same sizes.
+    reshapes matB to the dimensions provided
+
+    '''
+    interpolator_func = interpolate.interp2d(range(mat.shape[0]), range(mat.shape[1]), mat, kind='linear')
+    return interpolator_func(dimX, dimY)
+
 def merge_hiccys(new_hic_filename, name, *hics):
     '''
     **Purpose**
@@ -69,11 +78,12 @@ def merge_hiccys(new_hic_filename, name, *hics):
     hics = [hic(filename=f, name=f) for f in hics[1:]]
 
     for chrom in newhic.all_chrom_names:
-        # config.log.info('Merging chrom "%s"' % chrom)
-
         data = numpy.array(newhic.mats[chrom])
         for h in hics:
-            data += h.mats[chrom]
+            newdata = h.mats[chrom]
+            if newdata.shape != data.shape:
+                newdata = reshap_mats(newdata, data.shape[0], data.shape[1])
+            data += newdata
 
     data /= len(hics)
     newhic.mats[chrom] = data
@@ -732,7 +742,7 @@ class hic:
             raise AssertionError('chr and loc both contain values. You can only use one')
 
         if chr:
-            data = self.mats[str(chr).replace('chr', '')]
+            data = self.mats[str(chr)]
         elif loc:
             if not isinstance(loc, location):
                 loc = location(loc)
@@ -742,6 +752,7 @@ class hic:
 
             data = self.mats[loc['chr']][localLeft:localRight, localLeft:localRight]
         else:
+            raise NotImplementedError('chr=None not implemented')
             data = self.matrix # use the whole lot
 
         if not "aspect" in kargs:
@@ -768,7 +779,8 @@ class hic:
             if log2:
                 with numpy.errstate(divide='ignore'):
                     data = numpy.log2(data)
-            data[data == -numpy.inf] = 0
+            #data[data == -numpy.inf] = 0
+            data = numpy.array(data)
             vmin = data.min()
             vmax = data.max()
 
@@ -1431,8 +1443,7 @@ class hic:
                 data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
-                    interpolator_func = interpolate.interp2d(range(data.shape[0]), range(data.shape[1]), data, kind='linear')
-                    data = interpolator_func(int_range, int_range)
+                    data = reshap_mats(data, int_range, int_range)
 
                 mat += data
                 p.update(aidx)
