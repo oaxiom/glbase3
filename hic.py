@@ -763,8 +763,10 @@ class hic:
 
         if not "aspect" in kargs:
             kargs["aspect"] = "square"
-        if not "colbar_label" in kargs:
-            kargs["colbar_label"] = "log2(Density)"
+
+        colbar_label = "Density"
+        if "colbar_label" in kargs:
+            colbar_label = kargs['colbar_label']
 
         fig = self.draw.getfigure(**kargs)
 
@@ -777,6 +779,7 @@ class hic:
             if log2:
                 with numpy.errstate(divide='ignore'):
                     data = numpy.log2(data)
+                colbar_label = 'Log2(Density)'
             # Faster numpy"
             data = numpy.clip(data, bracket[0], bracket[1])
             vmin = bracket[0]
@@ -785,6 +788,7 @@ class hic:
             if log2:
                 with numpy.errstate(divide='ignore'):
                     data = numpy.log2(data)
+                colbar_label = 'Log2(Density)'
             #data[data == -numpy.inf] = 0
             data = numpy.array(data)
             vmin = data.min()
@@ -814,7 +818,7 @@ class hic:
         ax0.set_frame_on(False)
 
         cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
-        cb.set_label(kargs["colbar_label"])
+        cb.set_label(colbar_label)
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
         actual_filename = self.draw.savefigure(fig, filename)
