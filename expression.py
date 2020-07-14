@@ -3447,7 +3447,10 @@ class expression(base_expression):
             ax.axvline(0, color="grey", ls="-")
 
         if not "yticklabel_fontsize" in kargs:
-            kargs["yticklabel_fontsize"] = 10
+            kargs["yticklabel_fontsize"] = 6
+
+        if not "xticklabel_fontsize" in kargs:
+            kargs["xticklabel_fontsize"] = 6
 
         if not "title" in kargs:
             kargs["title"] = value
