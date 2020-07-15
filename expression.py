@@ -9,6 +9,7 @@
 import sys, os, csv, string, math, copy, heapq, itertools, functools
 
 from operator import itemgetter
+from collections.abc import Iterable
 
 import numpy, scipy
 from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # this should be deprecated
@@ -579,7 +580,8 @@ class expression(base_expression):
             the 'conditions' argument.
         """
         assert conditions, "sliceConditions: You must specify a list of conditions to keep"
-        assert isinstance(conditions, list) or isinstance(conditions, set), "sliceConditions: You must specify a list or set of conditions to keep"
+        assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
+        assert isinstance(conditions, (tuple, list, set, Iterable)), "sliceConditions: You must specify an iterable of conditions to keep"
         for item in conditions:
             assert item in self._conditions, "sliceConditions: '%s' condition not found in this expression data" % item
 
