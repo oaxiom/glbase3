@@ -1332,9 +1332,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'One of your peak data (list_of_peaks) does not contain a "loc" key'
 
         peak_lengths = sum([len(p) for p in list_of_peaks])
-        config.log.info("chip_seq_cluster_heatmap: Started with {0} redundant peaks".format(peak_lengths))
+        config.log.info("chip_seq_cluster_heatmap: Started with {0:,} redundant peaks".format(peak_lengths))
         total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
-        config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
+        config.log.info("chip_seq_cluster: Found {0:,} unique genomic regions" % total_rows)
 
         # Get the size of each library if we need to normalize the data.
         if normalise:
@@ -2117,7 +2117,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     p['lam10std'] = 0
                     continue
 
-                all_lambda = left_flank + rite_flank
+                all_lambda = list(left_flank) + list(rite_flank)
                 mean_lambda = sum(all_lambda) / len(all_lambda)
                 p['lam10'] = mean_lambda
                 p['lam10std'] = pstdev(all_lambda)
