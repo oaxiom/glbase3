@@ -1137,9 +1137,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         total_rows = 0
 
         peak_lengths = sum([len(p) for p in list_of_peaks])
-        config.log.info("chip_seq_cluster_heatmap: Started with {0} redundant peaks".format(peak_lengths))
+        config.log.info("chip_seq_cluster_heatmap: Started with {0:,} redundant peaks".format(peak_lengths))
         total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
-        config.log.info("chip_seq_cluster: Found %s unique genomic regions" % total_rows)
+        config.log.info("chip_seq_cluster: Found {0:,} unique genomic regions".format(total_rows))
 
         if _get_chr_blocks:
             return chr_blocks
@@ -1334,7 +1334,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         peak_lengths = sum([len(p) for p in list_of_peaks])
         config.log.info("chip_seq_cluster_heatmap: Started with {0:,} redundant peaks".format(peak_lengths))
         total_rows, chr_blocks = self.__peak_cluster(list_of_peaks, merge_peaks_distance)
-        config.log.info("chip_seq_cluster: Found {0:,} unique genomic regions" % total_rows)
+        config.log.info("chip_seq_cluster: Found {0:,} unique genomic regions".format(total_rows))
 
         # Get the size of each library if we need to normalize the data.
         if normalise:
@@ -1968,7 +1968,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     pb.update(curr_n)
                     curr_n += 1
 
-                lam = curr_data[p_lam_left:p_left] + curr_data[p_rite:p_lam_rite]
+                lam = [float(i) for i in list(curr_data[p_lam_left:p_left]) + list(curr_data[p_rite:p_lam_rite])]
                 if len(lam) == 0: # Probably a bad locus;
                     continue
                 lam = mean(lam)
@@ -1983,7 +1983,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 #    continue
 
                 try:
-                    p["conditions"][it] = pea / lam
+                    if pea != 0:
+                        p["conditions"][it] = float(pea) / float(lam) # Otherwise numpy float64s
                 except ZeroDivisionError:
                     pass
                     #p["conditions"][it] = 100 # Don't append these, otherwise it distorts the results;
@@ -2117,7 +2118,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     p['lam10std'] = 0
                     continue
 
-                all_lambda = list(left_flank) + list(rite_flank)
+                all_lambda = [float(i) for i in list(left_flank) + list(rite_flank)] # bug if pstdev kept as numpy numbers
                 mean_lambda = sum(all_lambda) / len(all_lambda)
                 p['lam10'] = mean_lambda
                 p['lam10std'] = pstdev(all_lambda)
