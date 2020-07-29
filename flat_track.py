@@ -8,6 +8,7 @@ New reimplementation using hdf5.
 """
 
 import pickle, sys, os, struct, configparser, math, zlib
+from operator import itemgetter
 
 from .location import location
 from .data import positive_strand_labels, negative_strand_labels
@@ -15,7 +16,9 @@ from .data import positive_strand_labels, negative_strand_labels
 from array import array
 from .draw import draw
 from .progress import progressbar
+from .genelist import Genelist
 from . import config
+from . import utils
 
 import numpy
 import matplotlib.pyplot as plot
@@ -51,6 +54,7 @@ class flat_track():
 
         """
         self.readonly = True
+        self._draw = None
 
         if new:
             self.readonly = False
@@ -351,7 +355,7 @@ class flat_track():
                     if i["strand"] in negative_strand_labels:
                         a = a[::-1]
 
-                if a: # It's possible that get() will return nothing
+                if a.any(): # It's possible that get() will return nothing
                     # For example if you send bad chromosome names or the locations are nonsensical (things like:
                     # chr9_GL000201_RANDOM:-500-1500
                     hist += a
