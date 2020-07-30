@@ -240,7 +240,6 @@ class flat_track():
         """
         assert not self.readonly, 'readonly!'
         # Write the chorm names to the hdf5
-        print(self.chrom_names)
         dat = [str(n).encode("ascii", "ignore") for n in self.chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.chrom_names), 1), 'S10', dat)
 
@@ -448,7 +447,7 @@ class flat_track():
 
         config.log.info("pileup(): Saved '%s'" % actual_filename)
 
-        return(all_hists, bkgd)
+        return (all_hists, bkgd)
 
     def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
         bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
@@ -659,5 +658,5 @@ class flat_track():
             config.log.info("track.heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
 
         config.log.info("track.heatmap(): Saved heatmap tag density to '%s'" % filename)
-        return({"data": data, 'sorted_original_genelist': sorted_locs})
+        return {"data": data, 'sorted_original_genelist': sorted_locs}
 

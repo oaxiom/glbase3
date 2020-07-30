@@ -220,4 +220,4 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
 
     e = time.time()
     config.log.info("Took: %.1f seconds" % (e-s))
-    return(True)
+    return True

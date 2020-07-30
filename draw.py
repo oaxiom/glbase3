@@ -2774,7 +2774,7 @@ class draw:
         for k in all_keys:
             vals[k] = numpy.array(vals[k])
 
-        #plot_hei = (0.8) - (0.04*len(labs))
+        plot_hei = (0.8) - (0.04*len(labs))
 
         if 'figsize' not in kargs: # TODO: Sensible sizes
             kargs['figsize'] = [4,3]

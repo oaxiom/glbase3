@@ -1492,7 +1492,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 else:
                     list_of_tables[index] = numpy.array(list_of_tables[index])
 
-        if normalise:
+        if norm_by_library_size:
             colbar_label = "Normalised %s" % colbar_label
 
         self.__pileup_y_label = "Tag density" # Trust me, you don't want to log them...
@@ -2102,49 +2102,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 p_loc_left = p_loc - peak_window_half
                 p_loc_rite = p_loc + peak_window_half
 
-
-                # Chrom cache version
-                if p_loc_chrom != this_chrom:
-                    this_data = f.get_array_chromosome(p_loc_chrom)
-                    this_chrom = p_loc_chrom
-
-                # I guess this is possible to be longer than the chrom:
-                lambd_left = p_loc_left-lambda_inner
-                lambd_left = (lambd_left if lambd_left>0 else 0)
-                lambd_rite = p_loc_rite+lambda_inner
-                lambd_rite = (lambd_rite if lambd_rite<len(this_data) else len(this_data))
-
-                left_flank = this_data[lambd_left:p_loc_left]
-                rite_flank = this_data[p_loc_rite:lambd_rite]
-                peak_data = this_data[p_loc_left:p_loc_rite]
-
-                #print('left', [lambd_left, p_loc_left])
-                #print('rite', [p_loc_rite, lambd_rite])
-                #print('peak', [p_loc_left, p_loc_rite])
-
-                # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
-                if len(peak_data) == 0:
-                    p['peak_score'] = 0 # fill the entries in, with 0 due to missing data in the array.
-                    p['lam10'] = 0
-                    p['lam10std'] = 0
-                    continue
-
-                len_lambda = len(left_flank) + len(rite_flank)
-                sum_lambda = float(left_flank.sum()) + float(rite_flank.sum()) # bug if pstdev kept as numpy numbers
-
-                p['lam10'] = sum_lambda / len_lambda # mean_lambda
-                p['lam10std'] = max([0.001, left_flank.std(), rite_flank.std()]) # Bracket at 0.001
-                p['peak_score'] = max(peak_data) # should this be the max?
-
-                prog.update(i)
-
-                '''
                 #all_data = f.get(loc=None, c=p_loc_chrom, left=p_loc, rite=p_loc)
                 all_data = f.mats[p_loc_chrom][p_loc-lambda_window:p_loc+lambda_window] # You can just reach in;
-                #print(len(all_data))
 
                 peak_data = all_data[lambda_inner:lambda_inner+peak_window]
-                #print(peak_data)
 
                 # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
                 if len(peak_data) == 0:
@@ -2156,10 +2117,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 left_flank = all_data[0:lambda_inner]
                 rite_flank = all_data[lambda_inner+peak_window:]
 
-                #print('left', [0, lambda_inner])
-                #print('rite', [lambda_inner+peak_window, ])
-                #print('peak', [lambda_inner, lambda_inner+peak_window])
-
                 len_lambda = len(left_flank) + len(rite_flank)
                 sum_lambda = float(left_flank.sum()) + float(rite_flank.sum()) # bug if pstdev kept as numpy numbers
 
@@ -2168,7 +2125,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 p['peak_score'] = max(peak_data) # should this be the max?
 
                 prog.update(i)
-                '''
 
             lam10 = [p['lam10'] for p in super_set_of_peaks]
             avg = mean(lam10)
