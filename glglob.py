@@ -1905,7 +1905,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         return(expn)
 
     def measure_enrichment(self, trks, peaks, log=False,
-        read_extend=0, peak_window=100,local_lambda=5000,
+        read_extend=0, peak_window=200,local_lambda=5000,
         **kargs):
         """
         **Purpose**
@@ -1953,46 +1953,49 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         all_chroms = len(set([i['chr'] for i in peaks['loc']])) * len(trks)
         all_sizes = [t.get_total_num_reads() / 1e6 for t in trks]
 
+        lambda_window = local_lambda
+        peak_window = peak_window
+        peak_window_half = peak_window //2
+        lambda_inner = lambda_window - peak_window_half
+
+        prog = progressbar(len(trks))
         for it, t in enumerate(trks):
-            pb = progressbar(all_chroms)
-            curr_chrom = None
             for p in peaks:
-                p_loc = p['loc']
-                cpt = (p_loc['left'] + p_loc['right']) / 2
-                p_left = int(cpt - peak_window)
-                p_rite = int(cpt + peak_window)
-                p_lam_left = p_left - local_lambda
-                p_lam_rite = p_rite + local_lambda
-                #print(p_lam_left, p_left, cpt, p_rite, p_lam_rite)
+                p_loc_chrom = 'chr{0}'.format(p['loc'].loc['chr'])
+                p_loc = (p['loc'].loc['left'] + p['loc'].loc['right']) // 2
+                p_loc_left = p_loc - peak_window_half
+                p_loc_rite = p_loc + peak_window_half
 
-                if p_loc['chr'] != curr_chrom:
-                    del curr_data
-                    curr_data = t.get_array_chromosome(p_loc['chr'], read_extend=read_extend) # this is a numpy array
-                    curr_chrom = p_loc['chr']
-                    pb.update(curr_n)
-                    curr_n += 1
+                #all_data = f.get(loc=None, c=p_loc_chrom, left=p_loc, rite=p_loc)
+                all_data = t.mats[p_loc_chrom][p_loc-lambda_window:p_loc+lambda_window] # You can just reach in;
 
-                lam = [float(i) for i in list(curr_data[p_lam_left:p_left]) + list(curr_data[p_rite:p_lam_rite])]
-                if len(lam) == 0: # Probably a bad locus;
+                peak_data = all_data[lambda_inner:lambda_inner+peak_window]
+
+                # The above can fail, as peaks can come from dense data, and then be tested against a sparse flat
+                if len(peak_data) == 0:
                     continue
-                lam = mean(lam)
-                pea = curr_data[p_left:p_rite]
-                if len(pea) == 0:
-                    continue
-                pea = max(curr_data[p_left:p_rite])
-                #print(lam, pea, mean(curr_data[p_lam_left:p_left]) + mean(curr_data[p_rite:p_lam_rite]))
 
-                #if len(pea) == 0: # fell off edge of array
-                #    p["conditions"][it] = 0 # Need to put a value in here
-                #    continue
+                left_flank = all_data[0:lambda_inner]
+                rite_flank = all_data[lambda_inner+peak_window:]
+
+                len_lambda = len(left_flank) + len(rite_flank)
+                sum_lambda = float(left_flank.sum()) + float(rite_flank.sum()) # bug if pstdev kept as numpy numbers
+
+                lam = sum_lambda / len_lambda # mean_lambda
+                lam_std = max([0.001, left_flank.std(), rite_flank.std()]) # Bracket at 0.001
+                pea = max(peak_data) # should this be the max?
 
                 try:
                     if pea != 0:
-                        p["conditions"][it] = float(pea) / float(lam) # Otherwise numpy float64s
+                        #p["conditions"][it] = float(pea) / float(lam) # Otherwise numpy float64s
+                        #p["conditions"][it] = lam_std / pea # CV
+                        p["conditions"][it] =  (pea-lam) / lam_std # Z
                 except ZeroDivisionError:
                     pass
                     #p["conditions"][it] = 100 # Don't append these, otherwise it distorts the results;
                     # I reason that if lam == 0 then there is something wrong with this locus;
+
+            prog.update(it)
 
         expn = expression(loadable_list=peaks.linearData, cond_names=[t["name"] for t in trks])
         if log:
@@ -2142,7 +2145,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 ax.hist(lam10, bins=50, range=[0,50], histtype='step', label='Background')
                 ax.hist([p['peak_score'] for p in super_set_of_peaks], bins=50, range=[0,50], histtype='step', label='Peaks')
                 ax.axvline(avg, ls=':', color='red')
-                ax.axvline(avg+std, ls=':', color='green')
+                ax.axvline(avg+(std * Z_threshold), ls=':', color='green')
                 ax.legend()
                 self.draw.savefigure(fig, '{0}_{1}.png'.format(filename, sam_name))
 

@@ -20,7 +20,10 @@ from .errors import BadBinaryFileFormatError
 # ----------------------------------------------------------------------
 # Some helper functions
 
-def glload(filename:str):
+def glload(
+    filename:str,
+    name:str = False
+    ):
     """
     **Purpose**
         Load a glbase binary file
@@ -29,6 +32,10 @@ def glload(filename:str):
     **Arguments**
         filename (Required)
             the filename of the glbase binary file to load.
+
+        name (Optional, default=False)
+            Change the name of the loaded glb
+
 
     **Returns**
         The glbase object previously saved as a binary file
@@ -58,7 +65,11 @@ def glload(filename:str):
         config.log.info("Loaded '%s' binary file with %s items, %s conditions" % (filename, len(newl), cons))
     except AttributeError:
         config.log.info("Loaded '%s' binary file with %s items" % (filename, len(newl)))
-    return(newl)
+
+    if name:
+        newl.name = name
+
+    return newl
 
 def change_drawing_mode(mode: Union[str, list]):
     """

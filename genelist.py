@@ -160,7 +160,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             else:
                 raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer')
 
-            config.log.info("genelist: loaded '{0}' found {1} items".format(filename, len(self.linearData)))
+            config.log.info("genelist: loaded '{0}' found {1:,} items".format(filename, len(self.linearData)))
         elif loadable_list:
             self.load_list(loadable_list)
 
@@ -230,9 +230,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self = glload(filename) # will this work?
         else:
             self.loadCSV(filename=filename, format=format, gzip=gzip, **kargs)
-
-        #if "force_tsv" not in kargs and "force_tsv" not in format and len(list(self.keys())) == 1:
-        #    config.log.warning("List contains only a single key, are you sure this is not a tsv?")
 
         return True  # must have made it to one - if it fails it should trigger
 
@@ -604,7 +601,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert key, "must send key"
         assert value, "must send value"
 
-        return(min(self.qkeyfind[key][value]))
+        return min(self.qkeyfind[key][value])
 
     def _findAllLabelsByKey(self, key):
         """
@@ -629,7 +626,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         This version is deprectaed. The official internal methods are:
         _findDataByKeyLazy|Greedy()
         """
-        return(self._findDataByKeyLazy(key, value)) # not found;
+        return self._findDataByKeyLazy(key, value) # not found;
 
     def _findByLoc(self, key, loc):
         """
@@ -645,7 +642,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             for item in self.dataByChr[loc["chr"]]:
                 if utils.qcollide(loc["left"], loc["right"], item[key]["left"], item[key]["right"]):
                     ret.append(item)
-        return(ret)
+        return ret
 
     def saveTSV(self, filename=None, **kargs):
         """
@@ -946,7 +943,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         oh.close()
         config.log.info("Saved '%s' BED file" % filename)
-        return(filename)
+        return filename
 
     def saveGTF(self, filename=None, strand=None, source=None, feature=None, score=None, frame=None,
         loc=None, **kargs):
@@ -1173,7 +1170,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 newl.linearData.append(item)
         newl._optimiseData()
         config.log.info("getValuesInRange: '%s' items passed (%s >= x <= %s) criteria" % (len(newl), low, high))
-        return(newl)
+        return newl
 
     #------------------------------ Overrides --------------------------
 
@@ -1225,7 +1222,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
             out = "%s\nShowing %s/%s" % ("\n".join(out), len(self.linearData), len(self.linearData))
 
-        return(out)
+        return out
 
     def all(self):
         """
@@ -1236,7 +1233,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         for index in range(len(self.linearData)): # Yeah, funky way to do it, but maintains compatability with __str__()
             out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
 
-        return("\n".join(out))
+        return "\n".join(out)
 
     def _collectIdenticalKeys(self, gene_list):
         """
@@ -1261,13 +1258,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
         config.log.info("getColumns: got only the columns: %s" % ", ".join(return_keys))
-        return(newl)
+        return newl
 
     def getGeneSet(self, key=None, list_of_items=None, use_re=True, **kargs):
         """
         Deprecated, see getRowsByKey
         """
-        return(self.getRowsByKey(key=key, list_of_values=list_of_items, use_re=use_re, **kargs))
+        return self.getRowsByKey(key=key, list_of_values=list_of_items, use_re=use_re, **kargs)
 
     def getRowsByKey(self, key=None, values=None, use_re=True, case_sensitive=True, **kargs):
         """
@@ -1350,7 +1347,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             return None
 
         config.log.info("getRowsByKey: Found %s items" % len(newl))
-        return(newl)
+        return newl
 
     def filter_by_value(self, key=None, evaluator=None, value=None, **kargs):
         """
@@ -1412,7 +1409,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         ret.load_list(new_expn) # In case I make optimisations to load_list()
 
         config.log.info("filter_by_value: Filtered expression for ['%s' %s %s], found: %s" % (key, evaluator, value, len(ret)))
-        return(ret)
+        return ret
 
     def map(self, genelist=None, peaklist=None, microarray=None, genome=None, key=None,
         greedy=True, logic="and", silent=False, **kargs):
@@ -1640,7 +1637,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     line["dist_to_tss"] = peakCentre-tss_start
                 #print line, peakCentre, tss_start
                 ret.append(line)
-        return(ret)
+        return ret
 
     def annotate(self, genelist=None, key_to_match="loc", distance=10000, window=2000,
         image_filename=None, closest_only=False, **kargs):
@@ -1821,7 +1818,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 ylabel="Frequency (Raw)", **kargs)
 
         config.log.info("Annotated %s, found: %s within: %s bp" % (newgl.name, len(newgl), distance))
-        return(newgl)
+        return newgl
 
     def pointify(self, key="loc"):
         """
