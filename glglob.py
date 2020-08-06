@@ -1025,7 +1025,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             for p1 in gl["loc"]:
                 #p1 = p1.pointify().expand(merge_peaks_distance) # about 10% of the time is in __getitem__ from the loc, so unpack it;
                 cpt = (p1.loc["left"] + p1.loc['right']) // 2
-                p1_chr = p1['chr']
+                p1_chr = 'chr{0}'.format(p1['chr'])
                 p1_left = cpt - merge_peaks_distance
                 p1_right = cpt + merge_peaks_distance
                 if not p1_chr in chr_blocks:
@@ -1372,36 +1372,31 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
             for pindex, trk in enumerate(list_of_trks):
                 for index, chrom in enumerate(chr_blocks):
-                    # The chr_blocks iterates across all chromosomes, so this only hits the db once per chromosome:
-                    del data
-                    data = trk.get_array_chromosome(chrom, read_extend=read_extend) # This will use the fast cache version if available.
-
                     for block_id in chr_blocks[chrom]:
 
                         left = block_id[0] - pileup_distance
                         right = block_id[1] + pileup_distance
 
-                        # It's possible to ask for data beyond the edge of the actual data. So trim the right vals
-                        if right > len(data):
-                            right = len(data)
-                        if left > len(data):
-                            left = len(data)
+                        dd = trk.mats[chrom][left:right] # trk.get(loc=None, c=chrom, left=left, rite=right) # I'm not sure why, but this is slow here, but superfast in pileup()
 
-                        dd = data[left:right]
-                        #dd = trk.get(loc=None, c=chrom, left=left, rite=right) # I'm not sure why, but this is slow here, but superfast in pileup()
-
-                        if len(dd) < block_len: # This should be a very rare case...
-                            print('Block miss')
-                            num_missing = block_len - len(dd)
-                            ad = numpy.zeros(num_missing)
-                            dd = numpy.append(dd, ad)
-                            dd = list(dd)
+                        if len(dd) != block_len: # This should be a very rare case...
+                            if len(dd) < block_len:
+                                print('Block miss (short)')
+                                num_missing = block_len - len(dd)
+                                ad = numpy.zeros(num_missing)
+                                dd = numpy.append(dd, ad)
+                                dd = list(dd)
+                            elif len(dd) > block_len:
+                                print('Block miss (long)')
+                                num_missing = block_len - len(dd)
+                                dd = dd[0:block_len] # just grab the start. probably unreliable though?
 
                         if norm_by_library_size:
                             # normalise before bin?
                             pil_data = [av/read_totals[pindex] for av in dd]
 
-                        chr_blocks[chrom][block_id]["pil"][pindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
+                        chr_blocks[chrom][block_id]["pil"][pindex] = dd[:(dd.size // bin_size) * bin_size].reshape(-1, bin_size).sum(axis=1) # [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
+                        #chr_blocks[chrom][block_id]["pil"][pindex] = [sum(dd[i:i+bin_size]) for i in range(0, len(dd), bin_size)] #pil_data = utils.bin_sum_data(dd, bin_size)
                 p.update(pindex)
 
             if cache_data: # store the generated data for later.
