@@ -1383,9 +1383,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             if len(dd) < block_len:
                                 print('Block miss (short)')
                                 num_missing = block_len - len(dd)
-                                ad = numpy.zeros(num_missing)
+                                ad = numpy.zeros(num_missing, dtype=numpy.float32)
                                 dd = numpy.append(dd, ad)
-                                dd = list(dd)
+                                dd = dd.astype(numpy.float64)
                             elif len(dd) > block_len:
                                 print('Block miss (long)')
                                 num_missing = block_len - len(dd)
