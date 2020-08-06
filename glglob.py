@@ -333,7 +333,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 for ib, lb in enumerate(peak_lengths):
                     matrix[ia,ib] = (matrix[ia,ib] / min([la, lb]))
 
-            print(matrix)
+            #print(matrix)
 
             corr_result_table = zeros( (len(self), len(self)) ) # square matrix to store the data.
             # convert the data to a pearson score.
@@ -1344,8 +1344,18 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # sort out cached_data
         if cache_data and os.path.isfile(cache_data): # reload previously cached data.
             oh = open(os.path.realpath(cache_data), "rb")
-            chr_blocks = pickle.load(oh)
+            loaded_chr_blocks = pickle.load(oh)
             oh.close()
+
+            # Do some sanity checking;
+            assert len(loaded_chr_blocks) == len(chr_blocks), 'Error in the {0} file, does not match inputs, needs to be regenerated'.format(cache_data)
+            assert loaded_chr_blocks.keys() == chr_blocks.keys(), 'Error in the {0} file, does not match inputs, needs to be regenerated'.format(cache_data)
+            first_key = list(chr_blocks.keys())[0]
+            assert len(loaded_chr_blocks[first_key]) == len(chr_blocks[first_key]), 'Error in the {0} file, does not match inputs, needs to be regenerated'.format(cache_data)
+
+            # Seems okay, proceed:
+            chr_blocks = loaded_chr_blocks
+
             config.log.info("chip_seq_cluster_heatmap: Reloaded previously cached pileup data: '%s'" % cache_data)
             # this_loc will not be valid and I test it for length below, so I need to fake one.
 

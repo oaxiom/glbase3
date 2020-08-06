@@ -17,7 +17,7 @@ class _base_genelist:
         self.linearData = None
 
     def __repr__(self):
-        return("<base genelist class>")
+        return "<base genelist class>"
 
     def __in__(self, key):
         """
@@ -26,7 +26,7 @@ class _base_genelist:
         Confer:
         if "key" in genelist:
         """
-        return(key in list(self.keys()))
+        return key in list(self.keys())
 
     def __bool__(self):
         """
@@ -41,7 +41,7 @@ class _base_genelist:
             False
 
         """
-        return(len(self) > 0)
+        return len(self) > 0
 
     #def __copy__(self):
     #    raise Exception, "__copy__() is NOT supported for genelists, use gl.deepcopy() or gl.shallowcopy()"
@@ -58,7 +58,7 @@ class _base_genelist:
 
         This is required as genelists are compound lists.
         """
-        return(pickle.loads(pickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
+        return pickle.loads(pickle.dumps(self, -1)) # This is 2-3x faster and presumably uses less memory
 
     def shallowcopy(self):
         """
@@ -67,14 +67,14 @@ class _base_genelist:
         Some weird behaviour here, I know, this is so I can still get access to
         the shallow copy mechanism even though 90% of the operations are copies.
         """
-        return(copy.copy(self)) # But doesnt this just call __copy__() anyway?
+        return copy.copy(self) # But doesnt this just call __copy__() anyway?
 
     def __len__(self):
         """
         (Override)
         get the length of the list
         """
-        return(len(self.linearData))
+        return len(self.linearData)
 
     def __int__(self):
         """
@@ -84,7 +84,7 @@ class _base_genelist:
         I don't remove it at the moment as I'm not sure if it is used anywhere.
 
         """
-        return(len(self.linearData))
+        return len(self.linearData)
 
     def __iter__(self):
         """
@@ -120,7 +120,7 @@ class _base_genelist:
             newl = self.shallowcopy()
             newl.linearData = utils.qdeepcopy(self.linearData[index]) # separate the data so it can be modified.
             newl._optimiseData()
-        return(newl) # deep copy the slice.
+        return newl # deep copy the slice.
 
     def __setitem__(self, index, *args):
         """
@@ -139,9 +139,9 @@ class _base_genelist:
             return(hash(self.name + str(self[0]) + str(self[-1]) + str(len(self)))) # hash data for comparison.
         except Exception:
             try:
-                return(hash(self.name + str(self[0]) + str(self[-1]))) # len() probably not available (delayedlist?).
+                return hash(self.name + str(self[0]) + str(self[-1])) # len() probably not available (delayedlist?).
             except Exception: # I bet the list is empty.
-                return(hash(self.name))
+                return hash(self.name)
 
     def __and__(self, gene_list):
         """

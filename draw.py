@@ -1184,6 +1184,9 @@ class draw:
 
         fig.autofmt_xdate() # autorotate labels
 
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
         self.do_common_args(ax, **kargs)
 
         return self.savefigure(fig, filename)
@@ -2513,6 +2516,9 @@ class draw:
 
         fig.autofmt_xdate()
 
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
         self.do_common_args(ax, **kargs)
         return(self.savefigure(fig, filename))
 
@@ -2801,8 +2807,8 @@ class draw:
         ax.set_title(title, size=6)
         ax.legend()
         plot.legend(loc='upper left')#, bbox_to_anchor=(0.0, -0.4), prop={'size': 6})
-        [t.set_fontsize(6) for t in ax.get_yticklabels()]
-        [t.set_fontsize(6) for t in ax.get_xticklabels()]
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
 
         self.do_common_args(ax, **kargs)
         fig.savefig(filename)
