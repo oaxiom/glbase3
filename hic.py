@@ -491,17 +491,18 @@ class hic:
 
             lin = lin.strip().split('\t')
 
-            chr1 = lin[0]
             if not bin_size: # sample the bin size;
                 bin_size = int(lin[2]) - int(lin[1])
-            if chr1 not in self.all_chrom_names:
+
+            chr1 = lin[0]
+            if chr1 not in max_chrom_size:
                 max_chrom_size[chr1] = 0
             if int(lin[2]) > max_chrom_size[chr1]:
                 max_chrom_size[chr1] = int(lin[2])
 
             # same for other read, as you could imagine a situation where a right bin is not seen in the left bin?
             chr2 = lin[3]
-            if chr2 not in self.all_chrom_names:
+            if chr2 not in max_chrom_size:
                 max_chrom_size[chr2] = 0
             if int(lin[5]) > max_chrom_size[chr2]:
                 max_chrom_size[chr2] = int(lin[5])

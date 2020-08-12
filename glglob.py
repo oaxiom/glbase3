@@ -1524,7 +1524,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             real_filename = self.draw.multi_heatmap(filename=filename, groups=groups, titles=titles, imshow=imshow, size=size,
                 list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames)
 
-        config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
+            config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
         return ret_data
 
     def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, **kargs):
@@ -1942,6 +1942,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert isinstance(trks, list), 'measure_enrichment: trks must be a list'
         assert 'loc' in list(peaks.keys()), 'measure_enrichment: no loc key found in peaks'
         all_trk_names = [t["name"] for t in trks]
+        print(all_trk_names)
         assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track.meta_data["name"] to unique names'
 
         peaks = peaks.deepcopy()
