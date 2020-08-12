@@ -1527,7 +1527,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
         return ret_data
 
-    def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, **kargs):
+    def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, min_members=False, **kargs):
         """
         **Purpose**
             This is an addendum to chip_seq_cluster_heatmap(). You only need run this
@@ -1556,6 +1556,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 If False then plot them all on the same graph, and with a legend.
 
+            min_members (Optional, default=False)
+                Only save the image in > min_members
+
         **Returns**
             The pileup_data as a dict in the form:
             {<cluster_id>: [array_data1, array_data2 ... array_dataN],
@@ -1577,6 +1580,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         maxx = self.__pileup_data[1][0].shape[0]
         for cid in self.__pileup_data:
             this_filename = "%s_cid%s.png" % (base_filename, cid) # savefigure will modify png if needed.
+
+            if min_members and self.__pileup_group_sizes[cid] < min_members:
+                continue
 
             fig = self.draw.getfigure(**kargs)
             fig.suptitle("Group: %s #members: %s Membership: %s" % (cid, self.__pileup_group_sizes[cid], self.__pileup_groups_membership[cid-1]["id"]))

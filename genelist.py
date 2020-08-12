@@ -266,10 +266,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert os.path.exists(os.path.realpath(filename)), "File %s not found" % filename
 
+        self.name = '.'.join(filename.split(".")[:-1]) # Put here otherwise realpath will force name from the symbolic link, not from the actual link!
         self.path = os.path.split(os.path.realpath(filename))[0]
         self.filename = os.path.split(os.path.realpath(filename))[1]
         self.fullfilename = filename
-        self.name = '.'.join(self.filename.split(".")[:-1])
 
         # decide whether to respect the force_tsv arg.
         if not format:
