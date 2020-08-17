@@ -1457,7 +1457,9 @@ class hic:
                 mat += data
                 p.update(aidx)
 
+            print(mat)
             mat /= len(center_anchors)
+            print(mat)
 
         fig = self.draw.getfigure(**kargs)
 
@@ -1474,13 +1476,13 @@ class hic:
                 with numpy.errstate(divide='ignore'):
                     mat = numpy.log2(mat)
                 colbar_label = "Log2(Density)"
-            data = numpy.clip(data, bracket[0], bracket[1])
+            mat = numpy.clip(mat, bracket[0], bracket[1])
             vmin = bracket[0]
             vmax = bracket[1]
         else:
             if log2:
                 with numpy.errstate(divide='ignore'):
-                    data = numpy.log2(data)
+                    mat = numpy.log2(mat)
                 colbar_label = "Log2(Density)"
             mat[mat == -numpy.inf] = 0
             vmin = mat.min()
@@ -1490,8 +1492,11 @@ class hic:
         ax = fig.add_subplot(121)
 
         ax.set_position(heatmap_location) # must be done early for imshow
-        hm = ax.imshow(mat, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
-            origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
+        hm = ax.imshow(mat, cmap=colour_map,
+            vmin=vmin, vmax=vmax,
+            aspect="auto",
+            origin='lower',
+            extent=[0, mat.shape[1], 0, mat.shape[0]],
             interpolation=config.get_interpolation_mode(filename))
 
         #ax3.set_frame_on(True)
