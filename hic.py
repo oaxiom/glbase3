@@ -29,7 +29,7 @@ from .format import minimal_bed
 if config.H5PY_AVAIL:
     import h5py
 else:
-    raise AssertionError('Asked for a hic, but h5py is not avaialble')
+    raise AssertionError('Asked for a hic, but h5py is not available')
 
 def reshap_mats(mat, dimX, dimY):
     '''
@@ -72,8 +72,6 @@ def merge_hiccys(new_hic_filename, name, *hics):
     copyfile(hics[0], new_hic_filename)
 
     newhic = hic(filename=new_hic_filename, name=name, new=False, _readplus=True)
-
-    print(newhic.mats['chr10'])
 
     # I bind all the hics:
     hics = [hic(filename=f, name=f) for f in hics[1:]]
