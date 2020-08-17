@@ -1457,9 +1457,7 @@ class hic:
                 mat += data
                 p.update(aidx)
 
-            print(mat)
             mat /= len(center_anchors)
-            print(mat)
 
         fig = self.draw.getfigure(**kargs)
 
