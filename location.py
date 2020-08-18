@@ -40,10 +40,10 @@ class location:
             if self.loc["chr"] == other.loc["chr"]:
                 if self.loc["left"] == other.loc["left"]:
                     if self.loc["right"] == other.loc["right"]:
-                        return(True)
-        return(False)
-
-    def __lt__(self, other): # deprecated in Python3
+                        return True
+        return False
+    '''
+    def __lt__(self, other): # deprecated in Python3?
         # Make locations sortable
         if self.loc['chr'] < other.loc['chr']:
             return True
@@ -55,26 +55,27 @@ class location:
             return False
         #self.loc['chr'] > other.loc['chr']:
         return False
+    '''
 
     def __hash__(self):
-        return(hash(self._loc_string))
-    
+        return hash(self._loc_string)
+
     def __deepcopy__(self, memo):
-        return(pickle.loads(pickle.dumps(self, -1))) # This is 2-3x faster and presumably uses less memory
-    
+        return pickle.loads(pickle.dumps(self, -1)) # This is 2-3x faster and presumably uses less memory
+
     def __bool__(self):
-        return(True)
+        return True
 
     def __repr__(self):
-        return("<location %s>" % (self._loc_string))
+        return "<location %s>" % (self._loc_string)
 
     def __len__(self):
         # work out the span.
-        return(max([0, self.loc["right"] - self.loc["left"]]))
+        return max([0, self.loc["right"] - self.loc["left"]])
 
     def split(self, value=None):
         # ignores the 'value' argument completely and returns a three-ple
-        return( (self.loc["chr"], self.loc["left"], self.loc["right"]) )
+        return (self.loc["chr"], self.loc["left"], self.loc["right"])
 
     def __update(self):
         self._loc_string = None
@@ -89,17 +90,17 @@ class location:
     def __getitem__(self, key):
         if key == "string":
             self.__update() # only update when accessed.
-            return(self._loc_string)
+            return self._loc_string
         elif key == "dict":
             return(self.loc)
-        return(self.loc[key])
+        return self.loc[key]
 
     def __setitem__(self, key, value):
         self.loc[key] = value
         self.__update()
 
     def __str__(self):
-        return(self._loc_string)
+        return self._loc_string
 
     """
     these methods below should copy the location and send a modified version back.
@@ -109,38 +110,38 @@ class location:
         new.loc["left"] -= base_pairs
         new.loc["right"] += base_pairs
         new.__update()
-        return(new)
+        return new
 
     def expandLeft(self, base_pairs):
         new = copy.deepcopy(self)
         new.loc["left"] -= base_pairs
         new.__update()
-        return(new)
+        return new
 
     def expandRight(self, base_pairs):
         new = copy.deepcopy(self)
         new.loc["right"] += base_pairs
         new.__update()
-        return(new)
+        return new
 
     def shrink(self, base_pairs):
         new = copy.deepcopy(self)
         new.loc["left"] += base_pairs
         new.loc["right"] -= base_pairs
         new.__update()
-        return(new)
+        return new
 
     def shrinkLeft(self, base_pairs):
         new = copy.deepcopy(self)
         new.loc["left"] += base_pairs
         new.__update()
-        return(new)
+        return new
 
     def shrinkRight(self, base_pairs):
         new = copy.deepcopy(self)
         new.loc["right"] -= base_pairs
         new.__update()
-        return(new)
+        return new
 
     def pointLeft(self):
         """
@@ -149,8 +150,8 @@ class location:
         new = copy.deepcopy(self)
         new.loc["right"] = new.loc["left"]
         new.__update()
-        return(new)
-        
+        return new
+
     def pointRight(self):
         """
         get a new location at the exact right of the coordinate
@@ -158,19 +159,19 @@ class location:
         new = copy.deepcopy(self)
         new.loc["left"] = new.loc["right"]
         new.__update()
-        return(new)
+        return new
 
     def pointify(self):
         new = copy.deepcopy(self)
         centre = (self.loc["left"] + self.loc["right"]) // 2
         new.loc = {"chr": self.loc["chr"], "left": centre, "right": centre}
         new.__update()
-        return(new)
+        return new
 
     def collide(self, loc):
         if loc["chr"] != self["chr"]:
             return(False)
-        return(self.loc["right"] >= loc.loc["left"] and self.loc["left"] <= loc.loc["right"])
+        return self.loc["right"] >= loc.loc["left"] and self.loc["left"] <= loc.loc["right"]
 
     def qcollide(self, loc):
         """
@@ -181,7 +182,7 @@ class location:
         **Returns**
             True or False
         """
-        return(self.loc["right"] >= loc.loc["left"] and self.loc["left"] <= loc.loc["right"]) # nice one-liner
+        return self.loc["right"] >= loc.loc["left"] and self.loc["left"] <= loc.loc["right"] # nice one-liner
 
     def distance(self, loc):
         """
@@ -195,7 +196,7 @@ class location:
             overlap. use collide() for that.
         """
         assert self["chr"] == loc["chr"], "chromosomes are not the same, %s vs %s" % (self, loc)
-        return(self.qdistance(loc))
+        return self.qdistance(loc)
 
     def qdistance(self, loc):
         """
@@ -204,13 +205,13 @@ class location:
         """
         centreA = (self.loc["left"] + self.loc["right"]) // 2
         centreB = (loc["left"] + loc["right"]) // 2
-        return(centreA - centreB)
+        return centreA - centreB
 
     def __sub__(self, loc):
         """
         **Purpose**
             Allow things like:
-                
+
             distance = locA - locB
         """
         return(self.distance(loc))
@@ -224,17 +225,23 @@ class location:
         new.loc["left"] += base_pairs
         new.loc["right"] = new.loc["left"]
         new.__update()
-        return(new)
+        return new
 
     def keys(self):
         """
         Get the keys
         """
-        return([i for i in self.loc])
-        
+        return self.loc.keys()
+
+    def values(self):
+        """
+        Get the values
+        """
+        return self.loc.values()
+
 if __name__ == "__main__":
     import timeit
-    
+
     s = "a = location(loc='chr1:1000-2000').pointify()"
     t = timeit.Timer(s, "from location import location")
     print("%.2f usec/pass" % (1000000 * t.timeit(number=100000)/100000))

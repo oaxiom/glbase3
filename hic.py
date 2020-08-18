@@ -26,19 +26,50 @@ from .progress import progressbar
 from .location import location
 from .format import minimal_bed
 
+import matplotlib.pyplot as plot
+
 if config.H5PY_AVAIL:
     import h5py
 else:
     raise AssertionError('Asked for a hic, but h5py is not available')
+
+
+def reshap_mats2(mat, dimX, dimY):
+    '''
+    Sometimes the matrices are slightly off, reshape them to the same sizes.
+    reshapes matB to the dimensions provided
+
+    This deos not work!
+
+    '''
+    interpolator_func = interpolate.interp2d(range(mat.shape[0]), range(mat.shape[1]), mat, kind='linear')
+    return interpolator_func(dimX, dimY)
+
 
 def reshap_mats(mat, dimX, dimY):
     '''
     Sometimes the matrices are slightly off, reshape them to the same sizes.
     reshapes matB to the dimensions provided
 
+    NOTE: All matrices MUST be square len(x) == len(y)
+
     '''
-    interpolator_func = interpolate.interp2d(range(mat.shape[0]), range(mat.shape[1]), mat, kind='linear')
-    return interpolator_func(dimX, dimY)
+    X = numpy.linspace(0, mat.shape[0], mat.shape[0])
+    f = interpolate.RectBivariateSpline(X, X, mat)
+    Xnew = numpy.linspace(0, mat.shape[0], dimX)
+    return f(Xnew,Xnew)
+
+def reshap_mats_irregular(mat, dimX, dimY, t):
+    '''
+    Non-square matrix version
+    '''
+    X = numpy.linspace(0, mat.shape[0], mat.shape[0])
+    Y = numpy.linspace(0, mat.shape[0], mat.shape[1])
+    f = interpolate.RectBivariateSpline(X, Y, mat)
+    Xnew = numpy.linspace(0, mat.shape[0], dimX)
+    Ynew = numpy.linspace(0, mat.shape[1], dimY)
+
+    return f(Xnew,Ynew)
 
 def merge_hiccys(new_hic_filename, name, *hics):
     '''
@@ -252,7 +283,7 @@ class hic:
 
         return (binLeft, binRight, newloc, mostLeft, mostRight)
 
-    def __quick_find_binID_spans(self, loc_chrom=None, loc_left=None, loc_rite=None):
+    def __quick_find_binID_spans(self, loc_chrom=None, loc_left=None, loc_rite=None, do_assert_check=True):
         """
         (Internal)
 
@@ -290,7 +321,7 @@ class hic:
 
         binLeft = binLeft - mostLeft
         binRight = binRight - mostLeft
-        assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 3 bins'
+        if do_assert_check: assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 3 bins'
 
         return (binLeft, binRight)
 
@@ -1411,7 +1442,9 @@ class hic:
         filename:str = None,
         center_anchors = None,
         distal_anchors = None,
+        bedpe = None,
         window:int = None,
+        num_bins:int = None,
         bracket = None,
         log2 = None,
         colour_map = cm.plasma,
@@ -1422,26 +1455,86 @@ class hic:
             Draw a square plot for HiC intensity,
             Take the center_anchor points, and then draw out to eith ther distal anchors, or to some <window>
             Take the average of the matrix;
+
+        **Arguemnts**
+            filename
+
+            center_anchors
+
+            distal_anchors
+
+            bedpe (Optional, default=None)
+                Or, you could pass a genelist with a loc1 and loc2 pair of locations to use for the corners.
+
+        **Returns**
+            ?
+
         """
         assert self.readonly, 'must be readonly to draw a square_plot. set new=False'
         assert filename, 'You need a filename to save the image to'
         assert not (distal_anchors and window), 'Only one of distal_anchors or window can be valid'
-        if not window: assert distal_anchors, 'distal_anchors not True'
-        if not distal_anchors: assert window, 'window not True'
+        if bedpe: assert num_bins, 'You must specify num_bins for the heatmap if bedpe=True'
+        if not window: assert (bedpe or distal_anchors), 'distal_anchors or bedpe not True'
+        if not distal_anchors and not bedpe: assert window, 'window not True'
+        if bedpe:
+            assert 'loc1' in bedpe.keys(), 'need a "loc1" key in bedpe genelist'
+            assert 'loc2' in bedpe.keys(), 'need a "loc2" key in bedpe genelist'
 
         if distal_anchors:
             raise NotImplementedError('distal_anchors not implemented')
 
-        num_bins = (window * 2) // self['bin_size']
+        if bedpe:
+            __num_skipped = 0
+            mat = numpy.zeros((num_bins, num_bins))
+            int_range = numpy.arange(num_bins)
 
-        mat = numpy.zeros((num_bins, num_bins))
-        int_range = numpy.arange(num_bins)
+            left = [(loc['chr'], loc['left'], loc['right']) for loc in bedpe['loc1']]
+            right = [(loc['chr'], loc['left'], loc['right']) for loc in bedpe['loc2']]
+            p = progressbar(len(bedpe))
+            for aidx, (l, r) in enumerate(zip(left, right)):
+                if l[0] != r[0]:
+                    continue # differnent chroms are not supported
 
-        if distal_anchors:
+                chrom = 'chr{0}'.format(l[0])
+
+                scaled_window = (max([l[2], r[2]]) - min([l[1], r[1]])) // 10
+
+                #print(l, r)
+                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l[1], l[2], do_assert_check=False)
+                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, r[1], r[2], do_assert_check=False)
+
+                localLeft = min([localLeft1, localRight1, localLeft2, localRight2])
+                localRight = max([localLeft1, localRight1, localLeft2, localRight2])
+
+                localLeft -= scaled_window
+                localRight += scaled_window
+
+                data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
+
+                if data.shape != mat.shape:
+                    if data.shape[0] < 5:
+                        # Seems the two loops are too close together for this resolution, kip it;
+                        __num_skipped += 1
+                        continue
+                    #print(data.shape, mat.shape)
+                    data = reshap_mats(data, num_bins, num_bins)
+
+                mat += data
+                p.update(aidx)
+
+            mat /= len(bedpe)
+
+            config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
+
+        elif distal_anchors:
             for anchor, distal in zip(center_anchors, distal_anchors):
                 pass # Not implemented yet.
 
         elif window:
+            num_bins = (window * 2) // self['bin_size']
+            mat = numpy.zeros((num_bins, num_bins))
+            int_range = numpy.arange(num_bins)
+
             p = progressbar(len(center_anchors))
             for aidx, anchor in enumerate(center_anchors):
                 chrom = anchor['loc']['chr']
@@ -1452,12 +1545,31 @@ class hic:
                 data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
-                    data = reshap_mats(data, int_range, int_range)
+                    data = reshap_mats(data, num_bins, num_bins)
 
                 mat += data
                 p.update(aidx)
 
             mat /= len(center_anchors)
+        return self.square_plot_heatmap(filename=filename,
+            center_anchors=center_anchors, distal_anchors=distal_anchors,
+            window=window, bracket=bracket,
+            log2=log2,
+            mat=mat,
+            colour_map=colour_map,
+            **kargs)
+
+    def square_plot_heatmap(self,
+        filename:str = None,
+        center_anchors = None,
+        distal_anchors = None,
+        window:int = None,
+        bracket = None,
+        log2 = None,
+        colour_map = cm.plasma,
+        mat = None,
+        **kargs
+        ):
 
         fig = self.draw.getfigure(**kargs)
 
@@ -1506,6 +1618,8 @@ class hic:
 
         ax.axvline(mat.shape[0] // 2, ls=":", color="grey")
         ax.axhline(mat.shape[1] // 2, ls=":", color="grey")
+        ax.axvline((mat.shape[0] // 2)+1, ls=":", color="grey")
+        ax.axhline((mat.shape[1] // 2)+1, ls=":", color="grey")
 
         ax.tick_params(top=False, bottom=False, left=False, right=False)
         [t.set_fontsize(5) for t in ax.get_yticklabels()] # generally has to go last.
