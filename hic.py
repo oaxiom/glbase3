@@ -1485,6 +1485,7 @@ class hic:
 
         if bedpe:
             __num_skipped = 0
+            __intra_chroms = 0
             mat = numpy.zeros((num_bins, num_bins))
             int_range = numpy.arange(num_bins)
 
@@ -1493,6 +1494,7 @@ class hic:
             p = progressbar(len(bedpe))
             for aidx, (l, r) in enumerate(zip(left, right)):
                 if l[0] != r[0]:
+                    __intra_chroms += 1
                     continue # differnent chroms are not supported
 
                 chrom = 'chr{0}'.format(l[0])
@@ -1500,20 +1502,26 @@ class hic:
                 scaled_window = (max([l[2], r[2]]) - min([l[1], r[1]])) // 10
 
                 #print(l, r)
-                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l[1], l[2], do_assert_check=False)
-                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, r[1], r[2], do_assert_check=False)
+                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l[1]-scaled_window, l[2]+scaled_window, do_assert_check=False)
+                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, r[1]-scaled_window, r[2]+scaled_window, do_assert_check=False)
 
                 localLeft = min([localLeft1, localRight1, localLeft2, localRight2])
                 localRight = max([localLeft1, localRight1, localLeft2, localRight2])
 
+                #scaled_window = (localRight - localLeft) // 5 # must match the data.shape[0] < 5 below;
+
+                #print(localLeft, localRight)
+
                 localLeft -= scaled_window
                 localRight += scaled_window
+
+                #print(localLeft, localRight, scaled_window)
 
                 data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
-                    if data.shape[0] < 5:
-                        # Seems the two loops are too close together for this resolution, kip it;
+                    if data.shape[0] < 10:
+                        # Seems the two loops are too close together for this resolution, skip it;
                         __num_skipped += 1
                         continue
                     #print(data.shape, mat.shape)
@@ -1524,6 +1532,11 @@ class hic:
 
             mat /= len(bedpe)
 
+            m10 = mat.shape[0] // 10
+
+            markers = [m10, mat.shape[0] - m10]
+
+            config.log.info('{0} were on differnet chromsomes and were not used'.format(__intra_chroms))
             config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
 
         elif distal_anchors:
@@ -1551,12 +1564,16 @@ class hic:
                 p.update(aidx)
 
             mat /= len(center_anchors)
+
+            markers = [mat.shape[0] // 2, (mat.shape[0] // 2)+1]
+
         return self.square_plot_heatmap(filename=filename,
             center_anchors=center_anchors, distal_anchors=distal_anchors,
             window=window, bracket=bracket,
             log2=log2,
             mat=mat,
             colour_map=colour_map,
+            markers = markers,
             **kargs)
 
     def square_plot_heatmap(self,
@@ -1568,6 +1585,7 @@ class hic:
         log2 = None,
         colour_map = cm.plasma,
         mat = None,
+        markers = None,
         **kargs
         ):
 
@@ -1616,10 +1634,9 @@ class hic:
         ax.set_yticklabels("")
         ax.set_xticklabels("")
 
-        ax.axvline(mat.shape[0] // 2, ls=":", color="grey")
-        ax.axhline(mat.shape[1] // 2, ls=":", color="grey")
-        ax.axvline((mat.shape[0] // 2)+1, ls=":", color="grey")
-        ax.axhline((mat.shape[1] // 2)+1, ls=":", color="grey")
+        for m in markers:
+            ax.axvline(m, ls=":", lw=0.5, color="grey")
+            ax.axhline(m, ls=":", lw=0.5, color="grey")
 
         ax.tick_params(top=False, bottom=False, left=False, right=False)
         [t.set_fontsize(5) for t in ax.get_yticklabels()] # generally has to go last.
@@ -1638,3 +1655,72 @@ class hic:
         config.log.info("heatmap: Saved '%s'" % actual_filename)
 
         return mat
+
+    def measure_loop_strength(self,
+        bedpe=None,
+        **kargs):
+        '''
+        **Purpose**
+            Measure the loop strength for the selected bedpe (containig a loc1 and loc2 key)
+            that describes a loop of chromatin between two loci. (i.e. take the diagonal)
+
+            Only loops on the same chromsome are supported.
+
+        **Arguments**
+            bedpe (Required)
+                a genelist containing a loc1 and loc2 key for the start of the loop and the end.
+
+
+        **Returns**
+            a new genelist containing all the valid loci with a new key 'loop_strength'
+
+        '''
+        assert self.readonly, 'must be readonly to draw a square_plot. set new=False'
+        #assert filename, 'You need a filename to save the image to'
+        assert bedpe, 'You must specify a bedpe'
+        assert 'loc1' in bedpe.keys(), 'need a "loc1" key in bedpe genelist'
+        assert 'loc2' in bedpe.keys(), 'need a "loc2" key in bedpe genelist'
+
+        newl = []
+
+        __num_skipped = 0
+        __intra_chroms = 0
+
+        p = progressbar(len(bedpe))
+        for aidx, item in enumerate(bedpe.linearData):
+            p.update(aidx)
+
+            l1 = item['loc1'].loc
+            l2 = item['loc2'].loc
+
+            if l1['chr'] != l2['chr']:
+                __intra_chroms += 1
+                continue # differnent chroms are not supported
+
+            chrom = 'chr{0}'.format(l1['chr'])
+
+            localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1['left'], l1['right'], do_assert_check=False)
+            localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, l2['left'], l2['right'], do_assert_check=False)
+
+            localLeft = min([localLeft1, localRight1, localLeft2, localRight2])
+            localRight = max([localLeft1, localRight1, localLeft2, localRight2])
+
+            if localRight - localLeft < 10:
+                __num_skipped += 1
+                continue
+
+            loop_strength = self.mats[chrom][localLeft, localRight]
+
+            item = dict(item)
+            item['loop_strength'] = float(loop_strength)
+
+            newl.append(item)
+
+        gl = genelist()
+        gl.load_list(newl)
+        gl.name = bedpe.name
+
+        config.log.info('{0} were on differnet chromsomes and were not used'.format(__intra_chroms))
+        config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
+
+        return gl
