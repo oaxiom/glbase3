@@ -244,8 +244,12 @@ class hic:
         mostLeft = 1e50
         mostRight = -1
 
+        chrom = loc.loc['chr']
+        if 'chr' not in chrom:
+            chrom = 'chr{0}'.format(chrom)
+
         #print(self.bin_lookup_by_chrom[loc['chr']])
-        for bin in self.bin_lookup_by_chrom[loc['chr']]:
+        for bin in self.bin_lookup_by_chrom[chrom]:
             # bin = (binID, left, right)
             #print(bin, loc)
             if bin[2] > loc['left'] and bin[0] < binLeft:
@@ -272,14 +276,14 @@ class hic:
             binRight = mostRight
             locLeft = mostRightLoc
 
-        newloc = location(chr=loc['chr'], left=locLeft+1, right=locRight-1) # the +1/-1 stops the bins from overlapping by 1bp, and solves a lot of problems
+        newloc = location(chr=chrom, left=locLeft+1, right=locRight-1) # the +1/-1 stops the bins from overlapping by 1bp, and solves a lot of problems
 
         binLeft = binLeft - mostLeft
         binRight = binRight - mostLeft
         mostRight = self.bin_lookup_by_binID[mostRight][3] # Convert to newBinID:
         mostLeft = self.bin_lookup_by_binID[mostLeft][3]
         #print (binLeft, binRight, newloc, mostLeft, mostRight)
-        assert binRight-binLeft > 2, 'the genome view (loc) is too small, and contains < 2 bins'
+        assert binRight-binLeft > 10, 'the genome view (loc) is too small, and contains < 2 bins'
 
         return (binLeft, binRight, newloc, mostLeft, mostRight)
 
@@ -783,10 +787,14 @@ class hic:
             if not isinstance(loc, location):
                 loc = location(loc)
 
+            chrom = loc.loc['chr']
+            if 'chr' not in chrom:
+                chrom = 'chr{0}'.format(chrom)
+
             # Need to get the binIDs and the updated location span
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
-            data = self.mats[loc['chr']][localLeft:localRight, localLeft:localRight]
+            data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
         else:
             raise NotImplementedError('chr=None not implemented')
             data = self.matrix # use the whole lot
@@ -1447,7 +1455,7 @@ class hic:
         num_bins:int = None,
         bracket = None,
         log2 = None,
-        colour_map = cm.plasma,
+        colour_map = cm.viridis,
         **kargs
         ):
         """
@@ -1658,6 +1666,7 @@ class hic:
 
     def measure_loop_strength(self,
         bedpe=None,
+        log=False,
         **kargs):
         '''
         **Purpose**
@@ -1705,6 +1714,8 @@ class hic:
             localLeft = min([localLeft1, localRight1, localLeft2, localRight2])
             localRight = max([localLeft1, localRight1, localLeft2, localRight2])
 
+            #print(localLeft1, localRight1, localLeft2, localRight2, localLeft, localRight, item['loc1'], item['loc2'])
+
             if localRight - localLeft < 10:
                 __num_skipped += 1
                 continue
@@ -1712,15 +1723,18 @@ class hic:
             loop_strength = self.mats[chrom][localLeft, localRight]
 
             item = dict(item)
-            item['loop_strength'] = float(loop_strength)
-
+            if log:
+                item['loop_strength'] = math.log2(float(loop_strength)+min_pad)
+                continue
+            else:
+                item['loop_strength'] = float(loop_strength)
             newl.append(item)
 
         gl = genelist()
         gl.load_list(newl)
         gl.name = bedpe.name
 
-        config.log.info('{0} were on differnet chromsomes and were not used'.format(__intra_chroms))
+        config.log.info('{0} were on different chromosomes and were not used'.format(__intra_chroms))
         config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
 
         return gl

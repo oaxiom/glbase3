@@ -42,8 +42,8 @@ class location:
                     if self.loc["right"] == other.loc["right"]:
                         return True
         return False
-    '''
-    def __lt__(self, other): # deprecated in Python3?
+
+    def __lt__(self, other): # Required for sorting
         # Make locations sortable
         if self.loc['chr'] < other.loc['chr']:
             return True
@@ -55,7 +55,6 @@ class location:
             return False
         #self.loc['chr'] > other.loc['chr']:
         return False
-    '''
 
     def __hash__(self):
         return hash(self._loc_string)
