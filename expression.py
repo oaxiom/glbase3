@@ -551,7 +551,9 @@ class expression(base_expression):
         newgl._optimiseData()
         return(newgl)
 
-    def sliceConditions(self, conditions=None, **kargs):
+    def sliceConditions(self,
+        conditions:Iterable=None,
+        **kargs):
         """
         **Purpose**
 
@@ -582,6 +584,8 @@ class expression(base_expression):
         assert conditions, "sliceConditions: You must specify a list of conditions to keep"
         assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
         assert isinstance(conditions, (tuple, list, set, Iterable)), "sliceConditions: You must specify an iterable of conditions to keep"
+
+        conditions = list(conditions) # Some weird bugs if not a list;
         for item in conditions:
             assert item in self._conditions, "sliceConditions: '%s' condition not found in this expression data" % item
 
