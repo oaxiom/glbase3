@@ -1157,6 +1157,7 @@ class draw:
         return self.savefigure(fig, filename, dpi=dpi)
 
     def boxplot(self, data=None, filename=None, labels=None, showfliers=True, whis=1.5,
+        showmeans=False, meanline=False,
         tight_layout=False, grid=True, **kargs):
         """
         wrapper around matplotlib's boxplot
@@ -1166,11 +1167,15 @@ class draw:
 
         fig = self.getfigure(**kargs)
 
+        if showmeans:
+            meanline = True
+
         ax = fig.add_subplot(111)
         #ax.axhline(0, ls=":", color="grey") # add a grey line at zero for better orientation
         if grid:
             ax.grid(axis="y", ls=":", color="grey", zorder=1000000)
-        r = ax.boxplot(data, showfliers=showfliers, whis=whis, widths=0.5)
+        r = ax.boxplot(data, showfliers=showfliers, whis=whis, widths=0.5,
+            showmeans=showmeans, meanline=meanline)
 
         plot.setp(r['medians'], color='red') # set nicer colours
         plot.setp(r['whiskers'], color='black', lw=1)

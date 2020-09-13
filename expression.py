@@ -1970,7 +1970,7 @@ class expression(base_expression):
         config.log.info("scatter: Saved '%s'" % real_filename)
         return(True)
 
-    def boxplot(self, filename=None, showfliers=True, whis=1.5, **kargs):
+    def boxplot(self, filename=None, showfliers=True, whis=1.5, showmeans=False, **kargs):
         """
         **Purpose**
 
@@ -2019,6 +2019,7 @@ class expression(base_expression):
 
         # do plot
         actual_filename = self.draw.boxplot(data=data, filename=filename,
+            showmeans=showmeans,
             labels=self.getConditionNames(), showfliers=showfliers, **kargs)
 
         config.log.info("boxplot: Saved %s" % actual_filename)

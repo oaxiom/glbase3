@@ -283,7 +283,7 @@ class hic:
         mostRight = self.bin_lookup_by_binID[mostRight][3] # Convert to newBinID:
         mostLeft = self.bin_lookup_by_binID[mostLeft][3]
         #print (binLeft, binRight, newloc, mostLeft, mostRight)
-        assert binRight-binLeft > 10, 'the genome view (loc) is too small, and contains < 2 bins'
+        assert binRight-binLeft > 10, 'the genome view (loc) is too small, and contains < 10 bins'
 
         return (binLeft, binRight, newloc, mostLeft, mostRight)
 
@@ -795,6 +795,7 @@ class hic:
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
             data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
+            print(data)
         else:
             raise NotImplementedError('chr=None not implemented')
             data = self.matrix # use the whole lot
@@ -1708,15 +1709,19 @@ class hic:
 
             chrom = 'chr{0}'.format(l1['chr'])
 
-            localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1['left'], l1['right'], do_assert_check=False)
-            localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, l2['left'], l2['right'], do_assert_check=False)
+            try:
+                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1['left'], l1['right'], do_assert_check=False)
+                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, l2['left'], l2['right'], do_assert_check=False)
+            except KeyError:
+                # The chrom is in one list, but not in the other, ignore it
+                continue
 
             localLeft = min([localLeft1, localRight1, localLeft2, localRight2])
             localRight = max([localLeft1, localRight1, localLeft2, localRight2])
 
-            #print(localLeft1, localRight1, localLeft2, localRight2, localLeft, localRight, item['loc1'], item['loc2'])
+            #print(localLeft1, localRight1, localLeft2, localRight2, localLeft, localRight, item['loc1'], item['loc2'], self.mats[chrom][localLeft, localRight])
 
-            if localRight - localLeft < 10:
+            if localRight - localLeft < 4:
                 __num_skipped += 1
                 continue
 
