@@ -1771,43 +1771,50 @@ class hic:
         assert max_dist, 'min_dist must be specified'
 
         # basically you just step through all diagonals, and take the histogram;
-        num_bins = math.ceil((max_dist - min_dist) / self['bin_size'])
+        bin_span = math.ceil((max_dist - min_dist) / self['bin_size'])
+        min_bin = math.ceil(min_dist / self['bin_size'])
 
-        print(num_bins)
-
-        hist = numpy.zeros(num_bins)
+        hist = numpy.zeros(bin_span)
 
         for c in self.mats:
             print(c)
             for cpt in range(self.mats[c].shape[0]):
-                left = numpy.ravel(self.mats[c][cpt:cpt+num_bins, cpt:cpt+1]) # self.mats[chrom][localLeft:localRight, localLeft:localRight]
-                down = self.mats[c][cpt:cpt+1, cpt:cpt+num_bins][0]
 
-                #print(left, left.shape, [cpt,cpt, cpt+num_bins,cpt])
-                #print(down, down.shape, [cpt,cpt, cpt,cpt+num_bins])
+                # Don't add the edges, as that includes things like telomeres;
 
-                if left.shape[0] < num_bins:
-                    #left = numpy.reshape(left, num_bins)
-                    continue
-                if down.shape[0] < num_bins:
-                    #down = numpy.reshape(down, num_bins)
-                    continue
+                left_top_slice = cpt+min_bin+bin_span
+                left = None
+                if left_top_slice < self.mats[c].shape[1]:
+                    left = numpy.ravel(self.mats[c][cpt+min_bin:cpt+min_bin+bin_span, cpt:cpt+1]) # self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
-                hist += left
-                hist += down
+                up_top_slice = cpt-min_bin-bin_span # Avoid negative slicing
+                up = None
+                if up_top_slice > 1:
+                    #print([cpt, cpt+1, up_top_slice, cpt-min_bin], up_top_slice)
+                    up = self.mats[c][cpt:cpt+1, up_top_slice:cpt-min_bin][0]
 
-        print(hist)
+                if left is not None:
+                    hist += left
+                    #print('left', left, left.shape, cpt, [cpt+min_bin, cpt+min_bin+bin_span, cpt, cpt+1])
+                if up is not None:
+                    hist += up
+                    #print('up  ', up, up.shape, cpt, [cpt, cpt+1, cpt-min_bin, cpt-min_bin-bin_span])
+
+        #print(hist)
+
+        x = range(min_dist, max_dist, self['bin_size'])
+        log10x = [math.log10(i) for i in x]
 
         if filename:
-
-            plot = self.draw.getfigure()
-            ax = plot.add_subplot(111)
+            fig = self.draw.getfigure()
+            ax = fig.add_subplot(111)
 
             hist = numpy.log10(hist)
 
-            ax.plot(hist)
+            ax.plot(log10x, hist)
 
-            plot.savefig(filename)
+            actual_filename = self.draw.savefigure(fig, filename, dpi=300)
+            config.log.info('Saved {}'.format(actual_filename))
 
         return hist
 
