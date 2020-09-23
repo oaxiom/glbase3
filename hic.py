@@ -1787,18 +1787,10 @@ class hic:
                 if left_top_slice < self.mats[c].shape[1]:
                     left = numpy.ravel(self.mats[c][cpt+min_bin:cpt+min_bin+bin_span, cpt:cpt+1]) # self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
-                up_top_slice = cpt-min_bin-bin_span # Avoid negative slicing
-                up = None
-                if up_top_slice > 1:
-                    #print([cpt, cpt+1, up_top_slice, cpt-min_bin], up_top_slice)
-                    up = self.mats[c][cpt:cpt+1, up_top_slice:cpt-min_bin][0]
 
                 if left is not None:
                     hist += left
                     #print('left', left, left.shape, cpt, [cpt+min_bin, cpt+min_bin+bin_span, cpt, cpt+1])
-                if up is not None:
-                    hist += up
-                    #print('up  ', up, up.shape, cpt, [cpt, cpt+1, cpt-min_bin, cpt-min_bin-bin_span])
 
         #print(hist)
 
