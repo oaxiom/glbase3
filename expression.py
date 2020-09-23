@@ -844,7 +844,7 @@ class expression(base_expression):
         return(None)
 
     def heatmap(self, filename=None, row_label_key="name", row_color_threshold=None,
-        optimal_ordering=True, **kargs):
+        optimal_ordering=True, dpi=300, **kargs):
         """
         **Purpose**
 
@@ -1036,7 +1036,7 @@ class expression(base_expression):
             col_names=self.getConditionNames(),
             filename=filename,
             row_color_threshold=row_color_threshold,
-            optimal_ordering=optimal_ordering,
+            optimal_ordering=optimal_ordering, dpi=dpi,
             **kargs)
 
         config.log.info("heatmap: Saved %s" % res["real_filename"])

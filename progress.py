@@ -51,10 +51,10 @@ class progressbar:
         t_percent_done = int(((new_value+1) / self.maximum) * self.__barwidth)
 
         if t_percent_done > self.__last_percent:
-            percent_done = int(((new_value+1) / self.maximum) *100)
+            percent_done = int(((new_value+1) / self.maximum) * 100)
 
             bar = "".join(["=" for x in range(t_percent_done)] + ["-" for x in range(self.__barwidth-t_percent_done)])
-            self.__writer.write("\r[%s] %s%% (%s/%s)" % (bar, percent_done, new_value+1, self.maximum))
+            self.__writer.write("\r[{}] {}% ({:,}/{:,})".format(bar, percent_done, new_value+1, self.maximum))
             self.__last_percent = t_percent_done
 
         if new_value+1 >= self.maximum: # if the last line, reset the console so the result overprints the progress bar.

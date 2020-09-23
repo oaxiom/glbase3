@@ -1564,7 +1564,8 @@ class hic:
                     chrom = 'chr{0}'.format(chrom)
                 localLeft, localRight = self.__quick_find_binID_spans(chrom, anchor['loc']['left']-window, anchor['loc']['right']+window)
 
-                data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
+                1/0 # I feel this is wrong somehow:
+                ##data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
                     data = reshap_mats(data, num_bins, num_bins)
@@ -1643,9 +1644,10 @@ class hic:
         ax.set_yticklabels("")
         ax.set_xticklabels("")
 
-        for m in markers:
-            ax.axvline(m, ls=":", lw=0.5, color="grey")
-            ax.axhline(m, ls=":", lw=0.5, color="grey")
+        if markers:
+            for m in markers:
+                ax.axvline(m, ls=":", lw=0.5, color="grey")
+                ax.axhline(m, ls=":", lw=0.5, color="grey")
 
         ax.tick_params(top=False, bottom=False, left=False, right=False)
         [t.set_fontsize(5) for t in ax.get_yticklabels()] # generally has to go last.
@@ -1743,3 +1745,69 @@ class hic:
         config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
 
         return gl
+
+    def contact_probability(self, min_dist, max_dist, anchors=None, filename=None, **kargs):
+        '''
+        **Purpose**
+            Measure the contact probability from in_dist to max dist,
+            draw an image and return the histogram.
+
+        **Arguments**
+            min_dist (Required)
+                minimum genomic distance to consider.
+
+            max_dist (Required)
+                maximum genomic distance to consider.
+
+            anchors (Optional, default=FAlse)
+                By default contact_probability considers all genomic locations.
+                If this is set to a genelist with a 'loc' key then only those specific loci will be used.
+
+            filename (Optional, default=False)
+                filename to save the resulting histogram to.
+        '''
+        if anchors: raise AssertionError('anchors not implemented!')
+        assert min_dist, 'max_dist must be specified'
+        assert max_dist, 'min_dist must be specified'
+
+        # basically you just step through all diagonals, and take the histogram;
+        num_bins = math.ceil((max_dist - min_dist) / self['bin_size'])
+
+        print(num_bins)
+
+        hist = numpy.zeros(num_bins)
+
+        for c in self.mats:
+            print(c)
+            for cpt in range(self.mats[c].shape[0]):
+                left = numpy.ravel(self.mats[c][cpt:cpt+num_bins, cpt:cpt+1]) # self.mats[chrom][localLeft:localRight, localLeft:localRight]
+                down = self.mats[c][cpt:cpt+1, cpt:cpt+num_bins][0]
+
+                #print(left, left.shape, [cpt,cpt, cpt+num_bins,cpt])
+                #print(down, down.shape, [cpt,cpt, cpt,cpt+num_bins])
+
+                if left.shape[0] < num_bins:
+                    #left = numpy.reshape(left, num_bins)
+                    continue
+                if down.shape[0] < num_bins:
+                    #down = numpy.reshape(down, num_bins)
+                    continue
+
+                hist += left
+                hist += down
+
+        print(hist)
+
+        if filename:
+
+            plot = self.draw.getfigure()
+            ax = plot.add_subplot(111)
+
+            hist = numpy.log10(hist)
+
+            ax.plot(hist)
+
+            plot.savefig(filename)
+
+        return hist
+

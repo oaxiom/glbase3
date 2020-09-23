@@ -108,7 +108,7 @@ class draw:
 
     def heatmap(self,
         filename:str = None,
-        cluster_mode: str = "euclidean",
+        cluster_mode:str = "euclidean",
         row_cluster:bool = True,
         col_cluster:bool = True,
         vmin = 0,
@@ -131,6 +131,7 @@ class draw:
         row_colbar:bool = None,
         col_colbar:bool = None,
         optimal_ordering:bool = True,
+        dpi:int = 300,
         **kargs):
         """
         my own version of heatmap.
@@ -618,12 +619,16 @@ class draw:
         ax0.set_position(scalebar_location)
         ax0.set_frame_on(False)
 
-        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
-        cb.set_label(kargs["colbar_label"])
+        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
+        cb.set_label(kargs["colbar_label"], fontsize=6)
         cb.ax.tick_params(labelsize=4)
 
-        return({"real_filename": self.savefigure(fig, filename), "reordered_cols": col_names, "reordered_rows": kargs["row_names"],
-            "reordered_data": data})
+        return{
+            "real_filename": self.savefigure(fig, filename, dpi=dpi),
+            "reordered_cols": col_names,
+            "reordered_rows": kargs["row_names"],
+            "reordered_data": data
+            }
 
     def heatmap2(self, filename=None, cluster_mode="euclidean", row_cluster=True, col_cluster=True,
         vmin=0, vmax=None, colour_map=cm.plasma, col_norm=False, row_norm=False, heat_wid=0.25,
