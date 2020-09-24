@@ -1766,7 +1766,7 @@ class hic:
             filename (Optional, default=False)
                 filename to save the resulting histogram to.
         '''
-        if anchors: raise AssertionError('anchors not implemented!')
+        if anchors: assert 'loc' in anchors.keys(), '"loc" key not found in anchors'
         assert min_dist, 'max_dist must be specified'
         assert max_dist, 'min_dist must be specified'
 
@@ -1776,23 +1776,46 @@ class hic:
 
         hist = numpy.zeros(bin_span)
 
-        for c in self.mats:
-            print(c)
-            for cpt in range(self.mats[c].shape[0]):
-
-                # Don't add the edges, as that includes things like telomeres;
+        if anchors: # selected anchors only
+            anchors = anchors['loc']
+            p = progressbar(len(anchors))
+            for lidx, loc in enumerate(anchors):
+                chrom = 'chr{}'.format(loc.loc['chr'])
+                cpt = ((loc.loc['left'] + loc.loc['right']) // 2) // self['bin_size']
 
                 left_top_slice = cpt+min_bin+bin_span
-                left = None
-                if left_top_slice < self.mats[c].shape[1]:
-                    left = numpy.ravel(self.mats[c][cpt+min_bin:cpt+min_bin+bin_span, cpt:cpt+1]) # self.mats[chrom][localLeft:localRight, localLeft:localRight]
-
-
-                if left is not None:
+                if left_top_slice < self.mats[chrom].shape[1]:
+                    left = numpy.ravel(self.mats[chrom][cpt+min_bin:cpt+min_bin+bin_span, cpt:cpt+1])
+                    #print('left', left)
                     hist += left
-                    #print('left', left, left.shape, cpt, [cpt+min_bin, cpt+min_bin+bin_span, cpt, cpt+1])
 
-        #print(hist)
+                up_top_slice = cpt-min_bin-bin_span
+                if up_top_slice > 1:
+                    up = self.mats[chrom][cpt:cpt+1, up_top_slice:cpt-min_bin][0]
+                    #print('up', up)
+                    hist += up
+                p.update(lidx)
+
+        else: # Whole genome;
+            p = progressbar(len(self.mats))
+            for cidx, chrom in enumerate(self.mats):
+                for cpt in range(self.mats[chrom].shape[0]):
+                    # Don't add the edges, as that includes things like telomeres;
+
+                    ri_top_slice = cpt+min_bin+bin_span
+                    if ri_top_slice < self.mats[chrom].shape[1]:
+                        ri = numpy.ravel(self.mats[chrom][cpt+min_bin:cpt+min_bin+bin_span, cpt:cpt+1])
+                        #print('ri', cpt, cpt+min_bin, cpt+min_bin+bin_span)
+                        #print(ri)
+                        hist += ri
+
+                    up_top_slice = cpt-min_bin-bin_span
+                    if up_top_slice > 1:
+                        up = self.mats[chrom][cpt:cpt+1, up_top_slice:cpt-min_bin][0][::-1]
+                        #print('up', cpt, up_top_slice, cpt-min_bin)
+                        #print(up)
+                        hist += up
+                p.update(cidx)
 
         x = range(min_dist, max_dist, self['bin_size'])
         log10x = [math.log10(i) for i in x]
@@ -1804,6 +1827,8 @@ class hic:
             hist = numpy.log10(hist)
 
             ax.plot(log10x, hist)
+
+            self.draw.do_common_args(fig, *kargs)
 
             actual_filename = self.draw.savefigure(fig, filename, dpi=300)
             config.log.info('Saved {}'.format(actual_filename))
