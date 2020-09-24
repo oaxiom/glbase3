@@ -687,7 +687,7 @@ class hic:
             oh = open(actual_filename, 'w')
 
             mostLeft, mostRight = self.__find_binID_chromosome_span(chrom)
-            mat = self.mats[chrom].value
+            mat = self.mats[chrom][()]
             bins = self.bin_lookup_by_chrom[chrom]
             for m, b in zip(mat, bins):
                 if nohead:
