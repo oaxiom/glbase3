@@ -1791,7 +1791,7 @@ class hic:
 
                 up_top_slice = cpt-min_bin-bin_span
                 if up_top_slice > 1:
-                    up = self.mats[chrom][cpt:cpt+1, up_top_slice:cpt-min_bin][0]
+                    up = self.mats[chrom][cpt:cpt+1, up_top_slice:cpt-min_bin][0][::-1]
                     #print('up', up)
                     hist += up
                 p.update(lidx)
