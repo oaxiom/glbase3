@@ -427,12 +427,8 @@ class draw:
             # clear the ticks.
             ax1.tick_params(top=False, bottom=False, left=False, right=False)
 
-            #[item.set_markeredgewidth(0.0) for item in ax1.xaxis.get_ticklines()]
-            #[item.set_markeredgewidth(0.0) for item in ax1.yaxis.get_ticklines()]
-
             # Use the tree to reorder the data.
             order = a["ivl"]
-
             # resort the data by order;
             if "row_names" in kargs and kargs["row_names"]: # make it possible to cluster without names
                 newd = []
@@ -552,7 +548,7 @@ class draw:
                 else: # must be a named color:
                     new_colbar.append([newd[c]])
 
-            row_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
+            row_colbar = numpy.array(new_colbar)
 
             ax4 = fig.add_axes(loc_row_colbar)
             if 'imshow' in kargs and kargs['imshow']:
@@ -2754,9 +2750,22 @@ class draw:
             filename (Required)
                 filename to save the figure to.
 
+            data_dict (Required)
+                {
+                'row_name1': {'class1': 0, 'class2': 0},
+                'row_name2': {'class1': 0, 'class2': 0},
+                }
+
+            key_order (Optional)
+                order for the row_names;
+
             ...
 
         '''
+        assert filename, 'A filename to save the image to is required'
+        assert data_dict, 'data_dict is required'
+        assert isinstance(data_dict, dict), 'data_dict is not a dict'
+
         if not cols:
             cols = plot.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -2767,7 +2776,7 @@ class draw:
                 for kk in data_dict[k]:
                     if kk not in all_keys:
                         all_keys.append(kk)
-            print('Found {0} keys'.format(all_keys))
+            config.log.info('proportional_bar: Found {0} keys'.format(all_keys))
         else:
             all_keys = key_order
 
