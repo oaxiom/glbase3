@@ -795,8 +795,8 @@ def fastqPE(filename1, filename2, gzip=True):
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
     """
     if gzip:
-        oh1 = gzipfile.open(filename1, "rt")
-        oh2 = gzipfile.open(filename2, "rt")
+        oh1 = gzip.open(filename1, "rt")
+        oh2 = gzip.open(filename2, "rt")
     else:
         oh1 = open(filename1, "rt")
         oh2 = open(filename2, "rt")
