@@ -786,7 +786,7 @@ def fastq(filename, gziped=False):
         yield {"name": name, "strand": strand, "seq": seq, "qual": qual}
     return
 
-def fastqPE(filename1, filename2, gzip=True):
+def fastqPE(filename1, filename2, gziped=True):
     """
     generator object to parse fastQ PE files
     @HWI-M00955:51:000000000-A8WTD:1:1101:13770:1659 1:N:0:NNTNNNAGNNCNCTAT
@@ -794,7 +794,7 @@ def fastqPE(filename1, filename2, gzip=True):
     +
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
     """
-    if gzip:
+    if gziped:
         oh1 = gzip.open(filename1, "rt")
         oh2 = gzip.open(filename2, "rt")
     else:
