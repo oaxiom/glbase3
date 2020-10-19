@@ -16,15 +16,13 @@ from pkgutil import iter_modules
 
 available_modules = list((name for loader, name, ispkg in iter_modules()))
 
-print(available_modules)
-
 #-----------------------------------------------------------------------
 # Load all of the global configuration options.
 try:
     from . import config
     from .errors import LibraryNotFoundError
 except:
-    print("Error: Fatal - GLbase is not installed correctly, cannot find my own libraries")
+    print("Error: Fatal - glbase3 is not installed correctly, cannot find my own libraries")
     print("       Is the python 'sys.path' correct?")
     sys.exit() # no raise if I can't get errors, it's surely a fatal installation problem.
 
@@ -37,34 +35,31 @@ if 'numpy' in available_modules:
 else:
     raise LibraryNotFoundError("Fatal - Numpy is not available or not installed")
 
-if 'scipy' in available_modules
+if 'scipy' in available_modules:
     config.SCIPY_AVAIL = True
 else:
     raise LibraryNotFoundError("Fatal - Scipy is not available or not installed")
 
-if 'matplotlib' in available_modules:
+try:
     import matplotlib
     matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
-else:
+except ImportError:
     raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
 
 if 'sklearn' in available_modules:
-    import sklearn
     config.SKLEARN_AVAIL = True
 else:
     raise LibraryNotFoundError("Fatal - sklearn not available or not installed")
 
 if 'h5py' in available_modules:
-    import h5py
     config.H5PY_AVAIL = True
 else:
     config.log.warning('Fatal - h5py not available or not installed')
 
 if 'networkx' in available_modules:
-    import networkx
     config.NETWORKX_AVAIL = True
-except Exception:
+else:
     config.log.warning('Fatal - networkx not available or not installed')
 
 if 'pygraphviz' in available_modules:
@@ -89,7 +84,7 @@ else:
 #    pass # pass silently as numexpr is optional.
 
 if 'umap' in available_modules:
-    import umap
+    import umap # TODO: Move to where used?
     config.UMAP_LEARN_AVAIL = True
     umap_log = logging.getLogger("umap")
     umap_log.setLevel(logging.CRITICAL) # silence debug output
