@@ -12,6 +12,11 @@ Requires:
 """
 
 import sys, os, logging
+from pkgutil import iter_modules
+
+available_modules = list((name for loader, name, ispkg in iter_modules()))
+
+print(available_modules)
 
 #-----------------------------------------------------------------------
 # Load all of the global configuration options.
@@ -27,59 +32,54 @@ except:
 # Test for availability of the core non-standard libs.
 # These need to be available as the subsequent load/checking is weak/non-existent.
 
-try:
-    import numpy
+if 'numpy' in available_modules:
     config.NUMPY_AVAIL = True
-except Exception:
+else:
     raise LibraryNotFoundError("Fatal - Numpy is not available or not installed")
 
-try:
-    import scipy
+if 'scipy' in available_modules
     config.SCIPY_AVAIL = True
-except Exception:
+else:
     raise LibraryNotFoundError("Fatal - Scipy is not available or not installed")
 
-try:
+if 'matplotlib' in available_modules:
     import matplotlib
     matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
-except Exception:
+else:
     raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
 
-try:
+if 'sklearn' in available_modules:
     import sklearn
     config.SKLEARN_AVAIL = True
-except Exception:
+else:
     raise LibraryNotFoundError("Fatal - sklearn not available or not installed")
 
-try:
+if 'h5py' in available_modules:
     import h5py
     config.H5PY_AVAIL = True
-except Exception:
+else:
     config.log.warning('Fatal - h5py not available or not installed')
 
-try:
+if 'networkx' in available_modules:
     import networkx
     config.NETWORKX_AVAIL = True
 except Exception:
-    config.log.warning('Fatal - networkx not available or not installed') # pass silently as networkx is optional.
+    config.log.warning('Fatal - networkx not available or not installed')
 
-try:
-    import pygraphviz
+if 'pygraphviz' in available_modules:
     config.PYGRAPHVIZ_AVAIL = True
-except Exception:
+else:
     pass # pass silently as pygraphviz is optional.
 
-try:
-    import graphviz # sometimes comes in the wrong namespace!
+if 'graphviz' in available_modules: # sometimes comes in the wrong namespace!
     config.PYGRAPHVIZ_AVAIL = True
-except Exception:
+else:
     pass # pass silently as pygraphviz is optional.
 
-try:
-    import pydot
+if 'pydot' in available_modules:
     config.PYDOT_AVAIL = True
-except Exception:
+else:
     pass # pass silently as pygraphviz is optional.
 
 #try:
@@ -88,12 +88,12 @@ except Exception:
 #except Exception:
 #    pass # pass silently as numexpr is optional.
 
-try:
+if 'umap' in available_modules:
     import umap
     config.UMAP_LEARN_AVAIL = True
     umap_log = logging.getLogger("umap")
     umap_log.setLevel(logging.CRITICAL) # silence debug output
-except Exception:
+else:
     pass # pass silently as umap is optional.
 
 # ----------------------------------------------------------------------
@@ -146,41 +146,43 @@ def version():
 config.set_log_level('info')
 
 # export all of the libraries, methods and helpers.
-__all__ = ["genelist",
-            "fastq",
-            "expression",
-            "genome",
-            "genome_sql",
-            "track", # Deprecated? use flat_track
-            "flat_track",
-            "delayedlist",
-            "glgo",
-            "glglob",
-            "hic",# primary objects
-            'config',
-            #"rigidgrid", # Unavailable
-            'merge_hiccys', # hic support
-            "location",
-            "pwm", "pwms", # PWM object support
-            "flags",
-            "format",
-            "glload",
-            "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat",
-            "logo",
-            "motif",
-            "rnaseqqc",
-            "gldata",
-            "fc",
-            "ecrbase",
-            "region",
-            "realtime", #"realtime2", # This is deprecated
-            "tfbs_iter",
-            'intervaltree',  # Useful utils to export
-            "utils",
-            'adjust_text',
-            "change_drawing_mode",
-            "progressbar",
-            "draw",
-            "cmaps", "strandSorter",# Miscellaneous
-            "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
-            ]
+__all__ = [
+    "genelist",
+    "fastq",
+    "expression",
+    "genome",
+    "genome_sql",
+    "track", # Deprecated? use flat_track
+    "flat_track",
+    "delayedlist",
+    "glgo",
+    "glglob",
+    "hic",# primary objects
+    'config',
+    #"rigidgrid", # Unavailable
+    'merge_hiccys', # hic support
+    "location",
+    "pwm", "pwms", # PWM object support
+    "flags",
+    "format",
+    "glload",
+    "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat",
+    "logo",
+    "motif",
+    "rnaseqqc",
+    "gldata",
+    "fc",
+    "ecrbase",
+    "region",
+    "realtime",
+    #"realtime2", # This is deprecated
+    "tfbs_iter",
+    'intervaltree',  # Useful utils to export
+    "utils",
+    'adjust_text',
+    "change_drawing_mode",
+    "progressbar",
+    "draw",
+    "cmaps", "strandSorter",# Miscellaneous
+    "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
+    ]
