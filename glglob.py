@@ -1480,21 +1480,19 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for cid in ret_data:
             ret_data[cid]["genelist"]._optimiseData()
 
-        colbar_label = "Tag density"
+        if not log_pad:
+            log_pad = 0.1
 
-        if log:
-            if not log_pad:
-                log_pad = 0.1
-
-            for index in range(len(list_of_tables)):
-                if log == 2:
-                    list_of_tables[index] = numpy.log2(numpy.array(list_of_tables[index])+log_pad)
-                    colbar_label = "Log2(Tag density)"
-                elif log == 10:
-                    list_of_tables[index] = numpy.log10(numpy.array(list_of_tables[index])+log_pad)
-                    colbar_label = "Log10(Tag density)"
-                else:
-                    list_of_tables[index] = numpy.array(list_of_tables[index])
+        for index in range(len(list_of_tables)):
+            if log == 2:
+                list_of_tables[index] = numpy.log2(numpy.array(list_of_tables[index])+log_pad)
+                colbar_label = "Log2(Tag density)"
+            elif log == 10:
+                list_of_tables[index] = numpy.log10(numpy.array(list_of_tables[index])+log_pad)
+                colbar_label = "Log10(Tag density)"
+            else:
+                list_of_tables[index] = numpy.array(list_of_tables[index])
+                colbar_label = "Tag density"
 
         if norm_by_library_size:
             colbar_label = "Normalised %s" % colbar_label
@@ -1513,8 +1511,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         elif bracket:
             bracket = bracket # Fussyness for clarity.
         else: # guess a range:
-            bracket = [tab_mean, tab_mean+(tab_stdev*2.0)]
-            config.log.info("chip_seq_cluster_heatmap: suggested bracket = [%s, %s]" % (bracket[0], bracket[1]))
+            if log:
+                bracket = [tab_mean, tab_mean+(tab_stdev*2.0)]
+            else: # better to make it thinner
+                bracket = [tab_mean, tab_mean+(tab_stdev*1.0)]
+            config.log.info("chip_seq_cluster_heatmap: suggested bracket = [{:.2f}, {:.2f}]".format(bracket[0], bracket[1]))
 
         #real_filename = self.draw.heatmap2(filename=filename, row_cluster=False, col_cluster=False,
         #    data=tab, colbar_label=colbar_label, bracket=bracket)
@@ -1522,9 +1523,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not titles:
                 titles = [p.name for p in list_of_peaks]
             real_filename = self.draw.multi_heatmap(filename=filename, groups=groups, titles=titles, imshow=imshow, size=size,
-                list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames)
+                list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames,
+                dpi=300)
 
             config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
+
         return ret_data
 
     def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, min_members=False, **kargs):
@@ -1607,6 +1610,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 self.draw.do_common_args(ax, **kargs)
 
             self.draw.savefigure(fig, this_filename)
+            config.log.info('Saved {}'.format(this_filename))
         return(self.__pileup_data)
 
     def genome_dist_radial(self, genome, layout, filename=None, randoms=None, **kargs):
@@ -2021,7 +2025,13 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             A strategy for re-calling peaks from some arbitrary set of flat files.
 
             It's a bit similar to the strategy published in Li et al., Cell Stem Cell 2017.
-            However, this version uses a local lambda model drawn from a 10 kb window surrounding the peak.
+            However, this version uses a local lambda model drawn from a 10 kb window surrounding
+            the peak. This has the advantage that you don't need to go to the fiddly
+            trouble of generating a suitable pseudo-background for ATAC-seq. Additionally it
+            should take into account the relative background of the library, allowing extraction
+            of information even ion poor quality libraries. The disadvantage - and this
+            is theoretical - but if you have a lot of very large repeat elements then it
+            might lead to erroneous calling of not-peaks.
 
             Breifly, the strategy is:
 
@@ -2033,8 +2043,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             It then builds a model, constructs a Z-score and then only keeps those peaks
             that are greater than the threshold.
 
-            This allows you to rescue weak peaks, and also to clean the false-negatives that are very common
-            when cross-comparing peaks.
+            This allows you to rescue weak peaks, and also to clean the false-negatives
+            that are very common when cross-comparing peaks.
 
         **Arguments**
             super_set_of_peaks (Required)
@@ -2554,7 +2564,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 bracket = [max([b[0] for b in brackets]), max([b[1] for b in brackets])]
                 brackets = None
-                config.log.info("chip_seq_heatmap: suggested bracket=({0:.2f}, {1:.2f})".format(bracket[0], bracket[1]))
+                config.log.info("chip_seq_heatmap: suggested bracket=({:.2f}, {:.2f})".format(bracket[0], bracket[1]))
 
         if filename:
             real_filename = self.draw.grid_heatmap(

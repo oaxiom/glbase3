@@ -93,6 +93,7 @@ def merge_hiccys(new_hic_filename, name, *hics):
     **Returns**
         None
     '''
+    # TODO: Merge OE and AB matrices (regenerate, surely?)
     assert new_hic_filename, 'You must specify a filename in new_hic_filename'
     assert name, 'You must specify a name'
     assert hics, 'a list of hics was not specified'
@@ -147,9 +148,11 @@ class hic:
 
         """
         assert inter_chrom_only, 'inter_chrom_only != True, only inter-chromosomal links are supported'
+        self.version = '1.1'
         self.readonly = True
         self.pca_valid = False
         self.tsne_trained = False
+        self.filename = filename
         # These need to also be packaged into the hiccy
         if new:
             self.readonly = False
@@ -163,6 +166,8 @@ class hic:
             # chrom_edges slice locations for all the chromsome names
             self.hdf5_handle.attrs['name'] = name
             self.hdf5_handle.attrs['inter_chrom_only'] = inter_chrom_only
+            self.hdf5_handle.attrs['OE'] = False
+            self.hdf5_handle.attrs['version'] = self.version
             self.all_chrom_names = [] # Made into a set later
             self.draw = draw()
         else: # old
@@ -192,8 +197,12 @@ class hic:
             #print(self.bin_data)
 
             self.mats = {}
+            self.OE = {}
+            self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
+                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
 
             self.draw = draw()
             config.log.info('Bound "%s" Hic file' % filename)
@@ -356,6 +365,87 @@ class hic:
 
         return (mostLeft, mostRight)
 
+    def __OEmatrix(self):
+        '''
+
+        Call after loading mat to build the OE matrices;
+
+        '''
+        for chrom in self.all_chrom_names:
+            # Simple enough, take the diagonal mean (E), then for each point (O)
+            #
+
+            m = self.hdf5_handle['matrix_{}/mat'.format(chrom)]
+            grp = self.hdf5_handle.create_group('OE_{}'.format(chrom))
+            #with numpyp.errstate(divide='ignore', invalid='ignore'):
+
+            mats = self.hdf5_handle['matrix_%s/mat' % chrom]
+
+            # get diagonal means;
+            means = []
+            for d in range(mats.shape[0]):
+                m = numpy.mean(numpy.fliplr(mats).diagonal(offset=d))
+                means.append(m)
+            means = numpy.array(means)
+
+            # Now get O/E for each point;
+            newmat = numpy.array(mats)
+            for x in range(mats.shape[0]):
+                for y in range(mats.shape[0]):
+                    with numpy.errstate(divide='ignore', invalid='ignore'):
+                        newmat[x,y] = newmat[x,y] / means[y-x]
+            newmat[numpy.isnan(newmat)] = 0
+            newmat[numpy.isinf(newmat)] = 0
+
+            grp.create_dataset('OE', newmat.shape, dtype=numpy.float32, data=newmat)
+        config.log.info('Calculated O/E data')
+
+        self.hdf5_handle.attrs['OE'] = True
+        return
+
+    def __ABcompart(self):
+        '''
+
+        Build A/B compartments;
+
+        '''
+        for chrom in self.all_chrom_names:
+            m = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+
+            grp = self.hdf5_handle.create_group('AB_{}'.format(chrom))
+            #with numpyp.errstate(divide='ignore', invalid='ignore'):
+
+            c = numpy.corrcoef(m) # Basically smooths it;
+            c[numpy.isnan(c)] = 0
+
+            w, v = numpy.linalg.eig(c)
+            if hasattr(v, 'mask'):
+                v.mask = False
+            e = v[:, 0] # first PC
+
+            grp.create_dataset('AB', e.shape, dtype=numpy.float32, data=e)
+        config.log.info('Calculated A/B compartments')
+
+        self.hdf5_handle.attrs['AB'] = True
+        return
+
+        '''
+        assert chrom, 'chrom is required'
+
+        m = self.mats[chrom]
+
+        m[np.isnan(m)] = 0
+
+        w, v = numpy.linalg.eig(m)
+
+        # v might end up being masked
+        if hasattr(v, 'mask'):
+            v.mask = False
+        ab_vector = v[:, eigenvector]
+        for i, region in enumerate(m.row_regions):
+            ev[region.ix] = ab_vector[i]
+        '''
+
     def load_hicpro_matrix(self, matrix_filename, bed_file):
         """
         **Purpose**
@@ -480,6 +570,8 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
+        self.__OEmatrix()
+
         return True
 
     def load_cooler_pixels_dump(self, matrix_filename):
@@ -591,7 +683,7 @@ class hic:
             # Now I know how big the arrays need to be, and all of the chromosomes:
             size = self.chrom_edges[chrom][1]-self.chrom_edges[chrom][0]
             matrices[chrom] = numpy.zeros((size+1, size+1), dtype='float32')
-            # TODO: Support inter-chromosomal contacts with a sparse array:
+            # TODO: Support for interchrom with a sparse array:
 
         oh = gzip.open(matrix_filename, 'rt')
         p = progressbar(self['num_bins'] * self['num_bins']) # expected maximum
@@ -650,6 +742,9 @@ class hic:
 
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
+
+        self.__OEmatrix()
+        self.__ABcompart()
 
         return True
 
@@ -742,6 +837,7 @@ class hic:
         return self.tad_calls
 
     def heatmap(self, filename, chr=None, loc=None,
+        key='matrix',
         bracket=None, colour_map=cm.inferno_r, log2=False, **kargs):
         """
         **Purpose**
@@ -756,6 +852,13 @@ class hic:
                 Exclusive: You can use only one of chr and loc
                 You can set the view to an entire chromosome with chr,
                 or you can set a specific location with loc
+
+            key (Optional, default='matrix')
+                The data matrix name to use for plotting.
+                Valid options are
+                    matrix: normal contact probability
+                    OE: generated with OEmatrix
+                    AB: generated with ABmatrix
 
             aspect (Optional, default='square')
                 image aspect for the heatmap
@@ -781,8 +884,21 @@ class hic:
         if chr and loc:
             raise AssertionError('chr and loc both contain values. You can only use one')
 
+        dataset_to_use = {
+            'matrix': self.mats,
+            'OE': self.OE,
+            }
+        # TODO: sanity checking on matrix availability;
+        cmap_to_use = {
+            'matrix': cm.inferno_r,
+            'OE': cm.RdBu_r,
+            }
+
+        assert key in dataset_to_use, '{} is not a valind dataset key'.format(key)
+
         if chr:
-            data = self.mats[str(chr)]
+            data = dataset_to_use[key][str(chr)]
+            ABdata = self.AB[str(chr)]
         elif loc:
             if not isinstance(loc, location):
                 loc = location(loc)
@@ -794,8 +910,8 @@ class hic:
             # Need to get the binIDs and the updated location span
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
-            data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
-            print(data)
+            data = dataset_to_use[key][chrom][localLeft:localRight, localLeft:localRight]
+            ABdata = self.AB[chrom][localLeft:localRight]
         else:
             raise NotImplementedError('chr=None not implemented')
             data = self.matrix # use the whole lot
@@ -810,8 +926,10 @@ class hic:
         fig = self.draw.getfigure(**kargs)
 
         # positions of the items in the plot:
-        heatmap_location  = [0.05,   0.01,   0.90,   0.90]
-        scalebar_location = [0.05,   0.97,   0.90,   0.02]
+        heatmap_location  = [0.20,   0.01,   0.79,   0.79]
+        ABtop =             [0.20,   0.81,   0.79,   0.07]
+        ABlef =             [0.12,   0.01,   0.07,   0.79]
+        scalebar_location = [0.20,   0.97,   0.79,   0.02]
 
         if bracket: # done here so clustering is performed on bracketed data
             #data = self.draw.bracket_data(numpy.log2(self.matrix+0.1), bracket[0], bracket[1])
@@ -833,11 +951,31 @@ class hic:
             vmin = data.min()
             vmax = data.max()
 
+        # ---------------- (A/B plots) ---------------------
+
+        ax1 = fig.add_subplot(142)
+        ax1.set_position(ABtop)
+        ax1.plot(ABdata)
+        ax1.set_xlim([0, len(ABdata)])
+        ax1.axhline(0.0, lw=1.0, c='black')
+        ax1.tick_params(left=None, bottom=None)
+        ax1.set_xticklabels('')
+        ax1.set_yticklabels('')
+
+        ax2 = fig.add_subplot(143)
+        ax2.set_position(ABlef)
+        ax2.plot(range(len(ABdata)), ABdata)
+        ax2.set_ylim([0, len(ABdata)])
+        ax2.axvline(0.0, lw=1.0, c='black')
+        #ax2.tick_params(left=None, bottom=None)
+        #ax2.set_xticklabels('')
+        #ax2.set_yticklabels('')
+
         # ---------------- (heatmap) -----------------------
-        ax3 = fig.add_subplot(121)
+        ax3 = fig.add_subplot(141)
 
         ax3.set_position(heatmap_location) # must be done early for imshow
-        hm = ax3.imshow(data, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+        hm = ax3.imshow(data, cmap=cmap_to_use[key], vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, data.shape[1], 0, data.shape[0]],
             interpolation=config.get_interpolation_mode(filename))
 
@@ -852,7 +990,7 @@ class hic:
         [t.set_fontsize(5) for t in ax3.get_yticklabels()] # generally has to go last.
         [t.set_fontsize(5) for t in ax3.get_xticklabels()]
 
-        ax0 = fig.add_subplot(122)
+        ax0 = fig.add_subplot(144)
         ax0.set_position(scalebar_location)
         ax0.set_frame_on(False)
 
@@ -1670,6 +1808,7 @@ class hic:
     def measure_loop_strength(self,
         bedpe=None,
         log=False,
+        min_bins:int = 4,
         **kargs):
         '''
         **Purpose**
@@ -1682,6 +1821,8 @@ class hic:
             bedpe (Required)
                 a genelist containing a loc1 and loc2 key for the start of the loop and the end.
 
+            min_bins (Optional, default=4)
+                minimum number of bins distant to measure the loop (i.e. exclude loops that are too close).
 
         **Returns**
             a new genelist containing all the valid loci with a new key 'loop_strength'
@@ -1695,6 +1836,7 @@ class hic:
 
         newl = []
 
+        min_pad = 0.01
         __num_skipped = 0
         __intra_chroms = 0
 
@@ -1709,7 +1851,7 @@ class hic:
                 __intra_chroms += 1
                 continue # differnent chroms are not supported
 
-            chrom = 'chr{0}'.format(l1['chr'])
+            chrom = 'chr{}'.format(l1['chr'])
 
             try:
                 localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1['left'], l1['right'], do_assert_check=False)
@@ -1723,7 +1865,7 @@ class hic:
 
             #print(localLeft1, localRight1, localLeft2, localRight2, localLeft, localRight, item['loc1'], item['loc2'], self.mats[chrom][localLeft, localRight])
 
-            if localRight - localLeft < 4:
+            if localRight - localLeft < min_bins:
                 __num_skipped += 1
                 continue
 
@@ -1732,7 +1874,6 @@ class hic:
             item = dict(item)
             if log:
                 item['loop_strength'] = math.log2(float(loop_strength)+min_pad)
-                continue
             else:
                 item['loop_strength'] = float(loop_strength)
             newl.append(item)
@@ -1741,8 +1882,8 @@ class hic:
         gl.load_list(newl)
         gl.name = bedpe.name
 
-        config.log.info('{0} were on different chromosomes and were not used'.format(__intra_chroms))
-        config.log.info('{0} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
+        config.log.info('{} were on different chromosomes and were not used'.format(__intra_chroms))
+        config.log.info('{} loci were too close together for this hiccy resolution and were not used'.format(__num_skipped))
 
         return gl
 
@@ -1834,4 +1975,5 @@ class hic:
             config.log.info('Saved {}'.format(actual_filename))
 
         return hist
+
 

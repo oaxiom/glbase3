@@ -890,9 +890,21 @@ class draw:
 
         return(self.savefigure(fig, kargs["filename"]))
 
-    def multi_heatmap(self, list_of_data=None, filename=None, groups=None, titles=None,
-        vmin=0, vmax=None, colour_map=cm.YlOrRd, col_norm=False, row_norm=False, heat_wid=0.25,
-        frames=False, imshow=False, size=None, **kargs):
+    def multi_heatmap(self,
+        list_of_data=None,
+        filename=None,
+        groups=None,
+         titles=None,
+        vmin=0, vmax=None,
+        colour_map=cm.YlOrRd,
+        col_norm=False,
+        row_norm=False,
+        heat_wid=0.25,
+        frames=True,
+        imshow=False,
+        size=None,
+        dpi:int = 80,
+        **kargs):
         """
         **Purpose**
             Draw a multi-heatmap figure, i.e. containing multiple heatmaps. And also supports a
@@ -951,8 +963,10 @@ class draw:
                 vmax = list_of_data[index].max()
 
             if imshow:
-                hm = ax.imshow(list_of_data[index], cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
-                    origin='lower', extent=[0, list_of_data[index].shape[1], 0, list_of_data[index].shape[0]],
+                hm = ax.imshow(list_of_data[index], cmap=colour_map,
+                    vmin=vmin, vmax=vmax, aspect="auto",
+                    origin='lower',
+                    extent=[0, list_of_data[index].shape[1], 0, list_of_data[index].shape[0]],
                     interpolation=config.get_interpolation_mode(filename))
             else:
                 hm = ax.pcolormesh(list_of_data[index], cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False)
@@ -960,7 +974,7 @@ class draw:
             ax.set_frame_on(frames)
             ax.set_position(heatmap_locations[index])
             if titles:
-                ax.set_title(titles[index])
+                ax.set_title(titles[index], fontdict={'fontsize': 6})
 
             ax.set_xlim([0,list_of_data[index].shape[1]])
             ax.set_ylim([0,list_of_data[index].shape[0]])
@@ -1023,7 +1037,7 @@ class draw:
         cb.set_label(kargs["colbar_label"])
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename, dpi=dpi)
 
     def grid_heatmap(self,
         data_dict_grid:dict = None,
