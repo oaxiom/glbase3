@@ -57,7 +57,7 @@ def reshap_mats(mat, dimX, dimY):
     X = numpy.linspace(0, mat.shape[0], mat.shape[0])
     f = interpolate.RectBivariateSpline(X, X, mat)
     Xnew = numpy.linspace(0, mat.shape[0], dimX)
-    return f(Xnew,Xnew)
+    return f(Xnew, Xnew)
 
 def reshap_mats_irregular(mat, dimX, dimY, t):
     '''
@@ -69,7 +69,7 @@ def reshap_mats_irregular(mat, dimX, dimY, t):
     Xnew = numpy.linspace(0, mat.shape[0], dimX)
     Ynew = numpy.linspace(0, mat.shape[1], dimY)
 
-    return f(Xnew,Ynew)
+    return f(Xnew, Ynew)
 
 def merge_hiccys(new_hic_filename, name, *hics):
     '''
@@ -120,6 +120,9 @@ def merge_hiccys(new_hic_filename, name, *hics):
         data /= (len(hics)+1)
         newhic.mats[chrom][:] = data
 
+    # Recalculate, don't mean:
+    #newhic.__OEmatrix()
+    #newhic.__ABmatrix()
     newhic.close()
     config.log.info('Merged {0} matrices'.format(len(hics)+1,))
 
@@ -201,8 +204,8 @@ class hic:
             self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
-                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
-                self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
+                #self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                #self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
 
             self.draw = draw()
             config.log.info('Bound "%s" Hic file' % filename)
@@ -372,8 +375,7 @@ class hic:
 
         '''
         for chrom in self.all_chrom_names:
-            # Simple enough, take the diagonal mean (E), then for each point (O)
-            #
+            # Simple enough, take the diagonal mean (E), then for each point (O) O/E
 
             m = self.hdf5_handle['matrix_{}/mat'.format(chrom)]
             grp = self.hdf5_handle.create_group('OE_{}'.format(chrom))
@@ -429,22 +431,6 @@ class hic:
         self.hdf5_handle.attrs['AB'] = True
         return
 
-        '''
-        assert chrom, 'chrom is required'
-
-        m = self.mats[chrom]
-
-        m[np.isnan(m)] = 0
-
-        w, v = numpy.linalg.eig(m)
-
-        # v might end up being masked
-        if hasattr(v, 'mask'):
-            v.mask = False
-        ab_vector = v[:, eigenvector]
-        for i, region in enumerate(m.row_regions):
-            ev[region.ix] = ab_vector[i]
-        '''
 
     def load_hicpro_matrix(self, matrix_filename, bed_file):
         """
@@ -743,8 +729,8 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        self.__OEmatrix()
-        self.__ABcompart()
+        #self.__OEmatrix()
+        #self.__ABcompart()
 
         return True
 
@@ -898,7 +884,7 @@ class hic:
 
         if chr:
             data = dataset_to_use[key][str(chr)]
-            ABdata = self.AB[str(chr)]
+            #ABdata = self.AB[str(chr)]
         elif loc:
             if not isinstance(loc, location):
                 loc = location(loc)
@@ -911,7 +897,7 @@ class hic:
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
             data = dataset_to_use[key][chrom][localLeft:localRight, localLeft:localRight]
-            ABdata = self.AB[chrom][localLeft:localRight]
+            #ABdata = self.AB[chrom][localLeft:localRight]
         else:
             raise NotImplementedError('chr=None not implemented')
             data = self.matrix # use the whole lot
@@ -952,7 +938,7 @@ class hic:
             vmax = data.max()
 
         # ---------------- (A/B plots) ---------------------
-
+        '''
         ax1 = fig.add_subplot(142)
         ax1.set_position(ABtop)
         ax1.plot(ABdata)
@@ -970,6 +956,7 @@ class hic:
         #ax2.tick_params(left=None, bottom=None)
         #ax2.set_xticklabels('')
         #ax2.set_yticklabels('')
+        '''
 
         # ---------------- (heatmap) -----------------------
         ax3 = fig.add_subplot(141)
@@ -1361,7 +1348,6 @@ class hic:
             if i.max() > max:
                 max = i.max()
 
-        print(max)
         data = [0] * (int(max)+1)
         for r in self.matrix:
             for i in r:

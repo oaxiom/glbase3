@@ -1381,12 +1381,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                         if len(dd) != block_len: # This should be a very rare case...
                             if len(dd) < block_len:
-                                print('Block miss (short)')
+                                config.log.warning('Block miss (short)')
                                 num_missing = block_len - len(dd)
                                 ad = numpy.zeros(num_missing, dtype=numpy.float32)
                                 dd = numpy.append(dd, ad)
                             elif len(dd) > block_len:
-                                print('Block miss (long)')
+                                config.log.warning('Block miss (long)')
                                 num_missing = block_len - len(dd)
                                 dd = dd[0:block_len] # just grab the start. probably unreliable though?
 
@@ -1524,7 +1524,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 titles = [p.name for p in list_of_peaks]
             real_filename = self.draw.multi_heatmap(filename=filename, groups=groups, titles=titles, imshow=imshow, size=size,
                 list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames,
-                dpi=300)
+                dpi=300, **kargs)
 
             config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
 
@@ -2249,7 +2249,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 library to assist in cross-comparison of ChIP-seq libraries.
 
             pileup_distance (Optional, default=1000)
-                distance around the particular bin to draw in the pileup.
+                distance around the particular location to draw in the pileup.
 
             read_extend (Optional, default=200)
                 The size in base pairs to extend the read. If a strand is present it will expand
@@ -2352,7 +2352,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         # I will need to go back through the chr_blocks data and add in the pileup data:
         bin_size = int((pileup_distance+pileup_distance) / bins)
-        #block_len = pileup_distance+pileup_distance # get the block size
+        block_len = pileup_distance+pileup_distance # get the block size
         data = None
 
         # Populate the datastores:
@@ -2385,14 +2385,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             oh.close()
             config.log.info("chip_seq_heatmap: Reloaded previously cached pileup data: '%s'" % cache_data)
             # sanity check the matrix data
-            assert isinstance(matrix, dict), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
-            assert isinstance(matrix[0], dict), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert isinstance(matrix, dict), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert isinstance(matrix[0], dict), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
             assert isinstance(matrix[0][0], (numpy.ndarray, numpy.generic)), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
-            assert len(matrix) == len(list_of_trks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
-            assert len(matrix[0]) == len(list_of_peaks), '{0} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert len(matrix) == len(list_of_trks), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
+            assert len(matrix[0]) == len(list_of_peaks), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
             for it, t in enumerate(list_of_trks):
                 for ip, p in enumerate(list_of_peaks):
-                    assert matrix[it][ip].shape == (len(p), bins), '{0} ({1} {2}) does not match the expected data, suggest you rebuild'.format(cache_data, t['name'], p.name)
+                    assert matrix[it][ip].shape == (len(p), bins), '{} ({} {}) does not match the expected data, suggest you rebuild'.format(cache_data, t['name'], p.name)
         else:
             # No cached data, so we have to collect ourselves.
             expected_len = pileup_distance * 2
@@ -2419,8 +2419,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 left = len(data)
 
                             dd = data[left:rite]
-                            while len(dd) < expected_len: # pad out any missing 0
-                                dd.append(0)
+                            if len(dd) < block_len: # This should be a very rare case...
+                                config.log.warning('Block miss (short)')
+                                num_missing = block_len - len(dd)
+                                ad = numpy.zeros(num_missing, dtype=numpy.float32)
+                                dd = numpy.append(dd, ad)
+                            elif len(dd) > block_len: # Should be never?
+                                config.log.warning('Block miss (long)')
+                                num_missing = block_len - len(dd)
+                                dd = dd[0:block_len] # just grab the start. probably unreliable though?
 
                             # Fill in the matrix table:
                             #pileup[tindex][plidx][pidx] += pil_data
