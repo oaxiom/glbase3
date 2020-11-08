@@ -56,7 +56,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         self.draw = draw(self)
 
     def __repr__(self):
-        return("glbase.glglob")
+        return "glbase.glglob"
 
     def __str__(self):
         # work out all of the types
@@ -64,7 +64,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for item in self.linearData:
             if item.__repr__() not in types:
                 types.append(item.__repr__())
-        return("glglob contains: %s items of type(s): %s" % (len(self.linearData), ", ".join(types)))
+        return "glglob contains: %s items of type(s): %s" % (len(self.linearData), ", ".join(types))
 
     def _optimiseData(self): # no keys, so would die.
         """
@@ -85,7 +85,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
     def saveCSV(self):
         config.log.error("glglobs cannot be represented as a CSV/TSV file, use .save() to save binary files")
-        return(False)
+        return False
 
     def __getitem__(self, value):
         """
@@ -95,7 +95,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         """
         if value in self.__list_name_lookback:
             return(self.linearData[self.__list_name_lookback[value]]) # get the actual item
-        return(None)
+        return None
 
     def __setitem__(self, value):
         """
@@ -400,7 +400,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             row_names=row_names, col_names=row_names, aspect=aspect, **kargs)
 
         config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])
-        return(dict_of_lists)
+        return dict_of_lists
 
     def __compare_slow(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
         row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None,
@@ -537,7 +537,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             row_names=row_names, col_names=row_names, aspect=aspect, **kargs)
 
         config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])
-        return(dict_of_lists)
+        return dict_of_lists
 
     def venn(self, key=None, filename=None, mode='map', **kargs):
         """
@@ -737,7 +737,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             realfilename = self.draw.venn5(lists, labs, filename, **kargs)
 
         config.log.info("venn: Saved Figure to '%s'" % realfilename)
-        return(None)
+        return None
 
     def __venn_collide(self, key, filename, delta=200, **kargs):
         #assert key in self.keys()
@@ -780,7 +780,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             realfilename = self.draw.venn3(len(A), len(B), len(C), AB, AC, BC, ABC,
                 self.linearData[0].name, self.linearData[1].name, self.linearData[2].name,
                 filename, **kargs)
-        return(None)
+        return None
 
     def moving_average_maps(self, mode="graph", compare_array=None, filename=None, key=None,
         normalise=True, **kargs):
@@ -1611,7 +1611,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             self.draw.savefigure(fig, this_filename)
             config.log.info('Saved {}'.format(this_filename))
-        return(self.__pileup_data)
+        return self.__pileup_data
 
     def genome_dist_radial(self, genome, layout, filename=None, randoms=None, **kargs):
         """

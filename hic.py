@@ -204,7 +204,7 @@ class hic:
             self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
-                #self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
                 #self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
 
             self.draw = draw()
@@ -386,16 +386,28 @@ class hic:
             # get diagonal means;
             means = []
             for d in range(mats.shape[0]):
-                m = numpy.mean(numpy.fliplr(mats).diagonal(offset=d))
+                m = numpy.sum(numpy.fliplr(mats).diagonal(offset=d))
                 means.append(m)
             means = numpy.array(means)
 
+            # just use the index, for testing;
+            #means = numpy.arange(mats.shape[0])[::-1]
+            #means = numpy.concatenate((means, means[::-1]), axis=None)
+
+            # i.e. flip back the array:
+            means = numpy.concatenate((means, means[::-1]), axis=None)
+
             # Now get O/E for each point;
+            sliding_means = numpy.array(means)
             newmat = numpy.array(mats)
             for x in range(mats.shape[0]):
                 for y in range(mats.shape[0]):
                     with numpy.errstate(divide='ignore', invalid='ignore'):
-                        newmat[x,y] = newmat[x,y] / means[y-x]
+                        newmat[x,y] = newmat[x,y] / sliding_means[y]
+                        newmat[x,y] = sliding_means[y]
+                t = mats.shape[0] - x
+                sliding_means = numpy.concatenate((means[t+1:], means[0:t+1]), axis=0) # increment;
+                # inc
             newmat[numpy.isnan(newmat)] = 0
             newmat[numpy.isinf(newmat)] = 0
 
@@ -729,7 +741,7 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        #self.__OEmatrix()
+        self.__OEmatrix()
         #self.__ABcompart()
 
         return True
