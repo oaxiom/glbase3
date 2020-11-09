@@ -138,11 +138,12 @@ class flat_track():
         assert chromosome, 'You must specify a chromosome'
         assert isinstance(arr, numpy.ndarray), 'arr is not a numpy array'
 
-        # TODO: Check chrom does not already exist
+        if 'chr' not in chromosome:
+            chromosome = 'chr{}'.format(chromosome)
 
-        grp = self.hdf5_handle.create_group('matrix_{0}'.format(chromosome))
+        grp = self.hdf5_handle.create_group('matrix_{}'.format(chromosome))
         grp.create_dataset('mat', arr.shape, dtype=numpy.float32, data=arr, chunks=True, compression='lzf')
-        config.log.info('Added chrom={0} to table'.format(chromosome))
+        config.log.info('Added chrom={} to table'.format(chromosome))
 
         self.chrom_names.append(chromosome)
 

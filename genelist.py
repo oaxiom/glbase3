@@ -2082,8 +2082,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return(newl)
 
-    def overlap(self, compare_mode="Overlap", loc_key="loc", delta=200, title=None, bins=20, add_tags=False, image_filename=None,
-        keep_rank=False, **kargs):
+    def overlap(self,
+        compare_mode="Overlap",
+        loc_key="loc",
+        delta=200,
+        title=None,
+        bins=20,
+        add_tags=False,
+        image_filename=None,
+        keep_rank=False,
+        **kargs):
         """
         **Purpose**
 
