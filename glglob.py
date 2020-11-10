@@ -1582,7 +1582,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         maxx = self.__pileup_data[1][0].shape[0]
         for cid in self.__pileup_data:
-            this_filename = "%s_cid%s.png" % (base_filename, cid) # savefigure will modify png if needed.
+            binary_membership = ''.join([str(int(a)) for a in self.__pileup_groups_membership[cid-1]["id"]])
+            this_filename = "{}_cid{}_bin_{}.png".format(base_filename, cid, binary_membership) # savefigure will modify png if needed.
 
             if min_members and self.__pileup_group_sizes[cid] < min_members:
                 continue

@@ -358,6 +358,13 @@ class flat_track():
                 if a.any(): # It's possible that get() will return nothing
                     # For example if you send bad chromosome names or the locations are nonsensical (things like:
                     # chr9_GL000201_RANDOM:-500-1500
+                    # Check for a block miss:
+                    if len(a) < loc_span: # This should be a very rare case...
+                        config.log.warning('Block miss (short)')
+                        num_missing = loc_span - len(a)
+                        ad = numpy.zeros(num_missing, dtype=numpy.float32)
+                        a = numpy.append(a, ad)
+
                     hist += a
 
                 if mask_zero: # surely a better way of doing this...
