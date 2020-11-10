@@ -1479,6 +1479,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # rebuild the genelist quickdata and make genelist valid:
         for cid in ret_data:
             ret_data[cid]["genelist"]._optimiseData()
+            ret_data[cid]['binary_membership'] = ''.join([str(int(a)) for a in ret_data[cid]["cluster_membership"]])
 
         if not log_pad:
             log_pad = 0.1
@@ -1530,7 +1531,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return ret_data
 
-    def chip_seq_cluster_pileup(self, filename=None, multi_plot=True, min_members=False, **kargs):
+    def chip_seq_cluster_pileup(self,
+        filename=None,
+        multi_plot=True,
+        min_members=False,
+        **kargs):
         """
         **Purpose**
             This is an addendum to chip_seq_cluster_heatmap(). You only need run this
@@ -1583,7 +1588,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         maxx = self.__pileup_data[1][0].shape[0]
         for cid in self.__pileup_data:
             binary_membership = ''.join([str(int(a)) for a in self.__pileup_groups_membership[cid-1]["id"]])
-            this_filename = "{}_cid{}_bin_{}.png".format(base_filename, cid, binary_membership) # savefigure will modify png if needed.
+            this_filename = "{}_bin_{}_cid{}.png".format(base_filename, binary_membership, cid) # savefigure will modify png if needed.
 
             if min_members and self.__pileup_group_sizes[cid] < min_members:
                 continue
