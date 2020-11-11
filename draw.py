@@ -2542,11 +2542,32 @@ class draw:
         self.do_common_args(ax, **kargs)
         return(self.savefigure(fig, filename))
 
-    def unified_scatter(self, labels, xdata, ydata, x, y, mode='PC', filename=None,
-        spots=True, label=False, alpha=0.8, perc_weights=None, spot_cols='grey', overplot=None,
-        spot_size=40, label_font_size=7, label_style=None, cut=None, squish_scales=False, only_plot_if_x_in_label=None,
-        adjust_labels=False, cmap=None,
-        cluster_data=None, draw_clusters=None, cluster_labels=None, cluster_centroids=None,
+    def unified_scatter(self,
+        labels,
+        xdata,
+        ydata,
+        x,
+        y,
+        mode='PC',
+        filename=None,
+        spots=True,
+        label=False,
+        alpha=0.8,
+        perc_weights=None,
+        spot_cols='grey',
+        overplot=None,
+        spot_size=40,
+        label_font_size=7,
+        label_style=None,
+        cut=None,
+        squish_scales=False,
+        only_plot_if_x_in_label=None,
+        adjust_labels=False,
+        cmap=None,
+        cluster_data=None,
+        draw_clusters=None,
+        cluster_labels=None,
+        cluster_centroids=None,
         **kargs):
         '''
         Unified for less bugs, more fun!
@@ -2610,9 +2631,11 @@ class draw:
                         c=spot_cols, cmap=cmap,
                         zorder=2)
         elif spots:
-            ax.scatter(xdata, ydata, s=8,
+            ax.scatter(xdata, ydata,
                 alpha=alpha, edgecolors="none",
-                c=spot_cols, cmap=cmap,
+                s=spot_size,
+                c=spot_cols,
+                cmap=cmap,
                 zorder=2)
         else:
             # if spots is false then the axis limits are set to 0..1. I will have to send my
