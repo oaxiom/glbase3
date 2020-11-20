@@ -2528,6 +2528,7 @@ class draw:
             if min(data[d]) < cmin:
                 cmin = min(data[d])
 
+        ax.set_xticks(range(len(order)))
         ax.set_xticklabels(order)
 
         ax.set_ylim([cmin, cmax])
