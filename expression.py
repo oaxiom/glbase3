@@ -3094,7 +3094,7 @@ class expression(base_expression):
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("gene_curve: Saved '%s'" % actual_filename)
 
-    def correlation_heatmap(self, axis="conditions", filename=None, label_key=None, mode="r2", aspect="square", bracket=(0,1),
+    def correlation_heatmap(self, axis="conditions", filename=None, label_key=None, mode="r", aspect="square", bracket=(0,1),
         optimal_ordering=True, **kargs):
         """
         **Purpose**
@@ -3117,7 +3117,8 @@ class expression(base_expression):
             label_key (Optional, but required if axis=genes or rows)
                 You must specify a label key if the axis is rows or genes
 
-            mode (Optional, default="r2")
+            mode (Optional, default="r")
+
                 by default the R (Coefficient of determination) is squared. Set to 'r' for
                 Coefficient of determination value.
                 use 'pearson' for a Pearson correlation score and 'spearman' for a

@@ -2482,7 +2482,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         raise AssertionError('log={0} not found'.format(log))
         else:
             if not range_bracket: # suggest reasonable range;
-                range_bracket = [0.0, 0.1]
+                range_bracket = [0.02, 0.1]
 
         if normalise:
             colbar_label = "Normalised %s" % colbar_label
