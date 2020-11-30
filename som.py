@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 -------------
 
 Modifications were added by Andrew P. Hutchins and are included as part of glbase,
-also released under the MIT license, as above
+also released under the MIT license
 
 """
 

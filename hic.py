@@ -204,7 +204,7 @@ class hic:
             self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
-                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                #self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
                 #self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
 
             self.draw = draw()

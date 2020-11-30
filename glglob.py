@@ -2597,3 +2597,73 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         config.log.info("chip_seq_heatmap: Saved overlap heatmap to '{0}'".format(real_filename))
         return None
+
+    def hic_correlate(self,
+        list_of_hiccys:list,
+        filename:str = None,
+        optimal_ordering=True,
+        bracket=[0.0, 1.0],
+        aspect="square",
+        **kargs):
+        '''
+        **Purpose**
+            Get the correlation between hiccy 2D matrix arrays.
+
+        **Arguments**
+            list_of_hiccys (required)
+                list of hiccy objects to perform correlations agains. Labels
+                for the rows/columns are taken from the hiccy['name'] slot
+
+            filename (Required)
+                filename to save the correlation heatmap to
+
+        **Returns**
+            A dictionary containing he Pearson R scores and the labels, in the same
+            order as the heatmap;
+
+        '''
+        assert list_of_hiccys, 'need a list_of_hiccys'
+        assert isinstance(list_of_hiccys, list), 'list_of_hiccys must be a list'
+        assert filename, 'Need a filename to save the correlation heatmap to'
+
+        mode = 'Pearson R' # only 1 mode
+
+        num_hiccys = len(list_of_hiccys)
+
+        result = numpy.zeros((num_hiccys, num_hiccys))
+
+        p = progressbar(num_hiccys)
+
+        for idx1, h1 in enumerate(list_of_hiccys):
+            for idx2, h2 in enumerate(list_of_hiccys):
+                if idx1 <= idx2:
+                    if idx1 == idx2: # fill i nthe diagonals
+                        result[idx1, idx2] = 1.0
+                    continue
+
+                rs = []
+                for chrom in h1.all_chrom_names: # hope they match!
+                    m1 = numpy.array(h1.mats[chrom]).flatten()
+                    m2 = numpy.array(h2.mats[chrom]).flatten()
+                    rs.append(pearsonr(m1, m2)[0]) # scipy.stats
+                r = numpy.mean(rs)
+                result[idx1, idx2] = r
+                result[idx2, idx1] = r
+
+            p.update(idx1)
+
+        labels = [i['name'] for i in list_of_hiccys]
+
+        square = True
+        if "heat_hei" in kargs or "heat_wid" in kargs:
+            square=False
+
+        results = self.draw.heatmap(filename=filename, data=result, square=square,
+            bracket=bracket, row_names=labels, aspect=aspect, col_names=labels,
+            colbar_label="Correlation (%s)" % mode, optimal_ordering=optimal_ordering,
+            **kargs)
+
+        config.log.info("hic_correlate: Saved '%s'" % results["real_filename"])
+
+        return {"pearsonr": results["reordered_data"], "labels": results["reordered_cols"]}
+
