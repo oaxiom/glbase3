@@ -2541,7 +2541,46 @@ class draw:
         ax.tick_params(axis='y', labelsize=6)
 
         self.do_common_args(ax, **kargs)
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
+
+    def violinplot(self, data, filename,
+        violin=True,
+        order=None,
+        mean=False,
+        median=True,
+        **kargs):
+        '''
+        Uses the matplotlib implementation;
+
+        '''
+        fig = self.getfigure(**kargs)
+        ax = fig.add_subplot(111)
+
+        if not order:
+            order = list(data.keys())
+
+        pos = numpy.arange(len(order))
+
+        ax.violinplot(data.values(), pos, points=50, widths=0.5,
+            showmeans=mean,
+            showmedians=median,
+            )
+
+        ax.set_xticks(range(len(order)))
+        ax.set_xticklabels(order)
+
+        #ax.set_ylim([cmin, cmax])
+        ax.set_xlim([-0.6, len(order)-0.4])
+        ax.set_xticks([i for i in range(len(order))]) # xticks must be 1 separated to get all labels for line up
+
+        fig.autofmt_xdate()
+
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
+        self.do_common_args(ax, **kargs)
+
+        return self.savefigure(fig, filename)
 
     def unified_scatter(self,
         labels,

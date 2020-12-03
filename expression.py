@@ -2843,9 +2843,12 @@ class expression(base_expression):
             color_threshold = color_threshold*((dist.max()-dist.min())+dist.min()) # convert to local measure
 
         link = linkage(dist, 'complete', metric=cluster_mode, optimal_ordering=optimal_ordering)
-        a = dendrogram(link, orientation='left', labels=row_names,
+        a = dendrogram(link,
+            orientation='left',
+            labels=row_names,
             ax=ax,
-            color_threshold=color_threshold, get_leaves=True)
+            color_threshold=color_threshold,
+            get_leaves=True)
 
         ax.set_frame_on(False)
         ax.set_xticklabels("")
@@ -3468,7 +3471,98 @@ class expression(base_expression):
             fig.tight_layout()
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("barh_single_item: Saved '%s'" % actual_filename)
-        return(item)
+        return item
+
+    def violinplot_by_conditions(self,
+        filename:str,
+        key:str,
+        value,
+        condition_classes,
+        class_order,
+        log=True,
+        log_pad=0.1,
+        title=None,
+        **kargs):
+        """
+        **Purpose**
+            draw a bean plot by merging the conditions together for each item in condition_classes
+
+        **Arguments**
+            filename (Required)
+                filename to save image to
+
+            key (Reqired)
+                key to search for the matching object
+
+            value (Required)
+                value (e.g. gene name, ENST, etc) to search for.
+
+            condition_classes (Required)
+                a class name to group the conditions under. Must be the same length as the condition
+                names. Will draw oone violin/beanplot per condition_class.
+
+            class_order (Optional, default=None)
+                order to draw the classes in
+
+            log (Optional, default=True)
+                log2 the values.
+
+            log_pad (Optional, default=0.1)
+                value to pad the log with to stop log2(0)
+
+            Typical arguments for plots are supported:
+                xlabel - x-axis label
+                ylabel - y-axis label
+                title  - title
+                xlims - x axis limits (Note that barh_single_item will clamp on [0, max(data)+10%] by default.
+                ylims - y-axis limits
+                xticklabel_fontsize - x tick labels fontsizes
+                yticklabel_fontsize - y tick labels fontsizes
+
+                hori_space (default=0.5)
+                vert_space (default=0.75) - a special arg to help pad the barchart up when using very long plots with a ot of samples
+
+            tight_layout (Optional, default=False)
+                wether to use matplotlib tight_layout() on the plot
+
+        """
+        assert filename, "barh_single_item: you must specify a filename"
+        assert len(condition_classes) == len(self.getConditionNames()), 'the length of condition_classes is not the same as this expression obejct'
+        assert key in self.keys(), '"{}" key not found in this genelist'.format(key)
+
+        # get the expn row;
+        expn_data = self._findDataByKeyLazy(key, value)
+        assert expn_data, '"{}" not found in this genelist'.format(value)
+
+        if not class_order:
+            class_order = sorted(list(set(condition_classes)))
+
+        data = {c: [] for c in class_order}
+        cts = expn_data["conditions"]
+
+        for i in zip(condition_classes, cts):
+            data[i[0]].append(i[1])
+
+        if log:
+            for k in class_order:
+                data[k] = numpy.log2(numpy.array(data[k])+log_pad)
+
+        if not "yticklabel_fontsize" in kargs:
+            kargs["yticklabel_fontsize"] = 6
+
+        if not "xticklabel_fontsize" in kargs:
+            kargs["xticklabel_fontsize"] = 6
+
+        self.draw.violinplot(data,
+            filename=filename, title=title,
+            mean=True, median=False, stdev=False,
+            ylims=[4, 15],
+            order=class_order,
+            **kargs)
+
+        config.log.info("bean_plot_by_conditions: Saved '{}'".format(filename))
+
+        return data
 
     def time_course_plot(self, key=None, value=None, filename=None, timepoints=None, plotmean=True, **kargs):
         """
