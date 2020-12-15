@@ -14,7 +14,7 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, **kargs):
+def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, skip_non_standard_chroms=False, **kargs):
     """
     **Purpose**
         Convert a list of genomic coordinates to a flat file (Actually an SQL
@@ -34,6 +34,10 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
             the format to use to store the data. Valid values are:
 
             f = floats
+
+        skip_non_standard_chroms (Optional, default=False)
+            only use canonical chromsome names (i.e. chr1, chrX, chrM)
+            and not scaffolds and unplaced (chr14_KIA... etc).
 
     **Returns**
         True on completion
@@ -73,8 +77,11 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
 
                 # if change of chrom, save it to the flat;
                 if lastchrom and lastchrom != chrom and newchrom:
-                    f.add_chromosome_array(lastchrom, numpy.array(newchrom))
-                    config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
+                    if skip_non_standard_chroms and '_' in lastchrom:
+                        continue
+                    else:
+                        f.add_chromosome_array(lastchrom, numpy.array(newchrom))
+                        config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
                     newchrom = []
 
                 lastchrom = chrom
@@ -101,5 +108,5 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
     config.log.info("Finalise library. Contains approx. {:,} bps of data".format(int(m*1e6)))
     f.finalise()
     config.log.info("Took: %s seconds" % (e-s))
-    return(True)
+    return True
 

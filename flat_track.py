@@ -92,7 +92,9 @@ class flat_track():
             self.chrom_names = [n.decode("ascii", "ignore") for n in self.chrom_names]
 
             self.mats = {}
+            print(self.chrom_names)
             for chrom in self.chrom_names:
+                print(chrom)
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
 
             self.draw = draw()
