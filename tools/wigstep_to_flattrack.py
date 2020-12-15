@@ -77,9 +77,7 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
 
                 # if change of chrom, save it to the flat;
                 if lastchrom and lastchrom != chrom and newchrom:
-                    if skip_non_standard_chroms and '_' in lastchrom:
-                        continue
-                    else:
+                    if skip_non_standard_chroms and '_' not in lastchrom:
                         f.add_chromosome_array(lastchrom, numpy.array(newchrom))
                         config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
                     newchrom = []
