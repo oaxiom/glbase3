@@ -83,7 +83,7 @@ class flat_track():
                     config.log.error('Please regenerate your flat_tracks. The new v5 format is ~4x faster on reads')
                     config.log.error('and about the same to generate the track. File size is about 2x bigger')
                 elif 'Unable to open file' in str(e): # file not found
-                    config.log.error('File not found: {0}'.format(filename))
+                    config.log.error('File not found: {}'.format(filename))
                 sys.exit()
 
             self.meta_data = self.hdf5_handle.attrs
@@ -92,9 +92,7 @@ class flat_track():
             self.chrom_names = [n.decode("ascii", "ignore") for n in self.chrom_names]
 
             self.mats = {}
-            print(self.chrom_names)
             for chrom in self.chrom_names:
-                print(chrom)
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
 
             self.draw = draw()
