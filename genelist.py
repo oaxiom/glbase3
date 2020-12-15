@@ -596,10 +596,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 the value to find
 
         **Returns**
-            The index of the list the item is contsained at.
+            The index of the list where the item is contained.
         """
-        assert key, "must send key"
-        assert value, "must send value"
+        assert key, "index: must send key"
+        assert value, "index: must send value"
 
         return min(self.qkeyfind[key][value])
 
@@ -610,7 +610,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         Most useful for things like geneList["Symbol"]
         geneList["entrez"]
         """
-        return([x[key] for x in self.linearData])
+        return [x[key] for x in self.linearData]
 
     def _findByLabel(self, key, value):
         """
@@ -655,9 +655,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             saveTSV is *generally* 'consistent' if you can succesfully save
             as a tsv then you can reload the same list as that particular
-            type. Be careful though. Behaviour like this will work fine::
+            type. Be careful though. Behaviour like this will work, but give
+            unexpected results::
 
-                microarray.saveTSV(filename="file.csv")
+                rnaseq.saveTSV(filename="file.csv")
                 anewlist = genelist(filename="file.csv")
                 anewlist # this list is now a genelist and not an expression.
                          # You must load as an expression:
@@ -686,6 +687,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 Don't write the first line header for this file. Usually it's the list
                 of keys, then the second line will be the data. If no_header is set to False
                 then the first line of the file will begin with the data.
+
+            gzip (Optional, default=False)
+                save the TSV as a gzipped file. (Don't forget to add the .gz suffix!)
 
         **Result**
             returns None.
@@ -747,12 +751,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert filename, "No filename specified"
 
-        valig_args = ["filename", "key_order", "tsv", "no_header"]
+        valig_args = ["filename", "key_order", "tsv", "no_header", 'gzip']
         for k in kargs:
             if k not in valig_args:
                 raise ArgumentError(self.saveCSV, k)
 
-        oh = open(filename, "w")
+        if 'gzip' in kargs and kargs['gzip']:
+            oh = gzip.open(filename, "wt")
+        else:
+            oh = open(filename, "w")
+
         if not self.linearData: # data is empty, fail graciously.
             config.log.error("csv file '%s' is empty, no file written" % filename)
             oh.close()

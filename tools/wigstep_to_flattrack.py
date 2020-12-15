@@ -8,7 +8,7 @@ converts a sequence file to a track (graph)-like display
 
 """
 
-import sys, os, csv, time
+import sys, os, csv, time, numpy
 import gzip as opengzip
 from .. import flat_track
 from .. import config
@@ -33,7 +33,6 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
         bin_format
             the format to use to store the data. Valid values are:
 
-            i = integers
             f = floats
 
     **Returns**
@@ -53,13 +52,16 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
     m = 0
     total = 0
 
-    f = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
+    f = flat_track(filename=outfilename, new=True, name=name, bin_format='f')
 
-    config.log.info("Started %s -> %s" % (infilename, outfilename))
+    config.log.info("Started {} -> {}".format(infilename, outfilename))
 
     s = time.time()
     oh = open_mode(infilename, "rt")
     cleft = 0
+    newchrom = None
+    lastchrom = None
+
     for line in oh:
         if 'track' in line: # Ignore headers'
             continue
@@ -68,22 +70,35 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
             if "fixedStep" in line:
                 t = line.split()
                 chrom = t[1].split("=")[1]
+
+                # if change of chrom, save it to the flat;
+                if lastchrom and lastchrom != chrom and newchrom:
+                    f.add_chromosome_array(lastchrom, numpy.array(newchrom))
+                    config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
+                    newchrom = []
+
+                lastchrom = chrom
                 cleft = int(t[2].split("=")[1])
                 step = int(t[3].split("=")[1])
+
+                if not newchrom:# setup new array;
+                    newchrom = [0] * cleft
+                else: # pad to the new location cleft
+                    newchrom += [0] * (cleft-len(newchrom))
             else:
                 #f.add_score(loc=location("%s:%s-%s" % (chrom, cleft, cleft+step)), score=float(line))
-                f.add_score(chromosome=chrom.replace("chr", ""), left=cleft, right=cleft+step, score=float(line))
+                newchrom.append(float(line))
                 cleft += step
 
-            if n > 1e6: # because n+= step;
+            if n > 1e7: # because n+= step;
                 m += 1
-                print("{0:,} bp".format(int(m*1e6)))
+                print("{:,} bp".format(int(m*1e7)))
                 n = 0
             n += step
 
     e = time.time()
 
-    config.log.info("Finalise library. Contains approx. {0:,} bps of data".format(int(m*1e6)))
+    config.log.info("Finalise library. Contains approx. {:,} bps of data".format(int(m*1e6)))
     f.finalise()
     config.log.info("Took: %s seconds" % (e-s))
     return(True)
