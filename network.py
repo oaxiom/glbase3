@@ -68,8 +68,8 @@ class network:
         G = nx.Graph()
 
         if mode == "conditions":
-            correlation_table = numpy.corrcoef(self.parent.getExpressionTable().T)[:-1,:-1]
-            correlation_table *= correlation_table # i.e. R^2
+            correlation_table = numpy.corrcoef(self.parent.getExpressionTable().T)[:,:-1]
+            #correlation_table *= correlation_table # i.e. R^2
 
             self.names = self.parent.getConditionNames()
             for cind, row in enumerate(correlation_table):
@@ -80,7 +80,7 @@ class network:
 
         elif mode == "genes":
             correlation_table = numpy.corrcoef(self.parent.getExpressionTable())
-            correlation_table *= correlation_table # i.e. R^2
+            #correlation_table *= correlation_table # i.e. R^2
 
             # Names cannot be empty, or they come back as none. So I hack in "-" to stand for unlabbelled
             self.names = self.parent[names]
