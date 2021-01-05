@@ -191,7 +191,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 **kargs)
 
     def __compare_fast(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
-        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None, bin_size=5000,
+        row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None, bin_size=2000,
         jaccard=False, **kargs):
         """
         **Purpose**
@@ -1945,7 +1945,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             log (Optional, default=False)
                 log transform the resulting matrix
 
-            peak_window (Optional, default=100)
+            peak_window (Optional, default=200)
                 window around the center of the peak to score the peak enrichment.
 
             local_lambda (Optional, default=5000)

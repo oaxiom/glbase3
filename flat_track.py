@@ -252,7 +252,7 @@ class flat_track():
 
         **Arguments**
             genelists
-                A list of genelist with a "loc" key
+                A list of genelists with a "loc" key
 
             filename
                 The filename to save the image to

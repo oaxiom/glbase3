@@ -505,12 +505,12 @@ class expression(base_expression):
         """
         if "err" not in self.linearData[0]: # No errors to strip, silently fail
             config.log.warning("strip_errs: Tried to remove error data, but no error data found")
-            return(None)
+            return None
 
         for item in self.linearData:
             del item["err"]
         self._optimiseData() # I think this does nothing at the moment, but just in case I ever fix err key handling
-        return(None)
+        return None
 
     def merge(self, key=None, *tables):
         """
@@ -549,7 +549,7 @@ class expression(base_expression):
                 item["err"] = sum(others, item["err"])
 
         newgl._optimiseData()
-        return(newgl)
+        return newgl
 
     def sliceConditions(self,
         conditions:Iterable=None,
@@ -615,7 +615,7 @@ class expression(base_expression):
         newgl._optimiseData()
 
         config.log.info("sliceConditions: sliced for %s conditions" % (len(newgl[0]["conditions"]),))
-        return(newgl)
+        return newgl
 
     def getDataForCondition(self, condition_name):
         """

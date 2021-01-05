@@ -927,7 +927,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     if id:
                         todo += ["%s-%s" % (str(item[id]), index)]
                     else:
-                        todo += ["%s-%s" % (self.name, index)]
+                        todo += ["%s-%s" % (self.name.replace(' ', '_'), index)]
                 else:
                     if id:
                         todo += [str(item[id])]
