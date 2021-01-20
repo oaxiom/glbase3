@@ -2522,7 +2522,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Removed {0} duplicates, {1} remain".format((len(self) - len(ov)), len(ov)))
         return ov
 
-    def removeDuplicates(self, key=None, **kargs):
+    def removeDuplicates(self, key=None):
         """
         **Purpose**
             remove the duplicates in the list and returns a new list;
@@ -2555,26 +2555,55 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             key
                 The key in which to make search for duplicates.
 
+                Note that key can also be a list if you want to use 2 or more keys
+
         **Returns**
             The new list with the duplicates removed.
         """
-        assert key, "No key specified"
-        assert key in list(self.keys()), "the key '%s' was not found in this genelist" % key
+        assert key, "No key(s) specified"
 
-        newl = self.shallowcopy()
-        newl.linearData = []
-        count = 0
-        p = progressbar(len(self))
+        if isinstance(key, list):
+            for k in key:
+                assert k in list(self.keys()), "the key '{}' was not found in this genelist".format(key)
 
-        for item in self.qkeyfind[key]:
-            newl.linearData.append(self.linearData[min(self.qkeyfind[key][item])]) # grab first
-            # Will only apply a single item (the earliest) even if there
-            # IS only one of these items.
+            # Multiple keys path:
+            # make a key, index dict:
+            newl = self.deepcopy()
+            new_data_to_load = []
 
-        newl._optimiseData()
+            sorter = {}
+            for idx, item in enumerate(newl.linearData):
+                thisK = '-'.join([str(item[k]) for k in key])
+                if thisK not in sorter:
+                    sorter[thisK] = []
+                sorter[thisK].append(idx) # always in order, lowest to highest.
 
-        config.log.info("removeDuplicates: %s duplicates, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+            # Now just go through and pick the 0th entry;
+            for k in sorter:
+                new_data_to_load.append(newl.linearData[sorter[k][0]])
+
+            newl.linearData = new_data_to_load
+            newl._optimiseData()
+
+            config.log.info("removeDuplicates: {} duplicates, list now {} items long".format(len(self)-len(newl), len(newl)))
+            return newl
+
+        else:
+            assert key in list(self.keys()), "the key '{}' was not found in this genelist".format(key)
+
+            newl = self.shallowcopy()
+            newl.linearData = []
+            count = 0
+
+            for item in self.qkeyfind[key]:
+                newl.linearData.append(self.linearData[min(self.qkeyfind[key][item])]) # grab first
+                # Will only apply a single item (the earliest) even if there
+                # IS only one of these items.
+
+            newl._optimiseData()
+
+            config.log.info("removeDuplicates: {} duplicates, list now {} items long".format(len(self) - len(newl), len(newl)))
+            return newl
 
     def removeExactDuplicates(self):
         """
