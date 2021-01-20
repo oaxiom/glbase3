@@ -119,7 +119,7 @@ class expression(base_expression):
             base_expression.__init__(self, filename=filename, expn=expn, format=format, **kargs)
 
     def __repr__(self):
-        return("glbase.expression")
+        return "glbase.expression"
 
     def __getitem__(self, index):
         """
@@ -130,8 +130,8 @@ class expression(base_expression):
         and inherits normal genelist slicing behaviour
         """
         if index in self._conditions:
-            return(self.getDataForCondition(index))
-        return(base_expression.__getitem__(self, index)) # otherwise inherit
+            return self.getDataForCondition(index)
+        return base_expression.__getitem__(self, index) # otherwise inherit
 
     def __getattr__(self, name):
         """
@@ -249,7 +249,7 @@ class expression(base_expression):
         """
         # This is currently hidden:
         self.__pca = pca(self, rowwise=rowwise, label_key=label_key, **kargs)
-        return(self.__pca)
+        return self.__pca
 
     def get_svd(self, rowwise=False, label_key=None, **kargs):
         """
@@ -288,7 +288,7 @@ class expression(base_expression):
             You can get the svd object again in expn.svd
         """
         self.svd = svd(self, rowwise=rowwise, label_key=label_key, **kargs)
-        return(self.svd)
+        return self.svd
 
     def sort_sum_expression(self, selected_conditions=None):
         """
@@ -308,7 +308,7 @@ class expression(base_expression):
         else:
             self.linearData = sorted(self.linearData, key=lambda x: sum(x["conditions"]))
         self._optimiseData()
-        return(True)
+        return True
 
     def sort_column_sum_expression(self):
         """
@@ -354,7 +354,7 @@ class expression(base_expression):
         self.numpy_array_all_data = numpy.array(newtab).T
         self._load_numpy_back_into_linearData() # _conditions must be up to date
         self._optimiseData()
-        return(True)
+        return True
 
     def multi_sort(self, keys):
         """
@@ -392,7 +392,7 @@ class expression(base_expression):
 
         self.linearData = sorted(self.linearData, key=functools.cmp_to_key(comparer))
         self._optimiseData()
-        return(True)
+        return True
 
     def sort_conditions(self, reverse=False):
         """
@@ -424,7 +424,7 @@ class expression(base_expression):
 
         self._conditions = neworder
         self._optimiseData()
-        return(None)
+        return None
 
     def findGene(self, **kargs):
         """
@@ -436,8 +436,8 @@ class expression(base_expression):
 
     def getGenomeName(self):
         if not self.genome:
-            return("Genome not bound")
-        return(self.genome.getName())
+            return "Genome not bound"
+        return self.genome.getName()
 
     def getColumns(self, return_keys=None, strip_expn=False):
         """
@@ -486,7 +486,7 @@ class expression(base_expression):
         newl._optimiseData()
 
         config.log.info("getColumns: got only the columns: %s" % (", ".join(return_keys),))
-        return(newl)
+        return newl
 
     def strip_errs(self):
         """
@@ -629,7 +629,7 @@ class expression(base_expression):
         #print self.serialisedArrayDataDict.keys()
         assert condition_name in self.getConditionNames(), "getDataForCondition: No condition named '%s' in this expression object" % condition_name
 
-        return(self.serialisedArrayDataDict[condition_name])
+        return self.serialisedArrayDataDict[condition_name]
 
     def getExpressionTable(self):
         """
@@ -640,7 +640,7 @@ class expression(base_expression):
         **Arguments**
             None
         """
-        return(numpy.copy(self.numpy_array_all_data))
+        return numpy.copy(self.numpy_array_all_data)
 
     def subtract_mean(self):
         """
@@ -786,7 +786,7 @@ class expression(base_expression):
         #self.numpy_array_all_data = (self.numpy_array_all_data-mi) / (ma-mi)
 
         self._load_numpy_back_into_linearData()
-        return(None)
+        return None
 
     def digitize(self, number_of_steps, min=None, max=None):
         """
@@ -841,7 +841,7 @@ class expression(base_expression):
         else:
             for item in self.linearData:
                 item["conditions"] = [new_type(i) for i in item["conditions"]]
-        return(None)
+        return None
 
     def heatmap(self, filename=None, row_label_key="name", row_color_threshold=None,
         optimal_ordering=True, dpi=300, **kargs):
@@ -1040,7 +1040,7 @@ class expression(base_expression):
             **kargs)
 
         config.log.info("heatmap: Saved %s" % res["real_filename"])
-        return(res)
+        return res
 
     def __fold_change(self, c1v, c2v, log=2):
         """
@@ -1050,14 +1050,14 @@ class expression(base_expression):
         try:
             if c2v > c1v:
                 if log:
-                    return(math.log((c2v/c1v), log))
+                    return math.log((c2v/c1v), log)
                 else:
-                    return((c2v/c1v))
+                    return (c2v/c1v)
             else:
                 if log:
-                    return(-math.log(c1v/c2v, log))
+                    return -math.log(c1v/c2v, log)
                 else:
-                    return(-(c1v/c2v))
+                    return -(c1v/c2v)
 
         except (OverflowError, ZeroDivisionError, ValueError):
             if c2v > c1v:
@@ -1151,7 +1151,7 @@ class expression(base_expression):
 
         newl._optimiseData()
         config.log.info("normaliseToCondition: '%s'" % condition_name)
-        return(newl)
+        return newl
 
     def norm_multi_fc(self, conds=None, pad=1e-6, log=2, **kargs):
         """
@@ -1239,7 +1239,7 @@ class expression(base_expression):
         newgl = self.deepcopy()
         newgl.linearData = newl
         newgl._optimiseData()
-        return(newgl)
+        return newgl
 
     def mean_replicates(self, *reps, **kargs):
         """
@@ -1383,7 +1383,7 @@ class expression(base_expression):
             config.log.info("mean_replicates: Saved Pearson histogram '%s'" % self.draw.savefigure(fig, pearson_hist_filename))
 
         config.log.info("mean_replicates: Started with %s conditions, ended with %s" % (len(self._conditions), len(newgl[0]["conditions"])))
-        return(newgl)
+        return newgl
 
     def add_fc_key(self, key="fc", cond1=None, cond2=None, log=2, pad=1.0E-06, and_err=False, **kargs):
         """
@@ -1463,7 +1463,7 @@ class expression(base_expression):
 
         newl._optimiseData()
         config.log.info("add_fc_key: Added fold-change key '%s'" % key)
-        return(newl)
+        return newl
 
     def filter_by_fc(self, fckey=None, direction="any", value=2.0, **kargs):
         """
@@ -1510,7 +1510,7 @@ class expression(base_expression):
         rep_d = {"up": "+", "dn": "-", "down": "-", "any": "+\-"}
 
         config.log.info("filter_by_fc: Filtered expression by fold-change '%s' %s%s, found: %s" % (fckey, rep_d[direction], value, len(ret)))
-        return(ret)
+        return ret
 
     def filter_low_expressed(self, min_expression, number_of_conditions):
         """
@@ -1542,7 +1542,7 @@ class expression(base_expression):
         assert len(newl) > 0, "filter_low_expressed: The number of genes passing the filter was zero!"
         newl._optimiseData()
         config.log.info("filter_low_expression: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+        return newl
 
     def filter_by_mean_expression(self, min_mean_expression, max_mean_expression):
         """
@@ -1608,7 +1608,7 @@ class expression(base_expression):
         assert len(newl) > 0, "filter_high_expressed: The number of genes passing the filter was zero!"
         newl._optimiseData()
         config.log.info("filter_high_expressed: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+        return newl
 
     def filter_by_expression(self, condition_name, minimum_expression, **kargs):
         """

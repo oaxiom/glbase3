@@ -396,7 +396,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # draw the heatmap and save:
         ret = self.draw.heatmap(data=dict_of_lists, filename=filename,
             colbar_label=colbar_label, bracket=bracket,
-            square=square, cmap=cm.hot, cluster_mode="euclidean", row_cluster=row_cluster, col_cluster=col_cluster,
+            square=square, cmap=cm.RdBu_r, cluster_mode="euclidean", row_cluster=row_cluster, col_cluster=col_cluster,
             row_names=row_names, col_names=row_names, aspect=aspect, **kargs)
 
         config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])
@@ -533,7 +533,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # draw the heatmap and save:
         ret = self.draw.heatmap(data=dict_of_lists, filename=filename,
             colbar_label=colbar_label, bracket=bracket,
-            square=square, cmap=cm.hot, cluster_mode="euclidean", row_cluster=row_cluster, col_cluster=col_cluster,
+            square=square, cmap=cm.RdBu_r, cluster_mode="euclidean", row_cluster=row_cluster, col_cluster=col_cluster,
             row_names=row_names, col_names=row_names, aspect=aspect, **kargs)
 
         config.log.info("compare: Saved Figure to '%s'" % ret["real_filename"])

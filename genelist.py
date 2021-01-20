@@ -2792,7 +2792,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             it returns a list of dictionaries, but in the future this may
             change.
         """
-        return(self.linearData)
+        return self.linearData
 
     def unfold(self, key=None):
         """
@@ -2832,7 +2832,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 newl.linearData.append(newitem)
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def sample(self, number_to_get=None, seed=None):
         """
@@ -2870,7 +2870,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newgl.linearData = samples
         newgl._optimiseData()
 
-        return(newgl)
+        return newgl
 
     def find(self, value):
         """
@@ -2949,7 +2949,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newgl.linearData = newl
         newgl._optimiseData()
         config.log.info("Renamed key '%s' to '%s'" % (old_key_name, new_key_name))
-        return(newgl)
+        return newgl
 
     def repairKey(self, key_to_repair, fill_in_key, **kargs):
         '''
@@ -2974,7 +2974,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info('repairKey: Repaired %s keys' % replaced)
-        return(newl)
+        return newl
 
 
     def splitKeyValue(self, key, key_sep=" ", val_sep=":"):
@@ -3038,7 +3038,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
         config.log.info("splitKeyValue: split '%s' into ~'%s'%s'%s' key value pairs" % (key, len(k), val_sep, len(v)))
-        return(newl)
+        return newl
 
     def splitKey(self, key, key_names, keep_original=False):
         """
@@ -3083,7 +3083,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 del item[key]
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def joinKey(self, new_key_name, formatter, keyA, keyB, keep_originals=False):
         """
@@ -3125,7 +3125,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     del item[keyB]
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def pie(self, key=None, filename=None, font_size=12, **kargs):
         """
@@ -3172,7 +3172,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newfilename = self.draw.pie(fracs, labels, filename, font_size=font_size, **kargs)
 
         config.log.info("Saved pie to '%s'" % newfilename)
-        return(data)
+        return data
 
     def frequencyAgainstArray(self, filename=None, match_key=None, expression=None,
         spline_interpolate=False,
@@ -3272,7 +3272,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 newl += newf
 
         if not newl:
-            raise AssertionError("frequencyAgainstArray: no matches were found, it's possible this is correct, but it is highly unlikely. I suspect you have not specified match_key correctly")
+            raise AssertionError("frequencyAgainstArray: no matches were found, it's possible this is correct, but it is unlikely. I suspect you have not specified match_key correctly")
 
         newgl.load_list(newl)
 
@@ -3291,7 +3291,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         kargs["arraydata"] = arraydata.T
         kargs["row_names"] = expression["name"]
         kargs["col_names"] = expression.getConditionNames()
-        if not "bracket" in kargs:
+        if "bracket" not in kargs:
             kargs["bracket"] = [0, 1]
 
         # Sorry this is a bit of a mess. I was still getting the hang of kargs and
@@ -3301,7 +3301,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         actual_filename = self.draw._heatmap_and_plot(peakdata=peak_data, bin=bin, row_label_key=match_key, **kargs)
 
         config.log.info("frequencyAgainstArray: Saved '%s'" % actual_filename)
-        return(newgl)
+        return newgl
 
     def islocinlist(self, loc, key="loc", mode="collide", delta=200):
         """
@@ -3419,8 +3419,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # loc_ids is a set, and has no order.
         for index in loc_ids:
             if loc.qcollide(self.linearData[index]["loc"]):
-                return({"found": True, "distance": loc.qdistance(self.linearData[index]["loc"])})
-        return({"found": False, "distance": None})
+                return {"found": True, "distance": loc.qdistance(self.linearData[index]["loc"])}
+
+        return {"found": False, "distance": None}
 
     def distribution(self, genelist=None, random_lists=None, filename=None, **kargs):
         """
@@ -3545,7 +3546,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         [t.set_fontsize(16) for t in ax.get_yticklabels()]
 
         actual_filename = self.draw.savefigure(fig, filename)
-        return(data, rand, err, labels)
+        return (data, rand, err, labels)
 
     def genome_distribution(self, genome, random_lists, filename=None, **kargs):
         """
@@ -3689,7 +3690,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.draw.do_common_args(ax, **kargs)
         if filename:
             actual_filename = self.draw.savefigure(fig, filename)
-        return(data, rand, err, labels)
+        return (data, rand, err, labels)
 
     def hist(self, key=None, filename=None, range=None, suppress_zeros=False, log=None,
         kde=False, covariance=0.2, **kargs):
@@ -3760,7 +3761,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         real_filename = self.draw.savefigure(fig, filename)
 
         config.log.info("Saved '%s'" % real_filename)
-        return(values)
+        return values
 
     def bar_chart(self, filename=None, labels=None, data=None, percents=False,
         **kargs):
@@ -4019,7 +4020,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             loadlist.append(item)
         gl.load_list(loadlist)
 
-        return(gl)
+        return gl
 
     def remove(self, key=None, value=None):
         """
@@ -4050,7 +4051,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
         config.log.info("remove: removed %s items" % removed)
-        return(newl)
+        return newl
 
     def cumulative_annotation_plot(self, filename, peaklists, randoms=None, annotation_range=(100, 50000, 500), **kargs):
         """
