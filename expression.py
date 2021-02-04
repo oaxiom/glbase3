@@ -116,7 +116,7 @@ class expression(base_expression):
         if loadable_list:
             base_expression.__init__(self, loadable_list=loadable_list, expn=expn, **kargs)
         else:
-            base_expression.__init__(self, filename=filename, expn=expn, format=format, **kargs)
+            base_expression.__init__(self, filename=filename, expn=expn, format=format, gzip=gzip, **kargs)
 
     def __repr__(self):
         return "glbase.expression"

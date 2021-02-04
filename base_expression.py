@@ -12,6 +12,7 @@ from operator import itemgetter
 
 import numpy
 from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # This use of array here is not good.
+import gzip as gzipfile
 
 from . import config
 from .flags import *
@@ -22,7 +23,7 @@ from .errors import AssertionError, ArgumentError, ExpressionNonUniqueConditionN
 from .utils import qdeepcopy
 
 class base_expression(genelist):
-    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent:bool=False, **kargs):
+    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent:bool=False, gzip=False, **kargs):
         """
         See the documentation in the expression class.
 
@@ -81,14 +82,19 @@ class base_expression(genelist):
 
             format = newf
 
-            self.loadCSV(filename=filename, format=format) # no need for error checking here - it's in genelist now.
+            self.loadCSV(filename=filename, format=format, gzip=gzip) # no need for error checking here - it's in genelist now.
 
             if "cond_names" in kargs and kargs["cond_names"]:
                 self._conditions = kargs["cond_names"]
             else:
                 # re-open the file and try to guess the conditions
                 # reopen the file to get the condition headers.
-                oh = open(filename, "rU")
+
+                if gzip:
+                    oh = gzipfile.open(filename, "rt")
+                else:
+                    oh = open(filename, "rt")
+
                 if "force_tsv" in format and format["force_tsv"]:
                     reader = csv.reader(oh, dialect=csv.excel_tab)
                 elif "dialect" in format:
