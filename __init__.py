@@ -55,12 +55,12 @@ else:
 if 'h5py' in available_modules:
     config.H5PY_AVAIL = True
 else:
-    config.log.warning('Fatal - h5py not available or not installed')
+    config.log.warning('h5py not available or not installed')
 
 if 'networkx' in available_modules:
     config.NETWORKX_AVAIL = True
 else:
-    config.log.warning('Fatal - networkx not available or not installed')
+    config.log.warning('networkx not available or not installed')
 
 if 'pygraphviz' in available_modules:
     config.PYGRAPHVIZ_AVAIL = True
