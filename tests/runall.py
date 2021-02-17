@@ -32,6 +32,7 @@ from test_track import Test_Track_Function
 from test_tsv_csv_behaviour import Test_TSVCSV
 from test_utils import Test_Utils
 from test_manifolds import Test_Manifold
+from test_element import Test_Motif_Element
 
 def get_suite():
     suite = [
@@ -53,6 +54,7 @@ def get_suite():
         unittest.TestLoader().loadTestsFromTestCase(Test_Genome),
         unittest.TestLoader().loadTestsFromTestCase(Test_PandasImportlist),
         unittest.TestLoader().loadTestsFromTestCase(Test_Manifold),
+        unittest.TestLoader().loadTestsFromTestCase(Test_Motif_Element),
         ]
 
     return unittest.TestSuite(suite)
