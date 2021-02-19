@@ -45,7 +45,7 @@ if config.SKLEARN_AVAIL:
     from .manifold_umap import manifold_umap
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
-    from .manifold_mdsquish import mdsquish
+    from .manifold_mdsquish import manifold_mdsquish
 
 class expression(base_expression):
     def __init__(self, loadable_list=None, filename=None, format=None, expn=None, gzip=False, **kargs):
