@@ -33,7 +33,7 @@ class Test_glglob(unittest.TestCase):
         no_loc_gl = glbase3.genelist()
         no_loc_gl.load_list([{'name': 'missing'}, {'name': 'a'}, {'name': 'loc'}, {'name': 'key'}])
 
-        self.assertRaises(ValueError, self.g.chip_seq_cluster_heatmap, [self.data1, self.data2, self.data3], []) # Fails at a differnet stage, but passes the assertion
+        self.assertRaises(glbase3.errors.AssertionError, self.g.chip_seq_cluster_heatmap, [self.data1, self.data2, self.data3], []) # Fails at a differnet stage, but passes the assertion
         self.assertRaises(glbase3.errors.AssertionError, self.g.chip_seq_cluster_heatmap, [self.data1, self.data2, no_loc_gl], [])
         self.assertRaises(glbase3.errors.AssertionError, self.g.chip_seq_cluster_heatmap, [self.data1, no_loc_gl, no_loc_gl], [])
 
