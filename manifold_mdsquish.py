@@ -27,7 +27,7 @@ from functools import reduce
 
 # nx is interpreting the numpy color array as an iterable.
 
-class mdsquish:
+class manifold_mdsquish:
     def __init__(self, parent):
         """
         **Purpose**

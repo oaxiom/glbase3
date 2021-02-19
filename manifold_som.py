@@ -83,7 +83,7 @@ def chunk_based_bmu_find(x, y, Y2):
 
     return bmu
 
-class SOM(object):
+class manifold_SOM(object):
     def __init__(self, parent, name):
         """
         **Purpose**

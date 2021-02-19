@@ -17,7 +17,7 @@ from . import config
 from .draw import draw
 from .genelist import genelist
 
-class pca:
+class manifold_pca:
     def __init__(self, parent=None, rowwise=False, feature_key_name=None, whiten=False, **kargs):
         """
         **Purpose**

@@ -6,11 +6,11 @@ Differential expression using SOMs.
 
 import numpy, copy, math
 from . import config
-from .som import SOM, normalize
+from .manifold_som import manifold_SOM, normalize
 
-class somde(SOM):
+class manifold_somde(manifold_SOM):
     def __init__(self, parent, name):
-        SOM.__init__(self, parent, name)
+        manifold_SOM.__init__(self, parent, name)
     
     def preparse(self, Z, filename=None, threshold_value=False, digitize=False,):
         '''

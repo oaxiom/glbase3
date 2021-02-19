@@ -27,7 +27,6 @@ from .progress import progressbar
 from .errors import AssertionError, ArgumentError
 from .genelist import genelist
 from .location import location
-from .svd import svd
 from .stats import stats
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
@@ -38,15 +37,15 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
 
 if config.SKLEARN_AVAIL:
     #from .learning import learning
-    from .pca import pca
-    from .mds import mds
-    from .tsne import tsne
-    from .som import SOM
-    from .somde import somde
-    from .umap import umap
+    from .manifold_pca import manifold_pca
+    from .manifold_mds import manifold_mds
+    from .manifold_tsne import manifold_tsne
+    from .manifold_som import manifold_SOM
+    from .manifold_somde import manifold_somde
+    from .manifold_umap import manifold_umap
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
-    from .mdsquish import mdsquish
+    from .manifold_mdsquish import mdsquish
 
 class expression(base_expression):
     def __init__(self, loadable_list=None, filename=None, format=None, expn=None, gzip=False, **kargs):
@@ -176,25 +175,25 @@ class expression(base_expression):
         elif name == "som":
             assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
             sq = math.ceil(math.sqrt(len(self)))
-            self.som = SOM(parent=self, name=self.name)
+            self.som = manifold_SOM(parent=self, name=self.name)
             return self.som
 
         elif name == 'somde':
             sq = math.ceil(math.sqrt(len(self)))
-            self.somde = somde(parent=self, name=self.name)
+            self.somde = manifold_somde(parent=self, name=self.name)
             return self.somde
 
         elif name == 'mds':
-            self.mds = mds(parent=self, name=self.name)
+            self.mds = manifold_mds(parent=self, name=self.name)
             return self.mds
 
         elif name == 'tsne':
-            self.tsne = tsne(parent=self, name=self.name)
+            self.tsne = manifold_tsne(parent=self, name=self.name)
             return self.tsne
 
         elif name == 'umap':
             assert config.NETWORKX_AVAIL, "Asking for a UMAP object but umap-learn is not available"
-            self.umap = umap(parent=self, name=self.name)
+            self.umap = manifold_umap(parent=self, name=self.name)
             return self.umap
 
         elif name == "bayes":
@@ -248,7 +247,7 @@ class expression(base_expression):
             You can get the pca object again in expn.pca
         """
         # This is currently hidden:
-        self.__pca = pca(self, rowwise=rowwise, label_key=label_key, **kargs)
+        self.__pca = manifold_pca(self, rowwise=rowwise, label_key=label_key, **kargs)
         return self.__pca
 
     def get_svd(self, rowwise=False, label_key=None, **kargs):
@@ -287,7 +286,7 @@ class expression(base_expression):
 
             You can get the svd object again in expn.svd
         """
-        self.svd = svd(self, rowwise=rowwise, label_key=label_key, **kargs)
+        self.svd = manifold_svd(self, rowwise=rowwise, label_key=label_key, **kargs)
         return self.svd
 
     def sort_sum_expression(self, selected_conditions=None):

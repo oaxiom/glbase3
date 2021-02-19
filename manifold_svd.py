@@ -17,7 +17,7 @@ from . import config
 from .draw import draw
 from .genelist import genelist
 
-class svd:
+class manifold_svd:
     def __init__(self, parent=None, rowwise=False, label_key=None, whiten=False, mean_subtraction=False, **kargs):
         """
         **Purpose**

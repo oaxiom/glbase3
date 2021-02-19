@@ -84,7 +84,6 @@ else:
 #    pass # pass silently as numexpr is optional.
 
 if 'umap' in available_modules:
-    import umap # TODO: Move to where used?
     config.UMAP_LEARN_AVAIL = True
     umap_log = logging.getLogger("umap")
     umap_log.setLevel(logging.CRITICAL) # silence debug output
