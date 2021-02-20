@@ -234,6 +234,11 @@ class genome(genelist):
                     ret.append(item)
         return(ret)
 
+    # Internal def for chipFish :(
+    def get_data(self, type, location):
+        if type == "genome":
+            return self.getFeatures(str(location))
+
     def bindSequence(self, path=None):
         """
         **Purpose**
