@@ -2057,7 +2057,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 A genelist, containing a 'loc' key.
 
                 This can be any list of peaks. I suggest you create this using the
-                glglob.chip_seq_cluster() function. However, you can also ue bedtools
+                glglob.chip_seq_cluster() function. However, you can also use bedtools
                 or your favourite grouping strategy.
 
                 I will pointify and expand the genomic locations to make them all uniform in size.
@@ -2066,7 +2066,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 a list of flats, make sure each flat has a unique 'name' slot as that
                 will be used to store the result.
 
-                For each flat the peaks will be recalled, and returned as a key in the returned dictionary.
+                For each flat, the peaks will be re-called, and returned as a key in the
+                returned dictionary.
 
             filename (Optional)
                 the basefilename to save the model images to, one file for each flat.
