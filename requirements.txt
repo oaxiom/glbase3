@@ -22,7 +22,7 @@ gnureadline==8.0.0
 graphviz==0.14
 h5py==2.10.0
 iniconfig==0.0.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 joblib==0.17.0
 kiwisolver==1.2.0
 legacy-api-wrap==1.2
