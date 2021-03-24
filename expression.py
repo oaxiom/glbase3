@@ -1685,7 +1685,7 @@ class expression(base_expression):
     def filter_by_value(self, value, absolute=False, **kargs):
         """
         **Purpose**
-            Keep only items in <condition_name> with >= minimum_expression
+            Keep only items in <condition_name> with >= value
 
         **Arguments**
             value (Required)

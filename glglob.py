@@ -1825,7 +1825,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             return(False)
 
         if heat_hei == 'proportional':
-            heat_hei=0.012*len(goex)
+            heat_hei=0.016*len(goex)
 
         res = goex.heatmap(filename=filename, size=size, bracket=bracket,
             row_cluster=row_cluster, col_cluster=col_cluster,
