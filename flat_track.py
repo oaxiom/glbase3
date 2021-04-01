@@ -336,6 +336,10 @@ class flat_track():
         else:
             loc_span = len(genelists[0].linearData[0]["loc"]) # I have to assume all locs are identical.
 
+        available_chroms = list(self.mats.keys())
+        available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
+        __already_warned = []
+
         for gl in genelists:
             if window_size:
                 hist = numpy.zeros(window_size*2)
@@ -347,6 +351,12 @@ class flat_track():
                 counts = numpy.zeros(loc_span) # used to get the average.
 
             for i in gl:
+                if i['loc']['chr'] not in available_chroms:
+                    if i['loc']['chr'] not in __already_warned:
+                        config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(i['loc']['chr']))
+                        __already_warned.append(i['loc']['chr'])
+                    continue
+
                 a = self.get(i["loc"])#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
 
                 if respect_strand:
@@ -398,6 +408,12 @@ class flat_track():
             p = progressbar(len(background))
             for i, back in enumerate(background):
                 for b in back:
+                    if b['loc']['chr'] not in available_chroms:
+                        if b['loc']['chr'] not in __already_warned:
+                            config.log.warning('Asked for {} but not in this flat_track, skipping'.format(b['loc']['chr']))
+                            __already_warned.append(b['loc']['chr'])
+                        continue
+
                     if window_size:
                         l = b["loc"].pointify()
                         l = l.expand(window_size)
@@ -666,8 +682,8 @@ class flat_track():
 
         if raw_heatmap_filename:
             numpy.savetxt(raw_heatmap_filename, data, delimiter="\t")
-            config.log.info("track.heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
+            config.log.info("heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
 
-        config.log.info("track.heatmap(): Saved heatmap tag density to '%s'" % filename)
+        config.log.info("heatmap(): Saved heatmap tag density to '%s'" % filename)
         return {"data": data, 'sorted_original_genelist': sorted_locs}
 
