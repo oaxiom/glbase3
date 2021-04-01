@@ -123,8 +123,8 @@ class base_expression(genelist):
                 oh.close()
 
                 if not silent:
-                    config.log.info("expression: I found the following conditions:")
-                    config.log.info("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
+                    config.log.info("expression: I found the following conditions:\n")
+                    config.log.info("\n".join(["{}\t{}".format(n, i) for n, i in enumerate(self._conditions)]))
 
         # coerce the conditions errs etc to floats
         nans = set(('nan', 'Nan', 'NaN'))

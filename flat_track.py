@@ -342,7 +342,7 @@ class flat_track():
                 counts = numpy.zeros(window_size*2)
                 gl = gl.pointify().expand('loc', window_size)
             else:
-                x = numpy.arange(loc_span) - loc_span//2
+                x = numpy.arange(loc_span) # - loc_span//2
                 hist = numpy.zeros(loc_span)
                 counts = numpy.zeros(loc_span) # used to get the average.
 
@@ -442,12 +442,15 @@ class flat_track():
         else:
             bkgd = None
 
-        ax.axvline(0, ls=":", color="grey")
-
         leg = ax.legend()
-        [t.set_fontsize(7) for t in leg.get_texts()]
+        [t.set_fontsize(6) for t in leg.get_texts()]
         ax.set_ylabel("Magnitude")
-        ax.set_xlabel("Base pairs around centre (bp)")
+
+        if window_size:
+            ax.set_xlabel("Base pairs around centre (bp)")
+            ax.axvline(0, ls=":", color="grey")
+        else:
+            ax.set_xlabel('Base pairs (bp)')
 
         self._draw.do_common_args(ax, **kargs)
 
