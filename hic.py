@@ -381,48 +381,46 @@ class hic:
 
         '''
         fig = plot.figure()
-        ax = fig.add_subplot(111)
 
-        for chrom in self.all_chrom_names:
+        for axidx, chrom in enumerate(self.all_chrom_names):
+            ax = fig.add_subplot(5, 5, axidx+1)
+            ax.set_title(chrom, fontsize=6)
+            ax.tick_params(axis='both', labelsize=6)
+
             # Simple enough, take the diagonal mean (E), then for each point (O) O/E
 
-            m = self.hdf5_handle['matrix_{}/mat'.format(chrom)]
+            mats = self.hdf5_handle['matrix_{}/mat'.format(chrom)]
             grp = self.hdf5_handle.create_group('OE_{}'.format(chrom))
             #with numpyp.errstate(divide='ignore', invalid='ignore'):
 
-            mats = self.hdf5_handle['matrix_%s/mat' % chrom]
-
             # get diagonal means;
             means = []
-            flipped = numpy.fliplr(mats)
-            #flipped = numpy.ma.masked_where(flipped == 0, flipped)
-            print(flipped)
-            for d in range(mats.shape[0]):
+            flipped = numpy.array(mats) # numpy.fliplr(mats)
+            for d in range(flipped.shape[0]):
                 s = flipped.diagonal(offset=d)
-                m = numpy.sum(s) / s.shape[0]
+                s = s[s > 0] # filter no datas
+                if s.shape[0] > 0:
+                    m = numpy.sum(s) / s.shape[0]
+                else:
+                    m = 0
                 means.append(m)
                 #means.append(d)
-            means = numpy.array(means)
+            oldmeans = numpy.array(means) # [::-1]
 
-            fit = lowess(means[::-1], numpy.arange(len(means)), is_sorted=True)
-
-            ax.plot(means[::-1], lw=0.3, alpha=0.5)
-            ax.plot(fit[0], fit[1], lw=0.6, alpha=0.7, c='black')
             # smooth means;
-            nmeans = [sum(m[n:n+2]) / 2 for n in range(len(means)-1)]
-            nmeans.append(0)
-            nmeans.insert(means[0], 0)
-            print(len(means), len(nmeans))
+            fit = lowess(oldmeans, numpy.arange(len(means)), frac=0.04, it=6, is_sorted=True)
 
-            # just use the index, for testing;
-            #means = numpy.arange(mats.shape[0])[::-1]
-            #means = numpy.concatenate((means, means[::-1]), axis=None)
-
-            # i.e. flip back the array:
-            means = numpy.concatenate((means[::-1], means), axis=None)
+            ax.plot(means, lw=0.3, alpha=0.5, c='red')
+            # The first ~2 points are a bad fit, so just replace them with the raw:
+            means = fit[:,1]
+            means[0] = oldmeans[0]
+            means[1] = oldmeans[1]
+            #print(means[0:4], oldmeans[0:4])
+            ax.plot(fit[:,0], means, lw=0.6, alpha=0.2, c='black')
+            sliding_means = means #[::-1] # initial;
+            full_window = numpy.concatenate((means[::-1], means[1:], means[::-1], means[1:]), axis=None) # for sliding window;
 
             # Now get O/E for each point;
-            sliding_means = numpy.array(means)
             newmat = numpy.array(mats)
             for x in range(mats.shape[0]):
                 for y in range(mats.shape[0]):
@@ -431,10 +429,11 @@ class hic:
                         #newmat[x,y] = sliding_means[y]
                         #newmat[x,y] = y
                 t = mats.shape[0] - x
-                sliding_means = numpy.concatenate((means[t+1:], means[0:t+1]), axis=0) # increment;
+                sliding_means = full_window[t-2:t+mats.shape[0]+1] # increment;
                 # inc
-            newmat[numpy.isnan(newmat)] = 0
-            newmat[numpy.isinf(newmat)] = 0
+            newmat[numpy.isnan(flipped)] = 0
+            newmat[numpy.isinf(flipped)] = 0
+            newmat[flipped == 0] = 0 # remove no data
 
             grp.create_dataset('OE', newmat.shape, dtype=numpy.float32, data=newmat)
         config.log.info('Calculated O/E data')
@@ -483,21 +482,17 @@ class hic:
         for chrom in self.all_chrom_names:
             m = numpy.array(self.hdf5_handle['OE_{}/OE'.format(chrom)])
 
-
             grp = self.hdf5_handle.create_group('AB_{}'.format(chrom))
-            #with numpyp.errstate(divide='ignore', invalid='ignore'):
-
-
-            m = numpy.corrcoef(m)
-            m[numpy.isnan(m)] = 0
-            m[numpy.isinf(m)] = 0
+            with numpy.errstate(divide='ignore', invalid='ignore'):
+                #m = numpy.corrcoef(m)
+                m = numpy.log2(m)
+                m[numpy.isnan(m)] = 0
+                m[numpy.isinf(m)] = 0
 
             w, v = numpy.linalg.eig(m)
             if hasattr(v, 'mask'):
                 v.mask = False
             e = v[:, 0] # first PC
-
-            print(e)
 
             grp.create_dataset('AB', e.shape, dtype=numpy.float32, data=e)
         config.log.info('Calculated A/B compartments')
@@ -954,7 +949,7 @@ class hic:
         cmap_to_use = {
             'matrix': cm.viridis,
             'OE': cm.RdBu_r,
-            'AB': cm.BrBG,
+            'AB': cm.BrBG_r,
             }
 
         assert key in dataset_to_use, '{} is not a valid dataset key'.format(key)
@@ -999,6 +994,7 @@ class hic:
             if log2:
                 with numpy.errstate(divide='ignore'):
                     data = numpy.log2(data)
+                    data[numpy.isneginf(data)] = 0
                 colbar_label = 'Log2(Density)'
             # Faster numpy"
             data = numpy.clip(data, bracket[0], bracket[1])
@@ -1017,7 +1013,6 @@ class hic:
         # ---------------- (A/B plots) ---------------------
         if key == 'AB':
             ABdata = numpy.array(self.AB[str(chr)])
-            print(ABdata)
 
             ax1 = fig.add_subplot(142)
             ax1.set_position(ABtop)
