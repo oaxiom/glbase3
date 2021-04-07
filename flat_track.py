@@ -293,17 +293,12 @@ class flat_track():
                 i.e. it will account for differences in library sizes.
 
         **Returns**
-            (data, back)
+            (data, background)
             The data from the line graph.
-            back will be the average of the list of background peaks, but data
-            will be the last entry in the peaklists (if a list of peaks) or will correspond to the
-            only peaklist provided. e.g.:
 
-            data, back = pileup(genelists=[data1, data2, THISDATAWILLBERETURNED] ...)
+            Retuns a dict in data, with a key for each data[genelist.name]
+            background returns an average of the list of background peaks.
 
-            or:
-
-            data, back = pileup(genelists=THISDATAWILLBERETURNED ...)
         """
         assert genelists, "genelists is None?"
 

@@ -15,6 +15,7 @@ from operator import itemgetter
 from shutil import copyfile
 
 import matplotlib.cm as cm
+import scipy
 from scipy import ndimage, interpolate
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
@@ -25,6 +26,11 @@ from .draw import draw
 from .progress import progressbar
 from .location import location
 from .format import minimal_bed
+
+if config.STATSMODELS_AVAIL:
+    from statsmodels.nonparametric.smoothers_lowess import lowess
+else:
+    raise AssertionError('Asked for a hic, but statsmodels is not available')
 
 import matplotlib.pyplot as plot
 
@@ -204,12 +210,12 @@ class hic:
             self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
-                #self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
-                #self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
+                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
 
             self.draw = draw()
             config.log.info('Bound "%s" Hic file' % filename)
-        return(None)
+        return None
 
     def visit(self):
         self.hdf5_handle.visit(print)
@@ -374,6 +380,9 @@ class hic:
         Call after loading mat to build the OE matrices;
 
         '''
+        fig = plot.figure()
+        ax = fig.add_subplot(111)
+
         for chrom in self.all_chrom_names:
             # Simple enough, take the diagonal mean (E), then for each point (O) O/E
 
@@ -385,17 +394,32 @@ class hic:
 
             # get diagonal means;
             means = []
+            flipped = numpy.fliplr(mats)
+            #flipped = numpy.ma.masked_where(flipped == 0, flipped)
+            print(flipped)
             for d in range(mats.shape[0]):
-                m = numpy.sum(numpy.fliplr(mats).diagonal(offset=d))
+                s = flipped.diagonal(offset=d)
+                m = numpy.sum(s) / s.shape[0]
                 means.append(m)
+                #means.append(d)
             means = numpy.array(means)
+
+            fit = lowess(means[::-1], numpy.arange(len(means)), is_sorted=True)
+
+            ax.plot(means[::-1], lw=0.3, alpha=0.5)
+            ax.plot(fit[0], fit[1], lw=0.6, alpha=0.7, c='black')
+            # smooth means;
+            nmeans = [sum(m[n:n+2]) / 2 for n in range(len(means)-1)]
+            nmeans.append(0)
+            nmeans.insert(means[0], 0)
+            print(len(means), len(nmeans))
 
             # just use the index, for testing;
             #means = numpy.arange(mats.shape[0])[::-1]
             #means = numpy.concatenate((means, means[::-1]), axis=None)
 
             # i.e. flip back the array:
-            means = numpy.concatenate((means, means[::-1]), axis=None)
+            means = numpy.concatenate((means[::-1], means), axis=None)
 
             # Now get O/E for each point;
             sliding_means = numpy.array(means)
@@ -403,8 +427,9 @@ class hic:
             for x in range(mats.shape[0]):
                 for y in range(mats.shape[0]):
                     with numpy.errstate(divide='ignore', invalid='ignore'):
-                        newmat[x,y] = newmat[x,y] / sliding_means[y]
-                        newmat[x,y] = sliding_means[y]
+                        newmat[x,y] = newmat[x,y] / sliding_means[y] # actual O/E calc;
+                        #newmat[x,y] = sliding_means[y]
+                        #newmat[x,y] = y
                 t = mats.shape[0] - x
                 sliding_means = numpy.concatenate((means[t+1:], means[0:t+1]), axis=0) # increment;
                 # inc
@@ -413,6 +438,8 @@ class hic:
 
             grp.create_dataset('OE', newmat.shape, dtype=numpy.float32, data=newmat)
         config.log.info('Calculated O/E data')
+
+        fig.savefig('OE_decay_{}.pdf'.format(self['name']))
 
         self.hdf5_handle.attrs['OE'] = True
         return
@@ -423,19 +450,54 @@ class hic:
         Build A/B compartments;
 
         '''
+
+        # From: https://github.com/dekkerlab/cworld-dekker/blob/master/scripts/python/getEigenVectors.py
+
+        numPCs = 3
+
+        """
+        performs eigen vector analysis, and returns 3 best principal components
+        result[0] is the first PC, etc
+        """
+        '''
         for chrom in self.all_chrom_names:
-            m = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+            newmat = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+            with numpy.errstate(divide='ignore', invalid='ignore'):
+                A = numpy.corrcoef(newmat) # Pearson Corr of normalised distance
+
+            A = numpy.array(A)
+            M = (A - numpy.mean(A.T, axis=1)).T
+            covM = numpy.dot(M, M.T)
+            latent, coeff = scipy.sparse.linalg.eigsh(covM, numPCs)
+            #return (np.transpose(coeff[:,::-1]),latent[::-1])
+            pc1 = numpy.transpose(coeff[:,::-1])
+
+            grp = self.hdf5_handle.create_group('AB_{}'.format(chrom))
+            grp.create_dataset('AB', pc1.shape, dtype=numpy.float32, data=pc1)
+
+        config.log.info('Calculated A/B compartments')
+        self.hdf5_handle.attrs['AB'] = True
+        return
+        '''
+
+        for chrom in self.all_chrom_names:
+            m = numpy.array(self.hdf5_handle['OE_{}/OE'.format(chrom)])
+
 
             grp = self.hdf5_handle.create_group('AB_{}'.format(chrom))
             #with numpyp.errstate(divide='ignore', invalid='ignore'):
 
-            c = numpy.corrcoef(m) # Basically smooths it;
-            c[numpy.isnan(c)] = 0
 
-            w, v = numpy.linalg.eig(c)
+            m = numpy.corrcoef(m)
+            m[numpy.isnan(m)] = 0
+            m[numpy.isinf(m)] = 0
+
+            w, v = numpy.linalg.eig(m)
             if hasattr(v, 'mask'):
                 v.mask = False
             e = v[:, 0] # first PC
+
+            print(e)
 
             grp.create_dataset('AB', e.shape, dtype=numpy.float32, data=e)
         config.log.info('Calculated A/B compartments')
@@ -569,6 +631,7 @@ class hic:
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
         self.__OEmatrix()
+        self.__ABcompart()
 
         return True
 
@@ -742,7 +805,7 @@ class hic:
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
         self.__OEmatrix()
-        #self.__ABcompart()
+        self.__ABcompart()
 
         return True
 
@@ -885,14 +948,16 @@ class hic:
         dataset_to_use = {
             'matrix': self.mats,
             'OE': self.OE,
+            'AB': self.OE,
             }
         # TODO: sanity checking on matrix availability;
         cmap_to_use = {
-            'matrix': cm.inferno_r,
+            'matrix': cm.viridis,
             'OE': cm.RdBu_r,
+            'AB': cm.BrBG,
             }
 
-        assert key in dataset_to_use, '{} is not a valind dataset key'.format(key)
+        assert key in dataset_to_use, '{} is not a valid dataset key'.format(key)
 
         if chr:
             data = dataset_to_use[key][str(chr)]
@@ -903,7 +968,7 @@ class hic:
 
             chrom = loc.loc['chr']
             if 'chr' not in chrom:
-                chrom = 'chr{0}'.format(chrom)
+                chrom = 'chr{}'.format(chrom)
 
             # Need to get the binIDs and the updated location span
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
@@ -950,25 +1015,28 @@ class hic:
             vmax = data.max()
 
         # ---------------- (A/B plots) ---------------------
-        '''
-        ax1 = fig.add_subplot(142)
-        ax1.set_position(ABtop)
-        ax1.plot(ABdata)
-        ax1.set_xlim([0, len(ABdata)])
-        ax1.axhline(0.0, lw=1.0, c='black')
-        ax1.tick_params(left=None, bottom=None)
-        ax1.set_xticklabels('')
-        ax1.set_yticklabels('')
+        if key == 'AB':
+            ABdata = numpy.array(self.AB[str(chr)])
+            print(ABdata)
 
-        ax2 = fig.add_subplot(143)
-        ax2.set_position(ABlef)
-        ax2.plot(range(len(ABdata)), ABdata)
-        ax2.set_ylim([0, len(ABdata)])
-        ax2.axvline(0.0, lw=1.0, c='black')
-        #ax2.tick_params(left=None, bottom=None)
-        #ax2.set_xticklabels('')
-        #ax2.set_yticklabels('')
-        '''
+            ax1 = fig.add_subplot(142)
+            ax1.set_position(ABtop)
+            ax1.plot(ABdata)
+            ax1.set_xlim([0, len(ABdata)])
+            ax1.axhline(0.0, lw=1.0, c='black')
+            ax1.tick_params(left=None, bottom=None)
+            ax1.set_xticklabels('')
+            ax1.set_yticklabels('')
+
+            ax2 = fig.add_subplot(143)
+            ax2.set_position(ABlef)
+            ax2.plot(range(len(ABdata)), ABdata)
+            ax2.set_ylim([0, len(ABdata)])
+            ax2.axvline(0.0, lw=1.0, c='black')
+            #ax2.tick_params(left=None, bottom=None)
+            #ax2.set_xticklabels('')
+            #ax2.set_yticklabels('')
+
 
         # ---------------- (heatmap) -----------------------
         ax3 = fig.add_subplot(141)

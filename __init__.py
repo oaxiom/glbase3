@@ -77,6 +77,11 @@ if 'pydot' in available_modules:
 else:
     pass # pass silently as pygraphviz is optional.
 
+if 'statsmodels' in available_modules:
+    config.STATSMODELS_AVAIL = True
+else:
+    pass
+
 #try:
 #    import numexpr
 #    config.NUMEXPR_AVAIL = True
