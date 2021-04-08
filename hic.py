@@ -103,7 +103,7 @@ def merge_hiccys(new_hic_filename, name, *hics):
     assert new_hic_filename, 'You must specify a filename in new_hic_filename'
     assert name, 'You must specify a name'
     assert hics, 'a list of hics was not specified'
-    assert isinstance(hics, tuple), 'hics must be a list of >=2'
+    assert isinstance(hics, tuple), 'hics must be a tuple of >=2'
     assert (len(hics) > 1), 'hics must be >=2 length'
 
     # For the first one to merge, do an OS copy for speed and setup
@@ -127,8 +127,8 @@ def merge_hiccys(new_hic_filename, name, *hics):
         newhic.mats[chrom][:] = data
 
     # Recalculate, don't mean:
-    #newhic.__OEmatrix()
-    #newhic.__ABmatrix()
+    newhic.__OEmatrix()
+    newhic.__ABmatrix()
     newhic.close()
     config.log.info('Merged {0} matrices'.format(len(hics)+1,))
 
@@ -415,6 +415,7 @@ class hic:
             means = fit[:,1]
             means[0] = oldmeans[0]
             means[1] = oldmeans[1]
+            means[2] = oldmeans[2]
             #print(means[0:4], oldmeans[0:4])
             ax.plot(fit[:,0], means, lw=0.6, alpha=0.2, c='black')
             sliding_means = means #[::-1] # initial;
@@ -1948,7 +1949,7 @@ class hic:
 
         return gl
 
-    def contact_probability(self, min_dist, max_dist, anchors=None, filename=None, **kargs):
+    def contact_probability(self, min_dist, max_dist, anchors=None, filename=None, skip_Y_chromosome=True, **kargs):
         '''
         **Purpose**
             Measure the contact probability from in_dist to max dist,
@@ -1967,6 +1968,10 @@ class hic:
 
             filename (Optional, default=False)
                 filename to save the resulting histogram to.
+
+            skip_Y_chromosome (Optional, default=True)
+                HiC data on the Y chromsome is pretty messy, and if your cells are female is not valid. Skip it by default;
+
         '''
         if anchors: assert 'loc' in anchors.keys(), '"loc" key not found in anchors'
         assert min_dist, 'max_dist must be specified'
@@ -2001,6 +2006,8 @@ class hic:
         else: # Whole genome;
             p = progressbar(len(self.mats))
             for cidx, chrom in enumerate(self.mats):
+                if chrom == 'chrY' and skip_Y_chromosome:
+                    continue # The Y is often a mess skip it;
                 for cpt in range(self.mats[chrom].shape[0]):
                     # Don't add the edges, as that includes things like telomeres;
 
