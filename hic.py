@@ -107,15 +107,27 @@ def merge_hiccys(new_hic_filename, name, *hics):
     assert (len(hics) > 1), 'hics must be >=2 length'
 
     # For the first one to merge, do an OS copy for speed and setup
-    copyfile(hics[0], new_hic_filename)
-
-    newhic = hic(filename=new_hic_filename, name=name, new=False, _readplus=True)
+    #copyfile(hics[0], new_hic_filename)
 
     # I bind all the hics:
+    h0 = hic(filename=hics[0], name=hics[0])
     hics = [hic(filename=f, name=f) for f in hics[1:]]
 
+    # Do a setup;
+    newhic = hic(filename=new_hic_filename, name=name, new=True, _readplus=False)
+
+    newhic.hdf5_handle.attrs['name'] = name
+    newhic.hdf5_handle.attrs['inter_chrom_only'] = h0.hdf5_handle.attrs['inter_chrom_only']
+    newhic.hdf5_handle.attrs['OE'] = False
+    newhic.hdf5_handle.attrs['AB'] = False
+    newhic.hdf5_handle.attrs['version'] = h0.hdf5_handle.attrs['version']
+    newhic.hdf5_handle.attrs['num_bins'] = h0.hdf5_handle.attrs['num_bins']
+    newhic.hdf5_handle.attrs['bin_size'] = h0.hdf5_handle.attrs['bin_size']
+    newhic.all_chrom_names = hics[0].all_chrom_names # Made into a set later
+    newhic.draw = draw()
+
     for chrom in newhic.all_chrom_names:
-        data = numpy.array(newhic.mats[chrom])
+        data = numpy.array(h0.mats[chrom])
         for h in hics:
             newdata = h.mats[chrom]
 
@@ -124,11 +136,23 @@ def merge_hiccys(new_hic_filename, name, *hics):
             data += newdata
 
         data /= (len(hics)+1)
-        newhic.mats[chrom][:] = data
 
-    # Recalculate, don't mean:
-    newhic.__OEmatrix()
-    newhic.__ABmatrix()
+        grp = newhic.hdf5_handle.create_group('matrix_{}'.format(chrom))
+        grp.create_dataset('mat', data.shape, dtype=numpy.float32, data=data)
+        config.log.info('Added chrom=%s to table' % chrom)
+
+    # save the bin data as an emulated dict: Just copy from h0
+    grp = newhic.hdf5_handle.create_group('bin_lookup')
+    for chrom in newhic.all_chrom_names:
+        grp = newhic.hdf5_handle.create_group('bin_lookup/chrom_%s' % chrom)
+        flat_bin = numpy.array(h0.hdf5_handle['bin_lookup/chrom_%s/bins' % chrom][()])
+        grp.create_dataset('bins', (flat_bin.shape), dtype=int, data=flat_bin, chunks=True, compression='lzf')
+
+    dat = [str(n).encode("ascii", "ignore") for n in newhic.all_chrom_names]
+    newhic.hdf5_handle.create_dataset('all_chrom_names', (len(newhic.all_chrom_names), 1), 'S10', dat)
+
+    newhic._OEmatrix()
+    newhic._ABcompart()
     newhic.close()
     config.log.info('Merged {0} matrices'.format(len(hics)+1,))
 
@@ -374,7 +398,7 @@ class hic:
 
         return (mostLeft, mostRight)
 
-    def __OEmatrix(self):
+    def _OEmatrix(self):
         '''
 
         Call after loading mat to build the OE matrices;
@@ -444,7 +468,7 @@ class hic:
         self.hdf5_handle.attrs['OE'] = True
         return
 
-    def __ABcompart(self):
+    def _ABcompart(self):
         '''
 
         Build A/B compartments;
@@ -626,8 +650,8 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        self.__OEmatrix()
-        self.__ABcompart()
+        self._OEmatrix()
+        self._ABcompart()
 
         return True
 
@@ -800,8 +824,8 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        self.__OEmatrix()
-        self.__ABcompart()
+        self._OEmatrix()
+        self._ABcompart()
 
         return True
 
