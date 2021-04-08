@@ -131,8 +131,8 @@ def merge_hiccys(new_hic_filename, name, *hics):
         for h in hics:
             newdata = h.mats[chrom]
 
-            if newdata.shape != data.shape:
-                newdata = reshap_mats(newdata, data.shape[0], data.shape[1])
+            #if newdata.shape != data.shape:
+            #    newdata = reshap_mats(newdata, data.shape[0], data.shape[1])
             data += newdata
 
         data /= (len(hics)+1)
@@ -517,7 +517,7 @@ class hic:
             w, v = numpy.linalg.eig(m)
             if hasattr(v, 'mask'):
                 v.mask = False
-            e = v[:, 0] # first PC
+            e = numpy.real(v[:, 0]) # first PC
 
             grp.create_dataset('AB', e.shape, dtype=numpy.float32, data=e)
         config.log.info('Calculated A/B compartments')
