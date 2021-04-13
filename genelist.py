@@ -4,7 +4,7 @@ behaves like a normal list, but each element contains a heterogenous set of data
 
 """
 
-import sys, os, csv, copy, random, pickle, re, numpy, scipy, gzip
+import sys, os, csv, copy, random, pickle, re, numpy, scipy, gzip, functools
 
 from operator import itemgetter
 
@@ -1104,6 +1104,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self._optimiseData()
         return True
 
+    '''
     def multi_sort(self, keys):
         """
         **Purpose**
@@ -1128,9 +1129,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     return mult * result
             else:
                 return 0
-        self.linearData = sorted(self.linearData, cmp=comparer)
+
+        self.linearData = sorted(self.linearData, key=functools.cmp_to_key(comparer)) # Hack!
         self._optimiseData()
         return True
+    '''
 
     def reverse(self):
         """

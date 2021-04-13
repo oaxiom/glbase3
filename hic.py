@@ -1081,7 +1081,7 @@ class hic:
         ax0.set_position(scalebar_location)
         ax0.set_frame_on(False)
 
-        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0, cmap=colour_map)
+        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
         cb.set_label(colbar_label)
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
