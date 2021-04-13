@@ -3148,7 +3148,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl = self.deepcopy()
 
         for item in newl:
-            item[new_key_name] = formatter % (item[keyA], item[keyB])
+            item[new_key_name] = formatter.format(item[keyA], item[keyB])
 
             if not keep_originals:
                 if not new_key_name == keyA: # Don't delete if it is also the new key.
