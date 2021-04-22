@@ -2349,6 +2349,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
         assert not (sort_by_sum_intensity and sort_by_intensity), 'sort_by_sum_intensity and sort_by_intensity cannot both be True'
+        if 'normalize' in kargs: raise AssertionError('normalize has been deprecated, use norm_by_library_size')
 
         total_rows = 0
 

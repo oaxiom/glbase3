@@ -2879,7 +2879,7 @@ class draw:
         plot_hei = (0.8) - (0.04*len(labs))
 
         if 'figsize' not in kargs: # TODO: Sensible sizes
-            kargs['figsize'] = [4,3]
+            kargs['figsize'] = [4,6]
 
         fig = self.getfigure(**kargs)
         fig.subplots_adjust(left=0.35, right=0.95, bottom=plot_hei)
