@@ -894,7 +894,7 @@ class draw:
         list_of_data=None,
         filename=None,
         groups=None,
-         titles=None,
+        titles=None,
         vmin=0, vmax=None,
         colour_map=cm.YlOrRd,
         col_norm=False,
@@ -935,7 +935,7 @@ class draw:
         num_heatmaps = len(list_of_data)
 
         if size:
-            fig = self.getfigure(size=size)
+            fig = self.getfigure(size=size, figsize=size)
         else: # guess:
             fig = self.getfigure(size=(3*num_heatmaps, 10))
 

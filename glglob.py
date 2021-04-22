@@ -1366,7 +1366,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # Get the size of each library if we need to normalize the data.
             if norm_by_library_size:
                 # get and store the read_counts for each library to reduce an sqlite hit.
-                read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
+                read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks] # i.e something like RPM
 
             p = progressbar(len(list_of_trks))
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
@@ -2213,7 +2213,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         list_of_peaks,
         list_of_trks,
         filename:str = None,
-        normalise = False,
+        norm_by_library_size = False,
         bins:int = 100,
         pileup_distance:int = 1000,
         cache_data=False,
@@ -2251,7 +2251,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             filename (Optional, default=None)
                 If set to a string a heatmap & pileup will be saved to filename.
 
-            normalise (Optional, default=False)
+            norm_by_library_size (Optional, default=False)
                 Normalize the read pileup data within each library to the size of the
                 library to assist in cross-comparison of ChIP-seq libraries.
 
@@ -2353,7 +2353,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         total_rows = 0
 
         # Get the size of each library if we need to normalize the data.
-        if normalise:
+        if norm_by_library_size:
             # get and store the read_counts for each library to reduce an sqlite hit.
             read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
 
@@ -2480,13 +2480,13 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         matrix[tindex][plidx] = numpy.log10(matrix[tindex][plidx]+log_pad)
                         colbar_label = "Log10(Tag density)"
                     else:
-                        raise AssertionError('log={0} not found'.format(log))
+                        raise AssertionError('log={} not found'.format(log))
         else:
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.02, 0.1]
 
-        if normalise:
-            colbar_label = "Normalised %s" % colbar_label
+        if norm_by_library_size:
+            colbar_label = "Normalised {}".format(colbar_label)
 
             # Data is always saved unnormalised;
             for plidx, peaklist in enumerate(list_of_peaks):

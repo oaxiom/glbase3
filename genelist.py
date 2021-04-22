@@ -849,7 +849,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if name == "null_":
                 save_name = "null_%s" % index
             else:
-                save_name = "_".join([str(item[n]) for n in name])
+                save_name = "_".join([str(item[n]).replace(' ', '_') for n in name])
 
             oh.write(">%s\n" % save_name)
             oh.write("%s\n" % item[seq_key])
