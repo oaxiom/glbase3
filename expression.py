@@ -3481,6 +3481,7 @@ class expression(base_expression):
         log=True,
         log_pad=0.1,
         title=None,
+        ylims=[4, 15],
         **kargs):
         """
         **Purpose**
@@ -3555,7 +3556,7 @@ class expression(base_expression):
         self.draw.violinplot(data,
             filename=filename, title=title,
             mean=True, median=False, stdev=False,
-            ylims=[4, 15],
+            ylims=ylims,
             order=class_order,
             **kargs)
 

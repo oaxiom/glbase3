@@ -2008,11 +2008,17 @@ class hic:
         hist = numpy.zeros(bin_span)
 
         if anchors: # selected anchors only
+            used_bins = set([]) # Don't use same bin twice;
+
             anchors = anchors['loc']
             p = progressbar(len(anchors))
             for lidx, loc in enumerate(anchors):
                 chrom = 'chr{}'.format(loc.loc['chr'])
                 cpt = ((loc.loc['left'] + loc.loc['right']) // 2) // self['bin_size']
+
+                if cpt in used_bins:
+                    continue
+                used_bins.add(cpt)
 
                 left_top_slice = cpt+min_bin+bin_span
                 if left_top_slice < self.mats[chrom].shape[1]:

@@ -2853,7 +2853,7 @@ class draw:
                 for kk in data_dict[k]:
                     if kk not in all_keys:
                         all_keys.append(kk)
-            config.log.info('proportional_bar: Found {0} keys'.format(all_keys))
+            config.log.info('proportional_bar: Found {} keys'.format(all_keys))
         else:
             all_keys = key_order
 
@@ -2864,7 +2864,6 @@ class draw:
             labs.append(k)
             for kk in all_keys:
                 vals[kk].append(float(data_dict[k][kk]))
-        print(vals)
 
         scaled = {k: [] for k in all_keys}
         sums = None
@@ -2876,13 +2875,15 @@ class draw:
         for k in all_keys:
             vals[k] = numpy.array(vals[k])
 
-        plot_hei = (0.8) - (0.04*len(labs))
+        plot_hei = 0.01*len(labs)
+
+        # ValueError: bottom cannot be >= top
 
         if 'figsize' not in kargs: # TODO: Sensible sizes
             kargs['figsize'] = [4,6]
 
         fig = self.getfigure(**kargs)
-        fig.subplots_adjust(left=0.35, right=0.95, bottom=plot_hei)
+        fig.subplots_adjust(left=0.35, right=0.95, bottom=0.1, top=0.1+plot_hei)
         ax = fig.add_subplot(111)
         ax.set_prop_cycle('color', cols)
 
