@@ -262,8 +262,8 @@ class flat_track():
                 If set to None then it will use the location as specified.
 
             average (Optional, default=True)
-                use the average score if set to True (i.e. divide by the number of items)
-                Or use the cumulative score (the total) if set to False
+                use the average score if set to True (i.e. divide by the number of items
+                in genelist), or use the cumulative score (the total) if set to False
 
             background (Optional)
                 You can supply a list of background coordinates if you want. The lists
@@ -405,7 +405,7 @@ class flat_track():
                 for b in back:
                     if b['loc']['chr'] not in available_chroms:
                         if b['loc']['chr'] not in __already_warned:
-                            config.log.warning('Asked for {} but not in this flat_track, skipping'.format(b['loc']['chr']))
+                            config.log.warning('Asked for {} chromosome but not in this flat_track, skipping'.format(b['loc']['chr']))
                             __already_warned.append(b['loc']['chr'])
                         continue
 

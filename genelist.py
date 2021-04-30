@@ -3267,8 +3267,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert filename, "must specify a filename to save as"
         assert expression, "must provide some expression data"
         assert match_key, "'match_key' is required"
-        assert match_key in list(self.linearData[0].keys()), "match_key '%' not found in this list"
-        assert match_key in list(expression.linearData[0].keys()), "match_key '%' not found in expression object"
+        assert match_key in list(self.linearData[0].keys()), "match_key '{}' not found in this list".format(match_key)
+        assert match_key in list(expression.linearData[0].keys()), "match_key '{}' not found in expression object".format(match_key)
         if spline_interpolate:
             assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), "'%s' spline_interpolate method not found" % spline_interpolate
 

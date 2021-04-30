@@ -2255,7 +2255,7 @@ class draw:
 
         self.do_common_args(ax, **kargs)
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def bar_chart(self, filename=None, genelist=None, data=None, cols=None, **kargs):
         """

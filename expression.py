@@ -2050,7 +2050,7 @@ class expression(base_expression):
         data = self.serialisedArrayDataDict
 
         # do plot
-        actual_filename = self.draw.beanplot(data=data, filename=filename,
+        actual_filename = self.draw.violinplot(data=data, filename=filename,
             order=self.getConditionNames(), beans=beans, **kargs)
 
         config.log.info("beanplot: Saved %s" % actual_filename)

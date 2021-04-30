@@ -321,7 +321,7 @@ def float_to_tuple(a):
         return a
 
 def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
-                expand_text=(1.2, 1.2), expand_points=(1.2, 1.2),
+                expand_text=(1.01, 1.01), expand_points=(1.2, 1.2),
                 expand_objects=(1.2, 1.2), expand_align=(0.9, 0.9),
                 autoalign='xy',  va='center', ha='center',
                 force_text=0.5, force_points=0.5, force_objects=0.5,
