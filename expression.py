@@ -1969,7 +1969,12 @@ class expression(base_expression):
         config.log.info("scatter: Saved '%s'" % real_filename)
         return(True)
 
-    def boxplot(self, filename=None, showfliers=True, whis=1.5, showmeans=False, **kargs):
+    def boxplot(self,
+        filename=None,
+        showfliers=True,
+        whis=1.5,
+        showmeans=False,
+        **kargs):
         """
         **Purpose**
 
@@ -2017,12 +2022,16 @@ class expression(base_expression):
             data = self.__log_transform_data(data, log=kargs["log"])
 
         # do plot
-        actual_filename = self.draw.boxplot(data=data, filename=filename,
+        actual_filename = self.draw.boxplot(
+            data=data,
+            filename=filename,
             showmeans=showmeans,
-            labels=self.getConditionNames(), showfliers=showfliers, **kargs)
+            labels=self.getConditionNames(),
+            showfliers=showfliers,
+            **kargs)
 
         config.log.info("boxplot: Saved %s" % actual_filename)
-        return(actual_filename)
+        return actual_filename
 
     def violinplot(self, filename=None, beans=False, **kargs):
         """
@@ -2054,7 +2063,7 @@ class expression(base_expression):
             order=self.getConditionNames(), beans=beans, **kargs)
 
         config.log.info("beanplot: Saved %s" % actual_filename)
-        return(actual_filename)
+        return actual_filename
 
     def multi_line(self, filename=None, alpha=None, **kargs):
         """

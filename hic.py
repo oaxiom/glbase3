@@ -439,7 +439,7 @@ class hic:
             means = fit[:,1]
             means[0] = oldmeans[0]
             means[1] = oldmeans[1]
-            means[2] = oldmeans[2]
+            #means[2] = oldmeans[2]
             #print(means[0:4], oldmeans[0:4])
             ax.plot(fit[:,0], means, lw=0.6, alpha=0.2, c='black')
             sliding_means = means #[::-1] # initial;
@@ -459,6 +459,8 @@ class hic:
             newmat[numpy.isnan(flipped)] = 0
             newmat[numpy.isinf(flipped)] = 0
             newmat[flipped == 0] = 0 # remove no data
+
+            newmat = numpy.corrcoef(newmat)
 
             grp.create_dataset('OE', newmat.shape, dtype=numpy.float32, data=newmat)
         config.log.info('Calculated O/E data')
@@ -510,7 +512,7 @@ class hic:
             grp = self.hdf5_handle.create_group('AB_{}'.format(chrom))
             with numpy.errstate(divide='ignore', invalid='ignore'):
                 #m = numpy.corrcoef(m)
-                m = numpy.log2(m)
+                #m = numpy.log2(m)
                 m[numpy.isnan(m)] = 0
                 m[numpy.isinf(m)] = 0
 
@@ -917,9 +919,15 @@ class hic:
 
         return self.tad_calls
 
-    def heatmap(self, filename, chr=None, loc=None,
+    def heatmap(self,
+        filename,
+        chr=None,
+        loc=None,
         key='matrix',
-        bracket=None, colour_map=cm.inferno_r, log2=False, **kargs):
+        bracket=None,
+        colour_map=cm.inferno_r,
+        log2=False,
+        **kargs):
         """
         **Purpose**
             Draw an interaction heatmap

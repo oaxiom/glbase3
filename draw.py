@@ -818,8 +818,21 @@ class draw:
         ax1 = fig.add_subplot(142)
         plot_data = arraydata.T
         if imshow:
-            hm = ax1.imshow(plot_data, cmap=cmap, vmin=vmin, vmax=vmax,
-                interpolation=config.get_interpolation_mode(filename))
+            ax1.set_position(left_heatmap)
+            #hm = ax1.imshow(plot_data, cmap=cmap, vmin=vmin, vmax=vmax,
+            #    interpolation=config.get_interpolation_mode(kargs["filename"]))
+
+            hm = ax1.imshow(
+                plot_data,
+                cmap=cmap,
+                vmin=vmin,
+                vmax=vmax,
+                aspect="auto",
+                origin='lower',
+                extent=[0, plot_data.shape[1], 0, plot_data.shape[0]],
+                interpolation=config.get_interpolation_mode(kargs["filename"])
+                )
+
         else:
             hm = ax1.pcolormesh(plot_data, cmap=cmap, vmin=vmin, vmax=vmax, antialiased=False)
 
@@ -856,7 +869,22 @@ class draw:
 
         a = array(bin) # reshape the bin array
         a.shape = 1,len(bin)
-        ax2.pcolormesh(a.T, cmap=cm.binary, antialiased=True)
+
+        if imshow:
+            ax2.set_position(binding_map)
+            #hm = ax1.imshow(plot_data, cmap=cmap, vmin=vmin, vmax=vmax,
+            #    interpolation=config.get_interpolation_mode(kargs["filename"]))
+            hm = ax2.imshow(
+                a.T,
+                cmap=cm.binary,
+                aspect="auto",
+                origin='lower',
+                extent=[0, a.T.shape[1], 0, a.T.shape[0]],
+                interpolation=config.get_interpolation_mode(kargs["filename"])
+                )
+
+        else:
+            hm = ax2.pcolormesh(a.T, cmap=cm.binary, antialiased=True)
 
         ax2.set_frame_on(draw_frames)
         ax2.set_position(binding_map)
@@ -888,7 +916,7 @@ class draw:
         ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
         ax3.axvline(x=(m-s), color='r', linestyle=":", linewidth=0.5)
 
-        return(self.savefigure(fig, kargs["filename"]))
+        return self.savefigure(fig, kargs["filename"], dpi=600)
 
     def multi_heatmap(self,
         list_of_data=None,
@@ -1171,9 +1199,17 @@ class draw:
 
         return self.savefigure(fig, filename, dpi=dpi)
 
-    def boxplot(self, data=None, filename=None, labels=None, showfliers=True, whis=1.5,
-        showmeans=False, meanline=False,
-        tight_layout=False, grid=True, **kargs):
+    def boxplot(self,
+        data=None,
+        filename=None,
+        labels=None,
+        showfliers=True,
+        whis=1.5,
+        showmeans=False,
+        meanline=False,
+        tight_layout=False,
+        grid=True,
+        **kargs):
         """
         wrapper around matplotlib's boxplot
         """
@@ -1189,6 +1225,7 @@ class draw:
         #ax.axhline(0, ls=":", color="grey") # add a grey line at zero for better orientation
         if grid:
             ax.grid(axis="y", ls=":", color="grey", zorder=1000000)
+
         r = ax.boxplot(data, showfliers=showfliers, whis=whis, widths=0.5,
             showmeans=showmeans, meanline=meanline)
 

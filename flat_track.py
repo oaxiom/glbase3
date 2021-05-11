@@ -312,6 +312,9 @@ class flat_track():
         read_count = 1.0
         if norm_by_read_count:
             read_count = float(self.get_total_num_reads())
+            print(read_count)
+            if read_count <= 0:
+                raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
 
         all_hists = {}
 

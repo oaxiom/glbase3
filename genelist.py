@@ -3206,9 +3206,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Saved pie to '%s'" % newfilename)
         return data
 
-    def frequencyAgainstArray(self, filename=None, match_key=None, expression=None,
+    def frequencyAgainstArray(self,
+        filename=None,
+        match_key=None,
+        expression=None,
         spline_interpolate=False,
-        step_style=False, window=None, **kargs):
+        imshow=False,
+        step_style=False,
+        window=None, **kargs):
         """
         Draw a peaklist and compare against an array.
         Draws a three panel figure showing an array heatmap, the binding events
@@ -3252,6 +3257,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             draw_frames (Optional, default=False)
                 draw a frame around each of the elements in the figure.
+
+            imshow (Optional, default=False)
+                Save the heatmap as blocks (imshow=False) or save as an image (imshow=True)
 
         **Result**
             returns a new peaklist containing the overlapping sites only. The microarray condition value
@@ -3330,7 +3338,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # Now I can't be arsed to clean it up.
         # Actually, I just spent quite a while getting it into
         # A more sensible shape. Now my enthusiasm has evaporated...
-        actual_filename = self.draw._heatmap_and_plot(peakdata=peak_data, bin=bin, row_label_key=match_key, **kargs)
+        actual_filename = self.draw._heatmap_and_plot(peakdata=peak_data,
+            bin=bin,
+            row_label_key=match_key,
+            imshow=imshow,
+            **kargs)
 
         config.log.info("frequencyAgainstArray: Saved '%s'" % actual_filename)
         return newgl
