@@ -22,6 +22,7 @@ from .location import location
 from .progress import progressbar
 from .genelist import genelist
 from .expression import expression
+from .data import positive_strand_labels, negative_strand_labels
 
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -2024,8 +2025,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return(expn)
 
-    def redefine_peaks(self, super_set_of_peaks, list_of_flats, filename=None, Z_threshold=1.2,
-        peak_window=200, lambda_window=5000, **kargs):
+    def redefine_peaks(self,
+        super_set_of_peaks,
+        list_of_flats,
+        filename = None,
+        Z_threshold = 1.2,
+        peak_window:int = 200,
+        lambda_window:int = 5000,
+        **kargs):
         """
         **Purpose**
             A strategy for re-calling peaks from some arbitrary set of flat files.
@@ -2216,9 +2223,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         norm_by_library_size = False,
         bins:int = 100,
         pileup_distance:int = 1000,
-        cache_data=False,
-        bracket=None,
-        range_bracket=None,
+        cache_data = False,
+        bracket = None,
+        range_bracket = None,
         frames = True,
         row_labels = None,
         col_labels = None,
@@ -2231,6 +2238,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         sort_by_sum_intensity:bool = False,
         sort_by_intensity:bool = False,
         size = None,
+        respect_strand:bool = False,
         **kargs):
         """
         **Purpose**
@@ -2289,6 +2297,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 True: Sort by the sum of each row, but independently for each heatmap;
 
                 Note, exclusive with sort_by_sum_intensity
+
+            respect_strand (Optional, default=False)
+                If available, respect the orientation of the strand from the genelist.
+                This is useful if you are, say, using the TSS's and want to maintain the
+                orientation with respect to the transcription direction.
 
             ######## Bracket system:
 
@@ -2429,6 +2442,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 left = len(data)
 
                             dd = data[left:rite]
+
                             if len(dd) < block_len: # This should be a very rare case...
                                 config.log.warning('Block miss (short)')
                                 num_missing = block_len - len(dd)
@@ -2438,6 +2452,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 config.log.warning('Block miss (long)')
                                 num_missing = block_len - len(dd)
                                 dd = dd[0:block_len] # just grab the start. probably unreliable though?
+
+                            if respect_strand:
+                                if peaklist.linearData[peak]["strand"] in negative_strand_labels: # For the reverse strand all I have to do is flip the array.
+                                    dd = dd[::-1]
 
                             # Fill in the matrix table:
                             #pileup[tindex][plidx][pidx] += pil_data
