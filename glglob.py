@@ -2357,6 +2357,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if norm_by_library_size:
             # get and store the read_counts for each library to reduce an sqlite hit.
             read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
+            if True in [i <= 0 for i in read_totals]:
+                raise AssertionError('norm_by_read_count=True, but at least one flat_track has no total number of reads')
 
         # I will need to go back through the chr_blocks data and add in the pileup data:
         bin_size = int((pileup_distance+pileup_distance) / bins)
