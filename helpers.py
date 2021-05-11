@@ -165,10 +165,10 @@ def XUp(data, names, normed = None, **kargs):
                 normed_data = (data[c] / data[normed])
                 # this is greedy - only 1 condition needs to fulfill the criteria.
                 if normed_data > X:
-                    return(True)
+                    return True
                 else:
-                    return(False)
-        return(False)
+                    return False
+        return False
 
 # For formatting the CSV loading.
 
@@ -177,7 +177,7 @@ def lst_find(lst, predicate): # I need a helper function to find the item
 
 def cat_columns(c1, c2, sep=' '):
     # concatenate two columns together
-    return('%s%s%s' % (c1, sep, c2))
+    return '%s%s%s' % (c1, sep, c2)
 
 def strandSorter(chr, left, right, strand):
     """
@@ -187,6 +187,15 @@ def strandSorter(chr, left, right, strand):
         return(location(chr=chr, left=left, right=left))
     elif strand in negative_strand_labels:
         return(location(chr=chr, left=right, right=right))
-    return(None)
+    return None
 
+def strandSorter_neg(chr, left, right, strand):
+    """
+    A helper proc to extract the tts (i.e. the - strand side) from a list of coords.
+    """
+    if strand in positive_strand_labels:
+        return(location(chr=chr, left=right, right=right))
+    elif strand in negative_strand_labels:
+        return(location(chr=chr, left=left, right=left))
+    return None
 # various other helpers for normalisation etc..
