@@ -1275,12 +1275,28 @@ class expression(base_expression):
         newe = []
         all_conds = self._conditions
         all_reps = set([x for sublist in reps for x in sublist]) # Flatten the 2D list. I still don't know how this works.
-        done = []
+        done = set([])
         pearson_vals = []
-        # Test that all condition names are available:
-        #print [c in self._conditions for c in all_reps], self._conditions
+
         if False in [c in self._conditions for c in all_reps]:
             missing_conds = [c for c in all_reps if c not in self._conditions]
+        if '_ignore_missing_samples' in kargs and kargs['_ignore_missing_samples']:
+            config.log.warning('_ignore_missing_samples == True')
+            config.log.warning('Missing samples:')
+            for c in sorted(missing_conds):
+                config.log.warning('  {}'.format(c))
+            # filter out the missing conditions;
+            missing_conds = set(missing_conds)
+            for r in reps:
+                for c in reps[r]:
+                    if c in missing_conds:
+                        del reps[r][c]
+            new_reps = []
+            for c in reps:
+                if c:
+                    new_reps.append(c) # trim empty replicates;
+            reps = new_reps
+        else:
             raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
 
         threshold = 0.8
@@ -1313,7 +1329,7 @@ class expression(base_expression):
                     new_condition_name_list.append(p[0])
 
                     # add all reps to the done list:
-                    [done.append(i) for i in p]
+                    [done.add(i) for i in p]
             else: # not to be merged or modified, so just add it to conditions.
                 new_serialisedArrayDataDict[cond] = self.serialisedArrayDataDict[cond] # merge into the 0th replicate key
                 errors[cond] = numpy.zeros(len(self.serialisedArrayDataDict[cond]))
