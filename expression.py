@@ -1284,17 +1284,15 @@ class expression(base_expression):
             config.log.warning('_ignore_missing_samples == True')
             config.log.warning('Missing samples:')
             for c in sorted(missing_conds):
-                config.log.warning('  {}'.format(c))
+                config.log.warning('  missing {}'.format(c))
             # filter out the missing conditions;
             missing_conds = set(missing_conds)
-            for r in reps:
-                for c in reps[r]:
-                    if c in missing_conds:
-                        del reps[r][c]
             new_reps = []
-            for c in reps:
-                if c:
-                    new_reps.append(c) # trim empty replicates;
+            for r in reps:
+                newr = [c for c in r if c not in missing_conds]
+                if newr:
+                    new_reps.append(newr) # trim empty replicates;
+
             reps = new_reps
         else:
             raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
