@@ -103,33 +103,33 @@ class rigidgrid:
         """
         if draw_view_each_iter:
             self.view("debug_i0.png")
-        
+
         func_metrics_map = {"sum_of_deltas": self._metric_sum_of_deltas}
-        
+
         moved = 0
-        
+
         # You need to pick the grid location properly...
-        
+
         for iter in range(self.iterations):
             for x in range(2, self.sq-2):
                 for y in range(2, self.sq-2):
                     thisi = int(x / self.sq) + int(y % self.sq)
                     thisp = self.data[thisi,:]
-                    
+
                     # test against all neighbours
                     near_neighbours = []
                     for xx in [-1, 0, 1]:
                         for yy in [-1, 0, 1]:
-                            if not (xx == 0 and yy == 0):
+                            if xx != 0 or yy != 0:
                                 thati = int((x+xx) / self.sq) + int((y+yy) % self.sq)
                                 thatp = self.data[thati,:]
                                 near_neighbours.append((thatp, x+xx, y+yy, func_metrics_map[self.metric](thisp, thatp))) # Yeah, sue me. 
                                 print(x, y, x+xx, y+yy, thisp, thatp, near_neighbours[-1])
-                    
+
                     far_neighbours = []
                     for xx in [-2, 0, 2]:
                         for yy in [-2, 0, 2]:
-                            if not (xx == 0 and yy == 0):
+                            if xx != 0 or yy != 0:
                                 thati = int((x+xx) / self.sq) + int((y+yy) % self.sq)
                                 thatp = self.data[thati,:]
                                 far_neighbours.append((thatp, x+xx, y+yy, func_metrics_map[self.metric](thisp, thatp))) # Yeah, sue me. 
@@ -137,7 +137,7 @@ class rigidgrid:
                     # find the best match
                     near_neighbours = sorted(near_neighbours, key=operator.itemgetter(3))
                     far_neighbours = sorted(far_neighbours, key=operator.itemgetter(3))
-                    
+
                     if far_neighbours[3] > near_neighbours[3]:
                         print("Hit")
                     #print tests
@@ -150,7 +150,7 @@ class rigidgrid:
                         moved += 1
             if draw_view_each_iter:
                 self.view("debug_i%s.png" % iter)
-            
+
             config.log.info("rigidgrid(): '%s' iteration, moved %s items" % (iter, moved))
             moved = 0
         
@@ -160,30 +160,26 @@ class rigidgrid:
             Draw a view of the current data
         """
         dim = self.data.shape[1]
-        
+
         no_row_in_plot = dim/20 + 1 #6 is arbitrarily selected
-        if no_row_in_plot <=1:
-            no_col_in_plot = dim
-        else:
-            no_col_in_plot = 20
-        
+        no_col_in_plot = dim if no_row_in_plot <=1 else 20
         h = 0.2
         w = 0.001
-        
+
         fig = plot.figure(figsize=(no_col_in_plot*1.5*(1+w), no_row_in_plot*1.5*(1+h)))
 
         for axis_num in range(self.data.shape[1]):       
             ax = fig.add_subplot(no_row_in_plot, no_col_in_plot, axis_num+1)
 
             this_grid = self.data[self.grid.ravel(),axis_num].reshape(self.sq, self.sq) # rearranged
-            
+
             if not smoothed:        
                 pl = plot.pcolormesh(this_grid[::-1], cmap='RdBu_r', vmin=self.data.min(), vmax=self.data.max())
             else:
                 plot.imshow(this_grid, cmap='RdBu_r', vmin=self.data.min(), vmax=self.data.max())
-                
+
             plot.axis('off')
-        
+
             if text:
                 print(ind, self.compname[ind])
                 plt.title(self.compname[ind])
@@ -193,10 +189,10 @@ class rigidgrid:
             ax.set_yticklabels("")
             ax.set_xticklabels("")
             ax.grid(False)
-            
+
         plot.subplots_adjust(hspace=h*10,wspace=w*10)
 
-        fig.savefig(filename, bbox_inches='tight', transparent=False)       
+        fig.savefig(filename, bbox_inches='tight', transparent=False)
         plot.close(fig)
 
     # ----------- Init methods

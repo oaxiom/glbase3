@@ -110,13 +110,11 @@ class MultinomialCPD_Py(CPD):
         ri = self.data.variables[0].arity
         part1 = lnfac[ri-1]
 
-        result = N.sum( 
+        return N.sum( 
               part1                                 # log((ri-1)!) 
             - lnfac[counts[:,-1] + ri -1]           # log((Nij + ri -1)!)
             + N.sum(lnfac[counts[:,:-1]], axis=1)   # log(Product(Nijk!))
         )
-
-        return result
 
     #
     # Private methods

@@ -573,12 +573,8 @@ class manifold_mdsquish:
         assert start_node_label, "mdsquish.get_sum_of_paths: Must specifiy start_node_label"
         assert end_node_label, "mdsquish.get_sum_of_paths: Must specifiy end_node_label"
         assert self.G, 'mdsquish.get_sum_of_paths: Need to run network() first to build a network'
-        
-        if not exclude:
-            exclude = []
-        else:
-            exclude = set(exclude)
-        
+
+        exclude = [] if not exclude else set(exclude)
         start_nodes = []
         end_nodes = []
         for c in self.G.nodes():
@@ -588,10 +584,10 @@ class manifold_mdsquish:
                 start_nodes.append(c)
             elif end_node_label in c:
                 end_nodes.append(c)
-        
+
         assert start_nodes, "mdsquish.get_sum_of_paths: no samples found with start_node_label (%s)" % start_node_label
         assert end_nodes, "mdsquish.get_sum_of_paths: no samples found with end_nodes (%s)" % end_node_label
-        
+
         # This is actually pretty fast...
         least_weighted_paths = []
         p = progressbar(len(start_nodes))
@@ -600,7 +596,7 @@ class manifold_mdsquish:
                 # get the least weighted path between these two nodes
                 least_weighted_paths.append(nx.dijkstra_path(self.G, s, target=e, weight='weight'))
             p.update(i)
-                
+
         # Build a new network from the subset of the old.
         # get all nodes that appear in at least t% of 
         must_appear_in_at_least_n_percent_of_paths = must_appear_in_at_least_n_percent_of_paths/100.0
@@ -616,10 +612,10 @@ class manifold_mdsquish:
                 set_of_nodes_for_tree.append(k)
         #print counted
         set_of_nodes_for_tree = set(set_of_nodes_for_tree)
-        
+
         if neighbours:
             set_of_nodes_for_tree, direct_path = network_support.populate_path_neighbours(self.G, set_of_nodes_for_tree, degree=neighbours)
-        
+
         # I have the nodes, but I need to put them back into order.
         # Cut out the appropriate part of the main network and then
         # get the longest, most direct path across the subnetwork
@@ -630,9 +626,12 @@ class manifold_mdsquish:
         # Get out all the edges
         for node1 in set_of_nodes_for_tree:
             for node2 in set_of_nodes_for_tree:
-                if node1 != node2:
-                    if self.G.has_edge(node1, node2) and not newG.has_edge(node1, node2):
-                        newG.add_edge(node1, node2, self.G.get_edge_data(node1, node2))
+                if (
+                    node1 != node2
+                    and self.G.has_edge(node1, node2)
+                    and not newG.has_edge(node1, node2)
+                ):
+                    newG.add_edge(node1, node2, self.G.get_edge_data(node1, node2))
         #print newG.nodes()
         #print newG.edges()
         #mst = nx.minimum_spanning_tree(newG, weight='weight')
@@ -642,17 +641,17 @@ class manifold_mdsquish:
             best_path_nodes, best_path_edges = network_support.populate_path_neighbours(self.G, best_path_nodes, degree=neighbours)
 
         #tree_path = mst.edges() # [i[0] for i in mst.edges()] + [mst.edges()[-1][1]]
-        
+
         #print 'Path:', best_path_nodes, best_path_edges
-        
+
         if filename:
             node_color = "grey" # stored in node attributes, will override this
-                   
+
             if "node_cmap" in kargs and kargs["node_cmap"]:
                 cmap = cm.get_cmap(kargs["node_cmap"], 2001) 
                 cmap = cmap(numpy.arange(2001)) 
                 cols = [cmap[i] for i in node_size]   
-        
+
             return_data = network_support.unified_network_drawer(self.G, self.distances, self.names, filename=filename, 
                 low_threshold=low_threshold, hi_threshold=hi_threshold, cols=cols, label_fontsize=label_fontsize,
                 max_links=max_links, labels=labels, node_size=node_size, edges=edges, save_gml=save_gml, layout=layout,
@@ -662,9 +661,9 @@ class manifold_mdsquish:
                 expected_branches=expected_branches, title=title, title_font_size=title_font_size, 
                 edge_pad=edge_pad, layout_data=self.__layout_data, 
                 **kargs)
-                
+
             config.log.info("mdsquish.get_sum_of_paths: saved '%s'" % return_data["actual_filename"])
-        
+
         return(best_path_nodes)
 
     def heatmap(self, filename=None, **kargs):
@@ -692,7 +691,7 @@ class manifold_mdsquish:
         return(None)
         
     def scatter(self, x, y, filename=None, spot_cols=None, label=False, alpha=0.8, 
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False, **kargs): 
+        spot_size=40, label_font_size=7, cut=None, squish_scales=False, **kargs):
         """
         **Purpose**
             plot a scatter plot of cond1 against cond2.
@@ -733,61 +732,65 @@ class manifold_mdsquish:
         """
         assert filename, "scatter: Must provide a filename"     
 
-        ret_data = None      
+        ret_data = None
         xdata = self.__transform[x-1]
         ydata = self.__transform[y-1]
-        
-        if not "aspect" in kargs:
+
+        if "aspect" not in kargs:
             kargs["aspect"] = "square"
-        
+
         fig = self.parent.draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
-        
+
         cols = 'grey'
         if spot_cols:
             cols = spot_cols            
-        
+
         ax.scatter(xdata, ydata, s=spot_size, alpha=alpha, edgecolors="none", c=cols)
         if label:
             for i, lab in enumerate(self.names):
                 ax.text(xdata[i], ydata[i], lab, size=label_font_size, ha="center", va="top")
-        
+
         # Tighten the axis
         if squish_scales:
-            if not "xlims" in kargs:
+            if "xlims" not in kargs:
                 ax.set_xlim([min(xdata), max(xdata)])
-        
-            if not "ylims" in kargs:
+
+            if "ylims" not in kargs:
                 ax.set_ylim([min(ydata), max(ydata)])
-        
+
         ax.set_xlabel("PC%s" % (x,)) # can be overridden via do_common_args()
         ax.set_ylabel("PC%s" % (y,))
-        
+
         if "logx" in kargs and kargs["logx"]:
             ax.set_xscale("log", basex=kargs["logx"])
         if "logy" in kargs and kargs["logy"]:
             ax.set_yscale("log", basey=kargs["logy"])
-        
+
         if cut:
             rect = matplotlib.patches.Rectangle(cut[0:2], cut[2]-cut[0], cut[3]-cut[1], ec="none", alpha=0.2, fc="orange")
             ax.add_patch(rect)
 
             tdata = []
-            for i in range(0, len(xdata)):
-                if xdata[i] > cut[0] and xdata[i] < cut[2]:
-                    if ydata[i] < cut[1] and ydata[i] > cut[3]:
-                        if self.rowwise: # grab the full entry from the parent genelist
-                            dat = {"pcx": xdata[i], "pcy": ydata[i]}
-                            dat.update(self.parent.linearData[i])
-                            tdata.append(dat)
-                        else:
-                            tdata.append({"name": label[i], "pcx": xdata[i], "pcy": ydata[i]})
+            for i in range(len(xdata)):
+                if (
+                    xdata[i] > cut[0]
+                    and xdata[i] < cut[2]
+                    and ydata[i] < cut[1]
+                    and ydata[i] > cut[3]
+                ):
+                    if self.rowwise: # grab the full entry from the parent genelist
+                        dat = {"pcx": xdata[i], "pcy": ydata[i]}
+                        dat.update(self.parent.linearData[i])
+                        tdata.append(dat)
+                    else:
+                        tdata.append({"name": label[i], "pcx": xdata[i], "pcy": ydata[i]})
             if tdata:
                 ret_data = genelist()
                 ret_data.load_list(tdata)
-            
+
         self.parent.draw.do_common_args(ax, **kargs)
-        
+
         real_filename = self.parent.draw.savefigure(fig, filename)
-        config.log.info("scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename)) 
+        config.log.info("scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename))
         return(ret_data)   

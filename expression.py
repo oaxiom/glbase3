@@ -302,7 +302,10 @@ class expression(base_expression):
         """
         if selected_conditions:
             selected_condition_indeces = [self._conditions.index(i) for i in selected_conditions]
-            comparator = lambda x: sum([x["conditions"][i] for i in selected_condition_indeces])
+            comparator = lambda x: sum(
+                x["conditions"][i] for i in selected_condition_indeces
+            )
+
             self.linearData = sorted(self.linearData, key=comparator)
         else:
             self.linearData = sorted(self.linearData, key=lambda x: sum(x["conditions"]))
@@ -328,10 +331,7 @@ class expression(base_expression):
         new_condition_order = [i[0] for i in new_condition_order]
 
         # Use an in-place variant of sliceConditions:
-        newtab = []
-        for name in new_condition_order:
-            newtab.append(self.serialisedArrayDataDict[name])
-
+        newtab = [self.serialisedArrayDataDict[name] for name in new_condition_order]
         self._conditions = new_condition_order # Must update here for err rearrangement
 
         if "err" in self.linearData[0]:
@@ -342,11 +342,7 @@ class expression(base_expression):
             for name in new_condition_order:
                 idx = self._conditions.index(name)
                 err_col = errs[:,idx]
-                if err_tab is None:
-                    err_tab = err_col
-                else:
-                    err_tab = numpy.vstack((err_tab, err_col))
-
+                err_tab = err_col if err_tab is None else numpy.vstack((err_tab, err_col))
             for index, item in enumerate(self.linearData):
                 item["err"] = list(err_tab[:,index])
 
@@ -536,7 +532,7 @@ class expression(base_expression):
         assert len(set(lls)) == 1, "merge: the expression objects must be identically sized"
 
         newgl = self.deepcopy()
-        newgl._conditions = sum([gl._conditions for gl in tables], self._conditions)
+        newgl._conditions = sum((gl._conditions for gl in tables), self._conditions)
 
         for item in newgl:
             others = [i._findDataByKeyLazy(key=key, value=item[key]) for i in tables]
@@ -689,11 +685,7 @@ class expression(base_expression):
         """
         expn = self.numpy_array_all_data.T
         m = numpy.mean(expn, axis=0)
-        if row_wise_variance:
-            s = numpy.std(expn, axis=0)
-        else:
-            s = numpy.std(expn)
-
+        s = numpy.std(expn, axis=0) if row_wise_variance else numpy.std(expn)
         z = (expn - m) / s
         z[numpy.isnan(z)] = 0
         self.numpy_array_all_data = z.T
@@ -717,11 +709,7 @@ class expression(base_expression):
         '''
         expn = self.numpy_array_all_data
         m = numpy.mean(expn, axis=0)
-        if col_wise_variance:
-            s = numpy.std(expn, axis=0)
-        else:
-            s = numpy.std(expn)
-
+        s = numpy.std(expn, axis=0) if col_wise_variance else numpy.std(expn)
         z = (expn - m) / s
         self.numpy_array_all_data = z
         self._load_numpy_back_into_linearData()
@@ -800,16 +788,8 @@ class expression(base_expression):
             None
             THIS IS AN IN-PLACE CONVERSION
         """
-        if min:
-            mins = min
-        else:
-            mins = self.numpy_array_all_data.min()
-
-        if max:
-            maxs = max
-        else:
-            maxs = self.numpy_array_all_data.max()
-
+        mins = min or self.numpy_array_all_data.min()
+        maxs = max or self.numpy_array_all_data.max()
         rng = maxs - mins
 
         self.numpy_array_all_data -= mins
@@ -1143,11 +1123,8 @@ class expression(base_expression):
             # delete the old label
             newl._conditions = []
             for name in names:
-                if name != condition_name:
+                if name != condition_name or keep_normed:
                     newl._conditions.append(name)
-                elif keep_normed:
-                    newl._conditions.append(name)
-
         newl._optimiseData()
         config.log.info("normaliseToCondition: '%s'" % condition_name)
         return newl
@@ -1549,7 +1526,10 @@ class expression(base_expression):
         newl.linearData = []
 
         for item in self.linearData:
-            if sum([int(i > min_expression) for i in item["conditions"]]) >= number_of_conditions: # passed
+            if (
+                sum(int(i > min_expression) for i in item["conditions"])
+                >= number_of_conditions
+            ): # passed
                 newl.linearData.append(item.copy())
 
         assert len(newl) > 0, "filter_low_expressed: The number of genes passing the filter was zero!"
@@ -1615,7 +1595,10 @@ class expression(base_expression):
         newl.linearData = []
 
         for item in self.linearData:
-            if sum([int(i > max_expression) for i in item["conditions"]]) <= number_of_conditions: # passed
+            if (
+                sum(int(i > max_expression) for i in item["conditions"])
+                <= number_of_conditions
+            ): # passed
                 newl.linearData.append(item.copy())
 
         assert len(newl) > 0, "filter_high_expressed: The number of genes passing the filter was zero!"
@@ -1963,9 +1946,9 @@ class expression(base_expression):
         x_data = self.getDataForCondition(x_condition_name)
         y_data = self.getDataForCondition(y_condition_name)
 
-        if not "xlabel" in kargs:
+        if "xlabel" not in kargs:
             kargs["xlabel"] = x_condition_name
-        if not "ylabel" in kargs:
+        if "ylabel" not in kargs:
             kargs["ylabel"] = y_condition_name
 
         if genelist and key:
@@ -2132,9 +2115,7 @@ class expression(base_expression):
         """
         do_log = False
 
-        if base == math.e:
-            do_log = math.e
-        elif isinstance(base, bool):
+        if base == math.e or isinstance(base, bool):
             do_log = math.e
         elif isinstance(base, int):
             do_log = base
@@ -2247,13 +2228,11 @@ class expression(base_expression):
             for expression_value in item["conditions"]:
                 if expression_value >= 0:
                     expression_value -= number
-                    if expression_value < 0:
-                        expression_value = 0
+                    expression_value = max(expression_value, 0)
 
                 elif expression_value <= 0:
                     expression_value += number
-                    if expression_value > 0:
-                        expression_value = 0
+                    expression_value = min(expression_value, 0)
                 newcond.append(expression_value)
             item["conditions"] = newcond
         self._optimiseData()
@@ -2295,28 +2274,26 @@ class expression(base_expression):
 
         do_log = False
 
-        if log == math.e:
-            do_log = math.e
-        elif isinstance(log, bool):
+        if log == math.e or isinstance(log, bool):
             do_log = math.e
         elif isinstance(log, int):
             do_log = log
         else:
             do_log = False
 
-        if do_log:
-            data = []
-            for set in serialisedArrayDataList:
-                row = []
-                for index, item in enumerate(set):
-                    if item != 0.0:
-                        row.append(math.log(item, do_log))
-                    else:
-                        row.append(math.log(0.000001, do_log)) # Append a very small value
-                data.append(row)
-            return(data)
-        else:
+        if not do_log:
             return(serialisedArrayDataList)
+
+        data = []
+        for set in serialisedArrayDataList:
+            row = []
+            for index, item in enumerate(set):
+                if item == 0.0:
+                    row.append(math.log(0.000001, do_log)) # Append a very small value
+                else:
+                    row.append(math.log(item, do_log))
+            data.append(row)
+        return(data)
 
     def drawCurves(self, filename=None, **kargs):
         """
@@ -2435,7 +2412,7 @@ class expression(base_expression):
         for k in kargs:
             if k == "function":
                 function = kargs[k]
-            if k == "normal":
+            elif k == "normal":
                 normal = kargs[k]
 
         if not function:
@@ -2449,9 +2426,7 @@ class expression(base_expression):
         for item in self:
             data = item["conditions"]
             # package as a dict:
-            dd = {}
-            for index, name in enumerate(conNames):
-                dd[name] = data[index]
+            dd = {name: data[index] for index, name in enumerate(conNames)}
             if function(dd, conNames, normal, **kargs): # pass on other kargs
                 newl.linearData.append(deepcopy(item))
 
@@ -2640,7 +2615,7 @@ class expression(base_expression):
             if "name" in self:
                 key = "name"
             else:
-                if not "symbol" in self:
+                if "symbol" not in self:
                     key = "symbol"
                 else:
                     raise AssertionError("No suitable key found")
@@ -2667,7 +2642,7 @@ class expression(base_expression):
         for g in gene_symbols:
             nl = self._findDataByKeyGreedy(key, g)
             if nl:
-                subset = subset + nl
+                subset += nl
             else:
                 new = fake_entry.copy()
                 new.update({key: "%s (not detected)" % g, labels: "%s (not detected)" % g}) # I want to signify that these are empty
@@ -2831,7 +2806,7 @@ class expression(base_expression):
             assert cut >= 0.0 and cut <= 1.0, "cut '%.2f' must be between 0 and 1" % cut
             assert row_name_key, "'row_name_key' must also be valid"
 
-        if not "size" in kargs: # resize if not specified
+        if "size" not in kargs: # resize if not specified
             kargs["size"] = (3,6)
 
         fig = self.draw.getfigure(**kargs)
@@ -2848,13 +2823,9 @@ class expression(base_expression):
 
         if mode == "conditions": # Use the condition names for rows:
             row_names = self._conditions
-        elif mode == "rows" or mode == "genes":
+        elif mode in ["rows", "genes"]:
             data = data.T
-            if row_name_key:
-                row_names = self[row_name_key]
-            else:
-                row_names = None
-
+            row_names = self[row_name_key] if row_name_key else None
         ax = fig.add_subplot(111)
         ax.set_position([0.01, 0.01, 0.4, 0.98])
         # from scipy;
@@ -2990,7 +2961,7 @@ class expression(base_expression):
             assert cut >= 0.0 and cut <= 1.0, "cut '%.2f' must be between 0 and 1.0" % cut
             assert row_name_key, "'row_name_key' must also be valid"
 
-        if not "size" in kargs: # resize if not specified
+        if "size" not in kargs: # resize if not specified
             kargs["size"] = (6,6)
 
         fig = self.draw.getfigure(**kargs)
@@ -3007,14 +2978,9 @@ class expression(base_expression):
 
         if mode == "conditions": # Use the condition names for rows:
             row_names = self._conditions
-        elif mode == "rows" or mode == "genes":
+        elif mode in ["rows", "genes"]:
             data = data.T
-            if row_name_key:
-                row_names = self[row_name_key]
-            else:
-                row_names = None
-
-
+            row_names = self[row_name_key] if row_name_key else None
         # from scipy;
         # generate the dendrogram
         dist = pdist(data, metric=cluster_mode)
@@ -3091,18 +3057,14 @@ class expression(base_expression):
         assert values, "must specify values"
         assert filename, "must specify filename to save to"
 
-        if not "aspect" in kargs:
+        if "aspect" not in kargs:
             kargs["aspect"] = "wide"
 
         keeps = frozenset(values)
 
         x_data = numpy.arange(len(self._conditions))
 
-        data = {}
-        for i in self.linearData:
-            if i[key] in keeps:
-                data[i[key]] = i["conditions"]
-
+        data = {i[key]: i["conditions"] for i in self.linearData if i[key] in keeps}
         fig = self.draw.getfigure(**kargs)
 
         ax = fig.add_subplot(111)
@@ -3172,7 +3134,7 @@ class expression(base_expression):
         if axis == "conditions":
             data_table = self.getExpressionTable().T
             labels = self._conditions
-        elif axis == "rows" or axis == "genes":
+        elif axis in ["rows", "genes"]:
             assert label_key, "You must specify a label_key if axis = rows/genes"
             data_table = self.getExpressionTable()
             labels = self[label_key]
@@ -3570,10 +3532,10 @@ class expression(base_expression):
             for k in class_order:
                 data[k] = numpy.log2(numpy.array(data[k])+log_pad)
 
-        if not "yticklabel_fontsize" in kargs:
+        if "yticklabel_fontsize" not in kargs:
             kargs["yticklabel_fontsize"] = 6
 
-        if not "xticklabel_fontsize" in kargs:
+        if "xticklabel_fontsize" not in kargs:
             kargs["xticklabel_fontsize"] = 6
 
         self.draw.violinplot(data,
@@ -3645,9 +3607,9 @@ class expression(base_expression):
 
         data = list(data["conditions"])
 
-        if not "aspect" in kargs:
+        if "aspect" not in kargs:
             kargs["aspect"] = "wide"
-        if not "size" in kargs:
+        if "size" not in kargs:
             kargs["size"] = "small"
 
         fig = self.draw.getfigure(**kargs)
@@ -3659,7 +3621,7 @@ class expression(base_expression):
             m = numpy.average(data)
             ax.axhline(m, ls=":", color="grey")
 
-        if not "ylims" in kargs:
+        if "ylims" not in kargs:
             kargs["ylims"] = (0, max(data)+(max(data)/10.0))
 
         ax.set_title("%s:%s" % (key, value))
@@ -3754,7 +3716,7 @@ class expression(base_expression):
             """
 
         # plot
-        if not "size" in kargs:
+        if "size" not in kargs:
             kargs["size"] = (13,6)
         fig = self.draw.getfigure(**kargs)
 

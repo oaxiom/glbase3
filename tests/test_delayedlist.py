@@ -60,9 +60,7 @@ class Test_Delayedlist(unittest.TestCase):
     def test_map_assertion(self):
         self.a.reset()
         res = self.b.map(genelist=self.a, key='name') # only support map() this way around.
-        newl = []
-        for i in res:
-            newl.append(i)
+        newl = [i for i in res]
         self.assertEqual(newl[0]["name"], "Lypla1")
         # delayedlist must be the right hand side
         # Will throw a qkeyfind error.

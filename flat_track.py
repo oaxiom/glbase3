@@ -192,7 +192,7 @@ class flat_track():
         """
         if loc:
             try:
-                if loc["chr"]: pass
+                pass
             except TypeError: # probably a location string. try to cooerce
                 loc = location(loc=loc)
                 # Don't catch any exceptions here. Should break.

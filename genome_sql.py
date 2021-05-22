@@ -106,9 +106,7 @@ class genome_sql(base_track):
 
         c.close()
 
-        if result:
-            return(True)
-        return(False)
+        return bool(result)
 
     def add_feature(self, loc, cds_loc, exonCounts, exonStarts, exonEnds, name, strand, feature_type='gene'):
         """

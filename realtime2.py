@@ -87,10 +87,7 @@ class assay:
             for i in pow_ddCt:
                 self.log10ddCt.append(math.log10(i))
                 self.log2ddCt.append(math.log(i, 2))
-        else:
-            pass
-
-        if len(self.log10ddCt) == 0: # no values calculated
+        if not self.log10ddCt: # no values calculated
             self.ddcts = []
             self.mean_log10ddCt = 0
             self.err_log10ddCt = 0
@@ -163,33 +160,32 @@ class realtime2:
             filename (Required)
                 the filename to load
         """
-        oh = open(filename, "rU")
-        reader = csv.reader(oh, dialect=csv.excel_tab)
+        with open(filename, "rU") as oh:
+            reader = csv.reader(oh, dialect=csv.excel_tab)
 
-        for line in reader:
-            try:
-                sample_name = line[1] # catch other column missing wierdness
-                probe_name = line[2]
-                ct = float(line[4]) # catch undetermined's
-            except:
-                ct = None
+            for line in reader:
+                try:
+                    sample_name = line[1] # catch other column missing wierdness
+                    probe_name = line[2]
+                    ct = float(line[4]) # catch undetermined's
+                except:
+                    ct = None
 
-            if sample_name and probe_name and ct: # only keep ones with value
-                n = self.contains(probe_name, sample_name)
-                if n:
-                    n.addCt(ct, True)
-                else: # make a new assay
-                    a = assay(sample_name, probe_name) # not present so make a new element
-                    a.addCt(ct, True)
-                    self.assayList.append(a)
+                if sample_name and probe_name and ct: # only keep ones with value
+                    n = self.contains(probe_name, sample_name)
+                    if n:
+                        n.addCt(ct, True)
+                    else: # make a new assay
+                        a = assay(sample_name, probe_name) # not present so make a new element
+                        a.addCt(ct, True)
+                        self.assayList.append(a)
 
-                # is this a new sample type?
-                if sample_name not in self.sampleList:
-                    self.sampleList.append(sample_name)
-                # is this a new primer type?
-                if probe_name not in self.primerList:
-                    self.primerList.append(probe_name)
-        oh.close()
+                    # is this a new sample type?
+                    if sample_name not in self.sampleList:
+                        self.sampleList.append(sample_name)
+                    # is this a new primer type?
+                    if probe_name not in self.primerList:
+                        self.primerList.append(probe_name)
         return(True)
 
     def importSDSCopyPaste24(self, filename):
@@ -202,100 +198,99 @@ class realtime2:
             filename (Required)
                 the filename to load
         """
-        oh = open(filename, "rU")
-        reader = csv.reader(oh, dialect=csv.excel_tab)
+        with open(filename, "rU") as oh:
+            reader = csv.reader(oh, dialect=csv.excel_tab)
 
-        for line in oh:
-            line = line.split("\t") # csv borks on the unicode.
-            try:
-                sample_name = line[4] # catch other column missing wierdness
-                probe_name = line[5]
-                ct = float(line[7]) # catch undetermined's
-            except Exception:
-                ct = None
+            for line in oh:
+                line = line.split("\t") # csv borks on the unicode.
+                try:
+                    sample_name = line[4] # catch other column missing wierdness
+                    probe_name = line[5]
+                    ct = float(line[7]) # catch undetermined's
+                except Exception:
+                    ct = None
 
-            if sample_name and probe_name and ct: # only keep ones with value
-                n = self.contains(probe_name, sample_name)
-                if n:
-                    n.addCt(ct, True)
-                else: # make a new assay
-                    a = assay(sample_name, probe_name) # not present so make a new element
-                    a.addCt(ct, True)
-                    self.assayList.append(a)
+                if sample_name and probe_name and ct: # only keep ones with value
+                    n = self.contains(probe_name, sample_name)
+                    if n:
+                        n.addCt(ct, True)
+                    else: # make a new assay
+                        a = assay(sample_name, probe_name) # not present so make a new element
+                        a.addCt(ct, True)
+                        self.assayList.append(a)
 
-                # is this a new sample type?
-                if sample_name not in self.sampleList:
-                    self.sampleList.append(sample_name)
-                # is this a new primer type?
-                if probe_name not in self.primerList:
-                    self.primerList.append(probe_name)
-        oh.close()
+                    # is this a new sample type?
+                    if sample_name not in self.sampleList:
+                        self.sampleList.append(sample_name)
+                    # is this a new primer type?
+                    if probe_name not in self.primerList:
+                        self.primerList.append(probe_name)
         return(True)
 
     def importBioMarkCSVFilter(self, _csvfile):
-        fh = open(_csvfile, "rb")
-        csvr = csv.reader(fh)
-        # read the header row;
-        # start at row 10 and read in the three lines
-        for n in range(10):
-            line = next(csvr)
-        headers = []
-        # then read in three lines and store them in a list of lists
-        for n in range(2):
-            line = next(csvr)
-            headers.append(line)
-        # squash the three lines into 1
-        nheaders = []
-        for n in range(len(headers[0])):
-            a = headers[0]
+        with open(_csvfile, "rb") as fh:
+            csvr = csv.reader(fh)
+                # read the header row;
+                # start at row 10 and read in the three lines
+            for _ in range(10):
+                line = next(csvr)
+            headers = []
+                # then read in three lines and store them in a list of lists
+            for _ in range(2):
+                line = next(csvr)
+                headers.append(line)
+            # squash the three lines into 1
+            nheaders = []
             b = headers[1]
-            nheaders.append(a[n]+b[n])
+            for n in range(len(headers[0])):
+                a = headers[0]
+                nheaders.append(a[n]+b[n])
 
-        #print nheaders
+                #print nheaders
 
-        for n in range(len(nheaders)): # find the column numbers for all of the elements;
-            item = nheaders[n].lower()
+            for n in range(len(nheaders)): # find the column numbers for all of the elements;
+                item = nheaders[n].lower()
 
-            if item == "samplename": cSamName = n
-            elif (item == "fam-mgbname") or (item == "fam-tamraname"): cPrimerName = n
-            elif item == "ctvalue": cCt = n
-            elif item == "ctcall": cCtCall = n
+                if item == "samplename": cSamName = n
+                elif item in ["fam-mgbname", "fam-tamraname"]: cPrimerName = n
+                elif item == "ctvalue": cCt = n
+                elif item == "ctcall": cCtCall = n
 
-        # and now iterate through the rest of the file and load in the data;
-        for row in csvr: # this continues from where the last read left off
-            n = self.contains(row[cPrimerName], row[cSamName])
-            if n:
-                n.addCt(float(row[cCt]) , row[cCtCall]) # element already present, so just add the Ct
-            else:
-                a = assay(row[cSamName], row[cPrimerName]) # not present so make a new element
-                a.addCt(float(row[cCt]), row[cCtCall])
-                self.assayList.append(a)
+            # and now iterate through the rest of the file and load in the data;
+            for row in csvr: # this continues from where the last read left off
+                n = self.contains(row[cPrimerName], row[cSamName])
+                if n:
+                    n.addCt(float(row[cCt]) , row[cCtCall]) # element already present, so just add the Ct
+                else:
+                    a = assay(row[cSamName], row[cPrimerName]) # not present so make a new element
+                    a.addCt(float(row[cCt]), row[cCtCall])
+                    self.assayList.append(a)
 
-            # is this a new sample type?
-            if not self.sampleList.count(row[cSamName]):
-                self.sampleList.append(row[cSamName])
-            # is this a new primer type?
-            if not self.primerList.count(row[cPrimerName]):
-                self.primerList.append(row[cPrimerName])
-
-        fh.close()
+                # is this a new sample type?
+                if not self.sampleList.count(row[cSamName]):
+                    self.sampleList.append(row[cSamName])
+                # is this a new primer type?
+                if not self.primerList.count(row[cPrimerName]):
+                    self.primerList.append(row[cPrimerName])
 
     def importGenericFilter(self, _csvfile):
         print("> Generic File Import")
-        fh = open(_csvfile, "rb")
-        csvr = csv.reader(fh)
-        # read the header row;
-        line = next(csvr)
-        cCtCall = None
-        for n in range(len(line)): # find the column numbers for all of the elements;
-            item = line[n].lower()
+        with open(_csvfile, "rb") as fh:
+            csvr = csv.reader(fh)
+            # read the header row;
+            line = next(csvr)
+            cCtCall = None
+            for n in range(len(line)): # find the column numbers for all of the elements;
+                item = line[n].lower()
 
-            if item == "sample_name": cSamName = n
-            elif item == "primer_name": cPrimerName = n
-            elif item == "ct": cCt = n
-            elif item == "ct_call": cCtCall = n
-
-        fh.close()
+                if item == "ct":
+                    cCt = n
+                elif item == "ct_call":
+                    cCtCall = n
+                elif item == "primer_name":
+                    cPrimerName = n
+                elif item == "sample_name":
+                    if item == "sample_name": cSamName = n
 
         self.importByColumnNumber(_csvfile, 1, cSamName, cPrimerName, cCt, cCtCall)
 
@@ -306,42 +301,34 @@ class realtime2:
         Supply the known column numbers for the particular categories.
         only CtCallColNum can be None
         """
-        fh = open(csvfile, "rU")
-        if tsv:
-            csvr = csv.reader(fh, dialect=csv.excel_tab)
-        else:
-            csvr = csv.reader(fh)
+        with open(csvfile, "rU") as fh:
+            csvr = csv.reader(fh, dialect=csv.excel_tab) if tsv else csv.reader(fh)
+                # and now iterate through the rest of the file and load in the data
+            for lineno, row in enumerate(csvr, start=1):
+                if lineno > _numRowsToSkip:
+                    try:
+                        entry = self.contains(row[_PrimerColNum], row[_SamColNum]) # check if pre-exisiting entry
+                        if entry:
+                            entry.addCt(float(row[_CtColNum]))
+                        else: # not present so make a new element
+                            Ct = float(row[_CtColNum]) # I do this first as if it fails the Ct is empty and so it will fail to add a superfluous entry.
+                            a = assay(row[_SamColNum], row[_PrimerColNum])
+                            a.addCt(float(row[_CtColNum]))
+                            self.assayList.append(a)
 
-        lineno = 0
-        # and now iterate through the rest of the file and load in the data
-        for row in csvr:
-            lineno += 1
-            if lineno > _numRowsToSkip:
-                try:
-                    entry = self.contains(row[_PrimerColNum], row[_SamColNum]) # check if pre-exisiting entry
-                    if entry:
-                        entry.addCt(float(row[_CtColNum]))
-                    else: # not present so make a new element
-                        Ct = float(row[_CtColNum]) # I do this first as if it fails the Ct is empty and so it will fail to add a superfluous entry.
-                        a = assay(row[_SamColNum], row[_PrimerColNum])
-                        a.addCt(float(row[_CtColNum]))
-                        self.assayList.append(a)
+                        sample_name = row[_SamColNum]
+                        probe_name = row[_PrimerColNum]
 
-                    sample_name = row[_SamColNum]
-                    probe_name = row[_PrimerColNum]
+                        # is this a new sample type?
+                        if sample_name not in self.sampleList:
+                            self.sampleList.append(sample_name)
+                        # is this a new primer type?
+                        if probe_name not in self.primerList:
+                            self.primerList.append(probe_name)
 
-                    # is this a new sample type?
-                    if sample_name not in self.sampleList:
-                        self.sampleList.append(sample_name)
-                    # is this a new primer type?
-                    if probe_name not in self.primerList:
-                        self.primerList.append(probe_name)
-
-                except ValueError as IndexError:
-                    # Ct column is empty and this is an empty row, skip it.
-                    pass
-
-        fh.close()
+                    except ValueError as IndexError:
+                        # Ct column is empty and this is an empty row, skip it.
+                        pass
 
     def import_gene_row_sam_col(self, filename):
         """
@@ -357,36 +344,34 @@ class realtime2:
         Lhx1	32.42358112	30.61198425	24.54306221	30.56797695
 
         """
-        oh = open(filename, "rU")
+        with open(filename, "rU") as oh:
+            header = oh.readline().strip().split("\t")[1:]
 
-        header = oh.readline().strip().split("\t")[1:]
+            for line in oh:
+                tt = line.strip().split("\t")
+                probe_name = tt[0]
 
-        for line in oh:
-            tt = line.strip().split("\t")
-            probe_name = tt[0]
+                cts = [float(i) for i in tt[1:]]
 
-            cts = [float(i) for i in tt[1:]]
+                print(probe_name, cts)
 
-            print(probe_name, cts)
+                for i, ct in enumerate(cts):
+                    sample_name = header[i]
+                    print(probe_name, ct, sample_name)
+                    n = self.contains(probe_name, sample_name)
+                    if n:
+                        n.addCt(ct, True)
+                    else: # make a new assay
+                        a = assay(sample_name, probe_name) # not present so make a new element
+                        a.addCt(ct, True)
+                        self.assayList.append(a)
 
-            for i, ct in enumerate(cts):
-                sample_name = header[i]
-                print(probe_name, ct, sample_name)
-                n = self.contains(probe_name, sample_name)
-                if n:
-                    n.addCt(ct, True)
-                else: # make a new assay
-                    a = assay(sample_name, probe_name) # not present so make a new element
-                    a.addCt(ct, True)
-                    self.assayList.append(a)
-
-                    # is this a new sample type?
-                    if sample_name not in self.sampleList:
-                        self.sampleList.append(sample_name)
-                    # is this a new primer type?
-                    if probe_name not in self.primerList:
-                        self.primerList.append(probe_name)
-        oh.close()
+                        # is this a new sample type?
+                        if sample_name not in self.sampleList:
+                            self.sampleList.append(sample_name)
+                        # is this a new primer type?
+                        if probe_name not in self.primerList:
+                            self.primerList.append(probe_name)
 
     def calculate(self):
         # these to be userset
@@ -415,7 +400,7 @@ class realtime2:
         # now pair up the assays with their controls;
         for i in self.assayList:
             for t in self.refList:
-                if not t == i:
+                if t != i:
                     if (t.primer == self.cRefPrimerName) and (t.sample == i.sample):
                         # the corresponding reference primer;
                         i.setPrimerReference(t)
@@ -427,7 +412,7 @@ class realtime2:
         # this assumes only one reference
         for t in self.refList:
             for i in self.refList:
-                if not t == i:
+                if t != i:
                     if t.primer == self.cRefPrimerName:
                         # the reference is itself in this instance
                         t.setPrimerReference(t)
@@ -444,9 +429,8 @@ class realtime2:
 
     def contains(self, primerName, sampleName):
         for item in self.assayList:
-            if primerName == item.primer:
-                if sampleName == item.sample:
-                    return(item)
+            if primerName == item.primer and sampleName == item.sample:
+                return(item)
         return(False)
 
     def write_output_data(self, csvfile):
@@ -466,17 +450,16 @@ class realtime2:
         except:
             self.calculate()
 
-        f = open(csvfile, "w")
-        csvw = csv.writer(f, dialect=csv.excel_tab)
+        with open(csvfile, "w") as f:
+            csvw = csv.writer(f, dialect=csv.excel_tab)
 
-        line = ["Sample", "Primer", "ddCts", "mean_log10ddCt", "err_log10ddCt", "mean_log2ddCt", "err_log2ddCt", "mean_percentddCt", "err_percentddCt"]
-        csvw.writerow(line)
-
-        for i in self.assayList:
-            line = [i.sample, i.primer, i.ddcts, i.mean_log10ddCt, i.err_log10ddCt, i.mean_log2ddCt, i.err_log2ddCt, i.mean_percentddCt, i.err_percentddCt]
+            line = ["Sample", "Primer", "ddCts", "mean_log10ddCt", "err_log10ddCt", "mean_log2ddCt", "err_log2ddCt", "mean_percentddCt", "err_percentddCt"]
             csvw.writerow(line)
 
-        f.close()
+            for i in self.assayList:
+                line = [i.sample, i.primer, i.ddcts, i.mean_log10ddCt, i.err_log10ddCt, i.mean_log2ddCt, i.err_log2ddCt, i.mean_percentddCt, i.err_percentddCt]
+                csvw.writerow(line)
+
         config.log.info("Saved file containing generated data '%s'" % csvfile)
 
     def detectFileFormat(self, _filename):
@@ -495,17 +478,14 @@ class realtime2:
             returns the type of file it thinks it finds.
         """
         ret = FF_UNKNOWN
-        fh = open(_filename, "rb")
-
-        # read the first few bytes from the file;
-        s = fh.readline()
-        if s.count("well") or s.count("Well"):
-            ret = FF_GENERIC
-        elif s.count("Chip Run Filename"):
-            ret = FF_BIOMARK
-        self.fileFormat = ret
-        fh.close()
-
+        with open(_filename, "rb") as fh:
+            # read the first few bytes from the file;
+            s = fh.readline()
+            if s.count("well") or s.count("Well"):
+                ret = FF_GENERIC
+            elif s.count("Chip Run Filename"):
+                ret = FF_BIOMARK
+            self.fileFormat = ret
         if self.fileFormat == FF_GENERIC:
             self.importGenericFilter(_filename)
         elif self.fileFormat == FF_BIOMARK:
@@ -554,10 +534,12 @@ class realtime2:
         (Override)
         print a nice summary of the data
         """
-        ret = []
-        ret.append("Realtime data:")
-        ret.append("Primers: %s" % (", ".join(self.primerList)))
-        ret.append("Samples: %s" % (", ".join(self.sampleList)))
+        ret = [
+            "Realtime data:",
+            "Primers: %s" % (", ".join(self.primerList)),
+            "Samples: %s" % (", ".join(self.sampleList)),
+        ]
+
         return("\n".join(ret))
 
     def print_all_data(self):

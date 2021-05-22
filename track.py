@@ -182,9 +182,7 @@ class track(base_track):
 
         c.close()
 
-        if result:
-            return(True)
-        return(False)
+        return bool(result)
 
     def add_location(self, loc, strand="+", increment=1):
         """
@@ -266,9 +264,9 @@ class track(base_track):
         if not isinstance(loc, location):
             loc = location(loc=loc)
         extended_loc = loc.expand(read_extend)
-        
+
         result = self.get_reads(extended_loc, strand=strand)
-        
+
         if kde_smooth:
             return(self.__kde_smooth(loc, result, resolution, 0, view_wid, read_extend))
 
@@ -280,7 +278,7 @@ class track(base_track):
         # Python lists are much faster for this than numpy or array
 
         len_a = len(a)
-        
+
         for r in result:
             read_left, read_right, strand = r
             if strand == "+":
@@ -288,21 +286,19 @@ class track(base_track):
             elif strand == "-" :
                 read_left -= read_extend
                 read_right += 1 # coords are open 
-            
+
             rel_array_left = int((read_left - loc_left) // resolution)
             rel_array_right = int((read_right - loc_left) // resolution)        
-            
-            if rel_array_left <= 0:
-                rel_array_left = 0
-            if rel_array_right > len_a:
-                rel_array_right = len_a
-            
+
+            rel_array_left = max(rel_array_left, 0)
+            rel_array_right = min(rel_array_right, len_a)
+
             for array_relative_location in range(rel_array_left, rel_array_right, 1):
                 a[array_relative_location] += 1
-            
-            #a[rel_array_left:rel_array_right] += 1 # Why is this slower than the for loop? # could be done with num_expr?
-            
-            #[a[array_relative_location].__add__(1) for array_relative_location in xrange(rel_array_left, rel_array_right, 1)] # just returns the exact item, a is unaffected?
+                
+                #a[rel_array_left:rel_array_right] += 1 # Why is this slower than the for loop? # could be done with num_expr?
+                
+                #[a[array_relative_location].__add__(1) for array_relative_location in xrange(rel_array_left, rel_array_right, 1)] # just returns the exact item, a is unaffected?
         return(numpy.array(a)*self.norm_factor)
 
     def __kde_smooth(self, loc, reads, resolution, bandwidth, view_wid, read_shift=100):
@@ -483,7 +479,7 @@ class track(base_track):
         """
         if not isinstance(loc, location):
             loc = location(loc=loc)
-        
+
         if self.gl_mem_cache: # Use the mem cache if available
             # work out which of the buckets is required:
             left_buck = int((loc["left"]-1-delta)/config.bucket_size)*config.bucket_size
@@ -496,7 +492,7 @@ class track(base_track):
                 for buck in buckets_reqd:
                     if buck in self.gl_mem_cache.buckets[loc["chr"]]:
                         loc_ids.update(self.gl_mem_cache.buckets[loc["chr"]][buck]) # set = unique ids
-       
+
             # loc_ids is a set, and has no order. 
             #print loc_ids
             for index in loc_ids:
@@ -510,25 +506,22 @@ class track(base_track):
 
         #result = self._connection.execute("SELECT * FROM %s WHERE (?>=left AND ?<=right) OR (?>=left AND ?<=right) OR (left<=? AND right>=?) OR (?<=left AND ?>=right)" % table_name,
         #    (loc["left"], loc["left"], loc["right"], loc["right"], loc["left"], loc["right"], loc["left"], loc["right"]))
-        
+
         # This is the code used in location.collide():
         #self["right"] >= loc["left"] and self["left"] <= loc["right"]
         result = self._connection.execute("SELECT left, right, strand FROM %s WHERE (right >= ? AND left <= ?)" % table_name,
             (loc["left"], loc["right"]))
-    
+
         #result = None       
         result = result.fetchall() # safer for empty lists and reusing the cursor
-        
+
         if result and strand: # sort out only this strand
             if strand in positive_strand_labels:
                 strand_to_get = positive_strand_labels
             elif strand in negative_strand_labels:
                 strand_to_get = negative_strand_labels
-            
-            newl = []
-            for r in result:
-                if r[2] in strand_to_get:
-                    newl.append(r)
+
+            newl = [r for r in result if r[2] in strand_to_get]
             result = newl                    
 
         return(result)
@@ -655,18 +648,17 @@ class track(base_track):
             None
         '''
         assert filename, 'You must provide a filename'
-        
-        oh = open(filename, 'w')
-        for chrom in sorted(self.get_chromosome_names()):
-            this_chrom = self.get_array_chromosome(chrom, read_extend=read_extend)
-            config.log.info("Doing Chromosome '%s'" % chrom)
+
+        with open(filename, 'w') as oh:
             min_position = 0 # Could guess, but the below code will trim the padding zeros
-            max_position = len(this_chrom)
-            for l in range(min_position, max_position, bin_size):
-                value = numpy.mean(this_chrom[l:l+bin_size])
-                if value > 0.0: # If zero then it is okay to skip the loc.
-                    oh.write('chr%s\t%s\t%s\t%s\n' % (chrom, l, l+bin_size, numpy.mean(this_chrom[l:l+bin_size]))) # data is already norm_factor corrected  
-        oh.close()
+            for chrom in sorted(self.get_chromosome_names()):
+                this_chrom = self.get_array_chromosome(chrom, read_extend=read_extend)
+                config.log.info("Doing Chromosome '%s'" % chrom)
+                max_position = len(this_chrom)
+                for l in range(min_position, max_position, bin_size):
+                    value = numpy.mean(this_chrom[l:l+bin_size])
+                    if value > 0.0: # If zero then it is okay to skip the loc.
+                        oh.write('chr%s\t%s\t%s\t%s\n' % (chrom, l, l+bin_size, numpy.mean(this_chrom[l:l+bin_size]))) # data is already norm_factor corrected  
         config.log.info("saveBedGraph: Saved '%s'" % filename)
         return(None)
     
@@ -1127,32 +1119,32 @@ if __name__ == "__main__":
     import random, time
     from .location import location
     from .genelist import genelist
-    
+
     s = time.time()
     print("Building...")
     t = track(filename="testold.trk2", name="test", new=True)
-    for n in range(0, 10000):
+    for _ in range(10000):
         l = random.randint(0, 100000)
         t.add_location(location(chr="1", left=l, right=l+35), strand="+")
     t.finalise()
     e = time.time()
     print(e-s, "s")
     #t.finalise()
-    
+
     print(t.get_reads('chr1:100-200'))
-    
+
     s = time.time()
     print("Fake bed...")
     # fake a bed
     newb = []
-    for n in range(0, 1000):
+    for _ in range(1000):
         l = random.randint(1000, 100000) # 1000 is for the window size. -ve locs are real bad.
         newb.append({"loc": location(chr="1", left=l, right=l+200), "strand": "+"})
     bed = genelist()
     bed.load_list(newb)
     e = time.time()
     print(e-s, "s")
-    
+
     t = track(filename="testold.trk2")
     print("Pileup...")
     import cProfile, pstats
@@ -1162,7 +1154,7 @@ if __name__ == "__main__":
 
     print(t.pileup(genelist=bed, filename='/tmp/test2.png', respect_strand=True))
     print(t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, respect_strand=True))
-    
+
     print(bed.all())
     print(t.pileup(genelist=bed, filename='/tmp/test2.png', pointify=False, window_size=0, respect_strand=True))
 

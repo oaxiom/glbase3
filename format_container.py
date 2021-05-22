@@ -43,8 +43,7 @@ class fc():
         return("<fc: %s" % self.name)
         
     def __iter__(self):
-        for n in self.data:
-            yield n
+        yield from self.data
             
     def has_key(self, key):
         return(key in self.data)

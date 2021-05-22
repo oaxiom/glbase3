@@ -239,7 +239,7 @@ def configobj(params):
 
     """
     if isinstance(params, list):
-        params = dict((p.name, p.value) for p in params)
+        params = {p.name: p.value for p in params}
 
     configobj = ConfigParser()
     for key,value in list(params.items()):

@@ -75,28 +75,26 @@ def gerp_to_flat(path, outfilenameA, outfilenameB, name, bin_format="f", **kargs
     config.log.info("Started %s -> %s and %s" % (path, outfilenameA, outfilenameB))
     s = time.time()
     step = 1
-    
+
     for filename in glob(os.path.join(path, "*.maf.rates")):
         config.log.info("Doing %s" % filename)
-        oh = open(filename, "rU")
-        chrom = filename.split(".")[0].replace("chr", "")
-        cleft = 0
+        with open(filename, "rU") as oh:
+            chrom = filename.split(".")[0].replace("chr", "")
+            cleft = 0
 
-        for line in oh:
-            if line: # Just in case there are some empty lines
-                d = line.split()
-                #print d[0], cleft
-                #fa.add_score(chromosome=chrom, left=cleft, right=cleft+step, score=float(d[0]))
-                fb.add_score(chromosome=chrom, left=cleft, right=cleft+step, score=float(d[1]))
-                cleft += step 
-                
-                if n>1e6:
-                    m += 1
-                    print("%s,000,000 bp" % m)
-                    n = 0
-                n += step
-        oh.close()
+            for line in oh:
+                if line: # Just in case there are some empty lines
+                    d = line.split()
+                    #print d[0], cleft
+                    #fa.add_score(chromosome=chrom, left=cleft, right=cleft+step, score=float(d[0]))
+                    fb.add_score(chromosome=chrom, left=cleft, right=cleft+step, score=float(d[1]))
+                    cleft += step 
 
+                    if n>1e6:
+                        m += 1
+                        print("%s,000,000 bp" % m)
+                        n = 0
+                    n += step
     e = time.time()
 
     config.log.info("Finalise library...")

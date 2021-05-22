@@ -129,7 +129,6 @@ class manifold_pca:
             True if successful, and all subsequent pca methods will use the new projected data.
         """
         raise AsserionError('Not implemented')
-        return(False)
 
     def explained_variance(self, filename=None, percent_variance=True, **kargs):
         """
@@ -250,13 +249,26 @@ class manifold_pca:
         xdata = self.__transform[:,x-1]
         ydata = self.__transform[:,y-1]
 
-        return_data = self.__draw.unified_scatter(labels, xdata, ydata, x=x, y=y, filename=filename,
-            spot_cols=spot_cols, spots=spots, label=label, alpha=alpha, overplot=overplot,
+        return self.__draw.unified_scatter(
+            labels,
+            xdata,
+            ydata,
+            x=x,
+            y=y,
+            filename=filename,
+            spot_cols=spot_cols,
+            spots=spots,
+            label=label,
+            alpha=alpha,
+            overplot=overplot,
             perc_weights=self.get_loading_percents(),
-            spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales,
-            only_plot_if_x_in_label=only_plot_if_x_in_label, **kargs)
-
-        return(return_data)
+            spot_size=spot_size,
+            label_font_size=label_font_size,
+            cut=cut,
+            squish_scales=squish_scales,
+            only_plot_if_x_in_label=only_plot_if_x_in_label,
+            **kargs
+        )
 
     def feature_scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8,
         topbots=False, spot_size=40, label_font_size=7, cut=None, squish_scales=False,
@@ -321,13 +333,26 @@ class manifold_pca:
         xdata = self.__components[:,x-1]
         ydata = self.__components[:,y-1]
 
-        return_data = self.__draw.unified_scatter(labels, xdata, ydata, x=x, y=y, filename=filename,
-            spot_cols=spot_cols, spots=spots, label=label, alpha=alpha,
-            perc_weights=self.get_loading_percents(), label_style=label_style,
-            spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales,
-            only_plot_if_x_in_label=False, **kargs)
-
-        return(return_data)
+        return self.__draw.unified_scatter(
+            labels,
+            xdata,
+            ydata,
+            x=x,
+            y=y,
+            filename=filename,
+            spot_cols=spot_cols,
+            spots=spots,
+            label=label,
+            alpha=alpha,
+            perc_weights=self.get_loading_percents(),
+            label_style=label_style,
+            spot_size=spot_size,
+            label_font_size=label_font_size,
+            cut=cut,
+            squish_scales=squish_scales,
+            only_plot_if_x_in_label=False,
+            **kargs
+        )
 
     def scatter3d(self, x, y, z, filename=None, spot_cols=None, label=False, stem=True,
         label_font_size=6, rotation=134, elevation=48, squish_scales=False,

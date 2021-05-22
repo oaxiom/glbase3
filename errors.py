@@ -192,7 +192,11 @@ class UnrecognisedFileFormatError(Exception):
         if "sniffer" in format:
             print("Format Specifier: Sniffer (guess the file format)")
         else:
-            print("Format Specifier: %s" % (" ".join(["%s:%s" % (key, format[key]) for key in format])))
+            print(
+                "Format Specifier: %s"
+                % " ".join("%s:%s" % (key, format[key]) for key in format)
+            )
+
         print("-----------------------")
         config.log.critical("%s" % (message,))
         print()

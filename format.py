@@ -300,11 +300,7 @@ def _load_hmmer_tbl(filename, gzip=False):
     # Unbelievably stupid format for hmmer:
     Load the hmmer tbl_out table
     """
-    if gzip:
-        oh = gzipfile.open(filename, "rt")
-    else:
-        oh = open(filename, "rt")
-
+    oh = gzipfile.open(filename, "rt") if gzip else open(filename, "rt")
     res = []
     for line in oh:
         if "#" not in line:
@@ -314,9 +310,8 @@ def _load_hmmer_tbl(filename, gzip=False):
             gene = "NA"
             # split the name up into k:v pairs
             for item in name:
-                if ":" in item:
-                    if "gene:" in item:
-                        gene = item.split(":")[1]
+                if ":" in item and "gene:" in item:
+                    gene = item.split(":")[1]
             try:
                 res.append({"peptide": ll[0], "dom_acc": ll[3], "dom_name": ll[2], "score": float(ll[4]),
                     "gene": gene})
@@ -334,10 +329,7 @@ def _load_hmmer_domtbl(filename, gzip=False):
     # Unbelievably stupid format for hmmer:
     Load the hmmer domtblout format table
     """
-    if gzip:
-        oh = gzipfile.open(filename, "rt")
-    else:
-        oh = open(filename, "rt")
+    oh = gzipfile.open(filename, "rt") if gzip else open(filename, "rt")
     res = []
     for line in oh:
         if "#" in line:
@@ -391,11 +383,15 @@ class fccatalogue():
 
     def __str__(self):
         print("Found %s formats" % len(self.formats))
-        a = []
         keys = list(self.formats.keys()) # report in alphabetical order
         keys.sort()
-        for k in keys:
-            a.append("format.{name:24} - {desc:5}".format(name=k, desc=self.formats[k].description))
+        a = [
+            "format.{name:24} - {desc:5}".format(
+                name=k, desc=self.formats[k].description
+            )
+            for k in keys
+        ]
+
         return("\n".join(a))
 
     def __iter__(self):
@@ -416,10 +412,15 @@ class fccatalogue():
                 and description to find relevant formats.
         """
 
-        a = []
-        for key in self.formats:
-            if value.lower() in self.formats[key].name.lower() or value in self.formats[key].description.lower():
-                a.append("format.{name:22} - {desc:6}".format(name=key, desc=self.formats[key].description))
+        a = [
+            "format.{name:22} - {desc:6}".format(
+                name=key, desc=self.formats[key].description
+            )
+            for key in self.formats
+            if value.lower() in self.formats[key].name.lower()
+            or value in self.formats[key].description.lower()
+        ]
+
         if a:
             print("\n".join(a))
         else:

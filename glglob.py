@@ -757,26 +757,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             ABC = AB.collide(genelist=BC, key=key, delta=delta)
 
             # check for none's:
-            if AB:
-                AB = len(AB)
-            else:
-                AB = 0
-
-            if AC:
-                AC = len(AC)
-            else:
-                AC = 0
-
-            if BC:
-                BC = len(BC)
-            else:
-                BC = 0
-
-            if ABC:
-                ABC = len(ABC)
-            else:
-                ABC = 0
-
+            AB = len(AB) if AB else 0
+            AC = len(AC) if AC else 0
+            BC = len(BC) if BC else 0
+            ABC = len(ABC) if ABC else 0
             # You only need to provide the lengths, the overlaps are calculated in venn3:
             realfilename = self.draw.venn3(len(A), len(B), len(C), AB, AC, BC, ABC,
                 self.linearData[0].name, self.linearData[1].name, self.linearData[2].name,
@@ -847,12 +831,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # You will only notice this if the list is short and you can see the names
 
         if normalise: #this will normalise the y-axis
-            for k in res:
+            for k, v_ in res.items():
                 # normalise to 0-->100
                 min_val = min(res[k])
                 max_val = max(res[k]) - min_val
 
-                for i, v in enumerate(res[k]):
+                for i, v in enumerate(v_):
                     res[k][i] = ((v-min_val) / max_val) * 100.0
 
         if mode == "graph":
@@ -950,9 +934,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         tab = numpy.zeros([len(self.linearData), total_rows])
 
         crow = 0
-        for c in chr_blocks:
+        for c, value in chr_blocks.items():
             for bid in chr_blocks[c]:
-                for i in range(len(chr_blocks[c][bid])): # or len(self.linearData)
+                for i in range(len(value[bid])): # or len(self.linearData)
                     tab[i, crow] = chr_blocks[c][bid][i]
                 crow += 1
 
@@ -990,26 +974,20 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         clusters = {}
         for row in tab:
             # Make an identifier for the cluster:
-            id = tuple([bool(i) for i in row])
+            id = tuple(bool(i) for i in row)
             if id not in clusters:
                 clusters[id] = []
             clusters[id].append(row)
 
         # I want to sort the clusters first:
-        sorted_clusters = []
-        for c in clusters:
-            sorted_clusters.append({"id": c, "score": sum(c)})
+        sorted_clusters = [{"id": c, "score": sum(c)} for c in clusters]
         sorted_clusters = sorted(sorted_clusters, key=itemgetter("score"))
 
         # Flattent the arrays and load it back into a numpy array
         tab = None
         for c in sorted_clusters:
             new = numpy.vstack(clusters[c["id"]])
-            if tab is None:
-                tab = new
-            else:
-                tab = numpy.vstack([tab, new])
-
+            tab = new if tab is None else numpy.vstack([tab, new])
         ret = self.draw.heatmap(data=tab, filename=filename, col_names=[gl.name for gl in self.linearData], row_names=None,
                 row_cluster=False, col_cluster=True, colour_map=cm.Reds, heat_wid=0.7, heat_hei=0.7, bracket=[0,tab.max()])
 

@@ -21,7 +21,7 @@ import numpy
 class Test_Flat_Function(unittest.TestCase):
     def setUp(self):
         self.t = glbase3.flat_track(filename="/tmp/test.flat", new=True, name="Test Track", bin_format="f")
-        for i in range(0, 100):
+        for i in range(100):
             self.t.add_score(chromosome=1, left=i, right=i+1, score=i)
         for i in range(100,110):
             self.t.add_score(chromosome=2, left=i, right=i+1, score=0)
@@ -36,7 +36,7 @@ class Test_Flat_Function(unittest.TestCase):
     def test_reload(self):
         t = glbase3.flat_track(filename="/tmp/test.flat", bin_format="f")
         a = self.t.get(glbase3.location(loc="chr1:0-100"))
-        expected_result = [i for i in range(0, 100)] +[0]
+        expected_result = [i for i in range(100)] + [0]
         self.assertTrue(False not in [int(x) == int(y) for x, y in zip(a, expected_result)]) # all seqs.
     
     def test_meta_data(self):
@@ -51,12 +51,12 @@ class Test_Flat_Function(unittest.TestCase):
 
     def test_pileup_no_respect_strand(self):
         t = glbase3.flat_track(filename="/tmp/test.flat", bin_format="f")
-        
+
         g = glbase3.genelist(filename="test_data/track_test.bed", format=glbase3.format.bed).pointify().expand('loc', 15)
         L, _ = t.pileup(genelists=g, filename="test_images/test_output_no_strand.png", bandwidth=15, respect_strand=False)
-        
-        expected_result = numpy.array(list(range(0, 30)))
-        
+
+        expected_result = numpy.array(list(range(30)))
+
         self.assertListEqual(list(L['track_test']), list(expected_result))
 
     def test_pileup_respect_strand(self):

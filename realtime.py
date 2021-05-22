@@ -231,35 +231,30 @@ def load_expn(filename, missing_data_ct, prefix=None, collect_sample_and_primer_
         Load a BioMark experimental Ct file.
     """
     table = {}
-    
+
     with open(filename, "rU") as fh:
         ft = csv.reader(fh)
-        
+
         for row in ft:
-            if row:
-                if len(row[0]) == 7 and "S" in row[0] and "A" in row[0]: 
-                    # Check it passed:
-                
-                    # get the Ct
-                    sample = row[1]
-                    primer = row[4]
-                    if collect_sample_and_primer_names:
-                        Ct = float(row[7])
-                    else:
-                        Ct = float(row[6])
-                    
-                    if (row[8] == "Fail") or (row[10] == "Fail"): # Sometimes seen in column 10
-                        Ct = float(missing_data_ct)  
-                    
-                    if prefix: # prefix adding is done here if required
-                        sample = '%s-%s' % (prefix, sample)
-                    
-                    if sample not in table:
-                        table[sample] = {}
-                    if primer not in table[sample]:
-                        table[sample][primer] = []
-                    table[sample][primer].append(Ct)
-    
+            if row and len(row[0]) == 7 and "S" in row[0] and "A" in row[0]: 
+                # Check it passed:
+
+                # get the Ct
+                sample = row[1]
+                primer = row[4]
+                Ct = float(row[7]) if collect_sample_and_primer_names else float(row[6])
+                if (row[8] == "Fail") or (row[10] == "Fail"): # Sometimes seen in column 10
+                    Ct = float(missing_data_ct)  
+
+                if prefix: # prefix adding is done here if required
+                    sample = '%s-%s' % (prefix, sample)
+
+                if sample not in table:
+                    table[sample] = {}
+                if primer not in table[sample]:
+                    table[sample][primer] = []
+                table[sample][primer].append(Ct)
+
     return(table)
         
 def load_descriptors(filename, prefix, convert_under_scores):
@@ -299,11 +294,7 @@ def norm_buganim(data, sample_names, primer_names, control_genes, missing_data_c
         for p in data[s]:
             # 1d blank replicates that have >2.0 stdev.
             stdev = numpy.std(data[s][p])
-            if abs(stdev) > 2.0:
-                data[s][p] = missing_data_ct
-            else:
-                data[s][p] = numpy.mean(data[s][p])               
-    
+            data[s][p] = missing_data_ct if abs(stdev) > 2.0 else numpy.mean(data[s][p])
     # Sample filter:
     mark_s_for_del = [] # mark sample for deletion:
     #inv_primer_names = {v:k for k, v in primer_names.items()}
@@ -339,36 +330,33 @@ def norm_buganim(data, sample_names, primer_names, control_genes, missing_data_c
     mark_p_for_del = []
     for p in set(primer_names) - set(control_genes):
         # Can sometimes have missing values:
-        all_p = []
-        for s in data:
-            if p in data[s]:
-                all_p.append(data[s][p])
+        all_p = [data[s][p] for s in data if p in data[s]]
         #print s, primer_names[p], [i >= missing_data_ct for i in all_p], all_p
         if False not in [i >= missing_data_ct for i in all_p]: # If all > missing_data_ct then discard
             mark_p_for_del.append(p)
-            
+
     config.log.warning("process_biomark: Deleted %s primers: %s" % (len(set(mark_p_for_del)), list(set(mark_p_for_del))))
     for p in set(mark_p_for_del):
         primer_names.remove(p)
         for s in data:
             if p in data[s]: # Can contain missing values
                 del data[s][p]     
-    
+
     newdata = copy.deepcopy(data)
     # Convert to ACx 
     for p in primer_names:
         for s in data:
             ctrl_expn = [data[s][ctrl] for ctrl in control_genes]
             this_expn = data[s][p]
-            
+
             #print this_expn
-            
+
             res = []
             for ctrl in ctrl_expn:
                 #for expn in this_expn:
                 ACx = fudge_factor + ctrl - this_expn # They have an arbitrary fudge factor.
                 res.append(ACx) 
             #print res
-                    
+
             newdata[s][p] = numpy.mean(res)
     return(newdata, sample_names, primer_names)

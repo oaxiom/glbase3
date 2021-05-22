@@ -186,9 +186,7 @@ class genome(genelist):
         This makes it convenient to dump into a csv file.
         """
         if not geneList:
-            ret = []
-            for item in self.linearData:
-                ret.append([item[feature], item["name"]])
+            ret = [[item[feature], item["name"]] for item in self.linearData]
             return(ret)
 
         ret = self.getAnnotationsByKey(geneList, feature, KeepUnmapped) # get all the items
@@ -196,9 +194,7 @@ class genome(genelist):
         new_ret = []
         if ret:
             for item in ret:
-                row = []
-                for key in returnFeatures:
-                    row.append(item[key])
+                row = [item[key] for key in returnFeatures]
                 new_ret.append(row)
         return new_ret
 
@@ -384,9 +380,8 @@ class genome(genelist):
             if bonus > delta: # breaks in case you send a loc that is beyond the end of the file.
                 break
 
-        if "strand" in kargs:
-            if kargs["strand"] in negative_strand_labels:
-                ret = utils.rc(ret)
+        if "strand" in kargs and kargs["strand"] in negative_strand_labels:
+            ret = utils.rc(ret)
 
         if "mask" in kargs and kargs["mask"]:
             ret = utils.repeat_mask(ret)
@@ -492,23 +487,15 @@ class genome(genelist):
                 newloc = newloc.expand(delta)
 
             if "deltaleft" in kargs and kargs["deltaleft"]:
-                if strand_key:
-                    if item[strand_key] in positive_strand_labels:
-                        newloc = newloc.expandLeft(kargs["deltaleft"])
-                    elif item[strand_key] in negative_strand_labels:
-                        newloc = newloc.expandRight(kargs["deltaleft"])
-                else:
+                if item[strand_key] in positive_strand_labels or not strand_key:
                     newloc = newloc.expandLeft(kargs["deltaleft"])
-
+                elif item[strand_key] in negative_strand_labels:
+                    newloc = newloc.expandRight(kargs["deltaleft"])
             if "deltaright" in kargs and kargs["deltaright"]:
-                if strand_key:
-                    if item[strand_key] in positive_strand_labels:
-                        newloc = newloc.expandLeft(kargs["deltaright"])
-                    elif item[strand_key] in negative_strand_labels:
-                        newloc = newloc.expandRight(kargs["deltaright"])
-                else:
+                if strand_key and item[strand_key] in positive_strand_labels:
+                    newloc = newloc.expandLeft(kargs["deltaright"])
+                elif item[strand_key] in negative_strand_labels or not strand_key:
                     newloc = newloc.expandRight(kargs["deltaright"])
-
             if replace_loc_key:
                 item["loc"] = newloc
 
@@ -530,7 +517,7 @@ class genome(genelist):
         newgl.linearData = newl
         newgl._optimiseData()
 
-        if len(newl) > 0:
+        if newl:
             config.log.info("Got sequences for {0} items".format(self.name))
         else:
             config.log.warning("No sequences found!")
