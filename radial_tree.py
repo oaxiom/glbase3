@@ -18,7 +18,7 @@ def simple_link(t, ndx, level):
     - level, of from, i.e. root is in level 0
     """
     plot(t.points[0, ndx], t.points[1, ndx])
-    if 0== level:
+    if level == 0:
         plot(t.points[0, ndx[0]], t.points[1, ndx[0]], 's')
     if t.is_leaf(ndx[1]):
         plot(t.points[0, ndx[1]], t.points[1, ndx[1]], 'o')
@@ -57,8 +57,8 @@ def _groub_by(p, tol, r):
     g, gm, gp = [], [], p- p[0]
     while True:
         if gp[-1]< 0: break
-        ndx = where(land(0.<= gp, gp< tol))[0]
-        if 0 < len(ndx):
+        ndx = where(land(gp >= 0., gp< tol))[0]
+        if len(ndx) > 0:
             g.append(ndx)
             gm.append(p[ndx].mean())
         gp -= tol
@@ -68,10 +68,7 @@ def _leafs(p):
     return argsort(p[0])
 
 def _create_leaf_nodes(ndx):
-    nodes= []
-    for k in range(len(ndx)):
-        nodes.append(Node(ndx[k], []))
-    return nodes
+    return [Node(ndx[k], []) for k in range(len(ndx))]
 
 def _link_and_create_nodes(_n, n_, cn, groups):
     nodes, n0= [], 0

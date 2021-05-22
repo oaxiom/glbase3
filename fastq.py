@@ -110,7 +110,7 @@ class fastq(delayedlist):
 
     def __phred33_str(self, qual):
         """ convert the quals to Phred33 """
-        return("".join([chr(i+33) for i in qual]))
+        return "".join(chr(i+33) for i in qual)
         
     def splitPE(self, file1, file2):
         """
@@ -142,38 +142,36 @@ class fastq(delayedlist):
         """
         config.log.info("Started '%s'" % self.name)
         __unpaired_warning = False
-        
-        h1 = open(file1, "w")
-        h2 = open(file2, "w")
-        
-        paired = 0
-        unpaired = 0
-        
-        read1 = True
-        while True:
-            try:
-                read1 = next(self.__iter__())
-                read2 = next(self.__iter__())
-            except StopIteration:
-                break
 
-            if read1["id"].split(":")[0:6] == read2["id"].split(":")[0:6]:
-                paired += 1
-                h1.write("%s\n" % read1["id"])
-                h1.write("%s\n" % read1["seq"])
-                h1.write("%s\n" % read1["strand"])
-                h1.write("%s\n" % self.__phred33_str(read1["qual"]))
-                
-                h2.write("%s\n" % read2["id"])
-                h2.write("%s\n" % read2["seq"])
-                h2.write("%s\n" % read2["strand"])
-                h2.write("%s\n" % self.__phred33_str(read2["qual"]))
-            else:
-                unpaired += 1
-                if __unpaired_warning:
-                    config.log.warning("Unpaired reads found, there is a high chance that splitPE will incorrectly format the output!")
-                    __unpaired_warning = True
-        
-        h1.close()
-        h2.close()
+        h1 = open(file1, "w")
+        with open(file2, "w") as h2:
+            paired = 0
+            unpaired = 0
+
+            read1 = True
+            while True:
+                try:
+                    read1 = next(self.__iter__())
+                    read2 = next(self.__iter__())
+                except StopIteration:
+                    break
+
+                if read1["id"].split(":")[0:6] == read2["id"].split(":")[0:6]:
+                    paired += 1
+                    h1.write("%s\n" % read1["id"])
+                    h1.write("%s\n" % read1["seq"])
+                    h1.write("%s\n" % read1["strand"])
+                    h1.write("%s\n" % self.__phred33_str(read1["qual"]))
+
+                    h2.write("%s\n" % read2["id"])
+                    h2.write("%s\n" % read2["seq"])
+                    h2.write("%s\n" % read2["strand"])
+                    h2.write("%s\n" % self.__phred33_str(read2["qual"]))
+                else:
+                    unpaired += 1
+                    if __unpaired_warning:
+                        config.log.warning("Unpaired reads found, there is a high chance that splitPE will incorrectly format the output!")
+                        __unpaired_warning = True
+
+            h1.close()
         config.log.info("splitPE(): Correctly paired: %s, unpaired: %s" % (paired, unpaired))

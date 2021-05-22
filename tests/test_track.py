@@ -160,9 +160,8 @@ class Test_Track_Function(unittest.TestCase):
 
     def test_saveBedGraph(self):
         self.t.saveBedGraph('/tmp/bedgraph.bg')
-        oh = open('/tmp/bedgraph.bg', 'rU')
-        l1 = oh.readline().strip().split('\t')
-        oh.close()
+        with open('/tmp/bedgraph.bg', 'rU') as oh:
+            l1 = oh.readline().strip().split('\t')
         self.assertEqual(l1, ['chr1', '0', '100', '1.42'])
         
     '''def test_seqtotrk(self):

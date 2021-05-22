@@ -150,11 +150,10 @@ def cartesian_product(list_of_lists):
     """
 
     head,rest = list_of_lists[0], list_of_lists[1:]
-    if len(rest) is 0:
-        for val in head:
+    for val in head:
+        if len(rest) is 0:
             yield (val,)
-    else:
-        for val in head:
+        else:
             for val2 in cartesian_product(rest):
                 yield (val,) + val2
 
@@ -287,8 +286,12 @@ def lru_cache(maxsize):
         def wrapper(*args):
             
             # localize variable access (ugly but fast)
-            _cache=cache; _len=len; _refcount=refcount; _maxsize=maxsize
-            queue_append=queue.append; queue_popleft = queue.popleft
+            _cache=cache
+            _len=len
+            _refcount=refcount
+            _maxsize=maxsize
+            queue_append=queue.append
+            queue_popleft = queue.popleft
 
             # get cache entry or compute if not found
             try:
@@ -309,10 +312,10 @@ def lru_cache(maxsize):
                 if not _refcount[k]:
                     del _cache[k]
                     del _refcount[k]
-    
+
             # Periodically compact the queue by duplicate keys
             if _len(queue) > _maxsize * 4:
-                for i in [None] * _len(queue):
+                for _ in [None] * _len(queue):
                     k = queue_popleft()
                     if _refcount[k] == 1:
                         queue_append(k)

@@ -40,11 +40,12 @@ class chain:
         Return a string representation of the Markov Chain
         """
 
-        text = """
+        return """
         Markov Chain:\n
         Levels: %s\n
-        """ % (self.__len__(), )
-        return(text)
+        """ % (
+            self.__len__(),
+        )
 
     def __len__(self):
         """

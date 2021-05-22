@@ -48,14 +48,14 @@ def expandDegenerateMotifs(motif):
     # scan the motif and count the no of degenerate motifs
     newlist = []
     for n in range(mlen):
-        if nm[n] == "r" or nm[n] == "y" or nm[n] == "k" or nm[n] == "m" or nm[n] == "s" or nm[n] == "w": # AG
+        if nm[n] in ["r", "y", "k", "m", "s", "w"]: # AG
             newlist.append((2, n, nm[n])) # append a triple, with the number of flips and its location
         elif nm[n] == "n":
             newlist.append((4, n, nm[n]))
         else:
             newlist.append((1, n, nm[n]))
 
-    if len(newlist) == 0 : return([motif]) # no degenerate elements in the motif
+    if not newlist: return([motif]) # no degenerate elements in the motif
 
     l = []
     #print newlist
@@ -63,7 +63,7 @@ def expandDegenerateMotifs(motif):
 
     return l
 
-def iti(_fm, _fmcpos, _cl, _list): # my iterator
+def iti(_fm, _fmcpos, _cl, _list):    # my iterator
     """
     This is possibly the best piece of code I've ever made!
     Mainly because it's almost entirely unitelligable....
@@ -81,16 +81,14 @@ def iti(_fm, _fmcpos, _cl, _list): # my iterator
     # the main iterator;
     if _fmcpos >= len(_fm):
         return(False) # reached end of list, signal to stick it back on the end;
-    else:
-        n = _fm[_fmcpos]
+    n = _fm[_fmcpos]
         #print n
-        for x in range(n[0]):
-            _cl[n[1]] = osc(_cl[n[1]], n[2])
-            if not iti(_fm, _fmcpos+1, _cl, _list): # each time we iterate at the end of the motif add it to the list;
-                # convert the list back to a string
-                _copy = string.join(_cl, '')
-                _list.append(_copy)
-        return True
+    for _ in range(n[0]):
+        _cl[n[1]] = osc(_cl[n[1]], n[2])
+        if not iti(_fm, _fmcpos+1, _cl, _list): # each time we iterate at the end of the motif add it to the list;
+            # convert the list back to a string
+            _copy = string.join(_cl, '')
+            _list.append(_copy)
     return True
 
 def movingAverage(_list, window=20, normalise=False, bAbsiscaCorrect=True):
@@ -113,9 +111,10 @@ def movingAverage(_list, window=20, normalise=False, bAbsiscaCorrect=True):
     y = []
 
     for n in range(half_window_left, len(_list)-half_window_right):
-        score = 0
-        for i in range(n-half_window_left, n+half_window_right, 1):
-            score += _list[i]
+        score = sum(
+            _list[i]
+            for i in range(n - half_window_left, n + half_window_right, 1)
+        )
 
         if normalise:
             y.append(float(score) / window)
@@ -148,47 +147,59 @@ def cumulative_line(listIn, percent=True):
             rc += i
         n.append(rc)
 
-    if percent:
-        a = (numpy.array(n) / float(s)) * 100
-    else:
-        a = n
-    return a
+    return (numpy.array(n) / float(s)) * 100 if percent else n
 
 def osc(last, type):
     """
     R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
     degenerate character N=[ATCG]
     """
-    if type == "r":
-        if last == "a": return("g")
-        if last == "g": return("a")
-        return "a"
-    if type == "y":
-        if last == "c": return("t")
-        if last == "t": return("c")
-        return"c"
     if type == "k":
-        if last == "g": return("t")
-        if last == "t": return("g")
+        if last == "g":
+            return("t")
+        elif last == "t":
+            return("g")
         return "g"
-    if type == "m":
-        if last == "a": return("c")
-        if last == "c": return("a")
+    elif type == "m":
+        if last == "a":
+            return("c")
+        elif last == "c":
+            return("a")
         return "a"
-    if type == "s":
-        if last == "g": return("c")
-        if last == "c": return("g")
+    elif type == "n":
+        if last == "a":
+            return("c")
+        elif last == "c":
+            return("g")
+        elif last == "g":
+            return("t")
+        elif last == "t":
+            return("a")
+        return "a"
+    elif type == "r":
+        if last == "a":
+            return("g")
+        elif last == "g":
+            return("a")
+        return "a"
+    elif type == "s":
+        if last == "c":
+            return("g")
+        elif last == "g":
+            return("c")
         return "g"
-    if type == "w":
-        if last == "a": return("t")
-        if last == "t": return("a")
+    elif type == "w":
+        if last == "a":
+            return("t")
+        elif last == "t":
+            return("a")
         return "a"
-    if type == "n":
-        if last == "a": return("c")
-        if last == "c": return("g")
-        if last == "g": return("t")
-        if last == "t": return("a")
-        return "a"
+    elif type == "y":
+        if last == "c":
+            return("t")
+        elif last == "t":
+            return("c")
+        return"c"
     return type
 
 def rc(seq):
@@ -386,11 +397,7 @@ def convertFASTAtoDict(filename, gzip_input=False):
     """
     assert os.path.exists(filename), "filename %s not found" % filename
 
-    if gzip_input:
-        openfile = gzip.open(filename, "rt")
-    else:
-        openfile = open(filename, "rt")
-
+    openfile = gzip.open(filename, "rt") if gzip_input else open(filename, "rt")
     result = []
     for line in openfile:
         line = line.strip()
@@ -425,12 +432,7 @@ def scanNumberOfBasePairs(fastafilehandle):
             "t" : 3,
             "T" : 3}
 
-    a = []
-    a.append(0)
-    a.append(0)
-    a.append(0)
-    a.append(0)
-
+    a = [0, 0, 0, 0]
     for line in fastafilehandle:
         if line[0] != ">": # there is a more elegant way to do this...
             lcline = line.lower()
@@ -452,7 +454,7 @@ def collide(Aleft, Aright, Bleft, Bright):
     if Aright == Bleft: return 1
     if Aright == Bright: return 1
 
-    if Aleft <= Bright and Aright >= Bright:
+    if Aright >= Bright:
         A = abs(Aleft - Bright)
         B = abs(Aright - Bright)
         C = abs(Aleft - Bleft)
@@ -460,7 +462,7 @@ def collide(Aleft, Aright, Bleft, Bright):
         closest = min(A, B, C, D)
         return closest # Bright point is within A, thus collision
 
-    if Aright >= Bleft and Aleft <= Bleft:
+    if Aleft <= Bleft:
         A = abs(Aleft - Bright)
         B = abs(Aright - Bright)
         C = abs(Aleft - Bleft)
@@ -590,10 +592,7 @@ def FASTAToLIST(filename):
 def loadTSVAsLIST(file):
     oh = open(file, "rU")
     reader = csv.reader(oh, dialect=csv.excel_tab)
-    newl = []
-    for line in reader:
-        newl.append(line)
-    return newl
+    return [line for line in reader]
 
 # This code comes from http://www.johndcook.com/standard_deviation.html
 # the point of all this complexity is to allow incremental computation of mean and std in
@@ -623,10 +622,7 @@ class accumulate_mean:
 
     def finalize(self, count):
         mean = float(self.m_newM) * self.m_n / count
-        if self.m_n > 1:
-            stdev = math.sqrt(self.m_newS/ (self.m_n - 1))
-        else:
-            stdev = 0.0
+        stdev = math.sqrt(self.m_newS/ (self.m_n - 1)) if self.m_n > 1 else 0.0
         self.val = {"mean":mean, "stdev":stdev}
 
     def value(self):
@@ -647,15 +643,13 @@ def transpose(list):
 
     more like a transpose from R than anything else.
     """
-    newl = []
     try:
         rows = len(list[0])
     except:
         rows = 1 # probably.
     cols = len(list)
 
-    for row in range(rows):
-        newl.append([0 for x in range(cols)])
+    newl = [[0 for x in range(cols)] for _ in range(rows)]
     for r in range(rows):
         for c in range(cols):
             newl[r][c] = list[c][r]
@@ -666,17 +660,13 @@ def isPalindromic(seq):
     is a sequence palindromic?
     returns True or False
     """
-    if rc_expanded(seq.lower()) == seq.lower():
-        return True
-    return False
+    return rc_expanded(seq.lower()) == seq.lower()
 
 def isPalindrome(seq):
     """
     is a sequence a palindrome?
     """
-    if rc_expanded(seq.lower()) == seq.lower():
-        return True
-    return False
+    return rc_expanded(seq.lower()) == seq.lower()
 
 def bin_data(array_like, bin_size):
     """
@@ -771,11 +761,7 @@ def fastq(filename, gziped=False):
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
 
     """
-    if gzip:
-        oh = gzip.open(filename, "rt")
-    else:
-        oh = open(filename, "rU")
-
+    oh = gzip.open(filename, "rt") if gzip else open(filename, "rU")
     name = "dummy"
     while name != "":
         name = oh.readline().strip()

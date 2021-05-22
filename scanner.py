@@ -64,9 +64,7 @@ class scanner(genelist.genelist):
         f = 0
 
         for line in oh:
-            if line[0] == ">":
-                pass
-            else:
+            if line[0] != ">":
                 if not linelength: # I don't know the line length yet
                     linelength = len(line) # now I know it so make an array ->
                     a = zeros(linelength) # assume all subsequent line lengths are the same...
@@ -323,89 +321,85 @@ def BatchConvert(fasta_file, matrix, threshold = 0.883, bKeepAll=False, errorf=F
 
     reader = utils.convertFASTAtoDict(os.path.join(path, fasta_file)) # reader
     writer = csv.writer(writerfile)
-    bed_out = open(os.path.join(path, "Matches_%s_%s.bed" % (fasta_file.split("_")[0], matrix._matrixname)), "w")
-    if errorf: errorf = csv.writer(errorfile)
+    with open(os.path.join(path, "Matches_%s_%s.bed" % (fasta_file.split("_")[0], matrix._matrixname)), "w") as bed_out:
+        if errorf: errorf = csv.writer(errorfile)
 
-    mm = matrixmotif(matrix, threshold)
+        mm = matrixmotif(matrix, threshold)
 
-    li = ["name", "location", "motif_locations", "count", "motif_seq", "results", "sequence (f)"]
-    writer.writerow(li)
+        li = ["name", "location", "motif_locations", "count", "motif_seq", "results", "sequence (f)"]
+        writer.writerow(li)
 
-    total = 0
-    tscore = []
-    posinhit = []
-    listlen = len(reader)
-    i = 0
+        total = 0
+        tscore = []
+        posinhit = []
+        listlen = len(reader)
+        i = 0
 
-    headers = frozenset("Chr")
-    regex = re.compile("\([+\-]\)")
+        headers = frozenset("Chr")
+        regex = re.compile("\([+\-]\)")
 
-    for data in reader:
-        name = data["name"]
-        if name.find(">hg18") != -1: # ralfs format, this is COSMIC or liftOver format?
-            #>hg18.chr8(+):67737014-67737227|hg18_3
-            #chr8(+):67737014-67737227
-            t = name.split(".")[1].split("|")[0]
-            location = t.replace("(+)", "").replace("(-)", "")
-            strand = regex.search(t).group().replace("(", "").replace(")", "")
-        else: # probably my format from extractSeqLists.?
-            location = name.split("_")[1]
-            strand = "+"
+        for data in reader:
+            name = data["name"]
+            if name.find(">hg18") == -1: # probably my format from extractSeqLists.?
+                location = name.split("_")[1]
+                strand = "+"
 
-        # always feed the + strand from the persepctive of the motif_scanner.
-        if strand == "+":
-            seq = data["f"]
-        else:
-            seq = data["r"]
-        #seq = data["f"]
+            else: # ralfs format, this is COSMIC or liftOver format?
+                #>hg18.chr8(+):67737014-67737227|hg18_3
+                #chr8(+):67737014-67737227
+                t = name.split(".")[1].split("|")[0]
+                location = t.replace("(+)", "").replace("(-)", "")
+                strand = regex.search(t).group().replace("(", "").replace(")", "")
+                    # always feed the + strand from the persepctive of the motif_scanner.
+            seq = data["f"] if strand == "+" else data["r"]
+                    #seq = data["f"]
 
-        if not errorf:
-            res = mm.find_matches(seq) # returns: [strand, pos, score, seq]
-            if res:
-                total += len(res)
-                motiflocs = []
-                motifseqs = []
-                testers = []
-                for item in res:
-                    pos = int(item[1])
-                    t = utils.getLocation(location)
-                    hit_strand = item[0]
+            if errorf: # Do the error stuff;
+                print("n:",i)
+                i += 1
+                errorf.writerow(mm.EstimateErrorRate(seq, 30))
 
-                    # write out a BED file:
-
-                     # I jsut need to correct the location depending upon the feed strand.
-                    if hit_strand == "+":
-                        newloc = "chr%s:%s-%s" % (t["chr"], int(t["left"])+pos+1, int(t["left"])+pos+len(item[3]))
-                        bed_out.write("chr%s\t%s\t%s\t0\t%s\n" % (t["chr"], int(t["left"])+pos+1, int(t["left"])+pos+len(item[3]), strand))
-                    elif hit_strand == "-":
-                        newloc = "chr%s:%s-%s" % (t["chr"], int(t["left"])+pos+1-len(item[3]), int(t["left"])+pos)
-                        bed_out.write("chr%s\t%s\t%s\t0\t%s\n" % (t["chr"], int(t["left"])+pos+1-len(item[3]), int(t["left"])+pos, strand))
-
-                    motiflocs.append(newloc)
-                    motifseqs.append(item[3])
-
-                    testcode = "testLocation(hg18, \"%s\", \"%s\", \"%s\")" % (newloc, item[0], item[3])
-                    testers.append(testcode)
-                writer.writerow([name, location, " ".join(motiflocs), len(res), " ".join(motifseqs), res, " ".join(testers), seq])
-
-                # write the fasta list, discard empty finds.. .er obviously...
-                for item in res: # iterate over the list;
-                    fastafile.write(">seq\n")
-                    fastafile.write(item[3]+'\n\n')
-                    tscore.append(item[2])
-                    posinhit.append(item[1])
             else:
-                if bKeepAll:
-                    writer.writerow([name, location, 0, "None", seq])
+                res = mm.find_matches(seq) # returns: [strand, pos, score, seq]
+                if res:
+                    total += len(res)
+                    motiflocs = []
+                    motifseqs = []
+                    testers = []
+                    for item in res:
+                        pos = int(item[1])
+                        t = utils.getLocation(location)
+                        hit_strand = item[0]
 
-        else: # Do the error stuff;
-            print("n:",i)
-            i += 1
-            errorf.writerow(mm.EstimateErrorRate(seq, 30))
+                        # write out a BED file:
 
-    writerfile.close()
-    fastafile.close()
-    bed_out.close()
+                         # I jsut need to correct the location depending upon the feed strand.
+                        if hit_strand == "+":
+                            newloc = "chr%s:%s-%s" % (t["chr"], int(t["left"])+pos+1, int(t["left"])+pos+len(item[3]))
+                            bed_out.write("chr%s\t%s\t%s\t0\t%s\n" % (t["chr"], int(t["left"])+pos+1, int(t["left"])+pos+len(item[3]), strand))
+                        elif hit_strand == "-":
+                            newloc = "chr%s:%s-%s" % (t["chr"], int(t["left"])+pos+1-len(item[3]), int(t["left"])+pos)
+                            bed_out.write("chr%s\t%s\t%s\t0\t%s\n" % (t["chr"], int(t["left"])+pos+1-len(item[3]), int(t["left"])+pos, strand))
+
+                        motiflocs.append(newloc)
+                        motifseqs.append(item[3])
+
+                        testcode = "testLocation(hg18, \"%s\", \"%s\", \"%s\")" % (newloc, item[0], item[3])
+                        testers.append(testcode)
+                    writer.writerow([name, location, " ".join(motiflocs), len(res), " ".join(motifseqs), res, " ".join(testers), seq])
+
+                    # write the fasta list, discard empty finds.. .er obviously...
+                    for item in res: # iterate over the list;
+                        fastafile.write(">seq\n")
+                        fastafile.write(item[3]+'\n\n')
+                        tscore.append(item[2])
+                        posinhit.append(item[1])
+                else:
+                    if bKeepAll:
+                        writer.writerow([name, location, 0, "None", seq])
+
+        writerfile.close()
+        fastafile.close()
     if errorf: errorfile.close()
 
     return({"total": total, "t_score_dist": tscore, "pos_in_hit": posinhit, "listlen": listlen})

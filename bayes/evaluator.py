@@ -45,15 +45,13 @@ class LocalscoreCache(object):
         self.misses = 0
 
     def __call__(self, node, parents):
-        # make variables local
-        _len = len
         _queue = self._queue
         _refcount = self._refcount
         _cache = self._cache
         _maxsize = self.cachesize
 
         index = tuple([node] +  parents)
-        
+
         # get from cache or compute
         try:
             score = _cache[index]
@@ -68,6 +66,8 @@ class LocalscoreCache(object):
             _queue.append(index)
             _refcount[index] = _refcount.get(index, 0) + 1
 
+            # make variables local
+            _len = len
             # purge LRU entry
             while _len(_cache) > _maxsize:
                 k = _queue.popleft()
@@ -78,13 +78,13 @@ class LocalscoreCache(object):
 
             # Periodically compact the queue by duplicate keys
             if _len(_queue) > _maxsize * 4:
-                for i in range(_len(_queue)):
+                for _ in range(_len(_queue)):
                     k = _queue.popleft()
                     if _refcount[k] == 1:
                         _queue.append(k)
                     else:
                         _refcount[k] -= 1
-            
+
         return score
 
 
@@ -617,10 +617,10 @@ class MissingDataMaximumEntropyNetworkEvaluator(MissingDataNetworkEvaluator):
 
     def _swap_data(self, var, sample1, choices_for_sample2):
         val1 = self.data.observations[sample1, var]
-        
+
         # try swapping till we get a different value (but don't keep trying
         # forever)
-        for i in range(len(choices_for_sample2)/2):
+        for _ in range(len(choices_for_sample2)/2):
             sample2 = random.choice(choices_for_sample2)
             val2 = self.data.observations[sample2, var]
             if val1 != val2:
@@ -628,7 +628,7 @@ class MissingDataMaximumEntropyNetworkEvaluator(MissingDataNetworkEvaluator):
 
         self._alter_data(sample1, var, val2)
         self._alter_data(sample2, var, val1)
-        
+
         return (sample1, var, val1, sample2, var, val2)
     
     def _undo_swap(self, row1, col1, val1, row2, col2, val2):
@@ -730,9 +730,9 @@ def fromconfig(data_=None, network_=None, prior_=None):
     network_ = network_ or network.fromdata(data_)
     prior_ = prior_ or prior.fromconfig()
 
-    if data_.missing.any():
-        e = _missingdata_evaluators[config.get('evaluator.missingdata_evaluator')]
-        return e(data_, network_, prior_)
-    else:
+    if not data_.missing.any():
         return SmartNetworkEvaluator(data_, network_, prior_)
+
+    e = _missingdata_evaluators[config.get('evaluator.missingdata_evaluator')]
+    return e(data_, network_, prior_)
 

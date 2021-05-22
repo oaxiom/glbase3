@@ -111,12 +111,12 @@ class genome(genelist):
         """
         ret = genelist.__str__(self)
         if self.bHasBoundSequence:
-            return("%s\n(DNA sequence is available)" % ret)
+            return "%s\n(DNA sequence is available)" % ret
         else:
-            return("%s\n(DNA sequence is not available)" % ret)
+            return "%s\n(DNA sequence is not available)" % ret
 
     def __repr__(self):
-        return("glbase.genome")
+        return "glbase.genome"
 
     def findGenes(self, **args):
         """
@@ -144,11 +144,11 @@ class genome(genelist):
                 if value[0] in self.linearData[0]:
                     return(func_dict[value[0]](value[0], value[1]))
                 else:
-                    return(None)
+                    return None
             else: # the normal documented way
                 if key in self.linearData[0]:
                     func_dict[key](key, value)
-            return(None)
+            return None
 
     def getAnnotationsByKey(self, geneList, key, KeepAll=False):
         """
@@ -176,7 +176,7 @@ class genome(genelist):
                     newEmptyEntry[key] = item[key]
                     newl.append(newEmptyEntry)
         config.log.error("Could not find: %s/%s" % (omit, len(geneList)))
-        return(newl)
+        return newl
 
     def getDataByFeature(self, geneList, feature="refseq", returnFeatures=["name", "refseq", "entrez", "tss_loc"], KeepUnmapped=False):
         """
@@ -186,9 +186,7 @@ class genome(genelist):
         This makes it convenient to dump into a csv file.
         """
         if not geneList:
-            ret = []
-            for item in self.linearData:
-                ret.append([item[feature], item["name"]])
+            ret = [[item[feature], item["name"]] for item in self.linearData]
             return(ret)
 
         ret = self.getAnnotationsByKey(geneList, feature, KeepUnmapped) # get all the items
@@ -196,11 +194,9 @@ class genome(genelist):
         new_ret = []
         if ret:
             for item in ret:
-                row = []
-                for key in returnFeatures:
-                    row.append(item[key])
+                row = [item[key] for key in returnFeatures]
                 new_ret.append(row)
-        return(new_ret)
+        return new_ret
 
     def getFeatures(self, loc=None, **kargs):
         """
@@ -232,7 +228,12 @@ class genome(genelist):
                     if 'type' not in item:
                         item["type"] = "gene" # set the type flag for gDraw
                     ret.append(item)
-        return(ret)
+        return ret
+
+    # Internal def for chipFish :(
+    def get_data(self, type, location):
+        if type == "genome":
+            return self.getFeatures(str(location))
 
     def bindSequence(self, path=None):
         """
@@ -305,7 +306,7 @@ class genome(genelist):
         config.log.info("Bound Genome sequence: '%s', found %s FASTA files" % (path, len(self.seq_data)))
         self.bHasBoundSequence = True
 
-        return(True)
+        return True
 
     def getSequence(self, loc=None, **kargs):
         """
@@ -360,7 +361,7 @@ class genome(genelist):
 
         if chrom not in self.seq:
             config.log.warning("'%s' not found" % chrom)
-            return(None)
+            return None
 
         seekloc = (left + (left // self.seq_data[chrom]["linelength"]))-1 # the division by 50 is due to the presence of newlines every 50 characters.
         #print chrom, self.seq[chrom], seekloc, self.seq_data[chrom]["offset"], loc
@@ -379,14 +380,13 @@ class genome(genelist):
             if bonus > delta: # breaks in case you send a loc that is beyond the end of the file.
                 break
 
-        if "strand" in kargs:
-            if kargs["strand"] in negative_strand_labels:
-                ret = utils.rc(ret)
+        if "strand" in kargs and kargs["strand"] in negative_strand_labels:
+            ret = utils.rc(ret)
 
         if "mask" in kargs and kargs["mask"]:
             ret = utils.repeat_mask(ret)
 
-        return(ret)
+        return ret
 
     def getSequences(self,
         genelist = None,
@@ -468,9 +468,16 @@ class genome(genelist):
         assert self.__repr__() != "glbase.delayedlist", "delayedlists cannot have sequence added, see delayedlist.getSequences()"
 
         newl = []
+        __warning_missing_chrom = set([])
 
         p = progressbar(len(genelist))
         for index, item in enumerate(genelist):
+            if item[loc_key]['chr'] not in self.seq:
+                if item[loc_key]['chr'] not in __warning_missing_chrom:
+                    config.log.warning("'{}' not found".format(item[loc_key]['chr']))
+                    __warning_missing_chrom.add(item[loc_key]['chr'])
+                continue
+
             newloc = item[loc_key]
 
             if pointify:
@@ -480,23 +487,15 @@ class genome(genelist):
                 newloc = newloc.expand(delta)
 
             if "deltaleft" in kargs and kargs["deltaleft"]:
-                if strand_key:
-                    if item[strand_key] in positive_strand_labels:
-                        newloc = newloc.expandLeft(kargs["deltaleft"])
-                    elif item[strand_key] in negative_strand_labels:
-                        newloc = newloc.expandRight(kargs["deltaleft"])
-                else:
+                if item[strand_key] in positive_strand_labels or not strand_key:
                     newloc = newloc.expandLeft(kargs["deltaleft"])
-
+                elif item[strand_key] in negative_strand_labels:
+                    newloc = newloc.expandRight(kargs["deltaleft"])
             if "deltaright" in kargs and kargs["deltaright"]:
-                if strand_key:
-                    if item[strand_key] in positive_strand_labels:
-                        newloc = newloc.expandLeft(kargs["deltaright"])
-                    elif item[strand_key] in negative_strand_labels:
-                        newloc = newloc.expandRight(kargs["deltaright"])
-                else:
+                if strand_key and item[strand_key] in positive_strand_labels:
+                    newloc = newloc.expandLeft(kargs["deltaright"])
+                elif item[strand_key] in negative_strand_labels or not strand_key:
                     newloc = newloc.expandRight(kargs["deltaright"])
-
             if replace_loc_key:
                 item["loc"] = newloc
 
@@ -518,7 +517,7 @@ class genome(genelist):
         newgl.linearData = newl
         newgl._optimiseData()
 
-        if len(newl) > 0:
+        if newl:
             config.log.info("Got sequences for {0} items".format(self.name))
         else:
             config.log.warning("No sequences found!")

@@ -95,69 +95,64 @@ class pwms(genelist):
         0.100   0.100   0.700   0.100
         0.700   0.100   0.100   0.100
         '''
-        oh = open(filename, 'rU')
-        
-        pwm_store = None
-        
-        for line in oh:
-            if line and line[0] != "#":
-                if line[0] == ">":
-                    if pwm_store: # save the finished pwm
-                        self.linearData.append({"name": name, 'motif_seq': motif_seq, 
-                            'p': p, 'score': score,
-                            "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
-                    # setup a new pwm:
-                    pwm_store = []
-                    tt = line.strip().replace(">", "").split('\t')
-                    #print tt
-                    name = tt[1].split(':')[1].split('/')[0]
-                    motif_seq = tt[0]
-                    score = tt[2]
-                    p = tt[5].split(':')[-1]
-                else:
-                    pwm_store.append(line.strip().split())
-                    
-        # store the last motif in the file
-        if pwm_store: # save the finished pwm
-            self.linearData.append({"name": name, 'motif_seq': motif_seq, 
-                'p': p, 'score': score,
-                "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
-        oh.close()   
+        with open(filename, 'rU') as oh:
+            pwm_store = None
+
+            for line in oh:
+                if line and line[0] != "#":
+                    if line[0] == ">":
+                        if pwm_store: # save the finished pwm
+                            self.linearData.append({"name": name, 'motif_seq': motif_seq, 
+                                'p': p, 'score': score,
+                                "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
+                        # setup a new pwm:
+                        pwm_store = []
+                        tt = line.strip().replace(">", "").split('\t')
+                        #print tt
+                        name = tt[1].split(':')[1].split('/')[0]
+                        motif_seq = tt[0]
+                        score = tt[2]
+                        p = tt[5].split(':')[-1]
+                    else:
+                        pwm_store.append(line.strip().split())
+
+            # store the last motif in the file
+            if pwm_store: # save the finished pwm
+                self.linearData.append({"name": name, 'motif_seq': motif_seq, 
+                    'p': p, 'score': score,
+                    "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
         return()     
 
     def __load_jolma_csv(self, filename):
         """
         Load in a csv of Jolma's supp table S3
         """
-        oh = open(filename, "rU")
-        
-        name = oh.readline().strip().split(",")[0]
-        
-        names = [name] # Jolma names are not unique
-        
-        while name:
-            A = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
-            C = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
-            G = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
-            T = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
-        
-            data = [A, C, G, T]
-                
-            pfm = array(data)
-            pfm = pfm.T
-        
-            self.linearData.append({"name": name, 
-                "pwm": pwm.pwm(name=name, pwm_matrix=pfm, isPFM=False)})
-            
-            oriname = oh.readline().strip().split(",")[0] # get the next name
-            name = oriname
-            n = 1
-            while name in names:
-                n += 1
-                name = "%s_%s" % (oriname, n)
-            names.append(name)
-        
-        oh.close()
+        with open(filename, "rU") as oh:
+            name = oh.readline().strip().split(",")[0]
+
+            names = [name] # Jolma names are not unique
+
+            while name:
+                A = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
+                C = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
+                G = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
+                T = [int(i) for i in oh.readline().strip().split(",")[1:] if i]
+
+                data = [A, C, G, T]
+
+                pfm = array(data)
+                pfm = pfm.T
+
+                self.linearData.append({"name": name, 
+                    "pwm": pwm.pwm(name=name, pwm_matrix=pfm, isPFM=False)})
+
+                oriname = oh.readline().strip().split(",")[0] # get the next name
+                name = oriname
+                n = 1
+                while name in names:
+                    n += 1
+                    name = "%s_%s" % (oriname, n)
+                names.append(name)
 
     def __load_uniprobe(self, path):
         """
@@ -268,21 +263,19 @@ class pwms(genelist):
         
         """
         
-        oh = open(filename, "rU")
-        
-        pwm_store = None
-        
-        for line in oh:
-            if line and line[0] != "#":
-                if line[0] == ">":
-                    if pwm_store: # save the finished pwm
-                        self.linearData.append({"name": name, "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
-                    # setup a new pwm:
-                    pwm_store = []
-                    name = line.strip().replace(">", "")
-                else:
-                    pwm_store.append(line.strip().split())
-        oh.close()   
+        with open(filename, "rU") as oh:
+            pwm_store = None
+
+            for line in oh:
+                if line and line[0] != "#":
+                    if line[0] == ">":
+                        if pwm_store: # save the finished pwm
+                            self.linearData.append({"name": name, "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
+                        # setup a new pwm:
+                        pwm_store = []
+                        name = line.strip().replace(">", "")
+                    else:
+                        pwm_store.append(line.strip().split())   
                 
     def __load_transfac(self, filename):
         """
@@ -399,23 +392,26 @@ class pwms(genelist):
             p.update(pi)
         config.log.info("Saved %s image files" % len(self))
 
-        oh = open(summary_file, "w")
-        oh.write("motif\tloc\tscore\tstrand\tseq\tZ-score\n")
-        for item in result:
-            oh.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (item["name"], str(item["loc"]), item["score"],
-                item["strand"], item["seq"], item["Z-score"]))
-        oh.close()
+        with open(summary_file, "w") as oh:
+            oh.write("motif\tloc\tscore\tstrand\tseq\tZ-score\n")
+            for item in result:
+                oh.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (item["name"], str(item["loc"]), item["score"],
+                    item["strand"], item["seq"], item["Z-score"]))
         config.log.info("Saved a summary file to '%s'" % summary_file)
 
         # save a summary label image.
-        sum = []
-        for item in result:
-            sum.append({"pos": (item["__local_location"], item["Z-score"]), "label": item["name"]})
-            
+        sum = [
+            {
+                "pos": (item["__local_location"], item["Z-score"]),
+                "label": item["name"],
+            }
+            for item in result
+        ]
+
         real_filename = self.draw._labeled_figure(data=sum, axissize=(len(sequence), 0), ylim=(4,5.5),
             figsize=(20,5), genomic_features=features, filename=summary_file,
             loc=loc)
-            
+
         config.log.info("Saved a summary image file to '%s'" % real_filename)
 
         return(real_filename)
@@ -462,17 +458,16 @@ class pwms(genelist):
             if ks:
                 key_order = ks
 
-        oh = open(filename, 'w')
-        for pwm in self.linearData:
-            if key_order:
-                oh.write('>%s\t%s\n' % (pwm['name'], '\t'.join([pwm[k] for k in key_order])))
-            else:
-                oh.write('>%s\n' % (pwm['name'], ))
-                
-            #print pwm['pwm'].get_matrix()
-            for bp in pwm['pwm'].get_matrix():
-                oh.write('%s\n' % ('\t'.join([str(i) for i in bp])), )
-        oh.close()
+        with open(filename, 'w') as oh:
+            for pwm in self.linearData:
+                if key_order:
+                    oh.write('>%s\t%s\n' % (pwm['name'], '\t'.join(pwm[k] for k in key_order)))
+                else:
+                    oh.write('>%s\n' % (pwm['name'], ))
+
+                        #print pwm['pwm'].get_matrix()
+                for bp in pwm['pwm'].get_matrix():
+                    oh.write('%s\n' % '\t'.join(str(i) for i in bp))
 
     def save(self, filename=None, mode="binary"):
         """
@@ -501,19 +496,16 @@ class pwms(genelist):
         return(None)
         
     def __save_cisfinder(self, filename):
-        oh = open(filename, "w")
-        
-        for p in self:
-            m = p["pwm"].get_matrix()
-            
-            oh.write(">%s\tNNNNNNN\tNNNNNNNN\t0\t0\t0\t0\n" % p["name"])
-            
-            for i, row in enumerate(m):
-                if self.format == "uniprobe":
-                    oh.write("%s\t%s\n" % (i, "\t".join([str(int(x*1000)) for x in row])))
-                else:
-                    oh.write("%s\t%s\n" % (i, "\t".join([str(int(x)) for x in row])))
-                
-            oh.write("\n")
-        
-        oh.close()
+        with open(filename, "w") as oh:
+            for p in self:
+                m = p["pwm"].get_matrix()
+
+                oh.write(">%s\tNNNNNNN\tNNNNNNNN\t0\t0\t0\t0\n" % p["name"])
+
+                for i, row in enumerate(m):
+                    if self.format == "uniprobe":
+                        oh.write("%s\t%s\n" % (i, "\t".join(str(int(x*1000)) for x in row)))
+                    else:
+                        oh.write("%s\t%s\n" % (i, "\t".join(str(int(x)) for x in row)))
+
+                oh.write("\n")

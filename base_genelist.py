@@ -89,10 +89,9 @@ class _base_genelist:
     def __iter__(self):
         """
         (Override)
-        make the geneList behave like a normal iterator (list)
+        make the genelist behave like a normal iterator (list)
         """
-        for n in self.linearData:
-            yield n
+        return self.linearData.__iter__()
 
     def __getitem__(self, index):
         """
@@ -249,14 +248,14 @@ class _base_genelist:
         Are the lists equivalent?
         ie do they have the same keys?
         """
-        return(not self.__eq__(gene_list))
-
+        return not self.__eq__(gene_list)
 
     def keys(self):
         """
         return a list of all the valid keys for this geneList
         """
-        return([key for key in self.linearData[0]]) # Not exhaustive
+        if not self.linearData: return [] # Match python dict default
+        return [key for key in self.linearData[0]] # Not exhaustive
 
     def _guessDataType(self, value):
         """
@@ -297,7 +296,7 @@ class _base_genelist:
                         return location(loc=value)
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
                         return str(value).strip()
-        return("") # return an empty datatype.
+        return "" # return an empty datatype.
         # I think it is possible to get here. If the exception at int() or float() returns something other than a
         # ValueError (Unlikely, Impossible?)
 
@@ -310,7 +309,7 @@ class _base_genelist:
 
         d = {}
         for key in format:
-            if not (key in ignorekeys): # ignore these tags
+            if key not in ignorekeys: # ignore these tags
                 #if not key in d:
                 #    d[key] = {}
                 if '__ignore_empty_columns' in format and format['__ignore_empty_columns']:
@@ -339,7 +338,7 @@ class _base_genelist:
                         key = ss[0]
                         value = ss[1].strip('"')
                         d[key] = self._guessDataType(value)
-        return(d)
+        return d
 
     def save(self, filename=None, compressed=False):
         """
@@ -376,14 +375,11 @@ class _base_genelist:
         """
         assert filename, "no filename specified"
 
-        oh = open(filename, "wb")
-        if compressed:
-            config.log.warning("compression not currently implemented, saving anyway")
+        with open(filename, "wb") as oh:
+            if compressed:
+                config.log.warning("compression not currently implemented, saving anyway")
             pickle.dump(self, oh, -1)
-        else:
-            pickle.dump(self, oh, -1)
-        oh.close()
-        config.log.info("Saved binary version of list: '%s'" % filename)
+        config.log.info("Saved binary version of list: '{}'".format(filename))
 
     def from_pandas(self, pandas_data_frame):
         """
@@ -410,9 +406,7 @@ class _base_genelist:
         newl = []
         key_names = pandas_data_frame.columns
         for index, row in pandas_data_frame.iterrows():
-            newitem = {}
-            for k, item in zip(key_names, row):
-                newitem[k] = item
+            newitem = {k: item for k, item in zip(key_names, row)}
             newl.append(newitem)
         self.linearData = newl
         self._optimiseData()

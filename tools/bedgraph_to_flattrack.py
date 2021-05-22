@@ -67,11 +67,7 @@ def bedgraph_to_flat(infilenames, outfilename, name, gzip=None, all_in_mem=False
     config.log.info("Started %s -> %s" % (infilenames, outfilename))
 
     open_mode = None
-    if not gzip:
-        open_mode = open
-    else:
-        open_mode = opengzip.open
-
+    open_mode = open if not gzip else opengzip.open
     s = time.time()
     chrom_arrays = {}
     chrom_sizes = {}

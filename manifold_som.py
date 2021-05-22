@@ -70,7 +70,7 @@ def chunk_based_bmu_find(x, y, Y2):
         Low = (i0)
         High = min(dlen,i0+blen)+1
 
-        i0 = i0+blen
+        i0 += blen
         ddata = x[Low:High]
 
         d = (npd(y, ddata.T) * -2) + Y2.reshape(nnodes, 1) # inline for hopeful numpy speedups
@@ -184,11 +184,7 @@ class manifold_SOM(object):
         self.components = components
         self.init_whiten = init_whiten
 
-        if not compnames:
-            self.compnames = self.parent.getConditionNames()
-        else:
-            self.compnames = compnames
-
+        self.compnames = compnames or self.parent.getConditionNames()
         if nodenames:
             self.dlabel = self.parent[nodenames]
             self.node_names_key_name = nodenames
@@ -298,21 +294,14 @@ class manifold_SOM(object):
         self.lattice = lattice
 
         #to set mask
-        if not mask:
-            self.mask = np.ones([1,self.dim])
-        else:
-            self.mask = mask
-
+        self.mask = np.ones([1,self.dim]) if not mask else mask
         #to set map size
         if mapsize is None: # It seems that this code does not guess correctly if mapsize is None...
             sq = math.ceil(math.sqrt(len(self.parent)))
             self.mapsize = (int(sq),int(sq))
         else:
             if len(mapsize) == 2:
-                if np.min(mapsize) == 1:
-                    self.mapsize = [1, np.max(mapsize)]
-                else:
-                    self.mapsize = mapsize
+                self.mapsize = [1, np.max(mapsize)] if np.min(mapsize) == 1 else mapsize
             elif len(mapsize) == 1:
                 #s =  int (mapsize[0]/2)
                 self.mapsize = [1 ,mapsize[0]]
@@ -323,12 +312,11 @@ class manifold_SOM(object):
         # to set component names
         if not compname:
             try:
-                cc = list()
-                for i in range(0,self.dim):
+                cc = []
+                for i in range(self.dim):
                     cc.append ('Variable-'+ str(i+1))
                     self.compnames = np.asarray(cc)[np.newaxis,:]
             except:
-                pass
                 print('no data yet: please first set training data to the SOM')
         else:
             assert len(compname) == self.dim, 'compname should have the same size'
@@ -376,11 +364,8 @@ class manifold_SOM(object):
             mn = np.tile(np.min(self.data, axis=0), (self.nnodes,1))
             mx = np.tile(np.max(self.data, axis=0), (self.nnodes,1))
             self.codebook = mn + (mx-mn)*(np.random.rand(self.nnodes, self.dim))
-        elif self.initmethod in ('pca', 'fullpca'):
+        elif self.initmethod in ('pca', 'fullpca') or self.initmethod == 'mds':
             codebooktmp = self.lininit() #it is based on two largest eigenvalues of correlation matrix
-            self.codebook = codebooktmp
-        elif self.initmethod == 'mds':
-            codebooktmp = self.lininit()
             self.codebook = codebooktmp
 
     def train(self, trainlen=None, n_job=1, verbose=True):
@@ -433,8 +418,7 @@ class manifold_SOM(object):
         # the codebook values are all normalized
         # we can normalize the input data based on mean and std of original data
         data = normalize_by(data_raw, data, method='var')
-        predicted_labels = clf.predict(data)
-        return(predicted_labels)
+        return clf.predict(data)
 
     def project_data_k_neigbours_for_index(self, data, index, k=1):
         """
@@ -457,8 +441,7 @@ class manifold_SOM(object):
         data = normalize_by(self.data_raw, data, method='var')
         data = data.T
         print(data[:,index].shape)
-        predicted_labels = clf.kneighbors(data[:,index], n_neighbors=k, return_distance=True)
-        return(predicted_labels)
+        return clf.kneighbors(data[:,index], n_neighbors=k, return_distance=True)
 
     def __get_all_genes(self, codebook=None):
         """
@@ -612,11 +595,7 @@ class manifold_SOM(object):
         if filename:
             # Work out columns, etc
             no_rows = len(soms_to_do)/img_number_of_cols + 1
-            if no_rows <=1:
-                no_cols = len(soms_to_do)
-            else:
-                no_cols = img_number_of_cols
-
+            no_cols = len(soms_to_do) if no_rows <=1 else img_number_of_cols
             h = .2
             w = .001
             fig = self.draw.getfigure(size=(no_cols*3.0*(1+w), no_rows*1.5*(1+h)))
@@ -1092,17 +1071,11 @@ class manifold_SOM(object):
                 plt.figure(figsize=(sH,sV))
 
             no_row_in_plot = dim/6 + 1 #6 is arbitrarily selected
-            if no_row_in_plot <= 1:
-                no_col_in_plot = dim
-            else:
-                no_col_in_plot = 6
-
+            no_col_in_plot = dim if no_row_in_plot <= 1 else 6
             print(indtoshow)
             print(self.compnames)
 
-            axisNum = 0
-            while axisNum < dim:
-                axisNum += 1
+            for axisNum in range(1, dim + 1):
                 ax = plt.subplot(no_row_in_plot, no_col_in_plot, axisNum)
                 ind = int(indtoshow[axisNum-1])
                 mp = codebook[:,ind].reshape(msz0, msz1)
@@ -1137,7 +1110,7 @@ class manifold_SOM(object):
 
         #print codebook.shape, self.dim
 
-        if not "size" in kargs: # resize if not specified
+        if "size" not in kargs: # resize if not specified
             kargs["size"] = (3,8)
 
         fig = self.draw.getfigure(**kargs)
@@ -1202,20 +1175,13 @@ class manifold_SOM(object):
             sH, sV = 16,16*ratio*1
 
         no_row_in_plot = dim/20 + 1
-        if no_row_in_plot <=1:
-            no_col_in_plot = dim
-        else:
-            no_col_in_plot = 20
-
-        axisNum = 0
+        no_col_in_plot = dim if no_row_in_plot <=1 else 20
         compname = self.compnames
         h = .2
         w = .001
         fig = plt.figure(figsize=(no_col_in_plot*1.5*(1+w),no_row_in_plot*1.5*(1+h)))
 
-        while axisNum < dim:
-            axisNum += 1
-
+        for axisNum in range(1, dim + 1):
             ax = fig.add_subplot(no_row_in_plot, no_col_in_plot, axisNum)
             ind = int(indtoshow[axisNum-1])
             mp = codebook[:,ind].reshape(msz0, msz1)
@@ -1235,11 +1201,11 @@ class manifold_SOM(object):
             plt.axis([0, msz0, 0, msz1])
             ax.set_yticklabels([])
             ax.set_xticklabels([])
-            ax.xaxis.set_ticks([i for i in range(0,msz1)])
-            ax.yaxis.set_ticks([i for i in range(0,msz0)])
+            ax.xaxis.set_ticks([i for i in range(msz1)])
+            ax.yaxis.set_ticks([i for i in range(msz0)])
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
-            #ax.grid(True,linestyle='-', linewidth=0.5,color='k')
+                #ax.grid(True,linestyle='-', linewidth=0.5,color='k')
         plt.subplots_adjust(hspace=h,wspace=w)
 
         if filename:
@@ -1361,8 +1327,7 @@ def normalize(data, method='var'):
     if method == 'var':
         me = np.mean(data, axis=0)
         st = np.std(data, axis=0)
-        new_data = (data-me)/st
-        return(new_data)
+        return (data-me)/st
 
 def normalize_by(data_raw, data, method='var'):
     #methods  = ['var','range','log','logistic','histD','histC']
@@ -1370,16 +1335,14 @@ def normalize_by(data_raw, data, method='var'):
     me = np.mean(data_raw, axis=0)
     st = np.std(data_raw, axis=0)
     if method == 'var':
-        n_data = (data-me)/st
-        return n_data
+        return (data-me)/st
 
 def denormalize_by(data_by, n_vect, n_method='var'):
     #based on the normalization
     if n_method == 'var':
         me = np.mean(data_by, axis=0)
         st = np.std(data_by, axis=0)
-        vect = n_vect * st + me
-        return vect
+        return n_vect * st + me
     else:
         print('data was not normalized before')
         return n_vect

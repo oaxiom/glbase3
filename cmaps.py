@@ -39,14 +39,18 @@ def discretize(cmap, N):
 
     if isinstance(cmap, str):
         cmap = cm.get_cmap(cmap)
-        
+
     colors_i = numpy.concatenate((numpy.linspace(0, 1., N), (0.,0.,0.,0.)))
     colors_rgba = cmap(colors_i)
     indices = numpy.linspace(0, 1., N+1)
-    cdict = {}
-    for ki, key in enumerate(('red','green','blue')):
-        cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki]) for i in range(N+1) ]
-        
+    cdict = {
+        key: [
+            (indices[i], colors_rgba[i - 1, ki], colors_rgba[i, ki])
+            for i in range(N + 1)
+        ]
+        for ki, key in enumerate(('red', 'green', 'blue'))
+    }
+
     return LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
 
 # Do the reverse ones here:

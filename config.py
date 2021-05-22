@@ -5,7 +5,7 @@ config must be imported before any other glbase library.
 
 """
 
-# config cannot import any other glbase module
+# config cannot import any other glbase3 modules
 
 import os, logging, subprocess
 
@@ -13,7 +13,7 @@ import os, logging, subprocess
 
 
 try:
-    oh = open(os.path.join(os.path.split(__file__)[0], "version.num"), "rU")
+    oh = open(os.path.join(os.path.split(__file__)[0], "version.num"), "rt")
     VERSION = "1.%s" % oh.readline().strip().replace("+", "") # The hg hook will put a plus as I call just before committing.
     oh.close()
 except Exception:
@@ -40,6 +40,7 @@ PYDOT_AVAIL = False # optional
 NUMEXPR_AVAIL = False # Optional
 PYGRAPHVIZ_AVAIL = False # Optional
 UMAP_LEARN_AVAIL = False # Optional
+STATSMODELS_AVAIL = False # Optional
 
 # Some simple options for printing genelists
 NUM_ITEMS_TO_PRINT = 3 # number of items to print by default.

@@ -150,9 +150,7 @@ class track(base_track):
 
         c.close()
 
-        if result:
-            return(True)
-        return(False)
+        return bool(result)
 
     def __has_bucket(self, chromosome, bucket_id):
         """
@@ -163,9 +161,7 @@ class track(base_track):
         # Check if we have the master chrom table?
         c.execute("SELECT * FROM bucket_ids WHERE chromosome=? AND buck_id=?", (chromosome, bucket_id))
         result = c.fetchone()
-        if result:
-            return(True)
-        return(False)  
+        return bool(result)  
 
     def add_location(self, loc, pe_loc=None, strand="+", pe_strand=None):
         """
@@ -313,7 +309,7 @@ class track(base_track):
         extended_loc = loc.expand(read_extend)
 
         result = self.get_reads(extended_loc)
-        
+
         if kde_smooth:
             return(self.__kde_smooth(loc, reads, resolution, 0, view_wid, read_extend))
 
@@ -321,7 +317,7 @@ class track(base_track):
         #a = zeros(int( (loc["right"]-loc["left"]+resolution)/resolution ), dtype=integer)
         a = [0] * int( (loc["right"]-loc["left"]+resolution)/resolution ) # Fast list allocation
         # Python lists are much faster for this
-        
+
         for r in result:
             read_left, read_right, strand = r
             if r[2] == "+":
@@ -329,22 +325,20 @@ class track(base_track):
             elif r[2] == "-" :
                 read_left -= read_extend
                 read_right += 1 # coords are open 
-            
+
             rel_array_left = (read_left - loc["left"]) // resolution
             rel_array_right = (read_right - loc["left"]) // resolution            
-            
-            if rel_array_left <= 0:
-                rel_array_left = 0
-            if rel_array_right > len(a):
-                rel_array_right = len(a)
-            
+
+            rel_array_left = max(rel_array_left, 0)
+            rel_array_right = min(rel_array_right, len(a))
+
             #a[rel_array_left:rel_array_right] += 1
             # The below is a very tiny amount faster
-            
+
             for array_relative_location in range(rel_array_left, rel_array_right, 1):
                 #print array_relative_location
                 a[array_relative_location] += 1
-            
+
         return(numpy.array(a))
 
 
@@ -546,10 +540,9 @@ class track(base_track):
         """
         if not self._c:
             self._c = self._connection.cursor()
-        
+
         self._c.execute("SELECT chromosome FROM main")
-        r = [i[0] for i in self._c.fetchall()]
-        return(r)
+        return [i[0] for i in self._c.fetchall()]
 
     def _debug__print_all_tables(self):
         c = self._connection.cursor()
@@ -799,35 +792,35 @@ if __name__ == "__main__":
     Current (working) is 2.5s and 50 s
 
     """
-    
+
     import random, time
     from .location import location
     from .genelist import genelist
-    
+
     s = time.time()
     print("Building...", end=' ')
     t = track(filename="testnew.trk2", name="test", new=True, bucket_size=100)
-    for n in range(0, 10000):
+    for _ in range(10000):
         l = random.randint(0, 100000)
         t.add_location(location(chr="1", left=l, right=l+35), strand="+")
     t.finalise()
     e = time.time()
     print(e-s, "s")
-    
+
     s = time.time()
     print("Fake bed...")
     # fake a bed
     newb = []
-    for n in range(0, 1000):
+    for n in range(1000):
         l = random.randint(1000, 100000) # 1000 is for the window size. -ve locs are real bad.
         newb.append({"loc": location(chr="1", left=l, right=l+200), "strand": "+"})
     bed = genelist()
     bed.load_list(newb)
     e = time.time()
     print(e-s, "s")
-    
+
     t = track(filename="testnew.trk2")
-    
+
     print("Pileup...")
     import cProfile, pstats
     cProfile.run("t.pileup(genelist=bed, filename='test.png', bin_size=10, window_size=1000)", "profile.pro")

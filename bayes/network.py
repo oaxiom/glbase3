@@ -117,10 +117,7 @@ class EdgeSet(object):
                 yield (src, dest)
 
     def __eq__(self, other):
-        for out1,out2 in zip(self._outgoing, other._outgoing):
-            if out1 != out2:
-                return False
-        return True
+        return all(out1 == out2 for out1,out2 in zip(self._outgoing, other._outgoing))
 
     def __hash__(self):
         return hash(tuple(tuple(s) for s in self._outgoing))
@@ -227,14 +224,14 @@ class Network(object):
             self.edges = edges
         elif isinstance(edges, N.ndarray):
             self.edges = EdgeSet(len(edges))
-            self.edges.adjacency_matrix = edges    
+            self.edges.adjacency_matrix = edges
         else:
             self.edges = EdgeSet(len(self.nodes))
             if isinstance(edges, list):
                 self.edges.add_many(edges)
             elif isinstance(edges, str) and edges:
                 edges = edges.split(';')
-                edges = [tuple([int(n) for n in e.split(',')]) for e in edges]
+                edges = [tuple(int(n) for n in e.split(',')) for e in edges]
                 self.edges.add_many(edges)
 
     def is_acyclic(self, roots=None):
@@ -310,7 +307,7 @@ class Network(object):
 
         """
 
-        return ";".join([",".join([str(n) for n in edge]) for edge in list(self.edges)])
+        return ";".join(",".join(str(n) for n in edge) for edge in list(self.edges))
        
     def as_dotstring(self):
         """Returns network as a dot-formatted string"""
@@ -389,12 +386,12 @@ def random_network(nodes, required_edges=[], prohibited_edges=[]):
         density = density or 1.0/n_nodes
         max_attempts = 50
 
-        for attempt in range(max_attempts):
+        for _ in range(max_attempts):
             # create an random adjacency matrix with given density
             adjmat = N.random.rand(n_nodes, n_nodes)
             adjmat[adjmat >= (1.0-density)] = 1
             adjmat[adjmat < 1] = 0
-            
+
             # add required edges
             for src,dest in required_edges:
                 adjmat[src][dest] = 1
@@ -405,7 +402,7 @@ def random_network(nodes, required_edges=[], prohibited_edges=[]):
 
             # remove self-loop edges (those along the diagonal)
             adjmat = N.invert(N.identity(n_nodes).astype(bool))*adjmat
-            
+
             # set the adjaceny matrix and check for acyclicity
             net.edges.adjacency_matrix = adjmat.astype(bool)
 

@@ -32,11 +32,7 @@ class base_track:
 
         self.norm_factor = norm_factor
 
-        if name:
-            m = name
-        else:
-            m = filename
-
+        m = name or filename
         self.meta_data = {"name": m, # Setup a dummy meta_data
             "source_filename": filename,
             "creation_date": time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()),
@@ -298,22 +294,17 @@ class base_track:
 
         # sort the data by intensity
         # no convenient numpy. So have to do myself.
-        mag_tab = []
-        for index, row in enumerate(table):
-            mag_tab.append({"n": index, "sum": row.max()})
-
+        mag_tab = [{"n": index, "sum": row.max()} for index, row in enumerate(table)]
         if sort_by_intensity:
             mag_tab = sorted(mag_tab, key=itemgetter("sum"))
 
         data = numpy.array(table)+1
 
-        newt = []
-        for item in mag_tab:
-            newt.append(data[item["n"],])
+        newt = [data[item["n"],] for item in mag_tab]
         data = numpy.array(newt)
 
         if log:
-            if log == "e" or log == math.e:
+            if log in ["e", math.e]:
                 data = numpy.log(data)-1
             elif log == 2:
                 data = numpy.log2(data)-1

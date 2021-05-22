@@ -35,9 +35,8 @@ def my_interpolate(pos, v):
   low, high = int(np.floor(n*pos)), int(np.ceil(n*pos))
   if low==high:
     return v[low]
-  else:
-    frac = pos*n - low
-    return v[low]*(1-frac) + v[high]*(frac)
+  frac = pos*n - low
+  return v[low]*(1-frac) + v[high]*(frac)
 
   
 def frac_intervals(n):

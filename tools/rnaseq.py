@@ -27,86 +27,84 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
             
     """
     print("Started '%s'" % filename)
-    oh = open(filename, "rU")
-    
-    res = None
-    num_reads = 0
-    # set-up sql db
-    conn = sqlite3.connect(os.path.join(tmp_dir, "temp_db-%s-%s.sql" % (time.time(), hex(100000000+random.randint(0, 10000000)))))
-    curs = conn.cursor()
-    curs.execute("CREATE TABLE main (tabs TEXT PRIMARY KEY)")
-    n = 0
-    m = 0
-    h = 0 
-    max_q_score = 42 # maximum accepted quality score
-    
-    while 1:
-        try: # Test still in file and on top of correct entry
-            if oh.readline()[0] == "@":
-                pass
-        except IndexError:
-            break
-    
-        seq = oh.readline().strip() # sequnece
-        oh.readline() # strand (always +)
-        qual = oh.readline().strip("\n")
-    
-        num_reads += 1  
-    
-        try: 
-            len(res) # sample a typical entry to get the length of the read
-        except TypeError: # Avoid numpy truth testing sillyness
-            # This works as len(None) = TypeError, whereas len(numpy) == len(numpy) i.e. not None
-            # If you try len(array([], numpy.int64)) then it raises an exception that truth testing doesn't make sense
-            # on Numpy arrays, I only want __nonzero__() dumbasses!!! Stupid eh?
-    
-            # Only gets run once. 
-            res = array([0 for x in range(len(qual))], numpy.int64)
-            bp_dist = [{"A": 0, "C": 0, "G": 0, "T": 0} for x in range(len(qual))]
-            res_std = numpy.zeros((len(qual), max_q_score))
-    
-        for i, c in enumerate(qual): # Collect the aggregate scores
-            #print res
-            score = ord(c) - 64 # post 1.3 scores
-            res[i] += score
-            res_std[i, score] += 1
-        
-        for i, bp in enumerate(seq): # Collect bp bias.
-            if bp.upper() in ["A", "C", "G", "T"]:
-                bp_dist[i][bp.upper()] += 1
-    
-        # see if table is already available
-        result = curs.execute("SELECT * FROM main WHERE tabs=?", (seq[0:4],))
-        result = result.fetchone()
-        if not result:
-            curs.execute("CREATE TABLE tab_%s (seq TEXT, count INT)" % (seq[0:4],))
-            curs.execute("INSERT INTO main VALUES (?)", (seq[0:4], ))
-        
-        # check whether to increment or insert:
-        result = curs.execute("SELECT * FROM tab_%s WHERE seq=?" % seq[0:4], (seq,))
-        
-        result = result.fetchone()
-        if result: # increment existing value
-            #curs.execute("UPDATE tab_%s SET count=count+1 WHERE seq=?" % seq[0:4], (seq,))
-            curs.execute("UPDATE tab_%s SET count=? WHERE seq=?" % seq[0:4], (result[1]+1, seq))
-        else:
-            curs.execute("INSERT INTO tab_%s VALUES (?, 1)" % seq[0:4], (seq, ))
-        
-        h += 1
-        if h > 1000:
-            conn.commit() # Stop too much caching
-            h = 0
-        
-        n += 1
-        if n > 100000:
-            m += 1
-            print("%se5 reads done" % m)
-            n = 0
-            #break
-        
-    oh.close()
+    with open(filename, "rU") as oh:
+        res = None
+        num_reads = 0
+        # set-up sql db
+        conn = sqlite3.connect(os.path.join(tmp_dir, "temp_db-%s-%s.sql" % (time.time(), hex(100000000+random.randint(0, 10000000)))))
+        curs = conn.cursor()
+        curs.execute("CREATE TABLE main (tabs TEXT PRIMARY KEY)")
+        n = 0
+        m = 0
+        h = 0
+        max_q_score = 42 # maximum accepted quality score
+
+        while 1:
+            try: # Test still in file and on top of correct entry
+                if oh.readline()[0] == "@":
+                    pass
+            except IndexError:
+                break
+
+            seq = oh.readline().strip() # sequnece
+            oh.readline() # strand (always +)
+            qual = oh.readline().strip("\n")
+
+            num_reads += 1  
+
+            try: 
+                len(res) # sample a typical entry to get the length of the read
+            except TypeError: # Avoid numpy truth testing sillyness
+                # This works as len(None) = TypeError, whereas len(numpy) == len(numpy) i.e. not None
+                # If you try len(array([], numpy.int64)) then it raises an exception that truth testing doesn't make sense
+                # on Numpy arrays, I only want __nonzero__() dumbasses!!! Stupid eh?
+
+                # Only gets run once. 
+                res = array([0 for x in range(len(qual))], numpy.int64)
+                bp_dist = [{"A": 0, "C": 0, "G": 0, "T": 0} for x in range(len(qual))]
+                res_std = numpy.zeros((len(qual), max_q_score))
+
+            for i, c in enumerate(qual): # Collect the aggregate scores
+                #print res
+                score = ord(c) - 64 # post 1.3 scores
+                res[i] += score
+                res_std[i, score] += 1
+
+            for i, bp in enumerate(seq): # Collect bp bias.
+                if bp.upper() in ["A", "C", "G", "T"]:
+                    bp_dist[i][bp.upper()] += 1
+
+            # see if table is already available
+            result = curs.execute("SELECT * FROM main WHERE tabs=?", (seq[0:4],))
+            result = result.fetchone()
+            if not result:
+                curs.execute("CREATE TABLE tab_%s (seq TEXT, count INT)" % (seq[0:4],))
+                curs.execute("INSERT INTO main VALUES (?)", (seq[0:4], ))
+
+            # check whether to increment or insert:
+            result = curs.execute("SELECT * FROM tab_%s WHERE seq=?" % seq[0:4], (seq,))
+
+            result = result.fetchone()
+            if result: # increment existing value
+                #curs.execute("UPDATE tab_%s SET count=count+1 WHERE seq=?" % seq[0:4], (seq,))
+                curs.execute("UPDATE tab_%s SET count=? WHERE seq=?" % seq[0:4], (result[1]+1, seq))
+            else:
+                curs.execute("INSERT INTO tab_%s VALUES (?, 1)" % seq[0:4], (seq, ))
+
+            h += 1
+            if h > 1000:
+                conn.commit() # Stop too much caching
+                h = 0
+
+            n += 1
+            if n > 100000:
+                m += 1
+                print("%se5 reads done" % m)
+                n = 0
+                #break
+
     conn.commit()
-    
+
     frac_res = [x / num_reads for x in res]
     print("File: %s" % filename)
     print("Number of FASTQ entries: %s" % num_reads)
@@ -123,10 +121,10 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
     ax.set_ylabel("Percent")
     ax.set_ylim([0,40])
     fig.savefig("%s_bpdist.png" % filename_base)
-    
+
     # Work out standard error.
     err = [(numpy.std(i)) for i in res_std]
-    
+
     fig = plot.figure()
     ax = fig.add_subplot(111)
     ax.pcolor(res_std.T, antialiased=False)
@@ -135,12 +133,12 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
     ax.set_ylabel("Phred Quality Score")
     ax.set_ylim([0,max_q_score])
     fig.savefig("%s_qual_score.png" % filename_base)
-    
+
     # and finally the uniquness plot.
-            
+
     freq = numpy.zeros(500, dtype=numpy.int64)
     x_axis = numpy.arange(500)
-    
+
     # sql get
     for table in conn.execute("SELECT * FROM main"):
         for read in conn.execute("SELECT * FROM tab_%s" % table):
@@ -149,7 +147,7 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
             else:
                 freq[int(read[1])] += 1
         # count unqs and dupes
-    
+
     fig = plot.figure()
     ax = fig.add_subplot(111)
     ax.scatter(x_axis, freq, s=20, c="red", alpha=0.8, edgecolor="none")
@@ -162,11 +160,11 @@ def rnaseqqc(filename, tmp_dir="/tmp/"):
     ax.text(300, 10000, "Uniques:")
     ax.text(360, 10000, "%.1f%%" % ((freq[1]/ sum(freq))*100))
     ax.text(420, 10000, "%s" % int(freq[1]))
-    
+
     ax.text(300, 100, "Dupes:")
     ax.text(360, 100, "%.1f%%" % ((sum(freq[2:])/ sum(freq))*100))
     ax.text(420, 100, "%s" % int(sum(freq[2:])))
-    
+
     fig.savefig("%s_repeat_reads.png" % filename_base)
     
     

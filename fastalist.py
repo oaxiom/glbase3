@@ -58,9 +58,7 @@ class fastalist(genelist):
             return(False)
 
         try:
-            rel = []
-            for bp in self.seq:
-                rel.append(regex_dict[bp])
+            rel = [regex_dict[bp] for bp in self.seq]
             regex = re.compile(string.join(rel, ""))
         except:
             print("Error: your 'motif_word' is not valid")

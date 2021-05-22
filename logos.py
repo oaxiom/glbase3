@@ -83,25 +83,19 @@ class logo:
         """        
         if style not in ["normal", "lol"]:
             raise NotImplementedError("%s style not found" % style)
-        
+
         print(self.freq)
-        
-        if transpose:
-            if style == "normal":
+
+        if style == "normal":
+            if transpose:
                 raise NotImplementedError("%s, transposed, not done yet, sorry" % style)
-            elif style == "lol":
-                newa = []
+            else:
                 for k in ["a", "c", "g", "t"]:
-                    newa.append([i[k] for i in self.freq])
-                n = numpy.array(newa).T
-                print(n)
-        else:
-            if style == "normal":
-                for k in ["a", "c", "g", "t"]:
-                    print("%s:%s" % (k, "\t".join([str(i[k]) for i in self.freq])))
-            elif style == "lol":
-                for k in ["a", "c", "g", "t"]:
-                    print("[%s]" % (", ".join([str(i[k]) for i in self.freq])))
+                    print("%s:%s" % (k, "\t".join(str(i[k]) for i in self.freq)))
+        elif style == "lol":
+            newa = [[i[k] for i in self.freq] for k in ["a", "c", "g", "t"]]
+            n = numpy.array(newa).T
+            print(n)
             
         
     def load_seq(self, sequence_data):
@@ -132,18 +126,16 @@ class logo:
     def __load_file(self, filename):
         # See if the file is a fasta file:
         oh = open(filename, "rU")
-        for i in range(100): # take a big sample
+        for _ in range(100): # take a big sample
             l = oh.readline()
             if ">" in l:
                 # It's probably a FASTA
                 self.__load_list(utils.FASTAToLIST)
                 return(True)
-    
-        seql = []
+
         # Okay, assume it's a list of sequences
         oh = open(filename, "rU")
-        for line in oh:
-            seql.append(line.strip())
+        seql = [line.strip() for line in oh]
         self.__load_list(seql)
         return(True)
     
@@ -179,25 +171,25 @@ class logo:
         Do this just before drawing.
         """
         #self.freq must be valid
-       
+
         self.heights = []
         en = (4-1) / (2 * math.log(2) * self.num_items)
         en=0
-        
+
         for freq in self.freq:
             height = {"a": 0, "c": 0, "g": 0, "t":0}
-            rel_freq = {}
-            for k in freq:
-                if freq[k] == 0:
-                    rel_freq[k] = 0
-                else:
-                    rel_freq[k] = (freq[k]/self.num_items)
-            sum_freq = sum([i for i in list(rel_freq.values())])
-            
-            ind = -sum([rel_freq[k] * math.log(rel_freq[k], 2) for k in rel_freq if rel_freq[k] != 0])
-                      
+            rel_freq = {k: 0 if freq[k] == 0 else (freq[k]/self.num_items) for k in freq}
+            sum_freq = sum(list(rel_freq.values()))
+
+            ind = -sum(
+                rel_freq[k] * math.log(rel_freq[k], 2)
+                for k in rel_freq
+                if rel_freq[k] != 0
+            )
+
+
             total_height = math.log(4,2) - (ind - en)
-            
+
             for k in freq:
                 if freq[k] == 0:
                     height[k] = 0.0
@@ -212,7 +204,7 @@ class logo:
                     print Hi, en, Ri, height[k]
                     """
             self.heights.append(height)            
-              
+
         self.__calc_done = True
         
     def test_reqd_chars_avail(self, char_col_list):

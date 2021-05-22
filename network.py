@@ -380,8 +380,6 @@ class network:
         if isinstance(cols, list):
             assert len(self.parent.getConditionNames()) == len(cols), "The number of nodes and the length of 'cols' do not match"
 
-        ret = None
-
         length = self.__get_network_size(mode="conditions")
         if length <= 1:
             config.log.warning("Cannot generate a network with %s items" % length)
@@ -452,7 +450,7 @@ class network:
 
         config.log.info("network.conditions: saved '%s'" % return_data["actual_filename"])
 
-        return(ret)
+        return None
 
     def rooted(self, filename=None, threshold=0.5, max_links=2, cols=None, label_fontsize=8,
         root_sample=None, **kargs):

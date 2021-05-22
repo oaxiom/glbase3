@@ -124,7 +124,7 @@ class base_expression(genelist):
 
                 if not silent:
                     config.log.info("expression: I found the following conditions:")
-                    config.log.info("\n".join(["%s\t%s" % (n, i) for n, i in enumerate(self._conditions)]))
+                    config.log.info('\n' + "\n".join(["{}\t{}".format(n, i) for n, i in enumerate(self._conditions)]))
 
         # coerce the conditions errs etc to floats
         nans = set(('nan', 'Nan', 'NaN'))
@@ -194,7 +194,7 @@ class base_expression(genelist):
         # could be done with dict comp:
         data = {}
         for index, name in enumerate(self._conditions):
-            if not name in data:
+            if name not in data:
                 data[name] = self.numpy_array_all_data[:,index]
         self.serialisedArrayDataDict = data
 
@@ -270,64 +270,55 @@ class base_expression(genelist):
 
         assert filename, "you must specify a filename"
 
-        oh = open(os.path.realpath(filename), "w")
-        if tsv:
-            writer = csv.writer(oh, dialect=csv.excel_tab)
-        else:
-            writer = csv.writer(oh)
+        with open(os.path.realpath(filename), "w") as oh:
+            writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
+            array_data_keys = ("conditions", "err", "cv_err")
 
-        array_data_keys = ("conditions", "err", "cv_err")
+            write_keys = []
+            if "key_order" in kargs:
+                write_keys = kargs["key_order"]
+                # now add in any missing keys to the right side of the list:
+                for item in list(self.keys()):
+                    if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
+                        write_keys.append(item)
+            else:
+                        # just select them all:
+                write_keys = [k for k in list(self.keys()) if k not in array_data_keys]
 
-        write_keys = []
-        if "key_order" in kargs:
-            write_keys = kargs["key_order"]
-            # now add in any missing keys to the right side of the list:
-            for item in list(self.keys()):
-                if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
-                    write_keys.append(item)
-        else:
-            # just select them all:
-            write_keys = [k for k in list(self.keys()) if not k in array_data_keys]
+            if "err" in list(self.keys()):
+                if interleave_errors:
+                    conds = ["mean_%s" % c for c in self.getConditionNames()]
+                    errs = ["err_%s" % c for c in self.getConditionNames()]
+                    paired = [val for pair in zip(conds, errs) for val in pair]
 
-        if "err" in list(self.keys()):
-            if interleave_errors:
-                conds = ["mean_%s" % c for c in self.getConditionNames()]
-                errs = ["err_%s" % c for c in self.getConditionNames()]
-                paired = [val for pair in zip(conds, errs) for val in pair]
+                    if not no_header:
+                        title_row = [k for k in write_keys if k in list(self.keys())]
+                        writer.writerow(title_row + paired)
 
+                    for data in self.linearData:
+                        line = [data[k] for k in write_keys if k in data]
+
+                        interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
+
+                        writer.writerow(line + interleaved_data)# conditions go last.
+                else:
+                    if not no_header:
+                        title_row = [k for k in write_keys in k in list(self.keys())]
+                        writer.writerow(write_keys + self.getConditionNames() + ["err_%s" % i for i in self.getConditionNames()])
+
+                    for data in self.linearData:
+                        line = [data[k] for k in write_keys if k in data]
+                        writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
+            else: # no error, very easy:
                 if not no_header:
                     title_row = [k for k in write_keys if k in list(self.keys())]
-                    writer.writerow(title_row + paired)
+                    if no_col1_header:
+                        title_row[0] = ""
+                    writer.writerow(title_row + self.getConditionNames())
 
                 for data in self.linearData:
                     line = [data[k] for k in write_keys if k in data]
-
-                    interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
-
-                    writer.writerow(line + interleaved_data)# conditions go last.
-                oh.close()
-            else:
-                if not no_header:
-                    title_row = [k for k in write_keys in k in list(self.keys())]
-                    writer.writerow(write_keys + self.getConditionNames() + ["err_%s" % i for i in self.getConditionNames()])
-
-                for data in self.linearData:
-                    line = [data[k] for k in write_keys if k in data]
-                    writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
-                oh.close()
-
-        else: # no error, very easy:
-            if not no_header:
-                title_row = [k for k in write_keys if k in list(self.keys())]
-                if no_col1_header:
-                    title_row[0] = ""
-                writer.writerow(title_row + self.getConditionNames())
-
-            for data in self.linearData:
-                line = [data[k] for k in write_keys if k in data]
-                writer.writerow(line + data["conditions"])# conditions go last.
-            oh.close()
-
+                    writer.writerow(line + data["conditions"])# conditions go last.
         return(None)
 
     def sort(self, key, reverse=False):
@@ -399,12 +390,12 @@ class base_expression(genelist):
         assert list_to_load[0], "list_to_load does not appear to be a valid list"
 
         __nan_warnings = False
-        nans = frozenset(["Inf", "-Inf", "NA", "Nan", "NaN"])
-
         if expn:
             assert isinstance(expn, list), "'expn' must be a list of keys"
             # Bodge in a new "conditions" key:
             newl = []
+            nans = frozenset(["Inf", "-Inf", "NA", "Nan", "NaN"])
+
             for i in list_to_load:
                 new = i.copy()
                 nl = [i[k] for k in expn]

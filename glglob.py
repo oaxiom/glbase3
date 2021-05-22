@@ -22,6 +22,7 @@ from .location import location
 from .progress import progressbar
 from .genelist import genelist
 from .expression import expression
+from .data import positive_strand_labels, negative_strand_labels
 
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -756,26 +757,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             ABC = AB.collide(genelist=BC, key=key, delta=delta)
 
             # check for none's:
-            if AB:
-                AB = len(AB)
-            else:
-                AB = 0
-
-            if AC:
-                AC = len(AC)
-            else:
-                AC = 0
-
-            if BC:
-                BC = len(BC)
-            else:
-                BC = 0
-
-            if ABC:
-                ABC = len(ABC)
-            else:
-                ABC = 0
-
+            AB = len(AB) if AB else 0
+            AC = len(AC) if AC else 0
+            BC = len(BC) if BC else 0
+            ABC = len(ABC) if ABC else 0
             # You only need to provide the lengths, the overlaps are calculated in venn3:
             realfilename = self.draw.venn3(len(A), len(B), len(C), AB, AC, BC, ABC,
                 self.linearData[0].name, self.linearData[1].name, self.linearData[2].name,
@@ -846,12 +831,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # You will only notice this if the list is short and you can see the names
 
         if normalise: #this will normalise the y-axis
-            for k in res:
+            for k, v_ in res.items():
                 # normalise to 0-->100
                 min_val = min(res[k])
                 max_val = max(res[k]) - min_val
 
-                for i, v in enumerate(res[k]):
+                for i, v in enumerate(v_):
                     res[k][i] = ((v-min_val) / max_val) * 100.0
 
         if mode == "graph":
@@ -949,9 +934,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         tab = numpy.zeros([len(self.linearData), total_rows])
 
         crow = 0
-        for c in chr_blocks:
+        for c, value in chr_blocks.items():
             for bid in chr_blocks[c]:
-                for i in range(len(chr_blocks[c][bid])): # or len(self.linearData)
+                for i in range(len(value[bid])): # or len(self.linearData)
                     tab[i, crow] = chr_blocks[c][bid][i]
                 crow += 1
 
@@ -989,26 +974,20 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         clusters = {}
         for row in tab:
             # Make an identifier for the cluster:
-            id = tuple([bool(i) for i in row])
+            id = tuple(bool(i) for i in row)
             if id not in clusters:
                 clusters[id] = []
             clusters[id].append(row)
 
         # I want to sort the clusters first:
-        sorted_clusters = []
-        for c in clusters:
-            sorted_clusters.append({"id": c, "score": sum(c)})
+        sorted_clusters = [{"id": c, "score": sum(c)} for c in clusters]
         sorted_clusters = sorted(sorted_clusters, key=itemgetter("score"))
 
         # Flattent the arrays and load it back into a numpy array
         tab = None
         for c in sorted_clusters:
             new = numpy.vstack(clusters[c["id"]])
-            if tab is None:
-                tab = new
-            else:
-                tab = numpy.vstack([tab, new])
-
+            tab = new if tab is None else numpy.vstack([tab, new])
         ret = self.draw.heatmap(data=tab, filename=filename, col_names=[gl.name for gl in self.linearData], row_names=None,
                 row_cluster=False, col_cluster=True, colour_map=cm.Reds, heat_wid=0.7, heat_hei=0.7, bracket=[0,tab.max()])
 
@@ -1366,7 +1345,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # Get the size of each library if we need to normalize the data.
             if norm_by_library_size:
                 # get and store the read_counts for each library to reduce an sqlite hit.
-                read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
+                read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks] # i.e something like RPM
 
             p = progressbar(len(list_of_trks))
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
@@ -1825,7 +1804,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             return(False)
 
         if heat_hei == 'proportional':
-            heat_hei=0.012*len(goex)
+            heat_hei=0.011*len(goex)
 
         res = goex.heatmap(filename=filename, size=size, bracket=bracket,
             row_cluster=row_cluster, col_cluster=col_cluster,
@@ -2024,8 +2003,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return(expn)
 
-    def redefine_peaks(self, super_set_of_peaks, list_of_flats, filename=None, Z_threshold=1.2,
-        peak_window=200, lambda_window=5000, **kargs):
+    def redefine_peaks(self,
+        super_set_of_peaks,
+        list_of_flats,
+        filename = None,
+        Z_threshold = 1.2,
+        peak_window:int = 200,
+        lambda_window:int = 5000,
+        **kargs):
         """
         **Purpose**
             A strategy for re-calling peaks from some arbitrary set of flat files.
@@ -2057,7 +2042,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 A genelist, containing a 'loc' key.
 
                 This can be any list of peaks. I suggest you create this using the
-                glglob.chip_seq_cluster() function. However, you can also ue bedtools
+                glglob.chip_seq_cluster() function. However, you can also use bedtools
                 or your favourite grouping strategy.
 
                 I will pointify and expand the genomic locations to make them all uniform in size.
@@ -2066,7 +2051,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 a list of flats, make sure each flat has a unique 'name' slot as that
                 will be used to store the result.
 
-                For each flat the peaks will be recalled, and returned as a key in the returned dictionary.
+                For each flat, the peaks will be re-called, and returned as a key in the
+                returned dictionary.
 
             filename (Optional)
                 the basefilename to save the model images to, one file for each flat.
@@ -2212,12 +2198,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         list_of_peaks,
         list_of_trks,
         filename:str = None,
-        normalise = False,
+        norm_by_library_size = False,
         bins:int = 100,
         pileup_distance:int = 1000,
-        cache_data=False,
-        bracket=None,
-        range_bracket=None,
+        cache_data = False,
+        bracket = None,
+        range_bracket = None,
         frames = True,
         row_labels = None,
         col_labels = None,
@@ -2230,6 +2216,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         sort_by_sum_intensity:bool = False,
         sort_by_intensity:bool = False,
         size = None,
+        respect_strand:bool = False,
         **kargs):
         """
         **Purpose**
@@ -2250,7 +2237,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             filename (Optional, default=None)
                 If set to a string a heatmap & pileup will be saved to filename.
 
-            normalise (Optional, default=False)
+            norm_by_library_size (Optional, default=False)
                 Normalize the read pileup data within each library to the size of the
                 library to assist in cross-comparison of ChIP-seq libraries.
 
@@ -2288,6 +2275,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 True: Sort by the sum of each row, but independently for each heatmap;
 
                 Note, exclusive with sort_by_sum_intensity
+
+            respect_strand (Optional, default=False)
+                If available, respect the orientation of the strand from the genelist.
+                This is useful if you are, say, using the TSS's and want to maintain the
+                orientation with respect to the transcription direction.
 
             ######## Bracket system:
 
@@ -2348,13 +2340,16 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
         assert not (sort_by_sum_intensity and sort_by_intensity), 'sort_by_sum_intensity and sort_by_intensity cannot both be True'
+        if 'normalize' in kargs: raise AssertionError('normalize has been deprecated, use norm_by_library_size')
 
         total_rows = 0
 
         # Get the size of each library if we need to normalize the data.
-        if normalise:
+        if norm_by_library_size:
             # get and store the read_counts for each library to reduce an sqlite hit.
             read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
+            if True in [i <= 0 for i in read_totals]:
+                raise AssertionError('norm_by_read_count=True, but at least one flat_track has no total number of reads')
 
         # I will need to go back through the chr_blocks data and add in the pileup data:
         bin_size = int((pileup_distance+pileup_distance) / bins)
@@ -2425,6 +2420,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 left = len(data)
 
                             dd = data[left:rite]
+
                             if len(dd) < block_len: # This should be a very rare case...
                                 config.log.warning('Block miss (short)')
                                 num_missing = block_len - len(dd)
@@ -2434,6 +2430,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 config.log.warning('Block miss (long)')
                                 num_missing = block_len - len(dd)
                                 dd = dd[0:block_len] # just grab the start. probably unreliable though?
+
+                            if respect_strand:
+                                if peaklist.linearData[peak]["strand"] in negative_strand_labels: # For the reverse strand all I have to do is flip the array.
+                                    dd = dd[::-1]
 
                             # Fill in the matrix table:
                             #pileup[tindex][plidx][pidx] += pil_data
@@ -2479,13 +2479,13 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         matrix[tindex][plidx] = numpy.log10(matrix[tindex][plidx]+log_pad)
                         colbar_label = "Log10(Tag density)"
                     else:
-                        raise AssertionError('log={0} not found'.format(log))
+                        raise AssertionError('log={} not found'.format(log))
         else:
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.02, 0.1]
 
-        if normalise:
-            colbar_label = "Normalised %s" % colbar_label
+        if norm_by_library_size:
+            colbar_label = "Normalised {}".format(colbar_label)
 
             # Data is always saved unnormalised;
             for plidx, peaklist in enumerate(list_of_peaks):

@@ -185,10 +185,9 @@ class manifold_svd:
             "v": v,
             "d": d}
         """
-        ret = {"u": self.__u,
+        return {"u": self.__u,
             "v": self.__v,
             "d": self.__d}
-        return(ret)
     
     def max(self):
         """
@@ -299,7 +298,7 @@ class manifold_svd:
         return(res)
         
     def scatter(self, x, y, filename=None, spot_cols=None, spots=True, label=False, alpha=0.8, 
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs): 
+        spot_size=40, label_font_size=7, cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs):
         """
         **Purpose**
             plot a scatter plot of PCx against PCy.
@@ -351,14 +350,28 @@ class manifold_svd:
         """
         assert filename, "scatter(): Must provide a filename"     
 
-        labels = self.labels 
+        labels = self.labels
         xdata = self.__v[x-1]
         ydata = self.__v[y-1]
-        
-        return_data = self.__unified_scatter(labels, xdata, ydata, x=x, y=y, filename=filename, spot_cols=spot_cols, spots=spots, label=label, alpha=alpha, 
-        spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales, only_plot_if_x_in_label=only_plot_if_x_in_label, **kargs)
-        
-        return(return_data)
+
+        return self.__unified_scatter(
+            labels,
+            xdata,
+            ydata,
+            x=x,
+            y=y,
+            filename=filename,
+            spot_cols=spot_cols,
+            spots=spots,
+            label=label,
+            alpha=alpha,
+            spot_size=spot_size,
+            label_font_size=label_font_size,
+            cut=cut,
+            squish_scales=squish_scales,
+            only_plot_if_x_in_label=only_plot_if_x_in_label,
+            **kargs
+        )
         
     def __unified_scatter(self, labels, xdata, ydata, x, y, filename=None, spot_cols=None, spots=True, label=False, alpha=0.8, 
         spot_size=40, label_font_size=7, cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs):
@@ -366,19 +379,19 @@ class manifold_svd:
         Unified for less bugs, more fun!        
         '''
         perc_weights = self.get_loading_percents(exclude_first_pc=True)
-        
+
         ret_data = None  
-        
-        if not "aspect" in kargs:
+
+        if "aspect" not in kargs:
             kargs["aspect"] = "square"
-        
+
         fig = self.__draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
-        
+
         cols = self.cols
         if spot_cols:
             cols = spot_cols            
-        
+
         if only_plot_if_x_in_label:
             newx = []
             newy = []
@@ -394,7 +407,7 @@ class manifold_svd:
             ydata = newy
             labels = newlab
             cols = newcols
-            
+
         if spots:
             ax.scatter(xdata, ydata, s=spot_size, alpha=alpha, edgecolors="none", c=cols)
         else:
@@ -402,57 +415,61 @@ class manifold_svd:
             # own semi-sensible limits:
             ax.set_xlim([min(xdata), max(xdata)])
             ax.set_ylim([min(ydata), max(ydata)])
-            
+
         if label:
             for i, lab in enumerate(labels):
                 if not spots and isinstance(spot_cols, list):
                     ax.text(xdata[i], ydata[i], lab, size=label_font_size, ha="center", va="top", color=spot_cols[i])
                 else:
                     ax.text(xdata[i], ydata[i], lab, size=label_font_size, ha="center", va="top", color="black")
-        
+
         # Tighten the axis
         if squish_scales:
-            if not "xlims" in kargs:
+            if "xlims" not in kargs:
                 ax.set_xlim([min(xdata), max(xdata)])
-        
-            if not "ylims" in kargs:
+
+            if "ylims" not in kargs:
                 ax.set_ylim([min(ydata), max(ydata)])
-        
+
         ax.set_xlabel("PC%s (%.1f%%)" % (x, perc_weights[x+1])) # can be overridden via do_common_args()
         ax.set_ylabel("PC%s (%.1f%%)" % (y, perc_weights[y+1]))
-        
+
         if "logx" in kargs and kargs["logx"]:
             ax.set_xscale("log", basex=kargs["logx"])
         if "logy" in kargs and kargs["logy"]:
             ax.set_yscale("log", basey=kargs["logy"])
-        
+
         if cut:
             rect = matplotlib.patches.Rectangle(cut[0:2], cut[2]-cut[0], cut[3]-cut[1], ec="none", alpha=0.2, fc="orange")
             ax.add_patch(rect)
 
             tdata = []
-            for i in range(0, len(xdata)):
-                if xdata[i] > cut[0] and xdata[i] < cut[2]:
-                    if ydata[i] < cut[1] and ydata[i] > cut[3]:
-                        if self.rowwise: # grab the full entry from the parent genelist
-                            dat = {"pcx": xdata[i], "pcy": ydata[i]}
-                            dat.update(self.parent.linearData[i])
-                            tdata.append(dat)
-                        else:
-                            tdata.append({"name": lab[i], "pcx": xdata[i], "pcy": ydata[i]})
+            for i in range(len(xdata)):
+                if (
+                    xdata[i] > cut[0]
+                    and xdata[i] < cut[2]
+                    and ydata[i] < cut[1]
+                    and ydata[i] > cut[3]
+                ):
+                    if self.rowwise: # grab the full entry from the parent genelist
+                        dat = {"pcx": xdata[i], "pcy": ydata[i]}
+                        dat.update(self.parent.linearData[i])
+                        tdata.append(dat)
+                    else:
+                        tdata.append({"name": lab[i], "pcx": xdata[i], "pcy": ydata[i]})
             if tdata:
                 ret_data = genelist()
                 ret_data.load_list(tdata)
-            
+
         self.__draw.do_common_args(ax, **kargs)
-        
+
         real_filename = self.__draw.savefigure(fig, filename)
-        config.log.info("scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename)) 
+        config.log.info("scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename))
         return(ret_data)
 
     def loading_scatter(self, x, y, label_key, filename=None, spot_cols=None, spots=True, label=False, alpha=0.8, 
         topbots=False,
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False, **kargs): 
+        spot_size=40, label_font_size=7, cut=None, squish_scales=False, **kargs):
         """
         **Purpose**
             plot a scatter plot of the loading values for PCx and PCy
@@ -503,15 +520,15 @@ class manifold_svd:
             None
             You can get PC data from pca.get_uvd()
         """
-        assert filename, "loading_scatter: Must provide a filename"     
+        assert filename, "loading_scatter: Must provide a filename"
         assert label_key, "loading_scatter: Must provide a label_key for the label names"
         assert label_key in self.parent, "loading_scatter(): I can't find '%s' label_key in the original genelist" % label_key
 
-        ret_data = None      
+        ret_data = None
         xdata = self.__u[:,x-1]
         ydata = self.__u[:,y-1]
         perc_weights = self.get_loading_percents(exclude_first_pc=True)
-        
+
         labs = self.parent[label_key]
         if topbots:
             # Get the top and bot from the X and Y sorted PCs:
@@ -520,26 +537,26 @@ class manifold_svd:
             x_tbs = list(sorted_by_x[0:topbots]) + list(sorted_by_x[-topbots:])
             sorted_by_y = sorted(sortable_data, key=lambda sortable_data: sortable_data[1])
             y_tbs = list(sorted_by_y[0:topbots]) + list(sorted_by_y[-topbots:])
-            
+
             # Merge duplicates:
             all_items = list(set(x_tbs + y_tbs))
-            
+
             xdata = [i[0] for i in all_items]
             ydata = [i[1] for i in all_items]
             labs = [i[2] for i in all_items]
-            
+
         #print xdata, ydata
-        
-        if not "aspect" in kargs:
+
+        if "aspect" not in kargs:
             kargs["aspect"] = "square"
-        
+
         fig = self.__draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
-        
+
         cols = self.cols
         if spot_cols:
             cols = spot_cols            
-        
+
         if spots:
             ax.scatter(xdata, ydata, s=spot_size, alpha=alpha, edgecolors="none", c=cols)
         else:
@@ -547,43 +564,47 @@ class manifold_svd:
             # own semi-sensible limits:
             ax.set_xlim([min(xdata), max(xdata)])
             ax.set_ylim([min(ydata), max(ydata)])
-        
+
         if label:
             for i, lab in enumerate(labs):
                 if not spots and isinstance(spot_cols, list):
                     ax.text(xdata[i], ydata[i], lab, size=label_font_size, ha="center", va="top", color=spot_cols[i])
                 else:
                     ax.text(xdata[i], ydata[i], lab, size=label_font_size, ha="center", va="top", color="black")
-        
+
         # Tighten the axis
         if squish_scales:
-            if not "xlims" in kargs:
+            if "xlims" not in kargs:
                 ax.set_xlim([min(xdata), max(xdata)])
-        
-            if not "ylims" in kargs:
+
+            if "ylims" not in kargs:
                 ax.set_ylim([min(ydata), max(ydata)])
-        
+
         ax.set_xlabel("PC%s (%.1f%%)" % (x, perc_weights[x])) # can be overridden via do_common_args()
         ax.set_ylabel("PC%s (%.1f%%)" % (y, perc_weights[y]))
-                
+
         if cut:
             rect = matplotlib.patches.Rectangle(cut[0:2], cut[2]-cut[0], cut[3]-cut[1], ec="none", alpha=0.2, fc="orange")
             ax.add_patch(rect)
 
-            tdata = []
             labels = self.parent[label_key] # Just get once or big hit!
-            for i in range(0, len(xdata)):
-                if xdata[i] > cut[0] and xdata[i] < cut[2]:
-                    if ydata[i] < cut[1] and ydata[i] > cut[3]:
-                        tdata.append({"name": labels[i], "pcx": xdata[i], "pcy": ydata[i]})
+            tdata = [
+                {"name": labels[i], "pcx": xdata[i], "pcy": ydata[i]}
+                for i in range(len(xdata))
+                if xdata[i] > cut[0]
+                and xdata[i] < cut[2]
+                and ydata[i] < cut[1]
+                and ydata[i] > cut[3]
+            ]
+
             if tdata:
                 ret_data = genelist()
                 ret_data.load_list(tdata)
-            
+
         self.__draw.do_common_args(ax, **kargs)
-        
+
         real_filename = self.__draw.savefigure(fig, filename)
-        config.log.info("loading_scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename)) 
+        config.log.info("loading_scatter: Saved 'PC%s' vs 'PC%s' scatter to '%s'" % (x, y, real_filename))
         return(ret_data)
 
     def scatter3d(self, x, y, z, filename=None, spot_cols=None, label=False, stem=False, 

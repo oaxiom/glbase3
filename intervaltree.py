@@ -53,9 +53,9 @@ class intervaltree(object):
 
     def intersect( self, interval, report_func ):
         chrom = interval.chrom
-        start = interval.start
-        end = interval.end
         if chrom in self.chroms:
+            start = interval.start
+            end = interval.end
             self.chroms[chrom].intersect( start, end, report_func )
 
     def traverse( self, func ):
@@ -201,11 +201,11 @@ if __name__ == "__main__":
         print("[%d, %d), %d" % (node.start, node.end, node.maxend))
 
     def bad_sect(lst, int_start, int_end):
-        intersection = []
-        for start, end in lst:
-            if int_start < end and int_end > start:
-                intersection.append( (start, end) )
-        return intersection
+        return [
+            (start, end)
+            for start, end in lst
+            if int_start < end and int_end > start
+        ]
 
     test = None
     intlist = []

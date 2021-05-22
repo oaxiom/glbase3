@@ -192,7 +192,7 @@ class flat_track():
         """
         if loc:
             try:
-                if loc["chr"]: pass
+                pass
             except TypeError: # probably a location string. try to cooerce
                 loc = location(loc=loc)
                 # Don't catch any exceptions here. Should break.
@@ -262,8 +262,8 @@ class flat_track():
                 If set to None then it will use the location as specified.
 
             average (Optional, default=True)
-                use the average score if set to True (i.e. divide by the number of items)
-                Or use the cumulative score (the total) if set to False
+                use the average score if set to True (i.e. divide by the number of items
+                in genelist), or use the cumulative score (the total) if set to False
 
             background (Optional)
                 You can supply a list of background coordinates if you want. The lists
@@ -293,17 +293,12 @@ class flat_track():
                 i.e. it will account for differences in library sizes.
 
         **Returns**
-            (data, back)
+            (data, background)
             The data from the line graph.
-            back will be the average of the list of background peaks, but data
-            will be the last entry in the peaklists (if a list of peaks) or will correspond to the
-            only peaklist provided. e.g.:
 
-            data, back = pileup(genelists=[data1, data2, THISDATAWILLBERETURNED] ...)
+            Retuns a dict in data, with a key for each data[genelist.name]
+            background returns an average of the list of background peaks.
 
-            or:
-
-            data, back = pileup(genelists=THISDATAWILLBERETURNED ...)
         """
         assert genelists, "genelists is None?"
 
@@ -317,6 +312,8 @@ class flat_track():
         read_count = 1.0
         if norm_by_read_count:
             read_count = float(self.get_total_num_reads())
+            if read_count <= 0:
+                raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
 
         all_hists = {}
 
@@ -336,17 +333,27 @@ class flat_track():
         else:
             loc_span = len(genelists[0].linearData[0]["loc"]) # I have to assume all locs are identical.
 
+        available_chroms = list(self.mats.keys())
+        available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
+        __already_warned = []
+
         for gl in genelists:
             if window_size:
                 hist = numpy.zeros(window_size*2)
                 counts = numpy.zeros(window_size*2)
                 gl = gl.pointify().expand('loc', window_size)
             else:
-                x = numpy.arange(loc_span) - loc_span//2
+                x = numpy.arange(loc_span) # - loc_span//2
                 hist = numpy.zeros(loc_span)
                 counts = numpy.zeros(loc_span) # used to get the average.
 
             for i in gl:
+                if i['loc']['chr'] not in available_chroms:
+                    if i['loc']['chr'] not in __already_warned:
+                        config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(i['loc']['chr']))
+                        __already_warned.append(i['loc']['chr'])
+                    continue
+
                 a = self.get(i["loc"])#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
 
                 if respect_strand:
@@ -398,6 +405,12 @@ class flat_track():
             p = progressbar(len(background))
             for i, back in enumerate(background):
                 for b in back:
+                    if b['loc']['chr'] not in available_chroms:
+                        if b['loc']['chr'] not in __already_warned:
+                            config.log.warning('Asked for {} chromosome but not in this flat_track, skipping'.format(b['loc']['chr']))
+                            __already_warned.append(b['loc']['chr'])
+                        continue
+
                     if window_size:
                         l = b["loc"].pointify()
                         l = l.expand(window_size)
@@ -442,12 +455,15 @@ class flat_track():
         else:
             bkgd = None
 
-        ax.axvline(0, ls=":", color="grey")
-
         leg = ax.legend()
-        [t.set_fontsize(7) for t in leg.get_texts()]
+        [t.set_fontsize(6) for t in leg.get_texts()]
         ax.set_ylabel("Magnitude")
-        ax.set_xlabel("Base pairs around centre (bp)")
+
+        if window_size:
+            ax.set_xlabel("Base pairs around centre (bp)")
+            ax.axvline(0, ls=":", color="grey")
+        else:
+            ax.set_xlabel('Base pairs (bp)')
 
         self._draw.do_common_args(ax, **kargs)
 
@@ -663,8 +679,8 @@ class flat_track():
 
         if raw_heatmap_filename:
             numpy.savetxt(raw_heatmap_filename, data, delimiter="\t")
-            config.log.info("track.heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
+            config.log.info("heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
 
-        config.log.info("track.heatmap(): Saved heatmap tag density to '%s'" % filename)
+        config.log.info("heatmap(): Saved heatmap tag density to '%s'" % filename)
         return {"data": data, 'sorted_original_genelist': sorted_locs}
 
