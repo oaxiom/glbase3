@@ -37,10 +37,12 @@ class location:
                 return(str(self) == str(other.replace(",", ""))) # use string comparison.
 
             # use a faster ? dict comparison, or throw an exception, as this item probably not a <location>
-            if self.loc["chr"] == other.loc["chr"]:
-                if self.loc["left"] == other.loc["left"]:
-                    if self.loc["right"] == other.loc["right"]:
-                        return True
+            if (
+                self.loc["chr"] == other.loc["chr"]
+                and self.loc["left"] == other.loc["left"]
+                and self.loc["right"] == other.loc["right"]
+            ):
+                return True
         return False
 
     def __lt__(self, other): # Required for sorting

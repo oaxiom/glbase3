@@ -52,9 +52,9 @@ class Learner(Task):
         max_attempts = n_nodes**2
 
         # continue making changes and undoing them till we get an acyclic network
-        for i in range(max_attempts):
+        for _ in range(max_attempts):
             node1, node2 = N.random.random_integers(0, n_nodes-1, 2)    
-        
+
             if (node1, node2) in net.edges:
                 # node1 -> node2 exists, so reverse it.    
                 add,remove = [(node2, node1)], [(node1, node2)]
@@ -64,7 +64,7 @@ class Learner(Task):
             else:
                 # node1 and node2 unconnected, so connect them
                 add,remove =  [(node1, node2)], []
-            
+
             try:
                 score = self.evaluator.alter_network(add=add, remove=remove)
             except evaluator.CyclicNetworkError:

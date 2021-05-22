@@ -117,12 +117,10 @@ class region(_base_genelist):
             ax1.arrow(p["left"][0], 5.5, p["right"][1] - p["left"][0], 0, alpha=1, width=0.02)
 
         if bed_filename:
-            oh = open(bed_filename, "w")
-            oh.write("track name='%s' description='%s' visibility=2 color=0,128,255, itemRgb='On'\n" % (self.name, self.name))
-            for p in primers:
-                oh.write("chr%s\t%s\t%s\t%s\t0\n" % (self.loc["chr"], self.loc["left"] + p["left"][0], self.loc["left"] + p["right"][1], p["name"]))
-            oh.close()
-
+            with open(bed_filename, "w") as oh:
+                oh.write("track name='%s' description='%s' visibility=2 color=0,128,255, itemRgb='On'\n" % (self.name, self.name))
+                for p in primers:
+                    oh.write("chr%s\t%s\t%s\t%s\t0\n" % (self.loc["chr"], self.loc["left"] + p["left"][0], self.loc["left"] + p["right"][1], p["name"]))
         actual_filename = self._draw._saveFigure(fig, filename)
         config.log.info("Saved '%s' image file" % actual_filename)
         return(None)

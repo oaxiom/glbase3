@@ -85,7 +85,7 @@ class motif:
         """
         return the regex.
         """
-        self.re = re.compile("".join([regex_dict[bp] for bp in self.seq.lower()]))
+        self.re = re.compile("".join(regex_dict[bp] for bp in self.seq.lower()))
         return(self.re)
 
     def _scrambleMotif(self, number=10):
@@ -98,13 +98,10 @@ class motif:
         'regexd' motifs.
         """
         res = []
-        for n in range(number):
+        for _ in range(number):
             newSeq = oldSeq = self.seq
             while newSeq == oldSeq: # stops the new motif == old motif.
-                q = []
-                for item in self.seq:
-                    q.append(item)
-
+                q = [item for item in self.seq]
                 new = []
                 while q:
                     i = random.randint(0, len(q)-1)
@@ -237,12 +234,12 @@ class motif:
                     for match in found:
                         # Positions are currently wrong as they are strand relative?
                         temp_finds.append({"seq": seqs[strand][match.start():match.end()], "pos": "%s:%s:%s" % (strand, match.start(), match.end()) })
-        
+
         found_list = []
         # prune duplicate locations;
         unique = []
         for item in temp_finds: # keep only the first element.
-            if not item["pos"] in unique:
+            if item["pos"] not in unique:
                 found_list.append(item["seq"])
                 unique.append(item["pos"])
 
@@ -366,7 +363,7 @@ class motif:
         
         """
         assert genelist, "you must provide a genelist"
-        
+
         # get the seq key:
         if "seq" in genelist.linearData[0]:
             seq_key = "seq"
@@ -376,21 +373,21 @@ class motif:
             seq_key = "sequence"
         else:
             raise AssertionError("the genelist does not appear to have a sequence attached") # fake an assert        
-        
+
         seq_len = len(genelist[0][seq_key])
         pileup = zeros(seq_len)
         motif = self.getRegEx()
         local_pos = []
         num_motifs = 0
 
+        found = 0
+
         for item in genelist.linearData:
-            found = 0
-            
             if both_strands:
                 seq = {"+": item[seq_key].lower(), "-": utils.rc(item[seq_key].lower())}
             else:
                 seq = {"+": item[seq_key].lower()}
-                
+
             for strand in seq: 
                 i = motif.finditer(seq[strand])
                 if i:
@@ -405,7 +402,7 @@ class motif:
         for pos in local_pos:
             for p in range(pos, pos+len(self)):
                 pileup[p] += 1
-        
+
         if return_num_motifs_only:
             return(num_motifs)
         return(pileup)

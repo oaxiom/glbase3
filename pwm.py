@@ -75,7 +75,7 @@ class pwm:
                 self.__matrix = self.__convert_dict_matrix(self, pwm_matrix)
             else:
                 self.__matrix = pwm_matrix # Probably a numpy array? Hope the user knows what he/she is doing
-                
+
         elif fasta_file:
             g = convertFASTAtoDict(fasta_file)
             pwm_matrix = None
@@ -83,26 +83,26 @@ class pwm:
                 if not pwm_matrix: # matrix sizes not sampled yet
                     s = len(e["seq"])
                     pwm_matrix = [{"a": 0, "c": 0, "g": 0, "t": 0} for n in range(s)]
-                
+
                 for i, bp in enumerate(e["seq"]):
                     pwm_matrix[i][bp] += 1
             self.__matrix = self.__convert_dict_matrix(pwm_matrix)
-            
+
         elif txt_file:
             oh = open(txt_file, "rU")
             pwm_matrix = []
             for line in oh:
-                if not ">" in line:
+                if ">" not in line:
                     e = line.lower().strip().split()
-                    
+
                     pwm_matrix.append([float(i) for i in e])
-                        
+
             self.__matrix = array(pwm_matrix)# self.__convert_dict_matrix(pwm_matrix)
         else:
             raise AssertionError("no valid input found for pwm")
-            
+
         self.__original_PFM = numpy.copy(self.__matrix) # Keep a copy of the original
-        
+
         if isPFM:
             config.log.debug("Converting the frequency matrix '%s' to a log-odds weight matrix" % self.name)
             self.convertPFMtoPWM()
@@ -119,9 +119,7 @@ class pwm:
             ...
             [a, c, g, t] ]
         """
-        new_matrix = []
-        for i in dict_pwm_matrix:
-            new_matrix.append([i["a"], i["c"], i["g"], i["t"]])
+        new_matrix = [[i["a"], i["c"], i["g"], i["t"]] for i in dict_pwm_matrix]
         return(array(new_matrix , dtype=float))
 
     def convertPFMtoPWM(self):
@@ -223,11 +221,15 @@ class pwm:
             return({"+": 0.0, "-": 0.0}) # reject if contains an N
 
         #con_setpos = {"a" : 0, "c": 1, "g": 2, "t": 3} Defined above at the head of the module
-        
+
         result = {} # new list
         seq_data = {"+": seq, "-": rc(seq)}
         for key in seq_data: # new super small version:
-            unnormalised_score = sum([self.__matrix[i][con_setpos[letter]] for i, letter in enumerate(seq_data[key])])
+            unnormalised_score = sum(
+                self.__matrix[i][con_setpos[letter]]
+                for i, letter in enumerate(seq_data[key])
+            )
+
             result[key] = (unnormalised_score - self.__minscore) / (self.__maxscore - self.__minscore)
 
         return(result)
@@ -266,10 +268,14 @@ class pwm:
             if "n" not in seq and "N" not in seq:
                 seq_data = {"+": seq, "-": rc(seq)}
                 for key in seq_data: # new super small version:
-                    unnormalised_score = sum([self.__matrix[i][con_setpos[letter]] for i, letter in enumerate(seq_data[key])])
+                    unnormalised_score = sum(
+                        self.__matrix[i][con_setpos[letter]]
+                        for i, letter in enumerate(seq_data[key])
+                    )
+
                     scores[key] = (unnormalised_score - self.__minscore) / (self.__maxscore - self.__minscore)
-                
-                
+
+
                 if merge_strands:
                     result[p] = max([scores["+"], scores["-"]])
                 else:
@@ -323,25 +329,23 @@ class pwm:
         """
         newl = genelist()
         newl.name = fasta_list.name
-                
+
         p = progressbar(len(fasta_list))
         for n, item in enumerate(fasta_list):
             res = self.scan_sequence(item["seq"], False)
-           
+
             if res:
                 seq_data = item["seq"]
                 for strand in ("+", "-"):
                     for i, score in enumerate(res[strand]):
                         if score > threshold:
-                            newi = {}
-                            newi["name"] = item["name"]
-                            newi["local_pos"] = i
+                            newi = {"name": item["name"], "local_pos": i}
                             if "loc" in item:
                                 if strand == "+":
                                     newi["motif_loc"] = location(chr=item["loc"]["chr"], left=item["loc"]["left"]+i, right=item["loc"]["left"]+i+len(self))
                                 else:
                                     newi["motif_loc"] = location(chr=item["loc"]["chr"], left=item["loc"]["right"]-i-len(self), right=item["loc"]["right"]-i)
-                                
+
                             newi["strand"] = strand
                             if strand == "+":
                                 newi["seq"] = seq_data[i:i+len(self)]
@@ -353,7 +357,7 @@ class pwm:
             else:
                 newl["motifs"] = None
             p.update(n)
-        
+
         newl._optimiseData()
         return(newl)
 
@@ -379,31 +383,28 @@ class pwm:
             None
         """
         assert filename, "no filename specified"
-        
+
         matrix_to_use = self.__matrix
         if usePFM:
             assert self.__original_PFM is not None, "pwm.save: No PFM is avaialble for this pwm"
             matrix_to_use = self.__original_PFM
-        
+
         if mode == "homer":
             oh = open(filename, "w")
-            
+
             oh.write(">%s\t%s\t%s\t%s\t%s\t%s\n" % (self.name, self.name, 0, 0, 0, "T:0(0),B:0(0),P(0)"))
             for i in matrix_to_use:
-                if sum(i) == 0:
-                    nl = numpy.array([0.0, 0.0, 0.0, 0.0])
-                else:
-                    nl = i/float(sum(i))
+                nl = numpy.array([0.0, 0.0, 0.0, 0.0]) if sum(i) == 0 else i/float(sum(i))
                 print(nl)
                 oh.write("%s\n" % "\t".join([str(b) for b in nl]))   
-                
+
         elif mode == "counts":
             oh = open(filename, "w")
-            
+
             oh.write(">%s\t%s\t%s\t%s\t%s\t%s\n" % (self.name, self.name, 0, 0, 0, "T:0(0),B:0(0),P(0)"))
             for i in matrix_to_use:
-                oh.write("%s\n" % "\t".join([str(b) for b in nl])) 
-        
+                oh.write("%s\n" % "\t".join(str(b) for b in nl)) 
+
         return(None)
 
     def draw_logo(self, filename, title=None):

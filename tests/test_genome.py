@@ -54,21 +54,18 @@ class Test_Genome(unittest.TestCase):
         newgl.load_list(newl)
         fasta = genome_mm10.getSequences(newgl)
         fasta.saveFASTA(filename="/tmp/test_fasta.fa", name=["loc", "name"])
-        
-        oh = open("/tmp/test_fasta.fa")
-        self.assertEqual(oh.readline().strip(), '>chr1:100-150_A')
-        self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
-        self.assertEqual(oh.readline().strip(), '>chrA:100-150_X')
-        self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
-        oh.close()
-        
-        fasta.saveFASTA(filename="/tmp/test_fasta.fa")       
-        oh = open("/tmp/test_fasta.fa")
-        self.assertEqual(oh.readline().strip(), '>chr1:100-150')
-        self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
-        self.assertEqual(oh.readline().strip(), '>chrA:100-150')
-        self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
-        oh.close()
+
+        with open("/tmp/test_fasta.fa") as oh:
+            self.assertEqual(oh.readline().strip(), '>chr1:100-150_A')
+            self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
+            self.assertEqual(oh.readline().strip(), '>chrA:100-150_X')
+            self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
+        fasta.saveFASTA(filename="/tmp/test_fasta.fa")
+        with open("/tmp/test_fasta.fa") as oh:
+            self.assertEqual(oh.readline().strip(), '>chr1:100-150')
+            self.assertEqual(oh.readline().strip(), 'ATCAGACAGGTAGATCATCTCGCTCCGAGCTTGCCACCAGCAAACCATTGC')
+            self.assertEqual(oh.readline().strip(), '>chrA:100-150')
+            self.assertEqual(oh.readline().strip(), 'GTAAAAACCCGATGGAATACTCATCCAGTAAGTCCGAACCACTTCAACATC')
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Genome)

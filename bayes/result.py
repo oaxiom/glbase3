@@ -322,7 +322,7 @@ def merge(*args):
     newresults.nodes = results[0].nodes
 
     # merge all networks, remove duplicates, then sort
-    allnets = list(set([net for net in flatten(r.networks for r in results)]))
+    allnets = list(set(flatten(r.networks for r in results)))
     allnets.sort()
     newresults.networks = allnets
     newresults.nethashes = dict([(net, 1) for net in allnets])

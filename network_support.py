@@ -115,21 +115,21 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         new_ep.append(((x, y), (dx,dy)))
     edge_pos = numpy.asarray(new_ep)
 
-    if not numpy.iterable(width):
+    if numpy.iterable(width):
+        lw = width
+
+    else:
         #print [G.get_edge_data(n[0], n[1])['weight'] for n in edgelist]
         # see if I can find an edge attribute:
         if 'weight' in G.get_edge_data(edgelist[0][0], edgelist[0][1]): # Test an edge
             lw = [0.5+((G.get_edge_data(n[0], n[1])['weight']-traversal_weight)*width_adjuster) for n in edgelist]
         else:
             lw = (width,)
-    else:
-        lw = width
-
     if not is_string_like(edge_color) and numpy.iterable(edge_color) and len(edge_color) == len(edge_pos):
         if numpy.alltrue([cb.is_string_like(c) for c in edge_color]):
             # (should check ALL elements)
             # list of color letters such as ['k','r','k',...]
-            edge_colors = tuple([colorConverter.to_rgba(c, alpha) for c in edge_color])
+            edge_colors = tuple(colorConverter.to_rgba(c, alpha) for c in edge_color)
         elif numpy.alltrue([not cb.is_string_like(c) for c in edge_color]):
             # If color specs are given as (rgb) or (rgba) tuples, we're OK
             if numpy.alltrue([numpy.iterable(c) and len(c) in (3, 4) for c in edge_color]):
@@ -164,11 +164,11 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
             assert(isinstance(edge_cmap, Colormap))
         edge_collection.set_array(numpy.asarray(edge_color))
         edge_collection.set_cmap(edge_cmap)
-        if edge_vmin is not None or edge_vmax is not None:
-            edge_collection.set_clim(edge_vmin, edge_vmax)
-        else:
+        if edge_vmin is None and edge_vmax is None:
             edge_collection.autoscale()
 
+        else:
+            edge_collection.set_clim(edge_vmin, edge_vmax)
     # update view
     '''
     minx = numpy.amin(numpy.ravel(edge_pos[:,:,0]))
@@ -197,7 +197,7 @@ def draw_node_labels(G, pos, labels=None, font_size=12, font_color='k',
     assert ax, 'draw_node_labels: You must specify an axis to plot on'
 
     if labels is None:
-        labels = dict((n, n) for n in G.nodes())
+        labels = {n: n for n in G.nodes()}
 
     # set optional alignment
     horizontalalignment = kargs.get('horizontalalignment', 'center')
@@ -319,8 +319,7 @@ def __path_similarity(p1, p2):
     B = set(p2)
     AB = A & B
 
-    perc_sim = len(AB) / float(min(len(A),len(B))) * 100.0
-    return(perc_sim)
+    return len(AB) / float(min(len(A),len(B))) * 100.0
 
 def branches(G, **kargs):
     """
@@ -361,7 +360,7 @@ def branches(G, **kargs):
                     longest_branches.append(sofar)
 
     # remove duplicate paths and append a length key:
-    longest_branches = list(set([tuple(l) for l in longest_branches]))
+    longest_branches = list({tuple(l) for l in longest_branches})
     longest_branches = [(len(l), l) for l in longest_branches]
 
     # sort out the longest branches:

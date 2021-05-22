@@ -69,11 +69,7 @@ def wig_to_flat(infilenames, outfilename, name, gzip=False, skip_non_standard_ch
 
     cleft = 0
     open_mode = None
-    if not gzip:
-        open_mode = open
-    else:
-        open_mode = opengzip.open
-
+    open_mode = open if not gzip else opengzip.open
     chrom_name = None
     list_of_chroms = {}
     for f in infilenames:

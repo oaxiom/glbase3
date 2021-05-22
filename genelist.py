@@ -430,7 +430,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.buckets = {}
             for n, item in enumerate(self.linearData): # build the chromosome quick search maps.
                 chr = item[loc_key]["chr"]
-                if not chr in self.dataByChr:
+                if chr not in self.dataByChr:
                     self.dataByChr[chr] = []
                     self.dataByChrIndexLookBack[chr] = []
                 self.dataByChr[chr].append(item)
@@ -440,7 +440,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # dataByChr data It is not documented for a reason!
                 # New bucket system to go in here.
 
-                if not chr in self.buckets:
+                if chr not in self.buckets:
                     self.buckets[chr] = {}
                 # work out the bucket(s) for the location.
                 # which bucket is left and right in?
@@ -451,7 +451,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 #print n, item[loc_key], buckets_reqd, left_buck, right_buck, len(buckets_reqd)
 
                 for b in buckets_reqd:
-                    if not b in self.buckets[chr]:
+                    if b not in self.buckets[chr]:
                         self.buckets[chr][b] = []
                     self.buckets[chr][b].append(n) # use index to maintain uniqueness.
 
@@ -475,11 +475,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.qkeyfind = {}
         for index, item in enumerate(self.linearData):
             for key in item:
-                if not key in self.qkeyfind:
+                if key not in self.qkeyfind:
                     self.qkeyfind[key] = {}
 
                 try:
-                    if not item[key] in self.qkeyfind[key]:
+                    if item[key] not in self.qkeyfind[key]:
                         self.qkeyfind[key][item[key]] = []
                     self.qkeyfind[key][item[key]].append(index)
                 except TypeError:
@@ -488,8 +488,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     #print '!Unhashable key: %s for qkeyfind system' % key
                     pass
 
-            # Now to do a find you just go:
-            # item_indeces = self.qkeyfind["name"]["Stat3"]
+                # Now to do a find you just go:
+                # item_indeces = self.qkeyfind["name"]["Stat3"]
 
         return True
 
@@ -497,11 +497,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         you must check me before trying to access dataByChr[]
         """
-        if chromosome in self.dataByChr:
-            return True
-        else:
-            return False
-        return False
+        return chromosome in self.dataByChr
 
     def getAllUnorderedData(self):
         """
@@ -510,7 +506,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         return self.linearData
 
-    def _findDataByKeyLazy(self, key, value): # override????? surely find?
+    def _findDataByKeyLazy(self, key, value):    # override????? surely find?
         """
         (Internal)
 
@@ -518,20 +514,18 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         This version is lazy, so I take the min() and return that item
         """
-        if key in self.qkeyfind:
-            if value in self.qkeyfind[key]:
-                return self.linearData[min(self.qkeyfind[key][value])]
+        if key in self.qkeyfind and value in self.qkeyfind[key]:
+            return self.linearData[min(self.qkeyfind[key][value])]
         return None # not found;
 
-    def _findDataByKeyGreedy(self, key, value): # override????? surely finditer?
+    def _findDataByKeyGreedy(self, key, value):    # override????? surely finditer?
         """
         finds all - returns a list
         """
         ret = []
         item_indeces = None
-        if key in self.qkeyfind:
-            if value in self.qkeyfind[key]:
-                item_indeces = self.qkeyfind[key][value]
+        if key in self.qkeyfind and value in self.qkeyfind[key]:
+            item_indeces = self.qkeyfind[key][value]
 
         if item_indeces:
             return([self.linearData[i] for i in item_indeces])
@@ -834,26 +828,24 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert filename, "No filename specified"
         assert self.linearData[0]["seq"], "No sequence data available in this list"
 
-        oh = open(filename, "w")
-
-        if "name" in kargs:
-            name = kargs["name"]
-            if not isinstance(name, list):
-                name = [name]
-        else:
-            name = "null_"
-            if "seq_loc" in self: # Default to seq_loc if available
-                name = ["seq_loc"]
-
-        for index, item in enumerate(self.linearData):
-            if name == "null_":
-                save_name = "null_%s" % index
+        with open(filename, "w") as oh:
+            if "name" in kargs:
+                name = kargs["name"]
+                if not isinstance(name, list):
+                    name = [name]
             else:
-                save_name = "_".join([str(item[n]).replace(' ', '_') for n in name])
+                name = "null_"
+                if "seq_loc" in self: # Default to seq_loc if available
+                    name = ["seq_loc"]
 
-            oh.write(">%s\n" % save_name)
-            oh.write("%s\n" % item[seq_key])
-        oh.close()
+            for index, item in enumerate(self.linearData):
+                if name == "null_":
+                    save_name = "null_%s" % index
+                else:
+                    save_name = "_".join(str(item[n]).replace(' ', '_') for n in name)
+
+                oh.write(">%s\n" % save_name)
+                oh.write("%s\n" % item[seq_key])
         config.log.info("Saved FASTA file: %s" % filename)
         return True
 
@@ -929,21 +921,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     else:
                         todo += ["%s-%s" % (self.name.replace(' ', '_'), index)]
                 else:
-                    if id:
-                        todo += [str(item[id])]
-                    else:
-                        todo += ["0"]
-
-                if score:
-                    todo += [str(item[score])]
-                else:
-                    todo += ["0"]
-
-                if "strand" in item:
-                    todo += [str(item["strand"])]
-                else:
-                    todo += ["+"]
-
+                    todo += [str(item[id])] if id else ["0"]
+                todo += [str(item[score])] if score else ["0"]
+                todo += [str(item["strand"])] if "strand" in item else ["+"]
             if extra_keys:
                 todo += [str(item[k]) for k in extra_keys]
 
@@ -1017,35 +997,34 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if score:
             keys.remove(score)
 
-        oh = open(filename, "w")
-        for item in self:
-            # structured part of line:
-            out = [None, "glbase", "exon", None, None, ".", "+", ".", []]
-            out[0] = "chr%s" % item[loc]["chr"]
-            out[3] = str(item[loc]["left"])
-            out[4] = str(item[loc]["right"])
-            if strand:
-                out[6] = str(item[strand])
-            if source:
-                out[1] = str(item[source])
-            if feature:
-                out[2] = str(item[feature])
-            if score:
-                out[5] = str(item[score])
+        with open(filename, "w") as oh:
+            for item in self:
+                # structured part of line:
+                out = [None, "glbase", "exon", None, None, ".", "+", ".", []]
+                out[0] = "chr%s" % item[loc]["chr"]
+                out[3] = str(item[loc]["left"])
+                out[4] = str(item[loc]["right"])
+                if strand:
+                    out[6] = str(item[strand])
+                if source:
+                    out[1] = str(item[source])
+                if feature:
+                    out[2] = str(item[feature])
+                if score:
+                    out[5] = str(item[score])
 
-            # gtf formats can tolerate missing decorators:
-            for k in keys:
-                if k in item:
-                    out[8].append('%s "%s"' % (k, item[k]))
+                # gtf formats can tolerate missing decorators:
+                for k in keys:
+                    if k in item:
+                        out[8].append('%s "%s"' % (k, item[k]))
 
-            # Join all the bits together
-            out[8] = "%s;" % ("; ".join(out[8]))
-            out = "\t".join(out)
+                # Join all the bits together
+                out[8] = "%s;" % ("; ".join(out[8]))
+                out = "\t".join(out)
 
-            #print out
-            oh.write("%s\n" % out)
-            #break
-        oh.close()
+                #print out
+                oh.write("%s\n" % out)
+                #break
         config.log.info("Saved '%s' GTF file" % filename)
         return None
 
@@ -1093,12 +1072,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Result**
         Returns None, and shuffles the list IN PLACE
         """
-        new_order = list(range(0, len(self)))
+        new_order = list(range(len(self)))
         random.shuffle(new_order)
 
-        newl = []
-        for p in new_order:
-            newl.append(self.linearData[p])
+        newl = [self.linearData[p] for p in new_order]
         self.linearData = newl
 
         self._optimiseData()
@@ -1198,9 +1175,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not self.linearData:
             return False
 
-        if item in self.linearData[0]:
-            return True
-        return False
+        return item in self.linearData[0]
 
     def __repr__(self):
         """
@@ -1639,13 +1614,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     strand = line["strand"]
                 except Exception:
                     strand = None
-                if strand:
-                    if strand in positive_strand_labels:
-                        line["dist_to_tss"] = peakCentre-tss_start
-                    elif strand in negative_strand_labels:
-                        line["dist_to_tss"] = tss_start-peakCentre
-                else:
+                if strand in positive_strand_labels or not strand:
                     line["dist_to_tss"] = peakCentre-tss_start
+                elif strand in negative_strand_labels:
+                    line["dist_to_tss"] = tss_start-peakCentre
                 #print line, peakCentre, tss_start
                 ret.append(line)
         return ret
@@ -1732,6 +1704,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # self is the genome, genelist has buckets, genome does not
         newl = []
         p = progressbar(len(genelist))
+        # loc_ids now contains all of the indeces of the items in linearData that need checking
+
+        # Now I check through the loc_ids and collect all peaks within distance
+        peaks = []
+
         for index, item in enumerate(genelist.linearData):
 
             loc = location(loc=item[key_to_match]) # copy
@@ -1747,30 +1724,24 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             loc_ids = set()
             if buckets_reqd:
                 for buck in buckets_reqd:
-                    if loc["chr"] in self.buckets:
-                        if buck in self.buckets[loc["chr"]]:
-                            loc_ids.update(self.buckets[loc["chr"]][buck]) # set = unique ids
-            # loc_ids now contains all of the indeces of the items in linearData that need checking
-
-            # Now I check through the loc_ids and collect all peaks within distance
-            peaks = []
-
+                    if (
+                        loc["chr"] in self.buckets
+                        and buck in self.buckets[loc["chr"]]
+                    ):
+                        loc_ids.update(self.buckets[loc["chr"]][buck]) # set = unique ids
             anns = []
             for index in loc_ids:
                 annotation = self.linearData[index]
                 if loc.qcollide(annotation[genome_loc_key]):
-                    new_entry = {}
-                    for key in annotation:
-                        new_entry[key] = annotation[key]
-
+                    new_entry = {key: annotation[key] for key in annotation}
                     # dist_to_tss must be corrected for strand:
-                    if "strand" in annotation:
-                        if annotation["strand"] in positive_strand_labels:
-                            new_entry["dist_to_tss"] = loc.qdistance(annotation[genome_loc_key])
-                        elif annotation["strand"] in negative_strand_labels:
-                            new_entry["dist_to_tss"] = -loc.qdistance(annotation[genome_loc_key])
-                    else:
+                    if (
+                        annotation["strand"] in positive_strand_labels
+                        or "strand" not in annotation
+                    ):
                         new_entry["dist_to_tss"] = loc.qdistance(annotation[genome_loc_key])
+                    elif annotation["strand"] in negative_strand_labels:
+                        new_entry["dist_to_tss"] = -loc.qdistance(annotation[genome_loc_key])
                     anns.append(new_entry)
 
             if anns:
@@ -2248,9 +2219,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 loc_ids = set()
                 if buckets_reqd:
                     for buck in buckets_reqd:
-                        if locA["chr"] in gene_list.buckets:
-                            if buck in gene_list.buckets[locA["chr"]]:
-                                loc_ids.update(gene_list.buckets[locA["chr"]][buck]) # set = unique ids
+                        if (
+                            locA["chr"] in gene_list.buckets
+                            and buck in gene_list.buckets[locA["chr"]]
+                        ):
+                            loc_ids.update(gene_list.buckets[locA["chr"]][buck]) # set = unique ids
                 # loc_ids now contains all of the indeces of the items in linearData that need checking
 
                 for indexB in loc_ids:
@@ -2271,7 +2244,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                         if merge:
                             a = utils.qdeepcopy(other)
                             for k in item:
-                                if not k in a:
+                                if k not in a:
                                     a.update({k: item[k]})
                         else:
                             a = utils.qdeepcopy(other)
@@ -2286,26 +2259,25 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                             a["ranks"] = (indexA, indexB)
 
                         if add_tags and add_tags in other and add_tags in item:
-                            if add_tags in item and add_tags in other:
+                            try:
+                                a[add_tags] = float(item[add_tags]) + float(other[add_tags])
+                            except TypeError:
+
+                                if not __add_tag_keys_float_warning:
+                                    config.log.warning("add_tag key float addition failed")
+                                    __add_tag_keys_float_warning = True
                                 try:
-                                    a[add_tags] = float(item[add_tags]) + float(other[add_tags])
-                                except TypeError:
+                                    a[add_tags] = int(item[add_tags]) + int(other[add_tags])
+                                except TypeError as ValueError:
 
-                                    if not __add_tag_keys_float_warning:
-                                        config.log.warning("add_tag key float addition failed")
-                                        __add_tag_keys_float_warning = True
-                                    try:
-                                        a[add_tags] = int(item[add_tags]) + int(other[add_tags])
-                                    except TypeError as ValueError:
+                                    if not __add_tag_keys_int_warning:
+                                        __add_tag_keys_int_warning = True
+                                        config.log.warning("add_tag key int addition failed")
 
-                                        if not __add_tag_keys_int_warning:
-                                            __add_tag_keys_int_warning = True
-                                            config.log.warning("add_tag key int addition failed")
-
-                                        a[add_tags] = item[add_tags]
-                                        if not __add_tag_keys_warning:
-                                            config.log.warning("add_tag key could not be added together")
-                                            __add_tag_keys_warning = True
+                                    a[add_tags] = item[add_tags]
+                                    if not __add_tag_keys_warning:
+                                        config.log.warning("add_tag key could not be added together")
+                                        __add_tag_keys_warning = True
 
                         newl.linearData.append(a)
 
@@ -2325,14 +2297,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # if logic = "not", I want the opposite of all the items found
         if mode in ("not", "notinleft", "notinright"):
             newl.linearData = []
-            if mode == "not" or mode == "notinleft":
+            if mode in ["not", "notinleft"]:
                 for index, item in enumerate(gene_list):
                     if not foundB[index]:
                         a = utils.qdeepcopy(item)
                         a["loc"] = a["loc"].pointify() # pointify result
                         newl.linearData.append(a)
 
-            if mode == "not" or mode == "notinright":
+            if mode in ["not", "notinright"]:
                 for index, item in enumerate(self):
                     if not foundA[index]:
                         a = utils.qdeepcopy(item)
@@ -2451,9 +2423,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     loc_ids = set()
                     if buckets_reqd:
                         for buck in buckets_reqd:
-                            if locA["chr"] in self.buckets:
-                                if buck in self.buckets[locA["chr"]]:
-                                    loc_ids.update(self.buckets[locA["chr"]][buck]) # set = unique ids
+                            if (
+                                locA["chr"] in self.buckets
+                                and buck in self.buckets[locA["chr"]]
+                            ):
+                                loc_ids.update(self.buckets[locA["chr"]][buck]) # set = unique ids
                     # loc_ids now contains all of the indeces of the items in linearData that need checking
 
                     for indexB in loc_ids:
@@ -2476,7 +2450,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             ov.load_list(newl)
         elif mode == 'overlap':
             # get the maximum peak size for a decent estimate of delta:
-            delta = max([len(i['loc']) for i in self.linearData])
+            delta = max(len(i['loc']) for i in self.linearData)
             config.log.info('removeDuplicatesByLoc: delta used for bucket searching {0}'.format(delta))
 
             if delta > 2000:
@@ -2498,9 +2472,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     loc_ids = set()
                     if buckets_reqd:
                         for buck in buckets_reqd:
-                            if locA["chr"] in self.buckets:
-                                if buck in self.buckets[locA["chr"]]:
-                                    loc_ids.update(self.buckets[locA["chr"]][buck]) # set = unique ids
+                            if (
+                                locA["chr"] in self.buckets
+                                and buck in self.buckets[locA["chr"]]
+                            ):
+                                loc_ids.update(self.buckets[locA["chr"]][buck]) # set = unique ids
                     # loc_ids now contains all of the indeces of the items in linearData that need checking
 
                     for indexB in loc_ids:
@@ -2627,7 +2603,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         kord = list(self.linearData[0].keys())# fix the key order
 
         for item in self.linearData:
-            valstr = "".join([str(item[k]) for k in kord])
+            valstr = "".join(str(item[k]) for k in kord)
             if valstr not in unq:
                 unq.add(valstr)
                 newl.linearData.append(item) # add first item found
@@ -2893,10 +2869,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         shuf = list(range(len(self)))
         random.shuffle(shuf)
         to_get = shuf[0:number_to_get]
-        samples = []
-
-        for i in to_get:
-            samples.append(utils.qdeepcopy(self.linearData[i]))
+        samples = [utils.qdeepcopy(self.linearData[i]) for i in to_get]
 
         newgl = self.shallowcopy()
         newgl.linearData = samples
@@ -3151,9 +3124,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             item[new_key_name] = formatter.format(item[keyA], item[keyB])
 
             if not keep_originals:
-                if not new_key_name == keyA: # Don't delete if it is also the new key.
+                if new_key_name != keyA: # Don't delete if it is also the new key.
                     del item[keyA]
-                if not new_key_name == keyB:
+                if new_key_name != keyB:
                     del item[keyB]
 
         newl._optimiseData()
@@ -3194,10 +3167,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                 {"class": <count>, "class2": <count>, ...}
         """
-        data = {}
-        for item in self.qkeyfind[key]:
-            data[item] = len(self.qkeyfind[key][item])
-
+        data = {item: len(self.qkeyfind[key][item]) for item in self.qkeyfind[key]}
         labels = list(data.keys())
         fracs = [data[k] for k in labels]
 
@@ -3456,9 +3426,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         loc_ids = set()
         if buckets_reqd:
             for buck in buckets_reqd:
-                if loc["chr"] in self.buckets:
-                    if buck in self.buckets[loc["chr"]]:
-                        loc_ids.update(self.buckets[loc["chr"]][buck]) # set = unique ids
+                if loc["chr"] in self.buckets and buck in self.buckets[loc["chr"]]:
+                    loc_ids.update(self.buckets[loc["chr"]][buck]) # set = unique ids
 
         # loc_ids is a set, and has no order.
         for index in loc_ids:

@@ -93,14 +93,13 @@ class ecrbase:
             return(True)
 
         config.log.info("Caching '%s'..." % filename)
-        oh = open(os.path.join(self.path, filename), "rU")
-        store = []
-        for line in oh:
-            # process the ecrbase file:
-            t = line.replace("\n", "").split("-vs- ")
-            tt = t[0].split(" ")
-            store.append(location(loc=tt[0])) # the mouse conserved region.
-        oh.close()
+        with open(os.path.join(self.path, filename), "rU") as oh:
+            store = []
+            for line in oh:
+                # process the ecrbase file:
+                t = line.replace("\n", "").split("-vs- ")
+                tt = t[0].split(" ")
+                store.append(location(loc=tt[0])) # the mouse conserved region.
         config.log.info("Finished Caching...")
 
         self.__cached_items[filename] = store
@@ -111,26 +110,24 @@ class ecrbase:
 
         This will cache a tfbs file
         """
-        oh = open(erc_tfbs_filename, "rU")
+        with open(erc_tfbs_filename, "rU") as oh:
+            config.log.info("Caching TFBS File '%s'" % erc_tfbs_filename)
+            tfbs = []
+            done = 0
+            loc = None
+            for line in oh:
+                if line[0] == ">": # moved onto a new loc.
+                    motifs = [i.lstrip("  ").split(" ")[0] for i in tfbs]
+                    #pos = [i.lstrip("  ").split(" ")[-1:] for i in tfbs]
 
-        config.log.info("Caching TFBS File '%s'" % erc_tfbs_filename)
-        tfbs = []
-        done = 0
-        loc = None
-        for line in oh:
-            if line[0] == ">": # moved onto a new loc.
-                motifs = [i.lstrip("  ").split(" ")[0] for i in tfbs]
-                #pos = [i.lstrip("  ").split(" ")[-1:] for i in tfbs]
+                    if loc:
+                        tfbs_file.append({"loc": loc, "motifs": motifs})
 
-                if loc:
-                    tfbs_file.append({"loc": loc, "motifs": motifs})
-
-                # and now set the new loc.
-                loc = location(loc=line.replace("> ", ""))
-                tfbs = []
-            else:
-                tfbs.append(line.replace("\n", "").replace("\r", ""))
-        oh.close()
+                    # and now set the new loc.
+                    loc = location(loc=line.replace("> ", ""))
+                    tfbs = []
+                else:
+                    tfbs.append(line.replace("\n", "").replace("\r", ""))
         config.log.info("Finished Caching...")
         self.__cached_items[filename] = tfbs_file
         return(tfbs_file)
@@ -146,7 +143,7 @@ class ecrbase:
 
         for rr, region in enumerate(self.__cached_items["ecrs.%s.txt" % ecrbase_organism_pair]):
             for ii, gene in enumerate(genelist):
-                if not key_name in gene:
+                if key_name not in gene:
                     gene[key_name] = "no"
 
                 if gene["window"].qcollide(region):
@@ -204,12 +201,11 @@ class ecrbase:
         if bed_filename:
             name = "TFBS %s" % ecrbase_organism_pair
             desc = "TFBS from ecrbase file %s" % "tfbs_ecrs.%s.v%s.txt" % (ecrbase_organism_pair, version)
-            oh = open(bed_filename, "w")
-            oh.write("track name='%s' description='%s' visibility=2 color=0,128,255, itemRgb='On'\n" % (name, desc))
-            for r in res:
-                for tf in r["motif_pos"]:
-                    oh.write("chr%s\t%s\t%s\t%s\t0\n" % (r["motif_pos"][tf]["chr"], r["motif_pos"][tf]["left"], r["motif_pos"][tf]["right"], str(tf)))
-            oh.close()
+            with open(bed_filename, "w") as oh:
+                oh.write("track name='%s' description='%s' visibility=2 color=0,128,255, itemRgb='On'\n" % (name, desc))
+                for r in res:
+                    for tf in r["motif_pos"]:
+                        oh.write("chr%s\t%s\t%s\t%s\t0\n" % (r["motif_pos"][tf]["chr"], r["motif_pos"][tf]["left"], r["motif_pos"][tf]["right"], str(tf)))
             config.log.info("Saved bed to '%s'" % bed_filename)
 
         config.log.info("Finished...")

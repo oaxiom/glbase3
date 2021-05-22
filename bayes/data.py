@@ -100,7 +100,7 @@ class ClassVariable(DiscreteVariable):
     def __init__(self, name, param):
         self.name = str(name)
         self.labels = [l.strip() for l in param.split(',')]
-        self.label2int = dict((l,i) for i,l in enumerate(self.labels))
+        self.label2int = {l: i for i,l in enumerate(self.labels)}
         self.arity = len(self.labels)
 
 #
@@ -235,9 +235,9 @@ class Dataset(object):
 
         """
 
-        vardict = dict((v.name, i) for i,v in enumerate(self.variables))
-        sampledict = dict((s.name, i) for i,s in enumerate(self.samples))
-        
+        vardict = {v.name: i for i,v in enumerate(self.variables)}
+        sampledict = {s.name: i for i,s in enumerate(self.samples)}
+
         # if name not found, we let the KeyError be raised
         variables = [vardict[v] for v in variables] if variables else variables
         samples = [sampledict[s] for s in samples] if samples else samples
@@ -325,20 +325,18 @@ class Dataset(object):
     @property
     def has_interventions(self):
         """Whether the dataset has any interventions."""
-        if hasattr(self, '_has_interventions'):
-            return self._has_interventions
-        else:
+        if not hasattr(self, '_has_interventions'):
             self._has_interventions = self.interventions.any()
-            return self._has_interventions
+
+        return self._has_interventions
 
     @property
     def has_missing(self):
         """Whether the dataset has any missing values."""
-        if hasattr(self, '_has_missing'):
-            return self._has_missing
-        else:
+        if not hasattr(self, '_has_missing'):
             self._has_missing = self.missing.any()
-            return self._has_missing
+
+        return self._has_missing
 
     #
     # private methods/properties

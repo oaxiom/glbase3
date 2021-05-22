@@ -51,8 +51,7 @@ def plot_contours(ax, clf, xx, yy, **params):
     """
 
     Z = Z.reshape(xx.shape)
-    out = ax.contourf(xx, yy, Z, **params)
-    return out
+    return ax.contourf(xx, yy, Z, **params)
 
 class learning:
     def __init__(self,

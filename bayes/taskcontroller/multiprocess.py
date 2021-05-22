@@ -50,16 +50,16 @@ class MultiProcessController(_BaseController):
 
         while len(done) < numtasks:
             # submit tasks (if below poolsize and tasks remain)
-            for i in range(min(poolsize-len(running), len(tasks))):
+            for _ in range(min(poolsize-len(running), len(tasks))):
                 task = tasks.pop()
                 task.cwd = tempfile.mkdtemp()
                 pickle.dump(task, open(opjoin(task.cwd, 'task.pebl'), 'w'))
                 pid = os.spawnlp(os.P_NOWAIT, PEBL, PEBL, "runtask", 
                                  opjoin(task.cwd, "task.pebl"))
                 running[pid] = task
-            
+
             # wait for any child process to finish
-            pid,status = os.wait() 
+            pid,status = os.wait()
             done.append(running.pop(pid, None))
 
         results = [result.fromfile(opjoin(t.cwd, 'result.pebl')) for t in done]
@@ -67,7 +67,7 @@ class MultiProcessController(_BaseController):
         # to make the results look like deferred results
         for r in results:
             r.taskid = 0
-        
+
         # clean up 
         for t in done:
             shutil.rmtree(t.cwd)

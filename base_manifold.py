@@ -152,15 +152,30 @@ class base_manifold:
 
         if not self.clusters: draw_clusters=False # set to false if no clusters available;
 
-        return_data = self.__draw.unified_scatter(labels, xdata, ydata, x=1, y=2, filename=filename,
-            mode='{0} '.format(self.manifold_type), perc_weights=None,
-            spot_cols=spot_cols, spots=spots, label=label, alpha=alpha,
-            spot_size=spot_size, label_font_size=label_font_size, cut=cut, squish_scales=squish_scales,
+        return self.__draw.unified_scatter(
+            labels,
+            xdata,
+            ydata,
+            x=1,
+            y=2,
+            filename=filename,
+            mode='{0} '.format(self.manifold_type),
+            perc_weights=None,
+            spot_cols=spot_cols,
+            spots=spots,
+            label=label,
+            alpha=alpha,
+            spot_size=spot_size,
+            label_font_size=label_font_size,
+            cut=cut,
+            squish_scales=squish_scales,
             only_plot_if_x_in_label=only_plot_if_x_in_label,
-            cluster_data=self.clusters, cluster_labels=self.cluster_labels, cluster_centroids=self.centroids, draw_clusters=draw_clusters,
-            **kargs)
-
-        return return_data
+            cluster_data=self.clusters,
+            cluster_labels=self.cluster_labels,
+            cluster_centroids=self.centroids,
+            draw_clusters=draw_clusters,
+            **kargs
+        )
 
     def cluster(self, method=None, num_clusters=None, filename=None):
         '''

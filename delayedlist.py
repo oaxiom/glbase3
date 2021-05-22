@@ -134,19 +134,16 @@ class delayedlist(genelist):
     def __len__(self):
         # I need to collect an estimate
         if not self.__len_estimate:
+            lines = 0
             if not self.gzip:
-                f = open(self.fullpath, 'rb')           
-                lines = 0
-                for line in f: lines += 1
+                f = open(self.fullpath, 'rb')
+                for _ in f: lines += 1
 
-                self.__len_estimate = lines-1 # start from 0
-                
             else: # gzipped file variant
                 f = gzip.open(self.fullpath, 'rb') # must be rb :(  
-                lines = 0
-                for line in f.readlines(): lines += 1
-                self.__len_estimate = lines-1 # start from 0
-                
+                for _ in f.readlines(): lines += 1
+            self.__len_estimate = lines-1 # start from 0
+
         return(self.__len_estimate) # 
 
     def __getitem__(self, index):
@@ -160,7 +157,6 @@ class delayedlist(genelist):
         """
         self._optimiseData()
         return(next(self.__iter__()))
-        self._optimiseData()
 
     def __iter__(self):
         """
@@ -405,10 +401,7 @@ class delayedlist(genelist):
         (Internal)
         """
         plot.cla()
-        if window > 1:
-            n = utils.movingAverage(flatBin, window)
-        else:
-            n = flatBin
+        n = utils.movingAverage(flatBin, window) if window > 1 else flatBin
         plot.plot(n)
         plot.savefig(os.path.join(path, "ChIP_merge_%s.png" % self.name))
         config.log.info("Saved a merge of the ChIP-peak to: %s" % os.path.join(path, "ChIP_merge_%s.png" % self.name))
@@ -484,19 +477,17 @@ class delayedlist(genelist):
             None
         """
         assert loc_key in self[0], "no '%' loc_key found in this list" % loc_key
-        
-        oh = open(FASTAfilename, "w")
-        
-        for index, item in enumerate(self):
-            loc = item[loc_key]
 
-            if delta:
-                loc = loc.pointify()
-                loc = loc.expand(delta)
-            if loc["left"] > 0:
-                seq = genome.getSequence(loc=loc)
-            
-            if seq:
-                oh.write(">%s_%s\n" % (genome.name, index))
-                oh.write("%s\n" % seq)
-        oh.close()
+        with open(FASTAfilename, "w") as oh:
+            for index, item in enumerate(self):
+                loc = item[loc_key]
+
+                if delta:
+                    loc = loc.pointify()
+                    loc = loc.expand(delta)
+                if loc["left"] > 0:
+                    seq = genome.getSequence(loc=loc)
+
+                if seq:
+                    oh.write(">%s_%s\n" % (genome.name, index))
+                    oh.write("%s\n" % seq)
