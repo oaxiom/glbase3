@@ -1735,13 +1735,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 if loc.qcollide(annotation[genome_loc_key]):
                     new_entry = {key: annotation[key] for key in annotation}
                     # dist_to_tss must be corrected for strand:
-                    if (
-                        annotation["strand"] in positive_strand_labels
-                        or "strand" not in annotation
-                    ):
+                    if 'strand' in annotation:
+                        if annotation["strand"] in positive_strand_labels:
+                            new_entry["dist_to_tss"] = loc.qdistance(annotation[genome_loc_key])
+                        elif annotation["strand"] in negative_strand_labels:
+                            new_entry["dist_to_tss"] = -loc.qdistance(annotation[genome_loc_key])
+                    else:
                         new_entry["dist_to_tss"] = loc.qdistance(annotation[genome_loc_key])
-                    elif annotation["strand"] in negative_strand_labels:
-                        new_entry["dist_to_tss"] = -loc.qdistance(annotation[genome_loc_key])
                     anns.append(new_entry)
 
             if anns:
