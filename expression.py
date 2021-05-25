@@ -1257,6 +1257,8 @@ class expression(base_expression):
 
         if False in [c in self._conditions for c in all_reps]:
             missing_conds = [c for c in all_reps if c not in self._conditions]
+            raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
+
         if '_ignore_missing_samples' in kargs and kargs['_ignore_missing_samples']:
             config.log.warning('_ignore_missing_samples == True')
             config.log.warning('Missing samples:')
@@ -1272,7 +1274,7 @@ class expression(base_expression):
 
             reps = new_reps
         else:
-            raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
+            pass
 
         threshold = 0.8
         if "threshold" in kargs and kargs["threshold"]:
