@@ -180,6 +180,8 @@ class hic:
                 At the moment only inter-chromsomal contacts are recorded.
 
         """
+        __OE_missing_warning = False
+
         assert inter_chrom_only, 'inter_chrom_only != True, only inter-chromosomal links are supported'
         self.version = '1.1'
         self.readonly = True
@@ -234,8 +236,13 @@ class hic:
             self.AB = {}
             for chrom in self.all_chrom_names:
                 self.mats[chrom] = self.hdf5_handle['matrix_%s/mat' % chrom]
-                self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
-                self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
+                try:
+                    self.OE[chrom] = self.hdf5_handle['OE_{}/OE'.format(chrom)]
+                    self.AB[chrom] = self.hdf5_handle['AB_{}/AB'.format(chrom)]
+                except KeyError:
+                    if not __OE_missing_warning:
+                        config.log.warning('{} is an old-style hic, OE and AB is not available'.format(self.filename))
+                    __OE_missing_warning = True
 
             self.draw = draw()
             config.log.info('Bound "%s" Hic file' % filename)
