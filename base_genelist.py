@@ -186,14 +186,17 @@ class _base_genelist:
         confer append like behaviour: c = a + b
         keeps duplicates (just concatenate's lists)
         """
+        # check they are the same type:
+        assert type(self) == type(gene_list), '"+" only works with identical types'
+
         mkeys = self._collectIdenticalKeys(gene_list)
         if not mkeys: # unable to match.
             config.log.warning("No matching keys, the resulting list would be meaningless")
-            return(False)
+            return False
         newl = self.deepcopy()
         newl.linearData.extend(copy.deepcopy(gene_list.linearData))
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def __sub__(self, gene_list):
         """
@@ -204,7 +207,7 @@ class _base_genelist:
         mkeys = self._collectIdenticalKeys(gene_list)
         if not mkeys: # unable to match.
             config.warning("Warning: No matching keys, unable to perform subtraction")
-            return(False)
+            return False
 
         newl = self.shallowcopy()
         newl.linearData = []
@@ -221,7 +224,7 @@ class _base_genelist:
                 newl.linearData.append(copy.deepcopy(item))
             dontAdd = False
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def __eq__(self, gene_list):
         """
@@ -239,8 +242,8 @@ class _base_genelist:
 
         for key in self.linearData[0]:
             if key in gene_list.linearData[0]:
-                return(True) # just one key in common required.
-        return(False)
+                return True # just one key in common required.
+        return False
 
     def __ne__(self, gene_list):
         """
