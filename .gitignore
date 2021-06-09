@@ -10,3 +10,5 @@
 *.flat
 tests/test_images/*
 char_*.png
+*.pdf
+
