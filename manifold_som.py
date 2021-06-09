@@ -47,6 +47,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.spatial.distance import pdist
 
+try:
+    from joblib import Parallel, delayed
+except ImportError:
+    pass
+
 # glbase parts:
 from . import config
 from .draw import draw
@@ -630,7 +635,7 @@ class manifold_SOM(object):
                 ax.imshow(soms_to_do[som].reshape(self.mapsize[0], self.mapsize[1])[::-1],
                     extent=[0, self.mapsize[0], 0, self.mapsize[1]],
                     aspect="auto", origin='lower',
-                    interpolation=config.get_interpolation_mode())
+                    interpolation=config.get_interpolation_mode(filename))
                 ax.set_xticklabels('')
                 ax.set_yticklabels('')
                 ax.set_xlim(0, self.mapsize[0]-1)
@@ -643,7 +648,7 @@ class manifold_SOM(object):
                     extent=[0, self.mapsize[0], 0, self.mapsize[1]],
                     cmap=cm.binary_r,
                     aspect="auto", origin='lower',
-                    interpolation=config.get_interpolation_mode())
+                    interpolation=config.get_interpolation_mode(filename))
                 ax.set_xticklabels('')
                 ax.set_yticklabels('')
                 ax.set_xlim(0, self.mapsize[0]-1)
@@ -1189,7 +1194,7 @@ class manifold_SOM(object):
             if grid:
                 pl = plt.pcolor(mp[::-1])
             else:
-                plt.imshow(mp[::-1], interpolation=config.get_interpolation_mode())
+                plt.imshow(mp[::-1], interpolation=config.get_interpolation_mode(filename))
                 plt.axis('off')
 
             if text:

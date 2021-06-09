@@ -1251,19 +1251,17 @@ class expression(base_expression):
         """
         newe = []
         all_conds = self._conditions
-        all_reps = set([x for sublist in reps for x in sublist]) # Flatten the 2D list. I still don't know how this works.
         done = set([])
         pearson_vals = []
-
-        if False in [c in self._conditions for c in all_reps]:
-            missing_conds = [c for c in all_reps if c not in self._conditions]
-            raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
 
         if '_ignore_missing_samples' in kargs and kargs['_ignore_missing_samples']:
             config.log.warning('_ignore_missing_samples == True')
             config.log.warning('Missing samples:')
+            all_reps = set([x for sublist in reps for x in sublist]) # Flatten the 2D list.
+            missing_conds = [c for c in all_reps if c not in self._conditions]
             for c in sorted(missing_conds):
                 config.log.warning('  missing {}'.format(c))
+
             # filter out the missing conditions;
             missing_conds = set(missing_conds)
             new_reps = []
@@ -1275,6 +1273,12 @@ class expression(base_expression):
             reps = new_reps
         else:
             pass
+
+        all_reps = set([x for sublist in reps for x in sublist]) # Flatten the 2D list. I still don't know how this works.
+
+        if False in [c in self._conditions for c in all_reps]:
+            missing_conds = [c for c in all_reps if c not in self._conditions]
+            raise AssertionError("mean_replicates: '%s' condition names not found" % (", ".join(sorted(missing_conds)),))
 
         threshold = 0.8
         if "threshold" in kargs and kargs["threshold"]:
