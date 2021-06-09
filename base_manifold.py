@@ -145,6 +145,7 @@ class base_manifold:
             None
         """.format(self.manifold_type)
         assert filename, "scatter: Must provide a filename"
+        assert self.trained, '{} not trained'.format(self.manifold_type)
 
         labels = self.labels
         xdata = self.npos[:, 0]
@@ -269,6 +270,7 @@ class base_manifold:
         """
         assert filename, 'You must specify a filename'
         assert self.__cluster_mode == 'AgglomerativeClustering', 'cluster_tree can only be used if the cluster method was AgglomerativeClustering'
+        assert self.trained, '{} not trained'.format(self.manifold_type)
 
         fig = self.__draw.getfigure()
 
