@@ -751,7 +751,7 @@ def qdeepcopy(anobject):
     # You should wrap me in a try: except:
     return pickle.loads(pickle.dumps(anobject, -1))
 
-def fastq(filename, gziped=False):
+def fastq(filename, gzip=False):
     """
     generator object to parse a fastQ file
 
