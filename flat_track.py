@@ -97,6 +97,12 @@ class flat_track():
 
             self.draw = draw()
             config.log.info('Bound "%s" flat file' % filename)
+        
+        # NAme override:
+        if name:
+            self.name = name
+        else:
+            self.name = self.hdf5_handle.attrs['name']
 
     def __repr__(self):
         return "glbase.flat_track"
@@ -118,6 +124,8 @@ class flat_track():
         a = flat["condition_name"]
 
         """
+        if index == 'name':
+            return self.name
         return self.hdf5_handle.attrs[index]
 
     def add_chromosome_array(self, chromosome=None, arr=None):
@@ -230,7 +238,7 @@ class flat_track():
 
         """
         if 'chr' not in chrom:
-            chrom = 'chr{0}'.format(chrom)
+            chrom = 'chr{}'.format(chrom)
 
         assert chrom in self.chrom_names, 'chromosome {0} not in this flat, available chroms are: "{1}"'.format(chrom, ', '.join(self.chrom_names))
         return self.mats[chrom]
