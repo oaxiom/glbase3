@@ -3466,13 +3466,13 @@ class expression(base_expression):
     def violinplot_by_conditions(self,
         filename:str,
         key:str,
-        value,
+        value:str,
         condition_classes,
         class_order,
-        log=True,
+        log=False,
         log_pad=0.1,
         title=None,
-        ylims=[4, 15],
+        ylims=None,
         **kargs):
         """
         **Purpose**
