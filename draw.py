@@ -511,7 +511,7 @@ class draw:
                 else: # must be a named color:
                     new_colbar.append([newd[c]])
 
-            col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
+            col_colbar = numpy.array(new_colbar).transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
