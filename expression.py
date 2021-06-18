@@ -39,10 +39,8 @@ if config.SKLEARN_AVAIL:
     #from .learning import learning
     from .manifold_pca import manifold_pca
     from .manifold_mds import manifold_mds
-    from .manifold_tsne import manifold_tsne
     from .manifold_som import manifold_SOM
     from .manifold_somde import manifold_somde
-    from .manifold_umap import manifold_umap
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .manifold_mdsquish import manifold_mdsquish
@@ -184,15 +182,19 @@ class expression(base_expression):
             return self.somde
 
         elif name == 'mds':
+            assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
             self.mds = manifold_mds(parent=self, name=self.name)
             return self.mds
 
         elif name == 'tsne':
+            assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
+            from .manifold_tsne import manifold_tsne
             self.tsne = manifold_tsne(parent=self, name=self.name)
             return self.tsne
 
         elif name == 'umap':
-            assert config.NETWORKX_AVAIL, "Asking for a UMAP object but umap-learn is not available"
+            assert config.UMAP_LEARN_AVAIL, "Asking for a UMAP object but umap-learn is not available"
+            from .manifold_umap import manifold_umap
             self.umap = manifold_umap(parent=self, name=self.name)
             return self.umap
 
