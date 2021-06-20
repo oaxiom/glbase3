@@ -38,9 +38,6 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
 if config.SKLEARN_AVAIL:
     #from .learning import learning
     from .manifold_pca import manifold_pca
-    from .manifold_mds import manifold_mds
-    from .manifold_som import manifold_SOM
-    from .manifold_somde import manifold_somde
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .manifold_mdsquish import manifold_mdsquish
@@ -172,17 +169,18 @@ class expression(base_expression):
 
         elif name == "som":
             assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
-            sq = math.ceil(math.sqrt(len(self)))
+            from .manifold_som import manifold_SOM
             self.som = manifold_SOM(parent=self, name=self.name)
             return self.som
 
         elif name == 'somde':
-            sq = math.ceil(math.sqrt(len(self)))
+            from .manifold_somde import manifold_somde
             self.somde = manifold_somde(parent=self, name=self.name)
             return self.somde
 
         elif name == 'mds':
             assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
+            from .manifold_mds import manifold_mds
             self.mds = manifold_mds(parent=self, name=self.name)
             return self.mds
 
