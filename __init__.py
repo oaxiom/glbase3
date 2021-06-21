@@ -64,23 +64,19 @@ else:
 
 if 'pygraphviz' in available_modules:
     config.PYGRAPHVIZ_AVAIL = True
-else:
-    pass # pass silently as pygraphviz is optional.
+    # pass silently as pygraphviz is optional.
 
 if 'graphviz' in available_modules: # sometimes comes in the wrong namespace!
     config.PYGRAPHVIZ_AVAIL = True
-else:
-    pass # pass silently as pygraphviz is optional.
+    # pass silently as pygraphviz is optional.
 
 if 'pydot' in available_modules:
     config.PYDOT_AVAIL = True
-else:
-    pass # pass silently as pygraphviz is optional.
+    # pass silently as pydot is optional.
 
 if 'statsmodels' in available_modules:
     config.STATSMODELS_AVAIL = True
-else:
-    pass
+
 
 #try:
 #    import numexpr
@@ -113,8 +109,6 @@ from .flat_track import flat_track
 from .progress import progressbar
 from .pwm import pwm
 from .pwms import pwms
-from .ecrbase import ecrbase, tfbs_iter
-from .region import region
 from .expression import expression
 from .logos import logo
 from .draw import draw
@@ -123,6 +117,8 @@ from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
+#from .ecrbase import ecrbase, tfbs_iter
+#from .region import region
 #from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
 from . import realtime
 from . import gldata
@@ -139,8 +135,8 @@ from .tools.wig_to_flattrack import wig_to_flat
 from .tools.rnaseq import rnaseqqc
 
 def version():
-    config.log.info("glbase - version: %s %s" % (config.version, config.DATE))
-    config.log.info("The working directory is: '%s'" % (os.getcwd()))
+    config.log.info("glbase - version: {} {}".format(config.version, config.DATE))
+    config.log.info("The working directory is: '{}'".format(os.getcwd()))
 
 config.set_log_level('info')
 
@@ -158,7 +154,6 @@ __all__ = [
     "glglob",
     "hic",# primary objects
     'config',
-    #"rigidgrid", # Unavailable
     'merge_hiccys', # hic support
     "location",
     "pwm", "pwms", # PWM object support
@@ -171,11 +166,12 @@ __all__ = [
     "rnaseqqc",
     "gldata",
     "fc",
-    "ecrbase",
-    "region",
+    #"rigidgrid", # Unavailable
+    #"ecrbase",
+    #"region",
     "realtime",
     #"realtime2", # This is deprecated
-    "tfbs_iter",
+    #"tfbs_iter",
     'intervaltree',  # Useful utils to export
     "utils",
     'adjust_text',
