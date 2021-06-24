@@ -3523,7 +3523,9 @@ class expression(base_expression):
 
         # get the expn row;
         expn_data = self._findDataByKeyLazy(key, value)
-        assert expn_data, '"{}" not found in this genelist'.format(value)
+        if not expn_data:
+            config.log.warning('"{}" not found in this genelist'.format(value))
+            return
 
         if not class_order:
             class_order = sorted(list(set(condition_classes)))
