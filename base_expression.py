@@ -495,5 +495,6 @@ class base_expression(genelist):
 
         self.__check_condition_names_are_unique()
         self._conditions = list(new_cond_names)
+        self.__check_condition_names_are_unique()
         self._optimiseData()
-        return(self._conditions)
+        return self._conditions
