@@ -469,6 +469,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         if jaccard:
             result_table = matrix
+            corr_result_table = matrix
         else:
             # data must be normalised to the maximum possible overlap.
             for ia, la in enumerate(self.linearData):
@@ -488,7 +489,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if pearson_tsv:
             names = [i.name for i in self.linearData]
             oh = open(pearson_tsv, "w")
-            oh.write("%s\n" % "\t".join([] + names))
+            oh.write("%s\n" % "\t".join([''] + names))
 
             for ia, la in enumerate(names):
                 oh.write("%s" % la)

@@ -2791,6 +2791,9 @@ class draw:
 
                 The x category labels will be taken from the dict key.
 
+            order (Optional, default=data.keys())
+                order for the conditions to be plotted
+
             filename (Required)
                 filename to save the image to
 
