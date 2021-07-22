@@ -164,10 +164,10 @@ class base_expression(genelist):
         """
         if len(self._conditions) > len(set(self._conditions)):
             raise ExpressionNonUniqueConditionNameError(self._conditions)
-        return(False)
+        return False
 
     def __repr__(self):
-        return("glbase.expression")
+        return "glbase.expression"
 
     def _load_numpy_back_into_linearData(self):
         """
@@ -203,7 +203,7 @@ class base_expression(genelist):
         #self.serialisedArrayDataList = all_array_data # This consumes massive amounts of memory.
         # presumably something downstream is doing something nasty.
 
-        return(True)
+        return True
 
     def saveCSV(self, filename=None, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
         """
@@ -319,7 +319,7 @@ class base_expression(genelist):
                 for data in self.linearData:
                     line = [data[k] for k in write_keys if k in data]
                     writer.writerow(line + data["conditions"])# conditions go last.
-        return(None)
+        return None
 
     def sort(self, key, reverse=False):
         """
@@ -356,8 +356,8 @@ class base_expression(genelist):
                 if reverse:
                     self.linearData.reverse()
                 self._optimiseData()
-                return(True)
-        return(False)
+                return True
+        return False
 
     def load_list(self, list_to_load, expn=None, name=False, cond_names=None, nan_value=0):
         """

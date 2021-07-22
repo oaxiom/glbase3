@@ -1356,6 +1356,8 @@ class expression(base_expression):
                         p1ind = self._conditions.index(p1)
                         pear_out[p1ind, p1ind] = 1.0
 
+        self.__check_condition_names_are_unique()
+
         if output_pears:
             oh = open(output_pears, "w")
             oh.write("\t%s\n" % "\t".join(self._conditions))
