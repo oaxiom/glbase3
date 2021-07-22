@@ -151,12 +151,12 @@ class base_expression(genelist):
             if "cv_err" in i:
                 i["cv_err"] = [float(t) for t in i["cv_err"]]
 
-        self.__check_condition_names_are_unique()
+        self.check_condition_names_are_unique()
         self._optimiseData()
         if not silent:
             config.log.info("expression: loaded %s items, %s conditions" % (len(self), len(self.getConditionNames())))
 
-    def __check_condition_names_are_unique(self):
+    def check_condition_names_are_unique(self):
         """
         Bit of gotcha this one, but expression objects must have unique condition names
         or lots of things break. Here, check the condition names are unique.
@@ -493,8 +493,8 @@ class base_expression(genelist):
         """
         assert len(new_cond_names) == len(self._conditions), "setConditionNames(): new and old condition names are different lengths (%s vs. %s)" % (len(new_cond_names), len(self._conditions))
 
-        self.__check_condition_names_are_unique()
+        self.check_condition_names_are_unique()
         self._conditions = list(new_cond_names)
-        self.__check_condition_names_are_unique()
+        self.check_condition_names_are_unique()
         self._optimiseData()
         return self._conditions
