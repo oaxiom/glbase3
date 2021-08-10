@@ -8,7 +8,6 @@ Requires:
 * scipy
 * sklearn
 * h5py
-* networkx
 """
 
 import sys, os, logging
@@ -59,8 +58,7 @@ else:
 
 if 'networkx' in available_modules:
     config.NETWORKX_AVAIL = True
-else:
-    config.log.warning('networkx not available or not installed')
+    # pass silently as pygraphviz is optional.
 
 if 'pygraphviz' in available_modules:
     config.PYGRAPHVIZ_AVAIL = True
@@ -76,7 +74,6 @@ if 'pydot' in available_modules:
 
 if 'statsmodels' in available_modules:
     config.STATSMODELS_AVAIL = True
-
 
 #try:
 #    import numexpr
