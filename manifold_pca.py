@@ -183,7 +183,10 @@ class manifold_pca:
         return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
 
     def scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
-        spot_size=40, label_font_size=7, label_style='normal', cut=None, squish_scales=False, only_plot_if_x_in_label=None, **kargs):
+        spot_size=40, label_font_size=7, label_style='normal', cut=None, squish_scales=False, 
+        only_plot_if_x_in_label=None, 
+        only_label_if_x_in_label=None,
+        **kargs):
         """
         **Purpose**
             plot a scatter plot of PCx against PCy.
@@ -211,6 +214,9 @@ class manifold_pca:
                 This must be a list or tuple of names
 
                 Allows you to effectively remove points from the PCA plot.
+                
+            only_label_if_x_in_label (Optional, default=None)
+                Only draw the label if x is in label name (condition)
 
             overplot (Optional, default=False)
                 send a list of condition names and these spots will be plotted twice, with
@@ -246,6 +252,15 @@ class manifold_pca:
         assert self.valid, 'model has not been trained, use pca.train()'
 
         labels = self.labels
+        if only_label_if_x_in_label:
+            newl = []
+            for l in labels:
+                if only_label_if_x_in_label in l:
+                    newl.append(l)
+                else:
+                    newl.append('')
+            labels = newl
+                    
         xdata = self.__transform[:,x-1]
         ydata = self.__transform[:,y-1]
 
