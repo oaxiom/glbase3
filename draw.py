@@ -1209,6 +1209,7 @@ class draw:
         meanline=False,
         tight_layout=False,
         grid=True,
+        facecolors=None,
         **kargs):
         """
         wrapper around matplotlib's boxplot
@@ -1224,15 +1225,26 @@ class draw:
         ax = fig.add_subplot(111)
         #ax.axhline(0, ls=":", color="grey") # add a grey line at zero for better orientation
         if grid:
-            ax.grid(axis="y", ls=":", color="grey", zorder=1000000)
+            ax.grid(axis="y", ls=":", color="grey", lw=0.5, zorder=1000000)
 
         r = ax.boxplot(data, showfliers=showfliers, whis=whis, widths=0.5,
+            patch_artist=True,
             showmeans=showmeans, meanline=meanline)
 
-        plot.setp(r['medians'], color='red') # set nicer colours
-        plot.setp(r['whiskers'], color='black', lw=1)
-        plot.setp(r['boxes'], color='black', lw=1)
-        plot.setp(r['fliers'], color="grey")
+        plot.setp(r['medians'], color='green') # set nicer colours
+        plot.setp(r['whiskers'], color='grey', lw=0.5)
+        plot.setp(r['boxes'], color='black', lw=0.5)
+        if facecolors:
+            for patch, color in zip(r['boxes'], facecolors):
+                patch.set_facecolor(color)
+        else:
+            for patch in r['boxes']:
+                patch.set_facecolor('lightgrey')
+                
+        plot.setp(r['caps'], color='grey', lw=0.5)
+        plot.setp(r['fliers'], color="grey", lw=0.5)
+
+        #print(r.keys())
 
         ax.set_xticklabels(labels)
 
