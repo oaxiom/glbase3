@@ -511,21 +511,25 @@ class draw:
                 else: # must be a named color:
                     new_colbar.append([newd[c]])
 
-            col_colbar = numpy.array(new_colbar).transpose(1,0,2)
+            col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
                 ax4.imshow(col_colbar, aspect="auto",
                     origin='lower', extent=[0, len(col_colbar),  0, 1],
                     interpolation=config.get_interpolation_mode(filename))
+
             else:
                 # unpack the oddly contained data:
+                print(col_colbar)
                 col_colbar = [tuple(i[0]) for i in col_colbar]
+                print(col_colbar)
                 cols = list(set(col_colbar))
                 lcmap = ListedColormap(cols)
                 col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
+                print(col_colbar_as_col_indeces)
 
-                ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
+                ax4.pcolormesh(numpy.array([col_colbar_as_col_indeces,]), cmap=lcmap,
                     vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
                     antialiased=False, edgecolors=edgecolors, lw=0.4)
 
@@ -1240,7 +1244,7 @@ class draw:
         else:
             for patch in r['boxes']:
                 patch.set_facecolor('lightgrey')
-                
+
         plot.setp(r['caps'], color='grey', lw=0.5)
         plot.setp(r['fliers'], color="grey", lw=0.5)
 
