@@ -3475,6 +3475,7 @@ class expression(base_expression):
         log_pad=0.1,
         title=None,
         ylims=None,
+        colors=None,
         **kargs):
         """
         **Purpose**
@@ -3515,6 +3516,9 @@ class expression(base_expression):
                 hori_space (default=0.5)
                 vert_space (default=0.75) - a special arg to help pad the barchart up when using very long plots with a ot of samples
 
+            colors (Optional, default=None)
+                either a single color for the violins, or a list of colors (one for each violin).
+
             tight_layout (Optional, default=False)
                 wether to use matplotlib tight_layout() on the plot
 
@@ -3522,6 +3526,9 @@ class expression(base_expression):
         assert filename, "barh_single_item: you must specify a filename"
         assert len(condition_classes) == len(self.getConditionNames()), 'the length of condition_classes is not the same as this expression obejct'
         assert key in self.keys(), '"{}" key not found in this genelist'.format(key)
+        if colors:
+            if not (isinstance(colors, str) or isinstance(colors, Iterable)):
+                raise AssertionError('colors is not a string or iterable')
 
         # get the expn row;
         expn_data = self._findDataByKeyLazy(key, value)
@@ -3548,14 +3555,17 @@ class expression(base_expression):
         if "xticklabel_fontsize" not in kargs:
             kargs["xticklabel_fontsize"] = 6
 
-        self.draw.violinplot(data,
-            filename=filename, title=title,
+        real_filename = self.draw.violinplot(
+            data,
+            filename=filename,
+            title=title,
             mean=True, median=False, stdev=False,
             ylims=ylims,
             order=class_order,
+            colors=colors,
             **kargs)
 
-        config.log.info("bean_plot_by_conditions: Saved '{}'".format(filename))
+        config.log.info("violinplot_by_conditions: Saved '{}'".format(real_filename))
 
         return data
 
