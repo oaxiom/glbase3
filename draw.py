@@ -2596,7 +2596,9 @@ class draw:
         self.do_common_args(ax, **kargs)
         return self.savefigure(fig, filename)
 
-    def violinplot(self, data, filename,
+    def violinplot(self,
+        data,
+        filename:str,
         violin=True,
         order=None,
         mean=False,
@@ -2615,7 +2617,7 @@ class draw:
 
         pos = numpy.arange(len(order))
 
-        r = ax.violinplot(data.values(), pos, points=50, widths=0.5,
+        r = ax.violinplot([data[k] for k in order], pos, points=50, widths=0.5,
             showmeans=mean,
             showmedians=median,
             )
@@ -2797,7 +2799,7 @@ class draw:
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("scatter: Saved '%s%s' vs '%s%s' scatter to '%s'" % (mode, x, mode, y, real_filename))
-        return(ret_data)
+        return ret_data
 
     def dotbarplot(self, data, filename, yticktitle='Number', **kargs):
         """
