@@ -3893,7 +3893,7 @@ class expression(base_expression):
 
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("fc_scatter: Saved '%s'" % actual_filename)
-        return(None)
+        return None
 
     def kmeans(self, filename=None, key=None, seeds=None, dowhiten=True, plotseeds=True, **kargs):
         """
@@ -3996,6 +3996,7 @@ class expression(base_expression):
 
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("kmeans: Saved '%s'" % actual_filename)
+        return actual_filename
 
     def bundle(self, filename=None, key=None, seeds=None, plotseeds=True, Z=0.9, mode="pearsonr",
         negative_correlations=False, **kargs):
@@ -4125,7 +4126,7 @@ class expression(base_expression):
 
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("bundle: Saved '%s'" % actual_filename)
-        return(res)
+        return res
 
     def volcano(self, condition_name, p_value_key, label_key=None, filename=None,
         label_fontsize=6, label_significant=0.01, **kargs):
@@ -4202,6 +4203,92 @@ class expression(base_expression):
         #    real_filename = self.draw.nice_scatter(x_data, y_data, filename, xlims=[-xlim, xlim],
         #        plot_diag_slope=False, **kargs)
 
-
         config.log.info("scatter: Saved '%s'" % real_filename)
-        return(True)
+        return real_filename
+
+    def scatter_expression_two_genes(self, filename, gene_name_x, gene_name_y, cols, search_key='name'):
+        '''
+        **Purpose**
+            Plot a 2D scatter plot for 2 genes, with KDE density plots on the x and y axis.
+            Best if you have several hundered samples
+
+            NOTE: requires seaborn
+
+        **Arguments**
+            gene_name_x, gene_name_y, (Required)
+                the gene names in the expn table, corresponds to the value in get()
+
+            search_key (Optional, default='name')
+                the key to search for the gene names
+
+            filename (Required)
+                filename to save the image to.
+
+            cols (Required)
+                the colors (and also classes) for each cell.
+
+        **Returns**
+            The actual filename
+
+        '''
+        assert len(cols) == len(self.getConditionNames()), 'the length of the colors does not equal the number of conditions'
+
+        from seaborn import kdeplot
+
+        x_genes = self.get(search_key, gene_name_x, mode='lazy')
+        if not x_genes: raise AssertionError('{} not found with {}'.format(gene_name_x, search_key))
+        y_genes = self.get(search_key, gene_name_y, mode='lazy')
+        if not y_genes: raise AssertionError('{} not found with {}'.format(gene_name_y, search_key))
+
+        # Unpack from genelist
+        x_genes = x_genes.linearData[0]['conditions']
+        y_genes = y_genes.linearData[0]['conditions']
+
+        cell_x = []
+        cell_y = []
+
+        fig = plot.figure(figsize=(5,4))
+        gs = fig.add_gridspec(2, 2,
+            width_ratios=(7, 2), height_ratios=(2, 7),
+            left=0.1, right=0.9, bottom=0.1, top=0.9,
+            wspace=0.03, hspace=0.03)
+
+        ax = fig.add_subplot(gs[1, 0])
+
+        ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
+        ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
+
+        ax.scatter(x_genes, y_genes, c=cols, alpha=1.0, s=8, ec='none')
+
+        range_x = ax.get_xlim()
+        range_y = ax.get_ylim()
+
+        # split the x, y by cols;
+        for col in set(cols):
+            cx = []
+            cy = []
+            for x, y, c in zip(x_genes, y_genes, cols):
+                print(x,y,c)
+                if c == col:
+                    cx.append(x)
+                    cy.append(y)
+
+            kdeplot(cx, ax=ax_histx, color=col, )
+            kdeplot(cy, ax=ax_histy, color=col, vertical=True)
+
+        ax_histx.set_xticklabels('')
+        ax_histx.set_yticklabels('')
+        ax_histy.set_xticklabels('')
+        ax_histy.set_yticklabels('')
+        ax_histx.tick_params(bottom=False, left=False)
+        ax_histy.tick_params(bottom=False, left=False)
+
+        ax.axhline([0], c='grey', ls=':')
+        ax.axvline([0], c='grey', ls=':')
+
+        ax.set_xlabel(gene_name_x)
+        ax.set_ylabel(gene_name_y)
+
+        actual_filename = self.draw.savefigure(fig, filename)
+        config.log.info("kmeans: Saved '%s'" % actual_filename)
+        return actual_filename
