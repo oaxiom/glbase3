@@ -4260,8 +4260,12 @@ class expression(base_expression):
 
         ax.scatter(x_genes, y_genes, c=cols, alpha=1.0, s=8, ec='none')
 
-        range_x = ax.get_xlim()
-        range_y = ax.get_ylim()
+        dx = (max(cell_x) - min(cell_x)) / 20
+        dy = (max(cell_y) - min(cell_y)) / 20
+        range_x = [min(cell_x)-dx, max(cell_x)+dx]
+        range_y = [min(cell_y)-dy, max(cell_y)+dy]
+        ax.set_xlim(range_x)
+        ax.set_ylim(range_y)
 
         # split the x, y by cols;
         for col in set(cols):

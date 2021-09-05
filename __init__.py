@@ -125,6 +125,7 @@ from . import cmaps
 
 from .tools.seqToTrk import seqToTrk
 from .tools.wigstep_to_flattrack import wigstep_to_flat
+from .tools.merge_flat_track import merge_flats
 from .tools.gerp_to_flattrack import gerp_to_flat
 from .tools.bedgraph_to_flattrack import bedgraph_to_flat
 from .tools.bed_to_flattrack import bed_to_flat
@@ -144,7 +145,7 @@ __all__ = [
     "expression",
     "genome",
     "genome_sql",
-    "track", # Deprecated? use flat_track
+    #"track", # Deprecated. use flat_track
     "flat_track",
     "delayedlist",
     "glgo",
@@ -157,7 +158,8 @@ __all__ = [
     "flags",
     "format",
     "glload",
-    "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat",
+    # Tools/
+    "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat", 'merge_flats',
     "logo",
     "motif",
     "rnaseqqc",

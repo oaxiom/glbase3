@@ -27,7 +27,7 @@ import matplotlib.cm as cm
 if config.H5PY_AVAIL:
     import h5py
 else:
-    raise AssertionError('flat_track now requires h5py, but it is not avaialble')
+    raise AssertionError('flat_track now requires h5py, but it is not available')
 
 positive_strand_labels = frozenset(["+", "1", "f", "F", 1])
 negative_strand_labels = frozenset(["-", "0", "r", "R", -1, 0, "-1"])
@@ -97,7 +97,7 @@ class flat_track():
 
             self.draw = draw()
             config.log.info('Bound "%s" flat file' % filename)
-        
+
         # NAme override:
         if name:
             self.name = name
