@@ -11,7 +11,6 @@ import pickle, sys, os, struct, configparser, math, zlib
 from operator import itemgetter
 
 from .location import location
-from .data import positive_strand_labels, negative_strand_labels
 
 from array import array
 from .draw import draw
@@ -23,17 +22,22 @@ from . import utils
 import numpy
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
+import scipy.interpolate as scipyinterp
 
 if config.H5PY_AVAIL:
     import h5py
 else:
-    raise AssertionError('flat_track now requires h5py, but it is not available')
+    raise AssertionError('flat_track requires h5py, but it is not available')
 
 positive_strand_labels = frozenset(["+", "1", "f", "F", 1])
 negative_strand_labels = frozenset(["-", "0", "r", "R", -1, 0, "-1"])
 
 class flat_track():
-    def __init__(self, name=None, new=False, filename=None, bin_format='f'):
+    def __init__(self,
+        filename:str=None,
+        name:str=None,
+        new:str=False,
+        bin_format='f'):
         """
         **Purpose**
             track definition, used for things like sequence reads across the genome
@@ -53,6 +57,8 @@ class flat_track():
                 "f" = float
 
         """
+        assert filename, 'You must specify a filename'
+
         self.readonly = True
         self._draw = None
 
@@ -252,8 +258,18 @@ class flat_track():
         dat = [str(n).encode("ascii", "ignore") for n in self.chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.chrom_names), 1), 'S10', dat)
 
-    def pileup(self, genelists=None, filename=None, window_size=None, average=True,
-        background=None, mask_zero=False, respect_strand=True, norm_by_read_count=False, **kargs):
+    def pileup(self,
+        genelists=None,
+        filename=None,
+        scaled=None,
+        scaled_view_fraction=0.5,
+        window_size=None,
+        average=True,
+        background=None,
+        mask_zero=False,
+        respect_strand=True,
+        norm_by_read_count=False,
+        **kargs):
         """
         **Purpose**
             Draw a set of pileup count scores (averages or cumulative scores)
@@ -265,8 +281,21 @@ class flat_track():
             filename
                 The filename to save the image to
 
+            scaled (Required)
+                If True, then the pileup will be formatted so that the central <scaled_view_fraction>
+                will be the coordinates from the genelists, and the flanking regions will be taken
+                from  window_size |---|----|---| and fill the remaining space.
+
+                If False, draw a pileup, but center it on the middle of the coordinates in genelist.
+                No scaling is performed and the flanking parts are taken from the window_size
+
+            scaled_view_fraction (Optional, default=0.5)
+                Only used if scaled == True. This specifies the fraction of the pileup to use
+                for the central region (See scaled)
+
             window_size (Optional, default=None)
-                the number of base pairs to use around the centre of the location
+                the number of base pairs to use around the centre of the location (if scaled)
+
                 If set to None then it will use the location as specified.
 
             average (Optional, default=True)
@@ -308,7 +337,13 @@ class flat_track():
             background returns an average of the list of background peaks.
 
         """
+        # Common cleanup
         assert genelists, "genelists is None?"
+        assert scaled is not None, 'You must specify if scaled is True or False'
+
+        # flats have lazy setup of draw:
+        if not self._draw:
+            self._draw = draw(self)
 
         if not isinstance(genelists, list):
             genelists = [genelists] # make a one item'd list
@@ -317,6 +352,27 @@ class flat_track():
             if not isinstance(background, list):
                 background = [background] # make a one item'd list
 
+        if scaled:
+            assert window_size, 'window_size cannot be zero if scaled=True'
+
+            ret = self._pileup_scaled(genelists=genelists,
+                scaled_view_fraction=scaled_view_fraction,
+                filename=filename, window_size=window_size, average=average,
+                background=background, mask_zero=mask_zero,
+                respect_strand=respect_strand, norm_by_read_count=norm_by_read_count,
+                **kargs)
+        else:
+            ret = self._pileup_unscaled(genelists=genelists,
+                filename=filename, window_size=window_size, average=average,
+                background=background, mask_zero=mask_zero,
+                respect_strand=respect_strand, norm_by_read_count=norm_by_read_count,
+                **kargs)
+
+        return ret
+
+    def _pileup_unscaled(self, genelists=None, filename=None, window_size=None, average=True,
+        background=None, mask_zero=False, respect_strand=True, norm_by_read_count=False, **kargs):
+
         read_count = 1.0
         if norm_by_read_count:
             read_count = float(self.get_total_num_reads())
@@ -324,10 +380,6 @@ class flat_track():
                 raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
 
         all_hists = {}
-
-        # flats have lazy setup of draw:
-        if not self._draw:
-            self._draw = draw(self)
 
         fig = self._draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
@@ -477,9 +529,216 @@ class flat_track():
 
         actual_filename = self._draw.savefigure(fig, filename)
 
+        config.log.info("pileup(scaled=False): Saved '{}'".format(actual_filename))
+
+        return (all_hists, bkgd)
+
+    def _pileup_scaled(self,
+        scaled_view_fraction=None,
+        genelists=None,
+        filename=None,
+        window_size=None,
+        average=True,
+        background=None,
+        mask_zero=False,
+        respect_strand=True,
+        norm_by_read_count=False,
+        **kargs):
+        '''
+
+        The scaled variant for pileup
+
+        '''
+        assert not background, 'background is not implemented for pileup(scaled=True)'
+
+        read_count = 1.0
+        if norm_by_read_count:
+            read_count = float(self.get_total_num_reads())
+            if read_count <= 0:
+                raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
+
+        all_hists = {}
+        bkgd = None
+
+        fig = self._draw.getfigure(**kargs)
+        ax = fig.add_subplot(111)
+
+        x = None
+        center_hist = None
+
+        available_chroms = list(self.mats.keys())
+        available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
+        __already_warned = []
+
+        for gl in genelists:
+            for loc, strand in zip(gl['loc'], gl['strand']):
+                loc_chrom = loc['chr']
+
+                if loc_chrom not in available_chroms:
+                    if loc_chrom not in __already_warned:
+                        config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(loc_chrom))
+                        __already_warned.append(i_loc_chrom)
+                    continue
+
+                left_flank = self.get(None, c=loc_chrom, left=loc['left']-window_size, rite=loc['left'], strand="+")
+                center = self.get(None, c=loc_chrom, left=loc['left'], rite=loc['right'], strand="+")#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
+                rite_flank = self.get(None, c=loc_chrom, left=loc['right'], rite=loc['right']+window_size, strand="+")
+
+                if center.size < 100:
+                    config.log.warning('center is shorter than 100 bp {}, skipping'.format(loc))
+
+                # scale center to 0 1000
+                #print('Before', center.size)
+                center = numpy.array(center)
+                if center.size != 1000:
+                    f = scipyinterp.interp1d(numpy.arange(center.size), center)
+                    center = f(numpy.linspace(0, center.size-1, 1000))
+                    #print('After', center.size)
+
+                left_flank = numpy.array(left_flank)
+                rite_flank = numpy.array(rite_flank)
+
+                if respect_strand:
+                    # positive strand is always correct, so I leave as is.
+                    # For the reverse strand all I have to do is flip the array.
+                    if strand in negative_strand_labels:
+                        left_flank = left_flank[::-1]
+                        center = center[::-1]
+                        rite_flank = rite_flank[::-1]
+
+                if center_hist is None: # Setup arrays
+                    left_hist = left_flank
+                    center_hist = center
+                    rite_hist = rite_flank
+                else:
+                    left_hist += left_flank
+                    center_hist += center # rescaled;
+                    rite_hist += rite_flank
+
+                '''
+                if mask_zero: # surely a better way of doing this...
+                    t = numpy.zeros(loc_span)
+                    for ee, xx in enumerate(a):
+                        if xx > 0:
+                            t[ee] = 1.0
+                    counts += t
+                '''
+
+            if average and mask_zero:
+                left_hist /= counts
+                center_hist /= counts
+                rite_hist /= counts
+
+            elif average and not mask_zero:
+                left_hist /= len(gl)
+                center_hist /= len(gl)
+                rite_hist /= len(gl)
+
+            if norm_by_read_count:
+                left_hist /= read_count
+                center_hist /= read_count
+                rite_hist /= read_count
+
+            # scale;
+            half_scale = (scaled_view_fraction / 2.0) * 1000
+            full_scale = scaled_view_fraction * 1000.0
+
+            #print(half_scale, full_scale)
+
+            left = numpy.arange(0, half_scale, 250.0 / left_hist.size)
+            cent = numpy.arange(half_scale, half_scale+full_scale, 500 / center.size)
+            rite = numpy.arange(half_scale+full_scale, half_scale+full_scale+half_scale, 250 / rite_hist.size)
+
+            stacked = numpy.concatenate((left, cent, rite), axis=0)
+            stacked_hist = numpy.concatenate((left_hist, center_hist, rite_hist), axis=0)
+
+            ax.plot(stacked, stacked_hist, label=gl.name, alpha=0.7)
+            all_hists[gl.name] = left
+
+        leg = ax.legend()
+        [t.set_fontsize(6) for t in leg.get_texts()]
+
+        ax.set_ylabel("Magnitude")
+
+        ax.set_xticks([0, half_scale, half_scale+full_scale, half_scale+full_scale+half_scale])
+        ax.set_xticklabels(['-{} kbp'.format(window_size//1000), 'left', 'right', '{} kbp'.format(window_size//1000)])
+        ax.axvline(half_scale, ls=":", color="grey")
+        ax.axvline(half_scale+full_scale, ls=":", color="grey")
+        ax.set_xlabel('Base pairs (bp)')
+
+        self._draw.do_common_args(ax, **kargs)
+
+        actual_filename = self._draw.savefigure(fig, filename)
+
         config.log.info("pileup(): Saved '%s'" % actual_filename)
 
         return (all_hists, bkgd)
+
+        '''
+        bkgd = None
+        if background:
+            if window_size:
+                bkgd = numpy.zeros(window_size*2)
+                counts = numpy.zeros(window_size*2)
+            else:
+                bkgd = numpy.zeros(loc_span)
+                counts = numpy.zeros(loc_span)
+
+            bkgd_items = 0
+            p = progressbar(len(background))
+            for i, back in enumerate(background):
+                for b in back:
+                    if b['loc']['chr'] not in available_chroms:
+                        if b['loc']['chr'] not in __already_warned:
+                            config.log.warning('Asked for {} chromosome but not in this flat_track, skipping'.format(b['loc']['chr']))
+                            __already_warned.append(b['loc']['chr'])
+                        continue
+
+                    if window_size:
+                        l = b["loc"].pointify()
+                        l = l.expand(window_size)
+                        a = self.get(l)[0:window_size*2]
+                    else:
+                        a = self.get(b["loc"])[0:loc_span]
+                    bkgd_items += 1
+
+                    if respect_strand:
+                        # positive strand is always correct, so I leave as is.
+                        # For the reverse strand all I have to do is flip the array.
+                        if b["strand"] in negative_strand_labels:
+                            a = a[::-1]
+
+                    bkgd += a
+                    if mask_zero:
+                        t = numpy.zeros(loc_span)
+                        for ee, xx in enumerate(a):
+                            if xx > 0:
+                                t[ee] = 1.0
+                        counts += t
+
+                if average and mask_zero:
+                    bkgd /= counts
+                elif average and not mask_zero:
+                    bkgd /= bkgd_items
+
+                if norm_by_read_count:
+                    hist /= read_count
+
+                if i == 0: # add only a single legend.
+                    ax.plot(x, bkgd, color="grey", alpha=0.3, label="Random Background")
+                else:
+                    ax.plot(x, bkgd, color="grey", alpha=0.3)
+
+                # reset arrays
+                bkgd = numpy.zeros(len(bkgd))
+                counts = numpy.zeros(len(counts))
+
+                p.update(i)
+
+        else:
+            bkgd = None
+        '''
+
 
     def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
         bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,

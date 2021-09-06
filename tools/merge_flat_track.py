@@ -64,8 +64,8 @@ def merge_flats(
     merged_chrom_data = {}
     largest_lengths = {}
 
+    s = time.time()
     for f in infilenames:
-        s = time.time()
         f = flat_track(filename=f, new=False, name=name, bin_format='f')
         #print(largest_lengths)
 
@@ -80,7 +80,6 @@ def merge_flats(
                 merged_chrom_data[chrom] = chrom_array_to_add
                 largest_lengths[chrom] = chrom_array_to_add.shape[0]
                 continue
-            # check broadcast
 
             largest_lengths[chrom] = max(largest_lengths[chrom], chrom_array_to_add.shape[0])
             # Check the sizes and pad if needed;
@@ -93,8 +92,9 @@ def merge_flats(
             merged_chrom_data[chrom] += numpy.array(chrom_array_to_add)
 
         del f
-        e = time.time()
-        config.log.info("Took: {:.2f} seconds".format(e-s))
+
+    e = time.time()
+    config.log.info("Took: {:.2f} seconds".format(e-s))
 
     # Write out merge
     for chrom in merged_chrom_data:
