@@ -355,17 +355,27 @@ class flat_track():
         if scaled:
             assert window_size, 'window_size cannot be zero if scaled=True'
 
-            ret = self._pileup_scaled(genelists=genelists,
+            ret = self._pileup_scaled(
+                genelists=genelists,
                 scaled_view_fraction=scaled_view_fraction,
-                filename=filename, window_size=window_size, average=average,
-                background=background, mask_zero=mask_zero,
-                respect_strand=respect_strand, norm_by_read_count=norm_by_read_count,
+                filename=filename,
+                window_size=window_size,
+                average=average,
+                background=background,
+                mask_zero=mask_zero,
+                respect_strand=respect_strand,
+                norm_by_read_count=norm_by_read_count,
                 **kargs)
         else:
-            ret = self._pileup_unscaled(genelists=genelists,
-                filename=filename, window_size=window_size, average=average,
-                background=background, mask_zero=mask_zero,
-                respect_strand=respect_strand, norm_by_read_count=norm_by_read_count,
+            ret = self._pileup_unscaled(
+                genelists=genelists,
+                filename=filename,
+                window_size=window_size,
+                average=average,
+                background=background,
+                mask_zero=mask_zero,
+                respect_strand=respect_strand,
+                norm_by_read_count=norm_by_read_count,
                 **kargs)
 
         return ret
@@ -589,14 +599,14 @@ class flat_track():
 
                 # scale center to 0 1000
                 #print('Before', center.size)
-                center = numpy.array(center)
+                center = numpy.array(center, dtype=numpy.float)
                 if center.size != 1000:
                     f = scipyinterp.interp1d(numpy.arange(center.size), center)
                     center = f(numpy.linspace(0, center.size-1, 1000))
                     #print('After', center.size)
 
-                left_flank = numpy.array(left_flank)
-                rite_flank = numpy.array(rite_flank)
+                left_flank = numpy.array(left_flank, dtype=numpy.float)
+                rite_flank = numpy.array(rite_flank, dtype=numpy.float)
 
                 if respect_strand:
                     # positive strand is always correct, so I leave as is.
@@ -653,7 +663,7 @@ class flat_track():
             stacked_hist = numpy.concatenate((left_hist, center_hist, rite_hist), axis=0)
 
             ax.plot(stacked, stacked_hist, label=gl.name, alpha=0.7)
-            all_hists[gl.name] = left
+            all_hists[gl.name] = (stacked, stacked_hist)
 
         leg = ax.legend()
         [t.set_fontsize(6) for t in leg.get_texts()]
@@ -740,7 +750,8 @@ class flat_track():
         '''
 
 
-    def heatmap(self, filename=None, genelist=None, distance=1000, read_extend=200, log=2,
+    def heatmap(self, filename=None, genelist=None, scaled_view_fraction=0.5,
+        scaled=False, distance=1000, read_extend=200, log=2,
         bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
         pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
         log_pad=None, imshow=True,
@@ -756,6 +767,18 @@ class flat_track():
             filename (Optional)
                 filename to save the heatmap into
                 Can be set to None if you don't want the png heatmap.
+
+            scaled (Required)
+                If True, then the heatmap will be formatted so that the central <scaled_view_fraction>
+                will be the coordinates from the genelists, and the flanking regions will be taken
+                from  window_size |---|----|---| and fill the remaining space.
+
+                If False, draw a heatmap, but center it on the middle of the coordinates in genelist.
+                No scaling is performed and the flanking parts are taken from the <distance>
+
+            scaled_view_fraction (Optional, default=0.5)
+                Only used if scaled == True. This specifies the fraction of the heatmap to use
+                for the central region (See scaled)
 
             raw_heatmap_filename (Optional)
                 Save a tsv file that contains the heatmap values for each row of the genelist.
@@ -813,6 +836,55 @@ class flat_track():
         assert "left" in list(genelist.linearData[0]["loc"].keys()), "appears the loc key data is malformed"
         assert log in ("e", math.e, 2, 10, None), "this 'log' base not supported"
 
+        if scaled:
+            assert bins, 'If scaled=True, you must specify a bins (size)'
+
+            ret = self._heatmap_scaled(filename=filename,
+                genelist=genelist,
+                distance=distance,
+                read_extend=read_extend,
+                scaled_view_fraction=scaled_view_fraction,
+                log=log,
+                bins=bins,
+                sort_by_intensity=sort_by_intensity,
+                raw_heatmap_filename=raw_heatmap_filename,
+                bracket=bracket,
+                pointify=pointify,
+                respect_strand=respect_strand,
+                cmap=cmap,
+                norm_by_read_count=norm_by_read_count,
+                log_pad=log_pad,
+                imshow=imshow,
+                **kargs)
+        else:
+            ret = self._heatmap_unscaled(filename=filename,
+                genelist=genelist,
+                distance=distance,
+                read_extend=read_extend,
+                log=log,
+                bins=bins,
+                sort_by_intensity=sort_by_intensity,
+                raw_heatmap_filename=raw_heatmap_filename,
+                bracket=bracket,
+                pointify=pointify,
+                respect_strand=respect_strand,
+                cmap=cmap,
+                norm_by_read_count=norm_by_read_count,
+                log_pad=log_pad,
+                imshow=imshow,
+                **kargs)
+
+        return ret
+
+    def _heatmap_unscaled(self, filename=None, genelist=None, scaled=False, distance=1000, read_extend=200, log=2,
+        bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
+        pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
+        log_pad=None, imshow=True,
+        **kargs):
+        '''
+        Unscaled variant
+
+        '''
         table = []
 
         gl_sorted = genelist.deepcopy()
@@ -948,6 +1020,140 @@ class flat_track():
             numpy.savetxt(raw_heatmap_filename, data, delimiter="\t")
             config.log.info("heatmap(): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
 
-        config.log.info("heatmap(): Saved heatmap tag density to '%s'" % filename)
+        config.log.info("heatmap(scaled=False): Saved heatmap tag density to '%s'" % filename)
+        return {"data": data, 'sorted_original_genelist': sorted_locs}
+
+    def _heatmap_scaled(self, filename=None, genelist=None, scaled=False, distance=1000, read_extend=200, log=2,
+        bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
+        scaled_view_fraction=0.5,
+        pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
+        log_pad=None, imshow=True,
+        **kargs):
+        '''
+        Scaled variant
+
+        '''
+
+        table = []
+
+        gl_sorted = genelist.deepcopy()
+        all_locs = gl_sorted['loc']
+
+        if respect_strand:
+            strands = gl_sorted['strand']
+        else:
+            strands = ['+'] * len(all_locs) # Fake strand labels for code simplicity
+
+        curr_cached_chrom = None
+        cached_chrom = None
+        bin_size = None
+
+        number_of_tags_in_library = False # For code laziness
+        if norm_by_read_count:
+            number_of_tags_in_library = self.get_total_num_reads() / float(1e6) # 1e6 for nice numbers
+
+        p = progressbar(len(genelist))
+        for idx, read in enumerate(zip(all_locs, strands)):
+            loc = read[0]
+            loc_chrom = read[0]['chr']
+
+
+            left_flank = self.get(None, c=loc_chrom, left=loc['left']-distance, rite=loc['left'], strand="+")
+            center = self.get(None, c=loc_chrom, left=loc['left'], rite=loc['right'], strand="+")#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
+            rite_flank = self.get(None, c=loc_chrom, left=loc['right'], rite=loc['right']+distance, strand="+")
+
+            if center.size < 100:
+                config.log.warning('center is shorter than 100 bp {}, skipping'.format(loc))
+
+            if respect_strand:
+                # positive strand is always correct, so I leave as is.
+                # For the reverse strand all I have to do is flip the array.
+                if read[1] in negative_strand_labels:
+                    left_flank = left_flank[::-1]
+                    center = center[::-1]
+                    rite_flank = rite_flank[::-1]
+
+            # interpolate the middle
+            # The interpolation size will be based on
+
+            interp_size = distance * scaled_view_fraction
+            center = numpy.array(center, dtype=numpy.float)
+            if center.size != 1000:
+                f = scipyinterp.interp1d(numpy.arange(center.size), center)
+                center = f(numpy.linspace(0, center.size-1, 1000))
+
+            if number_of_tags_in_library:
+                #print(a, number_of_tags_in_library)
+                left_flank /= float(number_of_tags_in_library)
+                center /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
+                rite_flank /= float(number_of_tags_in_library)
+
+            # stack the data and then bin it
+            bin_size = (distance + interp_size + distance) // float(bins)
+
+            stacked = numpy.concatenate((left_flank, center, rite_flank), axis=0)
+
+            # resize again;
+            f = scipyinterp.interp1d(numpy.arange(center.size), center)
+            center = f(numpy.linspace(0, center.size-1, bins))
+
+            table.append(numpy.array(center))
+            p.update(idx)
+
+        # sort the data by intensity
+        # no convenient numpy. So have to do myself.
+        mag_tab = []
+        for index, row in enumerate(table):
+            mag_tab.append({"n": index, "sum": row.max()}) # Shouldn't this be sum?
+
+        data = numpy.array(table)
+        if sort_by_intensity:
+            mag_tab = sorted(mag_tab, key=itemgetter("sum"))
+            data = numpy.array([data[item["n"],] for item in mag_tab])
+            data = numpy.delete(data, numpy.s_[-1:], 1) # Nerf the last column.
+
+        # Get the sorted_locs for reporting purposes:
+        temp_gl_copy = genelist.deepcopy().linearData # deepcopy for fastness
+        sorted_locs = [temp_gl_copy[i['n']] for i in mag_tab] # need to sort them by intensity, if done that way
+        sorted_locs.reverse() # Make it into the intuitive order.
+        gl = Genelist()
+        gl.load_list(sorted_locs)
+        sorted_locs = gl
+
+        if log:
+            if not log_pad:
+                log_pad = min([0.1, max([0.1, numpy.min(data)])])
+
+            if log == "e" or log == math.e:
+                data = numpy.log(data+log_pad)
+            elif log == 2:
+                data = numpy.log2(data+log_pad)
+            elif log == 10:
+                data = numpy.log10(data+log_pad)
+
+        # draw heatmap
+
+        if not self._draw:
+            self._draw = draw()
+
+        if filename:
+            if not bracket:
+                m = data.mean()
+                ma = data.max()
+                mi = data.min()
+                std = data.std()
+                bracket=[m, m+(std*2.0)]
+                config.log.info("track.heatmap(): I guessed the bracket ranges as [%.3f, %.3f]" % (bracket[0], bracket[1]))
+            elif len(bracket) == 1: # Assume only minimum.
+                bracket = [bracket[0], data.max()]
+
+            filename = self._draw.heatmap2(data=data, filename=filename, bracket=bracket, colour_map=cmap,
+                imshow=imshow, **kargs)
+
+        if raw_heatmap_filename:
+            numpy.savetxt(raw_heatmap_filename, data, delimiter="\t")
+            config.log.info("heatmap(scaled=True): Saved raw_heatmap_filename to '%s'" % raw_heatmap_filename)
+
+        config.log.info("heatmap(scaled=True): Saved heatmap tag density to '%s'" % filename)
         return {"data": data, 'sorted_original_genelist': sorted_locs}
 
