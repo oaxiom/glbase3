@@ -1369,10 +1369,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         
         if remove:
             newl = [item for item in newgl.linearData if value not in item[key]]
-            config.log.info('Removed {} entries'.format(len(self) - len(newl)))
+            config.log.info('filter_by_in: Removed {} entries'.format(len(self) - len(newl)))
         else:
             newl = [item for item in newgl.linearData if value in item[key]]
-            config.log.info('Kept {} matching entries'.format(len(self) - len(newl)))
+            config.log.info('filter_by_in: Kept {} matching entries'.format(len(self) - len(newl)))
             
         newgl.linearData = newl
         newgl._optimiseData()
