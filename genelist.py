@@ -1335,6 +1335,49 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("getRowsByKey: Found %s items" % len(newl))
         return newl
 
+    def filter_by_in(self, key=None, value=None, remove=True, **kargs):
+        """
+        **Purpose**
+            filter the genelist, and 
+            
+            if remove=True, then delete all matching entries:
+            if <value> in <key> then remove
+            
+            if remove=False, then do the opposite and only keep entries that match
+            if <value> in <key> then keep
+        
+        **Arguments**
+            key (Required)
+                key to search for '<value>' in
+            
+            value (Required)
+                value to test in key.
+                
+            remove (Optional, default=True)
+                if remove=True, then remove matching entries
+                if remove=False, keep all entries that match
+        
+        **Returns**
+            New genelist with the entries removed
+        
+        """
+        assert key, 'You must specify a key'
+        assert value, 'You must specify a value'
+        assert key in self.keys(), '{} key not found in this genelist'.format(key)
+        
+        newgl = self.deepcopy()
+        
+        if remove:
+            newl = [item for item in newgl.linearData if value not in item[key]]
+            config.log.info('Removed {} entries'.format(len(self) - len(newl)))
+        else:
+            newl = [item for item in newgl.linearData if value in item[key]]
+            config.log.info('Kept {} matching entries'.format(len(self) - len(newl)))
+            
+        newgl.linearData = newl
+        newgl._optimiseData()
+        return newgl
+                
     def filter_by_value(self, key=None, evaluator=None, value=None, **kargs):
         """
         **Purpose**

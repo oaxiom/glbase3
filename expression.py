@@ -3178,7 +3178,7 @@ class expression(base_expression):
             bracket=bracket, aspect=aspect, row_names=labels, col_names=labels,
             colbar_label="Correlation (%s)" % mode, optimal_ordering=optimal_ordering, **kargs)
         config.log.info("correlation_heatmap: Saved '%s'" % results["real_filename"])
-        return({"data": results["reordered_data"], "labels": results["reordered_cols"]})
+        return {"data": results["reordered_data"], "labels": results["reordered_cols"]}
 
     def closest_correlate(self, target_condition, number=5, cut_off=0.7, method="r2",
         pretty_print=False, **kargs):
@@ -3247,7 +3247,7 @@ class expression(base_expression):
             for rank, item in enumerate(res):
                 print("%s:\t%s (%.3f)" % (rank+1, item["name"], item["correlation"]))
 
-        return(res)
+        return res
 
     def cut(self, function):
         """
