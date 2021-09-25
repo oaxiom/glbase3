@@ -45,6 +45,7 @@ Then it can go::
 """
 
 import sys, os, copy, random, numpy, math
+from collections.abc import Iterable
 
 from numpy import array, arange, mean, max, min, std, float32
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
@@ -511,21 +512,24 @@ class draw:
                 else: # must be a named color:
                     new_colbar.append([newd[c]])
 
-            col_colbar = numpy.array(new_colbar).transpose(1,0,2)
+            col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
+                col_colbar = numpy.array(new_colbar).transpose(1,0,2)
                 ax4.imshow(col_colbar, aspect="auto",
                     origin='lower', extent=[0, len(col_colbar),  0, 1],
                     interpolation=config.get_interpolation_mode(filename))
+
             else:
+                col_colbar = numpy.array(new_colbar)
                 # unpack the oddly contained data:
                 col_colbar = [tuple(i[0]) for i in col_colbar]
                 cols = list(set(col_colbar))
                 lcmap = ListedColormap(cols)
                 col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
 
-                ax4.pcolormesh([col_colbar_as_col_indeces,], cmap=lcmap,
+                ax4.pcolormesh(numpy.array([col_colbar_as_col_indeces,]), cmap=lcmap,
                     vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
                     antialiased=False, edgecolors=edgecolors, lw=0.4)
 
@@ -1240,7 +1244,7 @@ class draw:
         else:
             for patch in r['boxes']:
                 patch.set_facecolor('lightgrey')
-                
+
         plot.setp(r['caps'], color='grey', lw=0.5)
         plot.setp(r['fliers'], color="grey", lw=0.5)
 
@@ -2592,11 +2596,14 @@ class draw:
         self.do_common_args(ax, **kargs)
         return self.savefigure(fig, filename)
 
-    def violinplot(self, data, filename,
+    def violinplot(self,
+        data,
+        filename:str,
         violin=True,
         order=None,
         mean=False,
         median=True,
+        colors=None,
         **kargs):
         '''
         Uses the matplotlib implementation;
@@ -2610,10 +2617,16 @@ class draw:
 
         pos = numpy.arange(len(order))
 
-        ax.violinplot(data.values(), pos, points=50, widths=0.5,
+        r = ax.violinplot([data[k] for k in order], pos, points=50, widths=0.5,
             showmeans=mean,
             showmedians=median,
             )
+
+        for vidx, viol in enumerate(r['bodies']):
+            if colors and isinstance(colors, str):
+                viol.set_facecolor(colors)
+            elif colors and isinstance(colors, Iterable):
+                viol.set_facecolor(colors[vidx])
 
         ax.set_xticks(range(len(order)))
         ax.set_xticklabels(order)
@@ -2786,7 +2799,7 @@ class draw:
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("scatter: Saved '%s%s' vs '%s%s' scatter to '%s'" % (mode, x, mode, y, real_filename))
-        return(ret_data)
+        return ret_data
 
     def dotbarplot(self, data, filename, yticktitle='Number', **kargs):
         """
