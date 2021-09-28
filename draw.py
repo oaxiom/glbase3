@@ -1197,7 +1197,7 @@ class draw:
             #ax0 = fig.add_subplot()
             #ax0.set_position(scalebar_location)
             #ax0.set_frame_on(False)
-            cb = fig.colorbar(hm, cax=ax, orientation="horizontal", cmap=colour_map)
+            cb = fig.colorbar(hm, cax=ax, orientation="horizontal") # cmap is from hm now;
             cb.set_label(kargs["colbar_label"], fontsize=6)
             [label.set_fontsize(6) for label in ax.get_xticklabels()]
 
