@@ -822,8 +822,14 @@ class expression(base_expression):
                 item["conditions"] = [new_type(i) for i in item["conditions"]]
         return None
 
-    def heatmap(self, filename=None, row_label_key="name", row_color_threshold=None,
-        optimal_ordering=True, dpi=300, **kargs):
+    def heatmap(self,
+        filename:str =None,
+        row_label_key:str ="name",
+        row_color_threshold=None,
+        optimal_ordering=True,
+        dpi:int =300,
+        _draw_supplied_cell_labels=None,
+        **kargs):
         """
         **Purpose**
 
@@ -946,14 +952,21 @@ class expression(base_expression):
             draw_numbers_threshold (Optional, default=-9e14)
                 draw the values in the cell if > draw_numbers_threshold
 
-            draw_numbers_fmt (Optional, default= '%.1f')
+            draw_numbers_fmt (Optional, default= '{:.1f}')
                 string formatting for the displayed values
 
                 You can also send arbitrary text here, (for example, if you wanted to
                 mark significane with a '*' then you could set draw_numbers_fmt='*').
 
-            draw_numbers_font_size (Optional, default=7)
+            draw_numbers_font_size (Optional, default=6)
                 the font size for the numbers in each cell
+
+            _draw_supplied_cell_labels (Optional, default=False)
+                semi-undocumented function to draw text in each cell.
+
+                Please provide a 2D list, with the same dimensions as the heatmap, and this text
+                will be drawn in each cell. Useful for tings like drawing a heatmap of expression
+                and then overlaying p-values on top of all significant cells.
 
             imshow (Optional, default=False)
                 Embed the heatmap as an image inside a vector file. (Uses matplotlib imshow
@@ -1016,6 +1029,7 @@ class expression(base_expression):
             filename=filename,
             row_color_threshold=row_color_threshold,
             optimal_ordering=optimal_ordering, dpi=dpi,
+            _draw_supplied_cell_labels=_draw_supplied_cell_labels,
             **kargs)
 
         config.log.info("heatmap: Saved %s" % res["real_filename"])

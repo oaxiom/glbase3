@@ -124,7 +124,7 @@ class draw:
         border:bool = False,
         draw_numbers:bool = False,
         draw_numbers_threshold = -9e14,
-        draw_numbers_fmt = '%.1f',
+        draw_numbers_fmt = '{:.1f}',
         draw_numbers_font_size = 6,
         grid:bool = False,
         row_color_threshold:bool = None,
@@ -133,6 +133,7 @@ class draw:
         col_colbar:bool = None,
         optimal_ordering:bool = True,
         dpi:int = 300,
+        _draw_supplied_cell_labels = False,
         **kargs):
         """
         my own version of heatmap.
@@ -209,11 +210,18 @@ class draw:
             draw_numbers_threshold (Optional, default=-9e14)
                 draw the values in the cell if > draw_numbers_threshold
 
-            draw_numbers_fmt (Optional, default= '%.1f')
+            draw_numbers_fmt (Optional, default= '{:.1f}')
                 string formatting for the displayed values
 
-            draw_numbers_font_size (Optional, default=7)
+            draw_numbers_font_size (Optional, default=6)
                 the font size for the numbers in each cell
+
+            _draw_supplied_cell_labels (Optional, default=False)
+                semi-undocumented function to draw text in each cell.
+
+                Please provide a 2D list, with the same dimensions as the heatmap, and this text
+                will be drawn in each cell. Useful for tings like drawing a heatmap of expression
+                and then overlaying p-values on top of all significant cells.
 
             col_colbar (Optional, default=None)
                 add a colourbar for the samples names. This is designed for when you have too many
@@ -579,11 +587,22 @@ class draw:
                 for y in range(data.shape[1]):
                     if data[x, y] >= draw_numbers_threshold:
                         if '%' in draw_numbers_fmt:
-                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt % data[x, y], size=draw_numbers_font_size,
+                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt.format(data[x, y]), size=draw_numbers_font_size,
                                 ha='center', va='center')
                         else:
                             ax3.text(y+0.5, x+0.5, draw_numbers_fmt, size=draw_numbers_font_size,
                                 ha='center', va='center')
+
+        if _draw_supplied_cell_labels:
+            assert len(_draw_supplied_cell_labels) == data.shape[0], '_draw_supplied_cell_labels X does not equal shape[1]'
+            assert len(_draw_supplied_cell_labels[0]) == data.shape[1], '_draw_supplied_cell_labels Y does not equal shape[0]'
+
+            for x in range(data.shape[0]):
+                for y in range(data.shape[1]):
+                    val = _draw_supplied_cell_labels[x][y]
+                    ax3.text(y+0.5, x+0.5, draw_numbers_fmt.format(val), size=draw_numbers_font_size,
+                        ha='center', va='center')
+
 
         ax3.set_frame_on(border)
         ax3.set_position(heatmap_location)

@@ -128,7 +128,7 @@ class base_expression(genelist):
 
         # coerce the conditions errs etc to floats
         nans = set(('nan', 'Nan', 'NaN'))
-        for idx, i in enumerate(self):
+        for idx, i in enumerate(self.linearData):
             try:
                 # Nan policy:
                 if True in [t in nans for t in i["conditions"]]:
@@ -140,10 +140,24 @@ class base_expression(genelist):
                         else:
                             newc.append(c)
                     i['conditions'] = newc
-                i["conditions"] = [float(str(t).replace(",", "")) for t in i["conditions"]] # because somebody once sent me a file with ',' for thousands!
+
+                i["conditions"] = [float(str(t)) for t in i["conditions"]] # because somebody once sent me a file with ',' for thousands!
             except ValueError:
-                config.log.warning("line %s, contains missing data (%s), filling with 0" % (idx, i["conditions"]))
-                i["conditions"] = [0 for t in self._conditions] # Use conditions as the example I had here was also missing all of the other values.
+                try:
+                    newi = []
+                    for v in i["conditions"]:
+
+                        if v:
+                            v = float(v)
+                        else:
+                            v = 0.0
+                        newi.append(v)
+                        i["conditions"] = newi
+                    config.log.warning("line {}, contains missing data ({}), filling with 0, when I can".format(idx, i["conditions"]))
+                except ValueError:
+                    # Just die, I can't rescue
+                    i["conditions"] = [0 for t in self._conditions] # Use conditions as the example I had here was also missing all of the other values.
+                    config.log.warning("line %s, contains missing data (%s), that cannot be rescude, filling with 0, proceed with caution" % (idx, i["conditions"]))
 
             # These will bomb on missing data...
             if "err" in i:
