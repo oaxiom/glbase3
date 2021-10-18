@@ -437,24 +437,24 @@ class draw:
             ax1.tick_params(top=False, bottom=False, left=False, right=False)
 
             # Use the tree to reorder the data.
-            order = a["ivl"]
+            row_order = [int(v) for v in a['ivl']]
             # resort the data by order;
             if "row_names" in kargs and kargs["row_names"]: # make it possible to cluster without names
                 newd = []
                 new_row_names = []
-                for index in order:
-                    newd.append(data[int(index)])
-                    new_row_names.append(kargs["row_names"][int(index)])
+                for index in row_order:
+                    newd.append(data[index])
+                    new_row_names.append(kargs["row_names"][index])
                 data = array(newd)
                 kargs["row_names"] = new_row_names
             else: # no row_names, I still want to cluster
                 newd = []
-                for index in order:
-                    newd.append(data[int(index)])
+                for index in row_order:
+                    newd.append(data[index])
                 data = array(newd)
 
             if row_colbar:
-                row_colbar = [row_colbar[int(index)] for index in order]
+                row_colbar = [row_colbar[index] for index in row_order]
 
         if col_cluster:
             # ---------------- top side plot (tree) --------------------
@@ -478,19 +478,19 @@ class draw:
             ax2.set_xticklabels("")
             ax2.set_yticklabels("")
 
-            order = a["ivl"]
+            col_order = [int(v) for v in a["ivl"]]
             # resort the data by order;
             if col_names: # make it possible to cluster without names
                 newd = []
                 new_col_names = []
-                for index in order:
-                    newd.append(transposed_data[int(index)])
-                    new_col_names.append(col_names[int(index)])
+                for index in col_order:
+                    newd.append(transposed_data[index])
+                    new_col_names.append(col_names[index])
                 data = array(newd).T # transpose back orientation
                 col_names = new_col_names
 
             if col_colbar:
-                col_colbar = [col_colbar[int(index)] for index in order]
+                col_colbar = [col_colbar[index] for index in col_order]
 
         # ---------------- Second plot (heatmap) -----------------------
         ax3 = fig.add_subplot(143)
@@ -597,11 +597,19 @@ class draw:
             assert len(_draw_supplied_cell_labels) == data.shape[0], '_draw_supplied_cell_labels X does not equal shape[1]'
             assert len(_draw_supplied_cell_labels[0]) == data.shape[1], '_draw_supplied_cell_labels Y does not equal shape[0]'
 
-            for x in range(data.shape[0]):
-                for y in range(data.shape[1]):
+            # This hack will go wrong if col_cluster or row_cluster is True
+            # So fix the ordering:
+            x_order = row_order if row_order else range(data.shape[0])
+            y_order = col_order if col_order else range(data.shape[1])
+
+            print(x_order, y_order)
+
+            for xp, x in zip(range(data.shape[0]), x_order):
+                for yp, y in zip(range(data.shape[1]), y_order):
                     val = _draw_supplied_cell_labels[x][y]
-                    ax3.text(y+0.5, x+0.5, draw_numbers_fmt.format(val), size=draw_numbers_font_size,
-                        ha='center', va='center')
+                    if draw_numbers_threshold and val < draw_numbers_threshold:
+                        ax3.text(yp+0.5, xp+0.5, draw_numbers_fmt.format(val), size=draw_numbers_font_size,
+                            ha='center', va='center')
 
 
         ax3.set_frame_on(border)
