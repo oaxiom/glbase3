@@ -2052,6 +2052,70 @@ class expression(base_expression):
         config.log.info("boxplot: Saved %s" % actual_filename)
         return actual_filename
 
+    def boxplot_cute(self,
+        filename=None,
+        showfliers=True,
+        whis=1.5,
+        showmeans=False,
+        **kargs):
+        """
+        **Purpose**
+
+        Draw cute horizontal boxplots of all conditions.
+
+        **Arguments**
+            filename (Required)
+                filename to save as. The file extension may be modified
+                depending the setting of the current config.DEFAULT_DRAWER
+
+            log (True|False of 2..n for log2, log10)
+                log the y axis (defaults to e)
+                send an integer for the base, e.g. for log10
+
+                log=10
+
+                for log2
+
+                log=2
+
+                for mathematical constant e
+
+                log=True
+                log="e"
+
+            showfliers (Optional, default=True)
+                draw the 9/95 % outlier ticks on the plot
+
+            whis (Optional, default=1.5)
+                The location of the whiskers for the boxplot, see
+                matplotlib for details of the settings
+
+            Also common arguments for figures.
+
+        **Results**
+
+        saves an image with the correct filetype extension for the current
+        config.DEFAULT_DRAWER.
+        returns the actual filename used to save the file.
+        """
+        assert filename, "must provide a filename"
+
+        data = self.serialisedArrayDataDict
+
+        if "log" in kargs and kargs["log"]:
+            data = self.__log_transform_data(data, log=kargs["log"])
+
+        # do plot
+        actual_filename = self.draw.cute_boxplot(
+            data=data,
+            filename=filename,
+            showmeans=showmeans,
+            showfliers=showfliers,
+            **kargs)
+
+        config.log.info("boxplot: Saved {}".format(actual_filename))
+        return actual_filename
+
     def violinplot(self, filename=None, beans=False, **kargs):
         """
         **Purpose**
