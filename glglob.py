@@ -11,7 +11,7 @@ import sys, os, csv, string, math, numpy, pickle
 from numpy import array, zeros, object_, arange
 from copy import deepcopy
 from operator import itemgetter
-from statistics import pstdev, mean
+from statistics import pstdev, mean, median
 
 from . import config, utils
 from .flags import *
@@ -2021,11 +2021,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             the peak. This has the advantage that you don't need to go to the fiddly
             trouble of generating a suitable pseudo-background for ATAC-seq. Additionally it
             should take into account the relative background of the library, allowing extraction
-            of information even ion poor quality libraries. The disadvantage - and this
+            of information even in poor quality libraries. The disadvantage - and this
             is theoretical - but if you have a lot of very large repeat elements then it
             might lead to erroneous calling of not-peaks.
 
-            Breifly, the strategy is:
+            Briefly, the strategy is:
 
             Peak calling is conservative on any single ChIP-seq library. To get better sensitivity
             I pool information from other libraries by making a superset of peaks
@@ -2144,7 +2144,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 prog.update(i)
 
             lam10 = [p['lam10'] for p in super_set_of_peaks]
-            avg = mean(lam10)
+            avg = median(lam10)
             std = pstdev(lam10)
             config.log.info('Average background: %.3f' % avg)
             config.log.info('Average STDev: %.3f' % std)
@@ -2160,6 +2160,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 ax.hist([p['peak_score'] for p in super_set_of_peaks], bins=50, range=[0,50], histtype='step', label='Peaks')
                 ax.axvline(avg, ls=':', color='red')
                 ax.axvline(avg+(std * Z_threshold), ls=':', color='green')
+                ax.text(avg+(std * Z_threshold), ax.get_ylim()[1], 'Z={:.1f} used'.format(avg+(std * Z_threshold)))
                 ax.legend()
                 self.draw.savefigure(fig, '{0}_{1}.png'.format(filename, sam_name))
 
