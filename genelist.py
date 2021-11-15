@@ -1338,46 +1338,46 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def filter_by_in(self, key=None, value=None, remove=True, **kargs):
         """
         **Purpose**
-            filter the genelist, and 
-            
+            filter the genelist, and
+
             if remove=True, then delete all matching entries:
             if <value> in <key> then remove
-            
+
             if remove=False, then do the opposite and only keep entries that match
             if <value> in <key> then keep
-        
+
         **Arguments**
             key (Required)
                 key to search for '<value>' in
-            
+
             value (Required)
                 value to test in key.
-                
+
             remove (Optional, default=True)
                 if remove=True, then remove matching entries
                 if remove=False, keep all entries that match
-        
+
         **Returns**
             New genelist with the entries removed
-        
+
         """
         assert key, 'You must specify a key'
         assert value, 'You must specify a value'
         assert key in self.keys(), '{} key not found in this genelist'.format(key)
-        
+
         newgl = self.deepcopy()
-        
+
         if remove:
             newl = [item for item in newgl.linearData if value not in item[key]]
             config.log.info('filter_by_in: Removed {} entries'.format(len(self) - len(newl)))
         else:
             newl = [item for item in newgl.linearData if value in item[key]]
             config.log.info('filter_by_in: Kept {} matching entries'.format(len(self) - len(newl)))
-            
+
         newgl.linearData = newl
         newgl._optimiseData()
         return newgl
-                
+
     def filter_by_value(self, key=None, evaluator=None, value=None, **kargs):
         """
         **Purpose**
@@ -4175,5 +4175,144 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         self.draw.savefigure(fig, filename, **kargs)
         return None
+
+    def volcanoplot(self,
+        filename:str,
+        q_val_key:str,
+        fc_val_key:str,
+        log_q_values = False,
+        q_threshold = 2, # In log10
+        log_fc_values = False,
+        fc_threshold = 1, # In log2;
+        highlights = None,
+        highlights_key = None,
+        figsize=[3,3],
+        only_tes = False,
+        **kargs
+        ):
+        '''
+        **Purpose**
+            Draw a volcano plot of log2(fold-change) versus -log10(q-value)
+
+            using the keys fc vs. p_adjust
+
+        **Argumants**
+            filename (Required)
+                filename to save the image to.
+
+            q_val_key (Required)
+                q_value key name to use
+
+            fc_val_key (Required)
+                key containing the fold-change
+
+            log_q_values (Optional, default=False)
+                -log10 transform the q-values
+
+            q_threshold (Optional, default=2)
+                q-value threshold to use as significant;
+
+            log_fc_values (Optional, default=False)
+                -log10 transform the fold-change
+
+            fc_threshold (Optional, default=1)
+                fold-change threshold to use as significant;
+
+            highlights (Optional)
+                A list of
+
+            highlights_key (Optional, required if highlights is True)
+                Key to match highlights in;
+
+            only_tes (Optional, default=False)
+                only plot the TEs (with a ':' in highlights_key
+
+        **Returns**
+            The genes picked as up-regulated
+            The genes picked as down-regulated;
+            filename save the image to
+        '''
+        assert filename, 'You must specify a filename'
+        assert q_val_key, 'You must specify q_val_key'
+        assert fc_val_key,  'You must specify fc_val_key'
+        assert q_val_key in self.keys(), 'q_val_key was not found in this genelist'
+        assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
+
+        fcs = self[fc_val_key]
+        qs = self[q_val_key]
+
+        if log_q_values:
+            qs = [-math.log10(i+1e-216) for i in qs]
+        if log_fc_values:
+            qs = [math.log2(f) for f in fcs]
+
+        up = []
+        dn = []
+        rest = []
+        upgl = []
+        dngl = []
+        highs = {}
+
+        for item, fc, q in zip(self.linearData, fcs, qs):
+            if only_tes and ':' not in item[highlights_key]:
+                continue
+
+            if fc >= fc_threshold and q > q_threshold:
+                up.append((fc, q))
+                upgl.append(item)
+            elif fc <= -fc_threshold and q > q_threshold:
+                dn.append((fc, q))
+                dngl.append(item)
+            else:
+                rest.append((fc, q))
+
+            if highlights:
+                if item[highlights_key] in highlights:
+                    highs[item[highlights_key]] = (fc, q)
+
+        # Repack for return
+        if upgl:
+            gl = genelist()
+            upgl = gl.load_list(upgl)
+        if dngl:
+            gl = genelist()
+            dngl = gl.load_list(dngl)
+
+        fig = self.draw.getfigure(figsize=figsize)
+
+        ax = fig.add_subplot(111)
+
+        up = list(zip(*up))
+        dn = list(zip(*dn))
+        rest = list(zip(*rest))
+        if up:
+            ax.scatter(up[0], up[1], c='red', s=3, ec='none')
+        if dn:
+            ax.scatter(dn[0], dn[1], c='blue', s=3, ec='none')
+
+        ax.scatter(rest[0], rest[1], c='grey', s=3, alpha=0.1, ec='none')
+        if highlights and highs:
+            for gene_name in highs:
+                ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
+
+        if up: ax.text(9, 41, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
+        if dn: ax.text(-9, 41, 'Down: {}'.format(len(dn[0])), fontsize=6)
+
+        ax.axhline(q_threshold, ls=':', c='grey')
+        ax.axvline(-fc_threshold, ls=':', c='grey')
+        ax.axvline(fc_threshold, ls=':', c='grey')
+
+        ax.set_xlim([-10, 10])
+        ax.set_ylim([-2, 40])
+
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
+        self.draw.do_common_args(ax, **kargs)
+        real_filename = self.draw.savefigure(fig, filename)
+
+        config.log.info('volcanoplot: Saved {}'.format(real_filename))
+        return upgl, dngl, real_filename
+
 
 genelist = Genelist # Basically used only im map() for some dodgy old code I do not want to refactor.

@@ -1095,11 +1095,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             merge_peaks_distance (Optional, default=400)
                 Maximum distance that the centers of any two peaks can be apart before the two peaks are merged into
-                a single peak. (taking the mean of the peak centers)
+                a single peak. (taking the mean center of the peak centers)
 
             sort_clusters (Optional, default=True)
                 sort the clusters from most complex to least complex.
-                Note that chip_seq_cluster_heatmap cannot preserve the order of the peaks
+                Note that chip_seq_cluster cannot preserve the order of the peaks
                 (it's impossible), so setting this to false will just randomise the order of the clusters
                 which may not be particularly helpful.
 
@@ -2200,7 +2200,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         list_of_peaks,
         list_of_trks,
         filename:str = None,
-        norm_by_library_size = False,
+        norm_by_library_size:bool = False,
         bins:int = 100,
         pileup_distance:int = 1000,
         cache_data = False,
@@ -2343,11 +2343,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
         assert not (sort_by_sum_intensity and sort_by_intensity), 'sort_by_sum_intensity and sort_by_intensity cannot both be True'
         if 'normalize' in kargs: raise AssertionError('normalize has been deprecated, use norm_by_library_size')
+        if 'normalise' in kargs: raise AssertionError('normalise has been deprecated, use norm_by_library_size')
 
         total_rows = 0
 
         # Get the size of each library if we need to normalize the data.
-        if norm_by_library_size:
+        if norm_by_library_size or normalize:
             # get and store the read_counts for each library to reduce an sqlite hit.
             read_totals = [trk.get_total_num_reads()/float(1e6) for trk in list_of_trks]
             if True in [i <= 0 for i in read_totals]:
@@ -2486,7 +2487,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.02, 0.1]
 
-        if norm_by_library_size:
+        if norm_by_library_size or normalize:
             colbar_label = "Normalised {}".format(colbar_label)
 
             # Data is always saved unnormalised;

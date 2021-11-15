@@ -587,7 +587,7 @@ class flat_track():
                 if loc_chrom not in available_chroms:
                     if loc_chrom not in __already_warned:
                         config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(loc_chrom))
-                        __already_warned.append(i_loc_chrom)
+                        __already_warned.append(loc_chrom)
                     continue
 
                 left_flank = self.get(None, c=loc_chrom, left=loc['left']-window_size, rite=loc['left'], strand="+")

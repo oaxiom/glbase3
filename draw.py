@@ -2010,7 +2010,7 @@ class draw:
         ax.text(3.7, 2, labels[2], size=16, ha="right", va="center")
         ax.text(4.2, 1, labels[3], size=16, ha="right", va="center")
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def getfigure(self, size=None, aspect=None, **kargs):
         """
@@ -2058,7 +2058,7 @@ class draw:
                 }
         dpi = {"small": 75, "medium": 150, "large": 300, "huge": 600} # This dpi doesn't actually work here...
         # See savefigure() for the actual specification
-        return(plot.figure(figsize=data[aspect][size]))
+        return plot.figure(figsize=data[aspect][size])
 
     def savefigure(self, fig, filename, size=config.draw_size, bbox_inches=None, dpi=None):
         """
@@ -2094,7 +2094,7 @@ class draw:
 
             fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches, dpi=dpi)
             plot.close(fig) # Saves a huge amount of memory.
-        return(save_name)
+        return save_name
 
     def do_common_args(self, ax, **kargs):
         """
