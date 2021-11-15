@@ -657,7 +657,7 @@ class flat_track():
             #print(half_scale, full_scale)
 
             left = numpy.arange(0, half_scale, 250.0 / left_hist.size)
-            cent = numpy.arange(half_scale, half_scale+full_scale, 500 / center.size)
+            cent = numpy.arange(half_scale, half_scale+full_scale, 500 / center_hist.size)
             rite = numpy.arange(half_scale+full_scale, half_scale+full_scale+half_scale, 250 / rite_hist.size)
 
             stacked = numpy.concatenate((left, cent, rite), axis=0)
