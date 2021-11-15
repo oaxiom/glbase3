@@ -596,6 +596,7 @@ class flat_track():
 
                 if center.size < 100:
                     config.log.warning('center is shorter than 100 bp {}, skipping'.format(loc))
+                    continue
 
                 # scale center to 0 1000
                 #print('Before', center.size)
