@@ -613,16 +613,16 @@ class flat_track():
                     # positive strand is always correct, so I leave as is.
                     # For the reverse strand all I have to do is flip the array.
                     if strand in negative_strand_labels:
-                        left_flank = left_flank[::-1]
+                        left_flank, rite_flank = rite_flank[::-1], left_flank[::-1] # And flip the 5' and 3' regions;
                         center = center[::-1]
-                        rite_flank = rite_flank[::-1]
 
                 if center_hist is None: # Setup arrays
                     left_hist = left_flank # Theoretical error if this element is <3000...
                     center_hist = center
                     rite_hist = rite_flank # Theoretical error if this element is <3000...
                 else:
-                    left_hist += left_flank # Theoretical error if this element is <3000...
+                    #print(left_hist.shape[0])
+                    left_hist[0:left_flank.shape[0]] += left_flank
                     center_hist += center # rescaled;
                     rite_hist[0:rite_flank.shape[0]] += rite_flank
 
