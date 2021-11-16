@@ -31,7 +31,7 @@ class genome(genelist):
             can include path short cuts (e.g. "./", "../" etc)
 
         format (Optional, default = "sniffer" (ie. guess))
-            format specifer, see flags.py and helpers.py and the
+            format specifer, see format.py and helpers.py and the
             documentation on how to write a valid format specifier
 
         sequence_path (Optional, default=None)

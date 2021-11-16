@@ -67,7 +67,6 @@ import matplotlib.gridspec as gridspec
 from .adjustText import adjust_text
 
 from . import config, cmaps, utils
-from .flags import *
 from .errors import AssertionError
 
 # This helps AI recognise the text as text:

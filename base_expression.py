@@ -15,7 +15,6 @@ from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std #
 import gzip as gzipfile
 
 from . import config
-from .flags import *
 from .draw import draw
 from .genelist import genelist
 from .progress import progressbar

@@ -14,7 +14,6 @@ import sys, os
 from . import utils
 
 from .genelist import genelist
-from .flags import regex_dict
 
 class fastalist(genelist):
     def __init__(self, **kargs):

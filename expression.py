@@ -20,7 +20,6 @@ import matplotlib.pyplot as plot
 import matplotlib.cm as cm
 
 from . import config, utils
-from .flags import *
 from .base_expression import base_expression
 from .draw import draw
 from .progress import progressbar
@@ -2489,7 +2488,6 @@ class expression(base_expression):
             used to test for fold_up, sig_up, etc...
 
             function can be any helper_function, which uses data[] as it's set for each item.
-            a set of already defined functions exist in flags.py
             function must accept these arguments: (data[], conditionNames)
             data is a dict of the form {"con_name1": value, "con_name2": value ...}
         """

@@ -10,7 +10,6 @@ from operator import itemgetter
 
 from . import config
 from . import utils
-from .flags import *
 from .helpers import *
 from .location import location
 from .draw import draw
@@ -181,7 +180,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             can include path short cuts (e.g. "./", "../" etc)
 
         format (Optional, default = "sniffer" (ie. guess))
-            format specifer, see format.py, flags.py and helpers.py and the
+            format specifer, see format.py and the
             documentation on how to write a valid format specifier
 
         **Result**
@@ -246,7 +245,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             can include path short cuts (e.g. "./", "../" etc)
 
         format (Optional, default = "sniffer" (ie. guess))
-            format specifer, see flags.py and helpers.py and the
+            format specifer, see format.py and helpers.py and the
             documentation on how to write a valid format specifier
 
         force_tsv (Optional, default=False)

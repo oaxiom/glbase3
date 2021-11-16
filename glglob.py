@@ -14,7 +14,6 @@ from operator import itemgetter
 from statistics import pstdev, mean, median
 
 from . import config, utils
-from .flags import *
 from .base_genelist import _base_genelist
 from .draw import draw
 from .errors import AssertionError, NotImplementedError, GlglobDuplicateNameError

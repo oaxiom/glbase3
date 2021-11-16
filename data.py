@@ -4,7 +4,7 @@
 
 data stuff, part of glbase
 
-Contains various data that doens't belong in helpers.py, flags.py or opt.py.
+Contains various data that doens't belong in helpers.py or opt.py.
 And probably shouldn't be exported outside of glbase
 
 These are constants, although they can be changed, in case, for example,

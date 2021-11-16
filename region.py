@@ -5,7 +5,6 @@ from . import config, utils
 import matplotlib.pyplot as plot
 
 from .genelist import genelist
-from .flags import *
 from .errors import AssertionError
 from .location import location
 from .base_genelist import _base_genelist

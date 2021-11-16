@@ -24,7 +24,6 @@ from numpy import zeros
 
 # get glbase
 from . import config
-from .flags import *
 from .draw import draw
 from .history import historyContainer
 from .data import *

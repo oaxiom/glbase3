@@ -155,7 +155,6 @@ __all__ = [
     'merge_hiccys', # hic support
     "location",
     "pwm", "pwms", # PWM object support
-    "flags",
     "format",
     "glload",
     # Tools/
