@@ -618,13 +618,13 @@ class flat_track():
                         rite_flank = rite_flank[::-1]
 
                 if center_hist is None: # Setup arrays
-                    left_hist = left_flank
+                    left_hist = left_flank # Theoretical error if this element is <3000...
                     center_hist = center
-                    rite_hist = rite_flank
+                    rite_hist = rite_flank # Theoretical error if this element is <3000...
                 else:
-                    left_hist += left_flank
+                    left_hist += left_flank # Theoretical error if this element is <3000...
                     center_hist += center # rescaled;
-                    rite_hist += rite_flank
+                    rite_hist[0:rite_flank.shape[0]] += rite_flank
 
                 '''
                 if mask_zero: # surely a better way of doing this...

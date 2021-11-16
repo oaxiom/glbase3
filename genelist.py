@@ -4237,6 +4237,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert fc_val_key,  'You must specify fc_val_key'
         assert q_val_key in self.keys(), 'q_val_key was not found in this genelist'
         assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
+        if only_tes:
+            assert highlights_key, 'if only_tes=True, you need to specify highlights_key to something to look for the ":" character that signifies TEs'
+            assert highlights_key in self.keys(), 'highlights_key not found in this genelist'
+        if highlights: assert highlights_key in self.key(), 'highlights_key not found in this genelist'
 
         fcs = self[fc_val_key]
         qs = self[q_val_key]
