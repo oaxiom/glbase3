@@ -3723,8 +3723,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if random_lists:
             rand = numpy.array([numpy.mean(back[k]) for k in kord])
             rand = rand*100
-            err = [(numpy.array(back[k]))for k in kord]
-            err = [numpy.std(i)*100 for i in err]
+            err = [(numpy.array(back[k]))*100 for k in kord]
+            print(err)
+            err = [numpy.std(i) for i in err]
+            print(err)
             ax.bar(x_bar + width, rand, width, color="grey", yerr=err, ec='none', ecolor="black", label="Background")
         else:
             rand = None # spoof entries for the return()
@@ -4186,7 +4188,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         highlights = None,
         highlights_key = None,
         figsize=[3,3],
-        only_tes = False,
+        only_tes:bool = False,
+        only_genes:bool = False,
         **kargs
         ):
         '''
@@ -4220,11 +4223,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             highlights (Optional)
                 A list of
 
-            highlights_key (Optional, required if highlights is True)
+            highlights_key (Optional, required if highlights is True, or one of the only_* is True)
                 Key to match highlights in;
 
             only_tes (Optional, default=False)
                 only plot the TEs (with a ':' in highlights_key
+
+            only_genes (Optional, default=False)
+                only plot the genes (lacking a ':' in highlights_key
 
         **Returns**
             The genes picked as up-regulated
@@ -4236,10 +4242,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert fc_val_key,  'You must specify fc_val_key'
         assert q_val_key in self.keys(), 'q_val_key was not found in this genelist'
         assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
+        assert not (only_tes and only_genes), 'You cant have both only_tes and only_genes both True'
         if only_tes:
-            assert highlights_key, 'if only_tes=True, you need to specify highlights_key to something to look for the ":" character that signifies TEs'
+            assert highlights_key, 'if only_tes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
             assert highlights_key in self.keys(), 'highlights_key not found in this genelist'
-        if highlights: assert highlights_key in self.key(), 'highlights_key not found in this genelist'
+        if only_genes:
+            assert highlights_key, 'if only_genes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
+            assert highlights_key in self.keys(), 'highlights_key not found in this genelist'
+
+        if highlights:
+            assert highlights_key in self.key(), 'highlights_key not found in this genelist'
 
         fcs = self[fc_val_key]
         qs = self[q_val_key]
@@ -4258,6 +4270,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         for item, fc, q in zip(self.linearData, fcs, qs):
             if only_tes and ':' not in item[highlights_key]:
+                continue
+
+            if only_genes and ':' in item[highlights_key]:
                 continue
 
             if fc >= fc_threshold and q > q_threshold:

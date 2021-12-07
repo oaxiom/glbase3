@@ -1681,7 +1681,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
     def GO_heatmap(self, filename, p_value_limit=0.01, num_top=5, pvalue_key='pvalue',
             size=[8, 6], bracket=[1.3,4], row_cluster=True, col_cluster=False, # heatmap args
             heat_wid=0.15, cmap=cm.Reds, border=True, row_font_size=7,
-            heat_hei='proportional', grid=True, ontology=None, draw_numbers_fmt='%.1f',
+            heat_hei='proportional', grid=True, ontology=None, draw_numbers_fmt='{:.1f}',
             draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5, do_negative_log10=True,
             **kargs):
         '''
