@@ -183,8 +183,8 @@ class manifold_pca:
         return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
 
     def scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
-        spot_size=40, label_font_size=7, label_style='normal', cut=None, squish_scales=False, 
-        only_plot_if_x_in_label=None, 
+        spot_size=40, label_font_size=7, label_style='normal', cut=None, squish_scales=False,
+        only_plot_if_x_in_label=None,
         only_label_if_x_in_label=None,
         **kargs):
         """
@@ -214,7 +214,7 @@ class manifold_pca:
                 This must be a list or tuple of names
 
                 Allows you to effectively remove points from the PCA plot.
-                
+
             only_label_if_x_in_label (Optional, default=None)
                 Only draw the label if x is in label name (condition)
 
@@ -260,7 +260,7 @@ class manifold_pca:
                 else:
                     newl.append('')
             labels = newl
-                    
+
         xdata = self.__transform[:,x-1]
         ydata = self.__transform[:,y-1]
 
@@ -284,6 +284,17 @@ class manifold_pca:
             only_plot_if_x_in_label=only_plot_if_x_in_label,
             **kargs
         )
+
+    def get_transform(self):
+        '''
+        **Purpose**
+            Semi undocumented feature to get the transform matrix back
+            Also returns the labels for the columns and rows
+
+        **Returns**
+            row_names, col_names, transform_matrix
+        '''
+        return self.labels , list(range(1, self.__transform.shape[1]+1)), self.__transform
 
     def feature_scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8,
         topbots=False, spot_size=40, label_font_size=7, cut=None, squish_scales=False,

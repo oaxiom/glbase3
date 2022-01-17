@@ -391,7 +391,7 @@ class _base_genelist:
             Convert a pandas dataFrame to a genelist
 
             NOTE: This is an INPLACE method that will REPLACE any exisiting data
-            in the
+            in the genelist
 
         **Arguments**
 

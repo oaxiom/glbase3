@@ -114,7 +114,7 @@ class base_expression(genelist):
                         do = True # do anyway
 
                     if do:
-                        names = eval("{0}".format(format["conditions"]["code"])) # yay, more nice happy arbitrary code execution.
+                        names = eval("{}".format(format["conditions"]["code"])) # yay, more nice happy arbitrary code execution.
 
                         if names:
                             self._conditions = [str(k) for k in names]
@@ -123,7 +123,7 @@ class base_expression(genelist):
 
                 if not silent:
                     config.log.info("expression: I found the following conditions:")
-                    config.log.info('\n' + "\n".join(["{}\t{}".format(n, i) for n, i in enumerate(self._conditions)]))
+                    config.log.info('\n' + "\n".join([f"{n}\t{i}" for n, i in enumerate(self._conditions)]))
 
         # coerce the conditions errs etc to floats
         nans = set(('nan', 'Nan', 'NaN'))
@@ -439,7 +439,7 @@ class base_expression(genelist):
             else:
                 # conditions can get lost in a loadable list. fill in a dummy one
                 if len(self._conditions) != len(newl[0]["conditions"]):
-                    self._conditions = ["cond_%s" % i for i in range(len(newl[0]["conditions"]))]
+                    self._conditions = [f"cond_{i}" for i in range(len(newl[0]["conditions"]))]
 
         # Now call parent with new list
         genelist.load_list(self, newl, name)
