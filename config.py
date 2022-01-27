@@ -14,7 +14,7 @@ import os, logging, subprocess
 
 try:
     oh = open(os.path.join(os.path.split(__file__)[0], "version.num"), "rt")
-    VERSION = "1.%s" % oh.readline().strip().replace("+", "") # The hg hook will put a plus as I call just before committing.
+    VERSION = "3.%s" % oh.readline().strip().replace("+", "") 
     oh.close()
 except Exception:
     VERSION = "version data not found"
@@ -54,7 +54,7 @@ DEFAULT_DPI = 150 # not working?
 draw_mode = "png"
 draw_size = "medium"
 draw_aspect = "normal"
-valid_draw_modes = frozenset(["png", "ps", "eps", "svg", 'pdf', 'tiff'])
+valid_draw_modes = frozenset(["png", "ps", "eps", "svg", 'pdf'])
 
 # -------------- Start of the new-style options:
 

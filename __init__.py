@@ -114,6 +114,7 @@ from .fastq import fastq
 from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
+from .massspec import massspec
 #from .ecrbase import ecrbase, tfbs_iter
 #from .region import region
 #from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
@@ -133,7 +134,7 @@ from .tools.wig_to_flattrack import wig_to_flat
 from .tools.rnaseq import rnaseqqc
 
 def version():
-    config.log.info("glbase - version: {} {}".format(config.version, config.DATE))
+    config.log.info("glbase3 - version: {} {}".format(config.version, config.DATE))
     config.log.info("The working directory is: '{}'".format(os.getcwd()))
 
 config.set_log_level('info')
@@ -148,6 +149,7 @@ __all__ = [
     #"track", # Deprecated. use flat_track
     "flat_track",
     "delayedlist",
+    'massspec',
     "glgo",
     "glglob",
     "hic",# primary objects
