@@ -1,5 +1,11 @@
+"""
 
-import gzip
+Mass Spectrometry processing genelist-like object
+
+"""
+
+
+import sys, os, gzip, csv
 from statistics import mean
 
 from . import config, utils
@@ -29,6 +35,9 @@ class massspec(base_expression):
                 
             format (Required)
                 One of {}
+                
+            gzip (Optional)
+                Input file is gzipped
             
             # Options for MaxQuant:
             mq_use_lfq (Optional, default=False)
@@ -36,9 +45,6 @@ class massspec(base_expression):
                 on a pool of proteins that don't change much. Whilst intensity is the raw intensity.
                 LFQ is preferred for whole cell MS, whilst without is probably better for 
                 enrichment-based MS, e.g. Co-IP. Use this switch to use lfq or not.
-            
-            gzip (Optional)
-                Input file is gzipped
             
         '''.format(self.supported_formats)
         assert isinstance(filenames, list), 'filenames must be a list'
@@ -88,17 +94,16 @@ class massspec(base_expression):
         '''
         Needs a custom one
         '''
-        print(self.linearData)
         # unpack the intensity data based on the order in peps;
         self._intensities = [i['intensities'] for i in self.linearData]
         self._peptide_counts = [i['peptide_counts'] for i in self.linearData]
         self._call = [i['call'] for i in self.linearData]
 
-    def saveCSV(self, filename=None, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
+    def saveCSV(self, filename=None, interleave_errors=True, no_header=False, **kargs):
         """
         A CSV version of saveTSV(), see saveTSV() for syntax
         """
-        self.saveTSV(filename=filename, tsv=False, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
+        self.saveTSV(filename=filename, tsv=False, interleave_errors=True, no_header=False, **kargs)
         config.log.info(f"saveCSV(): Saved '{filename}'")
         
         return None
@@ -123,7 +128,7 @@ class massspec(base_expression):
         **Returns**
             returns None
         """
-        self._save_TSV_CSV(filename=filename, tsv=tsv, no_header=False, no_col1_header=False, **kargs)
+        self._save_TSV_CSV(filename=filename, tsv=tsv, no_header=False, **kargs)
         config.log.info(f"saveTSV(): Saved '{filename}'")
         
         return None
@@ -131,7 +136,7 @@ class massspec(base_expression):
     def _save_TSV_CSV(self, filename=None, tsv=True, no_header=False, **kargs):
         """
         Internal unified saveCSV/TSV for expression objects
-        """
+        """        
         valig_args = ["filename", "tsv", "key_order", "no_header"]
         for k in kargs:
             if k not in valig_args:
@@ -141,53 +146,29 @@ class massspec(base_expression):
 
         with open(os.path.realpath(filename), "wt") as oh:
             writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
-            array_data_keys = ("conditions", "err", "cv_err")
-
+            array_data_keys_to_skip = ("intensities", "peptide_counts", "call")
+            all_keys = list(self.keys())
             write_keys = []
             if "key_order" in kargs:
                 write_keys = kargs["key_order"]
                 # now add in any missing keys to the right side of the list:
-                for item in list(self.keys()):
-                    if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
-                        write_keys.append(item)
+                write_keys += [k for k in all_keys if k not in write_keys and k not in array_data_keys_to_skip]
             else:
-                        # just select them all:
-                write_keys = [k for k in list(self.keys()) if k not in array_data_keys]
+                # just select them all:
+                write_keys = [k for k in all_keys if k not in array_data_keys]
+                        
+            if not no_header:
+                title_row = [k for k in write_keys if k in all_keys]
+                title_row += [f'Intensity {i}/M' for i in self.getConditionNames()]
+                title_row += [f'Peptide_counts {i}' for i in self.getConditionNames()]
+                title_row += [f'Call {i}' for i in self.getConditionNames()]
+                writer.writerow(title_row)
 
-            if "err" in list(self.keys()):
-                if interleave_errors:
-                    conds = ["mean_%s" % c for c in self.getConditionNames()]
-                    errs = ["err_%s" % c for c in self.getConditionNames()]
-                    paired = [val for pair in zip(conds, errs) for val in pair]
-
-                    if not no_header:
-                        title_row = [k for k in write_keys if k in list(self.keys())]
-                        writer.writerow(title_row + paired)
-
-                    for data in self.linearData:
-                        line = [data[k] for k in write_keys if k in data]
-
-                        interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
-
-                        writer.writerow(line + interleaved_data)# conditions go last.
-                else:
-                    if not no_header:
-                        title_row = [k for k in write_keys in k in list(self.keys())]
-                        writer.writerow(write_keys + self.getConditionNames() + ["err_%s" % i for i in self.getConditionNames()])
-
-                    for data in self.linearData:
-                        line = [data[k] for k in write_keys if k in data]
-                        writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
-            else: # no error, very easy:
-                if not no_header:
-                    title_row = [k for k in write_keys if k in list(self.keys())]
-                    if no_col1_header:
-                        title_row[0] = ""
-                    writer.writerow(title_row + self.getConditionNames())
-
-                for data in self.linearData:
-                    line = [data[k] for k in write_keys if k in data]
-                    writer.writerow(line + data["conditions"])# conditions go last.
+            for data in self.linearData:
+                line = [data[k] for k in write_keys if k in data]
+                line += data['intensities'] + data['peptide_counts'] + data['call']
+                writer.writerow(line)
+                
         return None
         
     def __maxquant_txt(self, filenames, gzip, mq_use_lfq):
