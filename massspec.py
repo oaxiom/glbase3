@@ -103,7 +103,7 @@ class massspec(base_expression):
         
         return None
 
-    def saveTSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
+    def saveTSV(self, filename=None, tsv=True, **kargs):
         """
         (Override)
         **Purpose**
@@ -115,6 +115,7 @@ class massspec(base_expression):
             
             In general TSVs are not designed for loading back into glbase3, please use the 
             massspec.save() and glload() for persistent objects.
+            
         **Arguments**
             filename
                 The filename (with a valid path) to save the file to.
@@ -122,12 +123,12 @@ class massspec(base_expression):
         **Returns**
             returns None
         """
-        self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
+        self._save_TSV_CSV(filename=filename, tsv=tsv, no_header=False, no_col1_header=False, **kargs)
         config.log.info(f"saveTSV(): Saved '{filename}'")
         
         return None
 
-    def _save_TSV_CSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
+    def _save_TSV_CSV(self, filename=None, tsv=True, no_header=False, **kargs):
         """
         Internal unified saveCSV/TSV for expression objects
         """
@@ -138,7 +139,7 @@ class massspec(base_expression):
 
         assert filename, "you must specify a filename"
 
-        with open(os.path.realpath(filename), "w") as oh:
+        with open(os.path.realpath(filename), "wt") as oh:
             writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
             array_data_keys = ("conditions", "err", "cv_err")
 

@@ -222,8 +222,8 @@ class base_expression(genelist):
         """
         A CSV version of saveTSV(), see saveTSV() for syntax
         """
-        self.saveTSV(filename=filename, tsv=False, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
-        config.log.info("saveCSV(): Saved '%s'" % filename)
+        self.saveTSV(filename=filename, tsv=False, interleave_errors=interleave_errors, no_header=no_header, no_col1_header=no_col1_header, **kargs)
+        config.log.info(f"saveCSV(): Saved '{filename}'")
 
     def saveTSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
         """
@@ -269,8 +269,8 @@ class base_expression(genelist):
             returns None
 
         """
-        self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=True, no_header=False, no_col1_header=False, **kargs)
-        config.log.info("saveTSV(): Saved '%s'" % filename)
+        self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=interleave_errors, no_header=no_header, no_col1_header=no_col1_header, **kargs)
+        config.log.info(f"saveTSV(): Saved '{filename}'")
 
     def _save_TSV_CSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
         """
