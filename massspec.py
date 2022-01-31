@@ -257,11 +257,11 @@ class massspec(base_expression):
                     
         return peps, sample_names
         
-    def call_matches(self, 
-        mode=None, 
-        intensity_t = 2, 
-        unq_pep_t = 1,
-        min_intensity = 0.0):
+    def filter(self, 
+        mode, 
+        minimum_unique_peptides,
+        minimum_intensity
+        ):
         '''
         **Purpose**
             Call a peptide, and filter out likely false positives based on some scheme and
@@ -277,13 +277,64 @@ class massspec(base_expression):
                 schemes are:
                     coip: Strategy for coip MS, filters out typical contaminants found in CoIPMS
                     
+            minimum_unique_peptides (Required)
+                minimum unique peptides in any one condition to keep peptide.
+                
+            minimum_intensity (Required)
+                minimum intensity (in /1e6) required in any one condition
+                
         **Returns**
             number of peptides deleted
                     
-        '''.format(valid_call_modes)
-        assert mode in valid_call_modes, f'mode "{mode}" not found in {valid_call_modes}'
+        '''.format(self.valid_call_modes)
+        assert mode in self.valid_call_modes, f'mode "{mode}" not found in {valid_call_modes}'
         starting_len = len(self)
         
+        if mode == 'coip':
+            newl = self.__filter_coipms(minimum_unique_peptides=minimum_unique_peptides, minimum_intensity=minimum_intensity)
+        
+        if not newl:
+            raise AssertionError('All peptides have been filtered out, list is empty')
+        
+        self.linearData = newl
+        self._optimiseData()
+        
         self.called = True
-        config.log.info()
+        config.log.info(f'filter: Trimmed {starting_len - len(self)} possible false positives and peptides not meeting thresholds')
+        config.log.info(f'filter: List now {len(self)} peptides long')
         return starting_len - len(self)
+        
+    def __filter_coipms(self, minimum_unique_peptides, minimum_intensity):
+        newl = []
+    
+        for pep in self.linearData:
+            pep_name = pep['name']
+            # Simple filter for common contaminants
+            if 'Rpl' in pep_name: continue
+            elif 'Rps' in pep_name: continue
+            elif 'Tub' in pep_name: continue
+            elif 'Gapdh' in pep_name: continue
+            elif 'Act' in pep_name: continue
+            elif 'Myh' in pep_name: continue
+            elif 'Ighg' in pep_name: continue
+            elif 'Iglv' in pep_name: continue
+            elif 'Col' in pep_name: continue
+            elif 'Golga' in pep_name: continue
+            elif 'Kif' in pep_name: continue
+            elif 'Myl' in pep_name: continue
+            elif 'Krt' in pep_name: continue
+            elif 'Eif' in pep_name: continue
+            elif 'Vim' in pep_name: continue
+            elif 'Atp' in pep_name: continue
+            elif 'Igkv' in pep_name: continue 
+            elif 'Ighv' in pep_name: continue 
+        
+            if True not in [i>minimum_unique_peptides for i in pep['peptide_counts']]:
+                continue
+ 
+            if True not in [i>minimum_intensity for i in pep['intensities']]:
+                continue
+  
+            newl.append(pep)
+        
+        return newl
