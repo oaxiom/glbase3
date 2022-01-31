@@ -83,25 +83,7 @@ class massspec(base_expression):
         config.log.info('Loaded {filenames}')
 
     def __str__(self):
-        if len(self.linearData) > config.NUM_ITEMS_TO_PRINT:
-            out = []
-            # welcome to perl
-            for index in range(config.NUM_ITEMS_TO_PRINT):
-                out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
-            out = "%s\n... truncated, showing %s/%s" % ("\n".join(out), config.NUM_ITEMS_TO_PRINT, len(self.linearData))
-
-            if config.PRINT_LAST_ITEM:
-                out = "%s\n%s" % (out, "%s: %s" % (len(self.linearData), ", ".join(["%s: %s" % (key, self.linearData[-1][key]) for key in self.linearData[-1]])))
-
-        elif len(self.linearData) == 0:
-            out = "This list is Empty"
-
-        else: # just print first entry.
-            out = []
-            for index in range(len(self.linearData)):
-                out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
-            out = "%s\nShowing %s/%s" % ("\n".join(out), len(self.linearData), len(self.linearData))
-        
+        out = base_expression.__str__(self)
         out += f'\nCalled: {self.called}\nFold change done: {self.fold_change}'
         return out
 
