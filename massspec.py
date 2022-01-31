@@ -16,6 +16,7 @@ from .errors import AssertionError, ArgumentError
 
 class massspec(base_expression):
     supported_formats = {'maxquant_txt'}
+    valid_call_modes = {'coip'}
 
     def __init__(self, 
         filenames=None, 
@@ -68,6 +69,7 @@ class massspec(base_expression):
             new_peptide['intensities'] = intensities
             new_peptide['peptide_counts'] = peptide_counts
             new_peptide['call'] = [None] * len(peptide_counts)
+            new_peptide['fold_change'] = ['-'] * len(peptide_counts)
             new_linear_data.append(new_peptide)
         
         # Pack to a genelist-type object
@@ -77,6 +79,31 @@ class massspec(base_expression):
         self._optimiseData()
         
         self.called = False # call is valid;
+        self.fold_change = False
+        config.log.info('Loaded {filenames}')
+
+    def __str__(self):
+        if len(self.linearData) > config.NUM_ITEMS_TO_PRINT:
+            out = []
+            # welcome to perl
+            for index in range(config.NUM_ITEMS_TO_PRINT):
+                out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
+            out = "%s\n... truncated, showing %s/%s" % ("\n".join(out), config.NUM_ITEMS_TO_PRINT, len(self.linearData))
+
+            if config.PRINT_LAST_ITEM:
+                out = "%s\n%s" % (out, "%s: %s" % (len(self.linearData), ", ".join(["%s: %s" % (key, self.linearData[-1][key]) for key in self.linearData[-1]])))
+
+        elif len(self.linearData) == 0:
+            out = "This list is Empty"
+
+        else: # just print first entry.
+            out = []
+            for index in range(len(self.linearData)):
+                out.append("%s: %s" % (index, ", ".join(["%s: %s" % (key, self.linearData[index][key]) for key in self.linearData[index]])))
+            out = "%s\nShowing %s/%s" % ("\n".join(out), len(self.linearData), len(self.linearData))
+        
+        out += f'\nCalled: {self.called}\nFold change done: {self.fold_change}'
+        return out
 
     def __repr__(self):
         return "<massspec class>"
@@ -98,6 +125,7 @@ class massspec(base_expression):
         self._intensities = [i['intensities'] for i in self.linearData]
         self._peptide_counts = [i['peptide_counts'] for i in self.linearData]
         self._call = [i['call'] for i in self.linearData]
+        self._call = [i['fold_change'] for i in self.linearData]
 
     def saveCSV(self, filename=None, interleave_errors=True, no_header=False, **kargs):
         """
@@ -232,6 +260,7 @@ class massspec(base_expression):
                         'intensities': {k: [] for k in sample_names},
                         'peptide_counts': {k: [] for k in sample_names},
                         'call': {k: None for k in sample_names},
+                        'fold_change': {k: None for k in sample_names},
                         }
                 
                 for sample_name in sample_names:
@@ -246,8 +275,33 @@ class massspec(base_expression):
                     
         return peps, sample_names
         
-    def call_matches(self, mode=None):
+    def call_matches(self, 
+        mode=None, 
+        intensity_t = 2, 
+        unq_pep_t = 1,
+        min_intensity = 0.0):
         '''
-        '''
+        **Purpose**
+            Call a peptide, and filter out likely false positives based on some scheme and
+            thresholds
+            
+            NOTE: This is an INPLACE method that will remove not-called
+            matches
+            
+        **Purpose**
+            mode (Required)
+                one of {}
+                
+                schemes are:
+                    coip: Strategy for coip MS, filters out typical contaminants found in CoIPMS
+                    
+        **Returns**
+            number of peptides deleted
+                    
+        '''.format(valid_call_modes)
+        assert mode in valid_call_modes, f'mode "{mode}" not found in {valid_call_modes}'
+        starting_len = len(self)
         
         self.called = True
+        config.log.info()
+        return starting_len - len(self)
