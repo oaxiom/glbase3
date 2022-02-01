@@ -62,7 +62,7 @@ class Test_Flat_Function(unittest.TestCase):
         t = glbase3.flat_track(filename="/tmp/test.flat", bin_format="f")
 
         g = glbase3.genelist(filename="test_data/track_test.bed", format=glbase3.format.bed).pointify().expand('loc', 15)
-        L, _ = t.pileup(genelists=g, filename="test_images/test_output_no_strand.png", bandwidth=15, respect_strand=False)
+        L, _ = t.pileup(scaled=False, genelists=g, filename="test_images/test_output_no_strand.png", bandwidth=15, respect_strand=False)
 
         expected_result = numpy.array(list(range(30)))
 
@@ -72,7 +72,7 @@ class Test_Flat_Function(unittest.TestCase):
         t = glbase3.flat_track(filename="/tmp/test.flat", bin_format="f")
         
         g = glbase3.genelist(filename="test_data/track_test.bed", format=glbase3.format.bed).pointify().expand('loc', 15)
-        L, _ = t.pileup(genelists=g, filename="test_images/test_output_respect_strand.png", bandwidth=15, respect_strand=True)
+        L, _ = t.pileup(scaled=False, genelists=g, filename="test_images/test_output_respect_strand.png", bandwidth=15, respect_strand=True)
         
         expected_result = numpy.zeros(30)
         expected_result += 14.5

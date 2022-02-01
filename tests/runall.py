@@ -28,11 +28,11 @@ from test_genome import Test_Genome
 from test_glglob import Test_glglob
 from test_location import Test_Location
 from test_panda_import import Test_PandasImportlist
-from test_track import Test_Track_Function
 from test_tsv_csv_behaviour import Test_TSVCSV
 from test_utils import Test_Utils
 from test_manifolds import Test_Manifold
 from test_element import Test_Motif_Element
+from test_massspec import Test_MassSpec
 
 def get_suite():
     suite = [
@@ -41,7 +41,6 @@ def get_suite():
         unittest.TestLoader().loadTestsFromTestCase(Test_Draw),
         unittest.TestLoader().loadTestsFromTestCase(Test_glglob),
         unittest.TestLoader().loadTestsFromTestCase(Test_GeneList),
-        unittest.TestLoader().loadTestsFromTestCase(Test_Track_Function),
         unittest.TestLoader().loadTestsFromTestCase(Test_Flat_Function),
         unittest.TestLoader().loadTestsFromTestCase(Test_Delayedlist),
         unittest.TestLoader().loadTestsFromTestCase(Test_Expression),
@@ -55,6 +54,7 @@ def get_suite():
         unittest.TestLoader().loadTestsFromTestCase(Test_PandasImportlist),
         unittest.TestLoader().loadTestsFromTestCase(Test_Manifold),
         unittest.TestLoader().loadTestsFromTestCase(Test_Motif_Element),
+        unittest.TestLoader().loadTestsFromTestCase(Test_MassSpec),
         ]
 
     return unittest.TestSuite(suite)
