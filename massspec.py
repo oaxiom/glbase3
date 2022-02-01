@@ -13,6 +13,7 @@ from .base_expression import base_expression
 from .draw import draw
 from .progress import progressbar
 from .errors import AssertionError, ArgumentError
+from .utils import fold_change
 
 class massspec(base_expression):
     supported_formats = {'maxquant_txt'}
@@ -176,7 +177,7 @@ class massspec(base_expression):
 
             for data in self.linearData:
                 line = [data[k] for k in write_keys if k in data]
-                line += data['intensities'] + data['peptide_counts'] + data['call']
+                line += data['intensities'] + data['peptide_counts'] + [str(b) for b in data['call']]
                 writer.writerow(line)
                 
         return None
@@ -299,7 +300,6 @@ class massspec(base_expression):
         self.linearData = newl
         self._optimiseData()
         
-        self.called = True
         config.log.info(f'filter: Trimmed {starting_len - len(self)} possible false positives and peptides not meeting thresholds')
         config.log.info(f'filter: List now {len(self)} peptides long')
         return starting_len - len(self)
@@ -338,3 +338,94 @@ class massspec(base_expression):
             newl.append(pep)
         
         return newl
+
+    def call(self, expt_scheme, intensity_fold_change_threshold=1.0, cull_empty_calls=True):
+        '''
+        **Purpose**
+            Call a peptide in a specific condition.
+            based on an enrichment threshold.
+            This method is primarily aimed at Co-IP MS. For whole proteome MS it's 
+            better advised to use something like DESeq2 or equivalent.
+            
+            NOTE: This is an INPLACE method that modifies the underlying list
+            
+        **Arguments**
+            expt_scheme (Required)
+                This calls a peptide based on enrichment metric 
+                derived from intensity, basically the fold-change over the control. 
+                Consequently it needs to know the matching control to perform the 
+                threshold comparison. 
+                
+                The experimental scheme should be in this form:
+                
+                {
+                'ctrl_condition_name1': ['condition1', 'condition2' ... 'conditionN'],
+                'ctrl_condition_name2': ['condition1', 'condition2' ... 'conditionN'],
+                ...
+                'ctrl_condition_nameN': ['condition1', 'condition2' ... 'conditionN']
+                }
+            
+            intensity_fold_change_threshold (Optional, default=1.0)
+                fold-change increase intensity from ctrl to target required to call
+                a peptide.
+            
+            cull_empty_calls (Optional, default=True)
+                If not called in any condition, then delete the peptide.
+            
+        **Returns**
+            None
+        '''
+        # check all the conditions are actually present
+        for ctrl in expt_scheme:
+            assert ctrl in self._conditions, f'Control data {ctrl} not found in this massspec data'
+            for expt in expt_scheme[ctrl]:
+                assert expt in self._conditions, f'{expt} not found in this massspec data'
+        
+        cond_index_lookup = {c: i for i, c in enumerate(self._conditions)}
+
+        for pep in self.linearData:
+            pep_name = pep['name']
+
+            for ctrl in expt_scheme:
+                ctrl_index = cond_index_lookup[ctrl]
+                
+                for ip in expt_scheme[ctrl]:
+                    ip_index = cond_index_lookup[ip]
+                    fc = fold_change(pep['intensities'][ctrl_index], pep['intensities'][ip_index], 0.1)
+                    pep['fold_change'][ip_index] = fc
+                    pep['fold_change'][ctrl_index] = 0.0
+
+                    if fc >= intensity_fold_change_threshold:
+                        pep['call'][ip_index] = True
+                    '''
+                    if pep['peptide_counts'][ctrl] >= 0:
+                        # High stringency path
+                        if fc >= intensity_fold_change_threshold:
+                            pep['call'] = True
+                            
+                    elif peps[pep_name]['peptide_counts'][ctrl] == 0:
+                        # Low stringency path
+                        pep['call'] =True
+                    '''
+
+        if cull_empty_calls:
+            #print(self.linearData)
+            print([pep['call'] for pep in self.linearData])
+            newl = [pep for pep in self.linearData if True in pep['call']]
+            self.linearData = newl
+        
+        self._optimiseData()
+        
+        self.called = True
+        self.fold_change = True
+        config.log.info('call:')
+        
+    def volcano(self):
+        pass
+        
+    def heatmap(self):
+        pass
+    
+    def network(self):
+        pass
+    
