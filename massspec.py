@@ -125,7 +125,20 @@ class massspec(base_expression):
         self._call = [i['call'] for i in self.linearData]
         self._call = [i['fold_change'] for i in self.linearData]
         
-        self.qkeyfind = True # Dummy placeholder. Might be needed though?
+        self.qkeyfind = {}
+        for index, item in enumerate(self.linearData):
+            for key in item:
+                if key not in self.qkeyfind:
+                    self.qkeyfind[key] = {}
+
+                try:
+                    if item[key] not in self.qkeyfind[key]:
+                        self.qkeyfind[key][item[key]] = []
+                    self.qkeyfind[key][item[key]].append(index)
+                except TypeError:
+                    # The item in unhashable and cannot be added to the qkeyfind
+                    # This should be pretty rare if not impossible.
+                    pass
 
     def saveCSV(self, filename=None, interleave_errors=True, no_header=False, **kargs):
         """
@@ -786,7 +799,6 @@ class massspec(base_expression):
                 if b is None: return 0.1
                 elif b is True: return 1
             data_table = numpy.array([[booler(i) for i in p['call']] for p in self.linearData]).T
-            print(data_table)
             
         elif dataset == 'fold_change':
             assert self.fold_change, 'correlation_heatmap: Asking for the fold_change dataset, but this massspec does not have a fold_change, run massspec.call()'
