@@ -91,8 +91,10 @@ class massspec(base_expression):
     def __repr__(self):
         return "<massspec class>"
 
+    '''
     def sort(self): # To implement
         raise NotImplementedError
+    '''
 
     def find(self): # To implement
         raise NotImplementedError
@@ -157,7 +159,7 @@ class massspec(base_expression):
 
         with open(os.path.realpath(filename), "wt") as oh:
             writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
-            array_data_keys_to_skip = ("intensities", "peptide_counts", "call")
+            array_data_keys_to_skip = ("intensities", "peptide_counts", "call", 'fold_change')
             all_keys = list(self.keys())
             write_keys = []
             if "key_order" in kargs:
@@ -172,12 +174,15 @@ class massspec(base_expression):
                 title_row = [k for k in write_keys if k in all_keys]
                 title_row += [f'Intensity {i}/M' for i in self.getConditionNames()]
                 title_row += [f'Peptide_counts {i}' for i in self.getConditionNames()]
-                title_row += [f'Call {i}' for i in self.getConditionNames()]
+                if self.called: title_row += [f'Call {i}' for i in self.getConditionNames()]
+                if self.fold_change: title_row += [f'FC {i}' for i in self.getConditionNames()]
                 writer.writerow(title_row)
 
             for data in self.linearData:
                 line = [data[k] for k in write_keys if k in data]
-                line += data['intensities'] + data['peptide_counts'] + [str(b) for b in data['call']]
+                line += data['intensities'] + data['peptide_counts']
+                if self.called: line += [str(b) for b in data['call']]
+                if self.fold_change: line += [str(b) for b in data['fold_change']]
                 writer.writerow(line)
                 
         return None
@@ -391,7 +396,7 @@ class massspec(base_expression):
                 
                 for ip in expt_scheme[ctrl]:
                     ip_index = cond_index_lookup[ip]
-                    fc = fold_change(pep['intensities'][ctrl_index], pep['intensities'][ip_index], 0.1)
+                    fc = fold_change(pep['intensities'][ip_index], pep['intensities'][ctrl_index], 0.1)
                     pep['fold_change'][ip_index] = fc
                     pep['fold_change'][ctrl_index] = 0.0
 
@@ -405,12 +410,12 @@ class massspec(base_expression):
                             
                     elif peps[pep_name]['peptide_counts'][ctrl] == 0:
                         # Low stringency path
-                        pep['call'] =True
+                        pep['call'] = True
                     '''
 
         if cull_empty_calls:
             #print(self.linearData)
-            print([pep['call'] for pep in self.linearData])
+            #print([pep['call'] for pep in self.linearData])
             newl = [pep for pep in self.linearData if True in pep['call']]
             self.linearData = newl
         
