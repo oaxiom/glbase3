@@ -841,6 +841,70 @@ class massspec(base_expression):
     def volcano(self):
         pass
     
-    def network(self):
-        pass
-    
+    def network(self, filename, expt_to_bait=None):
+        """
+        **Purpose**
+            Draw a connected network PPI-style plot.
+            
+            Designed for Co-IP MS experiments
+            
+            Requires networkx
+            
+        **Arguments**
+            filename (Required)
+                filename to save the image of the network
+                
+            expt_to_bait (Required)
+               A dict with the bait for each experiment. Use '-' for controls.
+               
+               
+                
+        **Returns**
+            The networkx network
+        """
+        assert filename, 'filename is required'
+        assert self.called, 'network can only be used if the data has been called'
+        assert expt_to_bait, 'Requires a expt_to_bait argument'
+        assert isinstance(expt_to_bait, dict), 'Must be a dict'
+        
+        import networkx as nx
+        
+        g = nx.Graph()
+        
+        # Nodes
+        #for pep in self.linearData:
+        #    g.add_node(pep['name'])
+
+        co_interactors = []
+
+        #Edges         
+        for pep in self.linearData:
+            for ip, call in zip(self._conditions, pep['call']):
+                try:
+                    if expt_to_bait[ip] == '-':
+                       continue
+                except KeyError:
+                    config.log.warning(f'Treating {ip} as a control sample, skipping;') 
+                
+                if call:
+                    g.add_edge(expt_to_bait[ip], pep['name'])
+                    co_interactors.append(pep['name'])
+
+        # Remove isolated nodes;
+        #pos = nx.nx.kamada_kawai_layout(g)
+        #pos = nx.circular_layout(g, scale=0.2)
+        pos = nx.spring_layout(g, k=1, iterations=1000, seed=1234)
+
+        fig = plot.figure(figsize=[8,8])
+        plot.axis("off")
+        
+        ax = fig.add_subplot(111)
+        ax.set_position([0,0, 1,1])
+        nx.draw_networkx_edges(g, pos=pos, alpha=0.1)
+        nx.draw_networkx_nodes(g, pos=pos, nodelist=co_interactors, alpha=0.6, node_size=100, node_color="tab:red")
+        nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=100, node_color="tab:orange")
+        nx.draw_networkx_labels(g, pos=pos, font_size=7, alpha=0.9)
+        fig.savefig(filename)
+        plot.close(fig)
+
+        return g
