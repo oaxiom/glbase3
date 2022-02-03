@@ -913,7 +913,7 @@ class massspec(base_expression):
                 except KeyError:
                     if ip not in __already_warned_using_as_bait:
                         __already_warned_using_as_bait.add(ip)
-                        config.log.warning(f'Treating {ip} as a control sample, skipping. Add "{ip}": "-" to expt_to_bait to remove this warning') 
+                        config.log.warning(f'Treating "{ip}" as a control sample. Add {{"{ip}": "-"}} to expt_to_bait to remove this warning') 
                 
                 if call:
                     if expt_to_bait[ip] == pep['name']:
@@ -934,7 +934,7 @@ class massspec(base_expression):
         ax.axis("off")
         ax.set_position([0,0, 1,1])
         nx.draw_networkx_edges(g, pos=pos, alpha=0.1)
-        nx.draw_networkx_nodes(g, pos=pos, nodelist=co_interactors, alpha=0.6, node_size=100, node_color="tab:red")
+        nx.draw_networkx_nodes(g, pos=pos, nodelist=set(co_interactors), alpha=0.6, node_size=100, node_color="tab:red")
         nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=100, node_color="tab:orange")
         nx.draw_networkx_labels(g, pos=pos, font_size=6, alpha=0.9)
         
