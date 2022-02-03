@@ -841,7 +841,11 @@ class massspec(base_expression):
     def volcano(self):
         pass
     
-    def network(self, filename, expt_to_bait=None):
+    def network(self, 
+        filename:str, 
+        expt_to_bait=None, 
+        figsize=[8,8], 
+        **kargs):
         """
         **Purpose**
             Draw a connected network PPI-style plot.
@@ -856,8 +860,6 @@ class massspec(base_expression):
                 
             expt_to_bait (Required)
                A dict with the bait for each experiment. Use '-' for controls.
-               
-               
                 
         **Returns**
             The networkx network
@@ -870,6 +872,7 @@ class massspec(base_expression):
         import networkx as nx
         
         g = nx.Graph()
+        __already_warned_using_as_bait = set([])
         
         # Nodes
         #for pep in self.linearData:
@@ -877,34 +880,44 @@ class massspec(base_expression):
 
         co_interactors = []
 
+        baits = [b for b in expt_to_bait.values() if b != '-']
+
         #Edges         
         for pep in self.linearData:
             for ip, call in zip(self._conditions, pep['call']):
                 try:
                     if expt_to_bait[ip] == '-':
                        continue
+                       
                 except KeyError:
-                    config.log.warning(f'Treating {ip} as a control sample, skipping;') 
+                    if ip not in __already_warned_using_as_bait:
+                        __already_warned_using_as_bait.add(ip)
+                        config.log.warning(f'Treating {ip} as a control sample, skipping. Add "{ip}": "-" to expt_to_bait to remove this warning') 
                 
                 if call:
+                    if expt_to_bait[ip] == pep['name']:
+                        continue
                     g.add_edge(expt_to_bait[ip], pep['name'])
                     co_interactors.append(pep['name'])
-
+        
+        config.log.info('Built network')
         # Remove isolated nodes;
         #pos = nx.nx.kamada_kawai_layout(g)
         #pos = nx.circular_layout(g, scale=0.2)
         pos = nx.spring_layout(g, k=1, iterations=1000, seed=1234)
-
-        fig = plot.figure(figsize=[8,8])
-        plot.axis("off")
+        config.log.info('Layout done')
+        
+        fig = self.draw.getfigure(figsize=figsize)
         
         ax = fig.add_subplot(111)
+        ax.axis("off")
         ax.set_position([0,0, 1,1])
         nx.draw_networkx_edges(g, pos=pos, alpha=0.1)
         nx.draw_networkx_nodes(g, pos=pos, nodelist=co_interactors, alpha=0.6, node_size=100, node_color="tab:red")
         nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=100, node_color="tab:orange")
-        nx.draw_networkx_labels(g, pos=pos, font_size=7, alpha=0.9)
-        fig.savefig(filename)
-        plot.close(fig)
+        nx.draw_networkx_labels(g, pos=pos, font_size=6, alpha=0.9)
+        
+        self.draw.do_common_args(ax, **kargs)
+        real_filename = self.draw.savefigure(fig, filename)
 
         return g
