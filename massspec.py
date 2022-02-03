@@ -29,6 +29,7 @@ class massspec(base_expression):
         format=None, 
         gzip:bool = False, 
         mq_use_lfq:bool = False,
+        mq_split_ambiguous_names:bool = True,
         name = None
         ):
         '''
@@ -56,6 +57,15 @@ class massspec(base_expression):
                 on a pool of proteins that don't change much. Whilst intensity is the raw intensity.
                 LFQ is preferred for whole cell MS, whilst without is probably better for 
                 enrichment-based MS, e.g. Co-IP. Use this switch to use lfq or not.
+                
+            mq_split_ambiguous_names (Optional, default=True)
+                MaxQuant reports ambiguous peptide matches with PIDs and names like this:
+                
+                Gene1;Gene2;Gene3, PID1; PID2; PID3
+                
+                If mq_use_lfq is True then each ambiguous match is treated as a full match
+                (generally more useful, as map() will correctly work), if False then preserve each
+                matching protein entry as is.
             
         '''.format(self.supported_formats)
         assert isinstance(filenames, list), 'filenames must be a list'
@@ -64,7 +74,7 @@ class massspec(base_expression):
         self.name = name
         
         if format == 'maxquant_txt':
-            peps, sample_names = self.__maxquant_txt(filenames, gzip, mq_use_lfq=mq_use_lfq)
+            peps, sample_names = self.__maxquant_txt(filenames, gzip, mq_use_lfq=mq_use_lfq, mq_split_ambiguous_names=mq_split_ambiguous_names)
         else:
             raise NotImplementedError
         
@@ -215,7 +225,7 @@ class massspec(base_expression):
                 
         return None
         
-    def __maxquant_txt(self, filenames, gzip, mq_use_lfq):
+    def __maxquant_txt(self, filenames, gzip, mq_use_lfq, mq_split_ambiguous_names):
         peps = {}
         sample_names = []
     
@@ -239,7 +249,8 @@ class massspec(base_expression):
                             sample_names.append(lab.replace('Razor + unique peptides ', ''))
                     break
             oh1.close()
-    
+        
+        # Now load the peptide matches:
         for filename in filenames:
             if gzip:
                 oh1 = gzip.open(filename, 'rt')
@@ -266,27 +277,36 @@ class massspec(base_expression):
                 hit = hit.strip().split('\t')
                 pep_name = hit[6]
                 pids = hit[1]
-
-                if not hit[6]:
-                    continue
-
-                if pep_name not in peps:
-                    peps[pep_name] = {
-                        'pids': pids,
-                        'intensities': {k: [] for k in sample_names},
-                        'peptide_counts': {k: [] for k in sample_names},
-                        'call': {k: None for k in sample_names},
-                        'fold_change': {k: None for k in sample_names},
-                        }
                 
-                for sample_name in sample_names:
-                    if sample_name not in intensity_keys:
-                        # From a previous filename
-                        continue 
-                    intensity = hit[intensity_keys[sample_name]]
-                    peps[pep_name]['intensities'][sample_name].append(float(intensity)/1e6)
-                    unq_peps = hit[unique_count_keys[sample_name]]
-                    peps[pep_name]['peptide_counts'][sample_name].append(int(unq_peps))
+                if not hit[6]: # Unidentified, just skip it;
+                    continue
+                
+                if mq_split_ambiguous_names and ';' in pep_name:
+                    pep_name = pep_name.split(';')
+                    pids = pids.split(';')
+                else:   
+                    pep_name = [pep_name,]
+                    pids = [pids, ]
+
+                for name, pid in zip(pep_name, pids):
+                    if name not in peps:
+                        peps[name] = {
+                            'pids': pid,
+                            'intensities': {k: [] for k in sample_names},
+                            'peptide_counts': {k: [] for k in sample_names},
+                            'call': {k: None for k in sample_names},
+                            'fold_change': {k: None for k in sample_names},
+                            }
+                
+                    for sample_name in sample_names:
+                        if sample_name not in intensity_keys:
+                            # From a previous filename
+                            continue 
+                        intensity = hit[intensity_keys[sample_name]]
+                        peps[name]['intensities'][sample_name].append(float(intensity)/1e6)
+                        unq_peps = hit[unique_count_keys[sample_name]]
+                        peps[name]['peptide_counts'][sample_name].append(int(unq_peps))
+                        
             oh1.close()
                     
         return peps, sample_names

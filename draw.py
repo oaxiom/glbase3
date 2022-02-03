@@ -1747,7 +1747,7 @@ class draw:
         axis.text(15, 17, labels["right"], size=15, ha="center", va="center")
         axis.text(10, 19, labels["title"], size=28, ha="center", va="center")
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def venn2(self, A, B, AB, labelA, labelB, filename, **kargs):
         """
@@ -1789,7 +1789,7 @@ class draw:
         ax.text(7.5,  25, labelA, size=16, ha="center", va="center")
         ax.text(22.5,  25, labelB, size=16, ha="center", va="center")
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def venn3(self, A, B, C, AB, AC, BC, ABC, labelA, labelB, labelC, filename, **kargs):
         """
@@ -1838,7 +1838,7 @@ class draw:
         ax.text(22.5,  29, labelB, size=16, ha="center", va="center")
         ax.text(15, 1, labelC, size=16, ha="center", va="center")
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def venn4(self, lists, labels, filename=None, **kargs):
         """
@@ -1926,7 +1926,7 @@ class draw:
         ax.text(3.7,  2, labelC, size=13, ha="right", va="center")
         ax.text(4.2,  1, labelD, size=13, ha="right", va="center")
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def venn5(self, lists, labels, filename=None, **kargs):
         """
@@ -2234,7 +2234,7 @@ class draw:
             ax2.set_ylim([0, 1])
             ax2.set_xlim([0, len(graphs[key])])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _simple_heatmap(self, filename=None, colour_map = cm.Reds, vmin=0, vmax=None, symmetric=False, **kargs):
         """
@@ -2323,7 +2323,7 @@ class draw:
         cb.set_label("")
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def nice_scatter(self, x=None, y=None, filename=None, do_best_fit_line=False,
         print_correlation=False, spot_size=4, plot_diag_slope=False, label_fontsize=14,
