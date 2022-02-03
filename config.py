@@ -86,6 +86,7 @@ def get_interpolation_mode(filename):
 # -------------- set up the logger here.
 # You can access it using config.log()
 logging.basicConfig(level=logging.INFO,
+                    #format='%(levelname)-8s: %(name)s : %(message)s', # Use this to trace orgue loggers
                     format='%(levelname)-8s: %(message)s',
                     datefmt='%m-%d %H:%M')
 
@@ -94,6 +95,7 @@ log = logging.getLogger('glbase3')
 
 mpl_logger = logging.getLogger('matplotlib') # Bodge to silence the matplotlib logging
 mpl_logger.setLevel(logging.WARNING)
+_ = logging.getLogger('fontTools.subset').setLevel(logging.WARNING) # Another rogue logger
 
 # helpers [Should be deprecated. Call config.log.<level>() to call info]
 info = log.info

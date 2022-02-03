@@ -101,7 +101,6 @@ from .genome_sql import genome_sql # To replace genome
 from .delayedlist import delayedlist
 from .glglob import glglob
 from .element import motif
-from .track import track
 from .flat_track import flat_track
 from .progress import progressbar
 from .pwm import pwm
@@ -124,7 +123,6 @@ from . import utils
 from . import format
 from . import cmaps
 
-from .tools.seqToTrk import seqToTrk
 from .tools.wigstep_to_flattrack import wigstep_to_flat
 from .tools.merge_flat_track import merge_flats
 from .tools.gerp_to_flattrack import gerp_to_flat

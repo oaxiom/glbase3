@@ -11,7 +11,7 @@ import sys, os, csv, string, math, collections
 from operator import itemgetter
 
 import numpy
-from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # This use of array here is not good.
+from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std 
 import gzip as gzipfile
 
 from . import config
