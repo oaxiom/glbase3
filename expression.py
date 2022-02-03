@@ -926,7 +926,7 @@ class expression(base_expression):
                 the size of the row labels (in points). If set this will also override the hiding of
                 labels if there are too many elements.
 
-            col_font_size (Optional, default=8)
+            col_font_size (Optional, default=6)
                 the size of the column labels (in points)
 
             heat_wid (Optional, default=0.25)
@@ -1723,11 +1723,40 @@ class expression(base_expression):
                 vals = [abs(v) > value for v in row["conditions"]]
             else:
                 vals = [v > value for v in row["conditions"]]
+
             if True in vals:
                 newl.linearData.append(row)
         newl._optimiseData()
         config.log.info("filter_by_value: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+        return newl
+
+    def filter_by_low_and_high(self, low_value, high_value, num_conditions):
+        """
+        **Purpose**
+            Keep only rows with <low_value and >high_value if true for >= num_conditions
+
+        **Arguments**
+            value (Required)
+                Keep only rows with > value
+
+        **Returns**
+            A new expression object with rows that fail to pass removed.
+        """
+        newl = self.deepcopy()
+        newl.linearData = []
+
+        for row in self.linearData:
+            vals_lo = [v < low_value  for v in row["conditions"]]
+            vals_hi = [v > high_value for v in row["conditions"]]
+
+            #print(vals_lo, vals_hi, sum(vals_lo), sum(vals_hi))
+            if sum(vals_lo) + sum(vals_hi) >= num_conditions:
+                newl.linearData.append(row)
+
+        newl._optimiseData()
+        config.log.info(f"filter_by_low_and_high: removed {len(self)-len(newl):,} items, list now {len(newl):,} items long")
+
+        return newl
 
     def filter_by_CV(self, minCV, maxCV, pad=0.1):
         """
