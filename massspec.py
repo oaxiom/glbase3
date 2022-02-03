@@ -220,9 +220,9 @@ class massspec(base_expression):
         sample_names = []
     
         if mq_use_lfq:
-            intensity_search_key = 'Intensity '
-        else:
             intensity_search_key = 'LFQ intensity '
+        else:
+            intensity_search_key = 'Intensity '
 
         # scan all the filenames to get all the sample_names;
         for filename in filenames:
@@ -466,12 +466,6 @@ class massspec(base_expression):
             Note that you can also use this method to change the order of the conditions.
             Just slice all of the keys in the order you want them to occur in.
 
-            Additionally, you can use this to replicate a key, e.g.
-
-            gl = gl.sliceConditions(["cond1", "cond2", "cond1"])
-
-            will now give you an expression set with two 'cond1' conditions
-
         **Arguments**
             conditions (Required)
                 A list, or other iterable of condition names to extract
@@ -484,8 +478,35 @@ class massspec(base_expression):
             but containing only the expression-data conditions specified in
             the 'conditions' argument.
         """
-        # TODO: Implement
-        pass
+        assert conditions, "sliceConditions: You must specify a list of conditions to keep"
+        assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
+        assert isinstance(conditions, (tuple, list, set, Iterable)), "sliceConditions: You must specify an iterable of conditions to keep"
+        conditions = list(conditions) # Some weird bugs if not a list;
+        for item in conditions:
+            assert item in self._conditions, f"sliceConditions: '{item}' condition not found in this expression data"
+
+        newgl = self.deepcopy()
+        newl = []
+        
+        # Massspec objects don't use numpy, so do the hard way:
+        idxs_to_keep = [self._conditions.index(c) for c in conditions]
+        print(idxs_to_keep)
+        for pep in self.linearData:
+            newi = dict(pep)
+            newi['intensities'] = [pep['intensities'][idx] for idx in idxs_to_keep]
+            newi['peptide_counts'] = [pep['peptide_counts'][idx] for idx in idxs_to_keep]
+            newi['call'] = [pep['call'][idx] for idx in idxs_to_keep]
+            newi['fold_change'] = [pep['fold_change'][idx] for idx in idxs_to_keep]
+            
+            newl.append(newi)
+
+        newgl.linearData = newl
+        newgl._conditions = conditions
+        newgl._optimiseData()
+
+        config.log.info(f'sliceConditions: sliced for {len(newgl[0]["call"])} conditions')
+        return newgl        
+        
 
     def heatmap(self,
         dataset:str,

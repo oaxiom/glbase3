@@ -557,12 +557,6 @@ class expression(base_expression):
             Note that you can also use this method to change the order of the conditions.
             Just slice all of the keys in the order you want them to occur in.
 
-            Additionally, you can use this to replicate a key, e.g.
-
-            gl = gl.sliceConditions(["cond1", "cond2", "cond1"])
-
-            will now give you an expression set with two 'cond1' conditions
-
         **Arguments**
             conditions (Required)
                 A list, or other iterable of condition names to extract
@@ -570,10 +564,10 @@ class expression(base_expression):
                 on the expression-data.
 
         **Result**
-
             A new expression-data object with the same settings as the original,
             but containing only the expression-data conditions specified in
             the 'conditions' argument.
+            
         """
         assert conditions, "sliceConditions: You must specify a list of conditions to keep"
         assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
