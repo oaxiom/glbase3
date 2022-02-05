@@ -888,6 +888,7 @@ class massspec(base_expression):
         filename:str, 
         expt_to_bait=None, 
         figsize=[8,8], 
+        fontsize=6,
         **kargs):
         """
         **Purpose**
@@ -903,6 +904,9 @@ class massspec(base_expression):
                 
             expt_to_bait (Required)
                A dict with the bait for each experiment. Use '-' for controls.
+               
+            fontsize (Optional, default=6)
+                fontsize for the nodes;
                 
         **Returns**
             The networkx network
@@ -961,7 +965,7 @@ class massspec(base_expression):
         nx.draw_networkx_edges(g, pos=pos, alpha=0.1)
         nx.draw_networkx_nodes(g, pos=pos, nodelist=set(co_interactors), alpha=0.6, node_size=100, node_color="tab:red")
         nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=100, node_color="tab:orange")
-        nx.draw_networkx_labels(g, pos=pos, font_size=6, alpha=0.9)
+        nx.draw_networkx_labels(g, pos=pos, font_size=fontsize, alpha=0.9)
         
         self.draw.do_common_args(ax, **kargs)
         real_filename = self.draw.savefigure(fig, filename)
