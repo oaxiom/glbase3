@@ -429,6 +429,7 @@ class massspec(base_expression):
         **Returns**
             None
         '''
+        start_len = len(self)
         # check all the conditions are actually present
         for ctrl in expt_scheme:
             assert ctrl in self._conditions, f'Control data {ctrl} not found in this massspec data'
@@ -472,7 +473,7 @@ class massspec(base_expression):
         
         self.called = True
         self.fold_change = True
-        config.log.info('call:')
+        config.log.info(f'call: {len(self)} peptides met threshold, {start_len-len(self)} peptides removed')
 
     def sliceConditions(self,
         conditions:Iterable=None,
@@ -510,7 +511,6 @@ class massspec(base_expression):
         
         # Massspec objects don't use numpy, so do the hard way:
         idxs_to_keep = [self._conditions.index(c) for c in conditions]
-        print(idxs_to_keep)
         for pep in self.linearData:
             newi = dict(pep)
             newi['intensities'] = [pep['intensities'][idx] for idx in idxs_to_keep]
