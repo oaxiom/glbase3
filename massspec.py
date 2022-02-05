@@ -833,6 +833,8 @@ class massspec(base_expression):
         labels = self._conditions
         if dataset == 'intensities':
             data_table = numpy.array([p['intensities'] for p in self.linearData]).T
+            data_table += 0.01
+            numpy.log2(data_table)
             
         elif dataset == 'call':
             assert self.called, 'correlation_heatmap: Asking for the call dataset, but this massspec has not been called, run massspec.call()'
@@ -940,6 +942,9 @@ class massspec(base_expression):
                         continue
                     g.add_edge(expt_to_bait[ip], pep['name'])
                     co_interactors.append(pep['name'])
+        
+        # Check all the baits made it into the network
+        baits = [b for b in baits if b in g]
         
         config.log.info('Built network')
         # Remove isolated nodes;
