@@ -720,7 +720,7 @@ class massspec(base_expression):
                 The height of the heatmap. Heatmap runs from 0.1 to heat_hei, with a maximum of 0.9 (i.e. a total of 1.0)
                 value is a fraction of the entire figure size.
 
-            colbar_label (Optional, default="expression")
+            colbar_label (Optional, default=same as dataset argument)
                 the label to place beneath the colour scale bar
 
             grid (Optional, default=False)
@@ -825,6 +825,11 @@ class massspec(base_expression):
         for index, name in enumerate(self._conditions):
             newdata[name] = data[index] # get the particular column
 
+        if 'colbar_label' in kargs and kargs['colbar_label']:
+            pass
+        else:
+            kargs['colbar_label'] = dataset.capitalize()
+        
         res = self.draw.heatmap(data=newdata,
             cmap=cmap,
             bracket=bracket,
@@ -1054,12 +1059,38 @@ class massspec(base_expression):
             Sublists containing the various overlaps, contained in a dict
             Simple enough in the 2-venn, gets very complex in the 4-venn.
         """
+        assert self.called, 'massspec must be called for this method to work'
         assert filename, 'you must provide a filename'
-        assert len(conditions) >= 2 and conditions <= 5, 'conditions not >= 2 or <= 5, which are the only supported Venn sizes'
+        assert (len(conditions) >= 2 and len(conditions) <= 5), 'conditions not >= 2 or <= 5, which are the only supported Venn sizes'
         assert False not in [c in self._conditions for c in conditions], 'A condition was not found in this massspec object'
+        assert len([i['name'] for i in self.linearData]) == len(set([i['name'] for i in self.linearData])), '"name" key is not unqiue!'
         
         if len(conditions) == 2:
-            raise NotImplementedError('Venn2 not implemented')
+            Aidx = self._conditions.index(conditions[0])
+            Bidx = self._conditions.index(conditions[1])
+            Acalls = set([i['name'] for i in self.linearData if i['call'][Aidx]])
+            Bcalls = set([i['name'] for i in self.linearData if i['call'][Bidx]])
+            ABcalls = Acalls & Bcalls 
+            A = len(Acalls)
+            B = len(Bcalls) # overlap subtracted in venn2
+            AB = len(ABcalls)
+            
+            self.draw.venn2(A, B, AB, conditions[0], conditions[1], filename, **kargs)
+            
+            # get return versions:
+            Aret = self.deepcopy()
+            Aret.linearData = [pep for pep in Aret if pep['name'] in Acalls]
+            Aret._optimiseData()
+            
+            Bret = self.deepcopy()
+            Bret.linearData = [pep for pep in Bret if pep['name'] in Bcalls]
+            Bret._optimiseData()
+            
+            ABret = self.deepcopy()
+            ABret.linearData = [pep for pep in ABret if pep['name'] in ABcalls]
+            ABret._optimiseData()
+        
+            return {'left': Aret, 'overlap': ABret, 'right': Bret}
         
         if len(conditions) == 3:
             raise NotImplementedError('Venn3 not implemented')

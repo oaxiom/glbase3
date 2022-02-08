@@ -1392,7 +1392,7 @@ class draw:
 
         if "title" in kargs: axis.set_title(kargs["title"])
         if "xlabel" in kargs: axis.set_xlabel(kargs["xlabel"])
-        if "ylable" in kargs: axis.set_ylabel(kargs["ylabel"])
+        if "ylabel" in kargs: axis.set_ylabel(kargs["ylabel"])
         if "xaxis" in kargs: axis.set_xticks(kargs["xaxis"])
         if "yaxis" in kargs: axis.set_yticks(kargs["yaxis"])
 
@@ -1423,7 +1423,7 @@ class draw:
         if "yaxis" in kargs:
             axis.set_yticks(kargs["yaxis"])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _plot(self, filename=None, data=None, **kargs):
         """
@@ -1446,7 +1446,7 @@ class draw:
         if "xlims" in kargs: axis.set_xlim(kargs["xlims"])
         if "ylims" in kargs: axis.set_ylim(kargs["ylims"])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _genome_segment(self, figure_axis, loc, feature_list):
         """
@@ -1788,7 +1788,8 @@ class draw:
 
         ax.text(7.5,  25, labelA, size=16, ha="center", va="center")
         ax.text(22.5,  25, labelB, size=16, ha="center", va="center")
-
+        
+        self.do_common_args(ax, **kargs)
         return self.savefigure(fig, filename)
 
     def venn3(self, A, B, C, AB, AC, BC, ABC, labelA, labelB, labelC, filename, **kargs):
