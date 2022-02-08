@@ -1033,3 +1033,41 @@ class massspec(base_expression):
         real_filename = self.draw.savefigure(fig, filename)
 
         return g
+        
+    def venn(self, filename, *conditions, **kargs):
+        """
+        **Purpose**
+            Perform a Venn diagram between 2-5 condition names
+        
+        **Arguments**
+            filename (Required)
+                filename to save the Venn to
+                
+            *conditions (Required)
+                A list between 2-5 conditions names (must be in this massspec object)
+                to use for the Venn overlap.
+                
+            **kargs (Optional)
+                mainly to modify the figure. See glbase3/draw.py/do_common_args()
+            
+        **Returns**
+            Sublists containing the various overlaps, contained in a dict
+            Simple enough in the 2-venn, gets very complex in the 4-venn.
+        """
+        assert filename, 'you must provide a filename'
+        assert len(conditions) >= 2 and conditions <= 5, 'conditions not >= 2 or <= 5, which are the only supported Venn sizes'
+        assert False not in [c in self._conditions for c in conditions], 'A condition was not found in this massspec object'
+        
+        if len(conditions) == 2:
+            raise NotImplementedError('Venn2 not implemented')
+        
+        if len(conditions) == 3:
+            raise NotImplementedError('Venn3 not implemented')
+            
+        if len(conditions) == 4:
+            raise NotImplementedError('Venn4 not implemented')
+            
+        if len(conditions) == 5:
+            raise NotImplementedError('Venn5 not implemented')
+
+        return None # Should not reach
