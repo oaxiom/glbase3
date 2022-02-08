@@ -526,8 +526,73 @@ class massspec(base_expression):
 
         config.log.info(f'sliceConditions: sliced for {len(newgl[0]["call"])} conditions')
         return newgl        
-        
 
+    def merge_replicates(self, merge_data):
+        """
+        **Purpose**
+            merge replicate MS samples.
+            
+        **Arguments**
+            merge_data (Required)
+                merge dict of lists:
+                    {
+                    'condition1_name': [cond1, cond2', ... 'condN'],
+                    'condition2_name': [cond1, cond2', ... 'condN'],
+                    etc
+                    }
+            
+        **Returns**
+            None
+        """
+        assert merge_data, 'You must specify merge_data'
+        assert isinstance(merge_data, dict), 'merge_data must be a dict'
+        
+        newe = []
+        all_conds = self._conditions
+        done = set([])
+
+        all_reps = set(sum([merge_data[x] for x in merge_data], [])) 
+        samples_by_keepname = {}
+        for k in merge_data:
+            for cond_name in merge_data[k]:
+                samples_by_keepname[cond_name] = k
+        
+        # Possible problem if names are not unique;
+        assert len(samples_by_keepname) == len(all_reps), 'merge_data condition names are not unique!'
+        assert len(sum([merge_data[x] for x in merge_data], [])) == len(all_reps), 'merge_data condition names are not unique!'
+
+        if False in [c in self._conditions for c in all_reps]:
+            missing_conds = [c for c in all_reps if c not in self._conditions]
+            raise AssertionError("merge_replicates: '{}' condition names not found".format(", ".join(sorted(missing_conds))))
+
+        new_serialisedArrayDataDict = {}
+        errors = {}
+        new_condition_name_list = sorted(list(merge_data.keys()))
+        
+        newl = self.deepcopy()
+        # Blank the metric keys;
+        for pep in newl:
+            pep['intensities'] = []
+            pep['peptide_counts'] = []
+            pep['call'] = []
+            pep['fold_change'] = []
+            
+        # max the merges;
+        for new_merged_condition_name in new_condition_name_list:
+            idxs_to_keep = [self._conditions.index(c) for c in merge_data[new_merged_condition_name]]
+            
+            for newi, original in zip(newl, self.linearData):
+                newi['intensities'].append(max([original['intensities'][idx] for idx in idxs_to_keep]))
+                newi['peptide_counts'].append(max([original['peptide_counts'][idx] for idx in idxs_to_keep]))
+                newi['call'].append(True if True in [original['call'][idx] for idx in idxs_to_keep] else None)
+                newi['fold_change'].append(max([original['fold_change'][idx] for idx in idxs_to_keep]))
+        
+        newl._conditions = new_condition_name_list
+        newl._optimiseData()
+
+        config.log.info(f"merge_replicates: Started with {len(self._conditions)} conditions, ended with {len(newl[0]['intensities'])}")
+        return newl
+        
     def heatmap(self,
         dataset:str,
         filename:str,
@@ -880,9 +945,6 @@ class massspec(base_expression):
         config.log.info("correlation_heatmap: Saved '%s'" % results["real_filename"])
         
         return {"data": results["reordered_data"], "labels": results["reordered_cols"]}
-
-    def volcano(self):
-        pass
     
     def network(self, 
         filename:str, 
