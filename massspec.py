@@ -1077,6 +1077,10 @@ class massspec(base_expression):
             
             self.draw.venn2(A, B, AB, conditions[0], conditions[1], filename, **kargs)
             
+            # Subtract overlap here so the returns are correct;
+            Acalls -= ABcalls
+            Bcalls -= ABcalls
+            
             # get return versions:
             Aret = self.deepcopy()
             Aret.linearData = [pep for pep in Aret if pep['name'] in Acalls]
