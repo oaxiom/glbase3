@@ -1781,14 +1781,14 @@ class draw:
         ax.tick_params(top=False, bottom=False, left=False, right=False)
 
         # add the labels:
-        ax.text(7.5, 15, A-AB, size=15, ha="center", va="center")
-        ax.text(22.5, 15, B-AB, size=15, ha="center", va="center")
+        ax.text(7.5, 15, A-AB, size=6, ha="center", va="center")
+        ax.text(22.5, 15, B-AB, size=6, ha="center", va="center")
 
-        ax.text(15, 15, AB, size=15, ha="center", va="center")
+        ax.text(15, 15, AB, size=6, ha="center", va="center")
 
-        ax.text(7.5,  25, labelA, size=16, ha="center", va="center")
-        ax.text(22.5,  25, labelB, size=16, ha="center", va="center")
-        
+        ax.text(7.5,  25, labelA, size=6, ha="center", va="center")
+        ax.text(22.5,  25, labelB, size=6, ha="center", va="center")
+
         self.do_common_args(ax, **kargs)
         return self.savefigure(fig, filename)
 
