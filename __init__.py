@@ -158,7 +158,7 @@ __all__ = [
     "format",
     "glload",
     # Tools/
-    "seqToTrk", "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat", 'merge_flats',
+    "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat", 'merge_flats',
     "logo",
     "motif",
     "rnaseqqc",
