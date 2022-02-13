@@ -586,10 +586,10 @@ class draw:
                 for y in range(data.shape[1]):
                     if data[x, y] >= draw_numbers_threshold:
                         if '%' in draw_numbers_fmt:
-                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt.format(data[x, y]), size=draw_numbers_font_size,
+                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt, size=draw_numbers_font_size,
                                 ha='center', va='center')
                         else:
-                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt, size=draw_numbers_font_size,
+                            ax3.text(y+0.5, x+0.5, draw_numbers_fmt.format(data[x, y]), size=draw_numbers_font_size,
                                 ha='center', va='center')
 
         if _draw_supplied_cell_labels:
