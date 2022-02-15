@@ -11,7 +11,6 @@ from .data import *
 from array import array as qarray
 from .draw import draw
 from .genelist import genelist
-from .history import historyContainer
 from .errors import AssertionError, NotSupportedError, DelayedListError
 from .location import location
 
@@ -26,10 +25,10 @@ except:
 class delayedlist(genelist):
     """
     **Purpose**
-    
+
         delayedlist is very similar to a genelist - except the data never
         makes it into memory. This allows you to iterate over huge files from disk.
-    
+
     **Arguments**
         name (Optional)
             Will default to the name of the file if a file is loaded,
@@ -46,16 +45,16 @@ class delayedlist(genelist):
             separated).
 
         gzip (Optional, default=False)
-            The input file is a gzip file. 
+            The input file is a gzip file.
 
         format
             format specifier. (see docs... complex)
 
     """
-    
+
     def __init__(self, filename=None, format=None, force_tsv=False, gzip=False, **kargs):
         genelist.__init__(self) # no kargs though. I want the mpty version.
-        
+
         self.__len_estimate = None
 
         assert filename, "No Filename"
@@ -69,7 +68,7 @@ class delayedlist(genelist):
         self.format = format # override default
         self.gzip = gzip
 
-        if force_tsv: 
+        if force_tsv:
             self.format["force_tsv"] = True
 
         config.log.info("Bound '%s' as a delayedlist" % filename)
@@ -88,14 +87,14 @@ class delayedlist(genelist):
 
         assert "peaklist" in kargs or "genelist" in kargs or "microarray" in kargs, "You must provide a genelist-like object"
         assert "loc_key" in kargs, "You must provide a 'loc_key' name"
-        
-        if "peaklist" in kargs: 
+
+        if "peaklist" in kargs:
             gene_list = kargs["peaklist"]
-        elif "genelist" in kargs: 
+        elif "genelist" in kargs:
             gene_list = kargs["genelist"]
         elif "microarray" in kargs:
             gene_list = kargs["microarray"]
-        
+
         assert kargs["loc_key"] in gene_list[0]
         assert kargs["loc_key"] in next(self.__iter__()) # get an item and test it
         self._optimiseData()
@@ -140,11 +139,11 @@ class delayedlist(genelist):
                 for _ in f: lines += 1
 
             else: # gzipped file variant
-                f = gzip.open(self.fullpath, 'rb') # must be rb :(  
+                f = gzip.open(self.fullpath, 'rb') # must be rb :(
                 for _ in f.readlines(): lines += 1
             self.__len_estimate = lines-1 # start from 0
 
-        return(self.__len_estimate) # 
+        return(self.__len_estimate) #
 
     def __getitem__(self, index):
         """
@@ -166,11 +165,11 @@ class delayedlist(genelist):
         try:
             column = next(self.__reader) # get started
             self.cindex += 1
-            
+
             while column:
                 d = None
                 while not d:
-                    if column: # list is empty, so omit.  
+                    if column: # list is empty, so omit.
                         if "commentlines" in self.format:
                             if column[0][0] == self.format["commentlines"]: # csv will split the table and returns a list
                                 column = None # force a skip of this row, don't use continue it will just hang
@@ -178,7 +177,7 @@ class delayedlist(genelist):
                             elif column[0].startswith(self.format["commentlines"]):
                                 column = None
                                 d = None
-                    
+
                     if column:
                         if "keepifxin" in self.format:
                             if True in [self.format["keepifxin"] in i for i in column]:
@@ -190,19 +189,19 @@ class delayedlist(genelist):
                         else: # just do normally
                             if (not (column[0] in typical_headers)):
                                 d = self._processKey(self.format, column)
-                    
+
                     if not d: # d is bad, grab another
                         column = next(self.__reader)
                         self.cindex += 1
-                
-                # I do quoting = NONE now, so I need to manually deal with containing quotes.  
+
+                # I do quoting = NONE now, so I need to manually deal with containing quotes.
                 for k in d: # d must be valid to get here
-                    if isinstance(d[k], str): # only for strings 
+                    if isinstance(d[k], str): # only for strings
                         if d[k][0] == "'" and d[k][-1] == "'":
                             d[k] = d[k].strip("'")
-                        if d[k][0] == '"' and d[k][-1] == '"': 
+                        if d[k][0] == '"' and d[k][-1] == '"':
                             d[k] = d[k].strip('"')
-                
+
                 yield d # d should be valid
                 column = next(self.__reader) # get the next item
                 self.cindex += 1
@@ -218,15 +217,15 @@ class delayedlist(genelist):
         This makes the iterator work like you would expect:
         a new iterator will go back to the beginning of the list.
         """
-        if self.filehandle: 
+        if self.filehandle:
             self.filehandle.close()
 
         if not self.gzip:
             self.filehandle = open(self.fullpath, "rt")
         else:
             self.filehandle = gzip.open(self.fullpath, 'rt') # must be rb :(
-        
-        
+
+
         if "force_tsv" in self.format and self.format["force_tsv"]:
             self.__reader = csv.reader(self.filehandle, dialect=csv.excel_tab, quoting=csv.QUOTE_NONE)
         elif "dialect" in self.format:
@@ -439,40 +438,40 @@ class delayedlist(genelist):
     def getSequences(self, FASTAfilename, genome, loc_key="loc", delta=False):
         """
         **Purpose**
-            write out a FASTA file on the fly. 
-            This is so that delayed lists can cope with 
+            write out a FASTA file on the fly.
+            This is so that delayed lists can cope with
             sequence retrieval.
-            
+
             The current arrangement genome.getSequences() will
             copy the delayedlist into memory as it adds sequence to
-            each key. That kind of defeats the object of the 
-            delayedlists. 
-            
+            each key. That kind of defeats the object of the
+            delayedlists.
+
             This function will write out a FASTA file without loading
             the delayedlist into memory.
-            
+
             However, this function will always return 'None'
-            
+
         **Arguments**
             FASTAfilename
                 name of the FASTA file to save the sequence to.
-                
+
             genome
                 a genome object with a bound sequence attached.
-                
+
             loc_key (Optional, default="loc")
                 the location key to use for the genome spans
-            
+
             name_key (Optional, default=None)
                 a key to use as the name of the fasta entry.
                 default is None. This will use an index number for
                 each fasta entry, of the form: "<genome.name>_<index>"
-            
+
             delta (Optional, default=False)
                 an integer describing the symmetric span around the centre
                 of the region to take
                 set to False to use only the coords specified in the loc_key
-                
+
         **Returns**
             None
         """

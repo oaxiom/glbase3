@@ -13,7 +13,6 @@ from . import utils
 from .helpers import *
 from .location import location
 from .draw import draw
-from .history import historyContainer
 from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 from .progress import progressbar
 from .base_genelist import _base_genelist
