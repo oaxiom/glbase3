@@ -110,7 +110,6 @@ from .logos import logo
 from .draw import draw
 from .format_container import fc
 from .fastq import fastq
-from .glgo import glgo
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
 from .massspec import massspec
@@ -148,7 +147,6 @@ __all__ = [
     "flat_track",
     "delayedlist",
     'massspec',
-    "glgo",
     "glglob",
     "hic",# primary objects
     'config',
