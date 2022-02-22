@@ -54,7 +54,7 @@ else:
 if 'h5py' in available_modules:
     config.H5PY_AVAIL = True
 else:
-    config.log.warning('h5py not available or not installed')
+    raise LibraryNotFoundError("Fatal - h5py not available or not installed")
 
 if 'networkx' in available_modules:
     config.NETWORKX_AVAIL = True
