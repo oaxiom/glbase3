@@ -164,8 +164,8 @@ class Test_Expression(unittest.TestCase):
         self.assertEqual(slic[0]["conditions"], [2.0, 4.0, 3.0])
         self.assertEqual(slic[2]["conditions"], [3.0, 1.0, 2.0])
 
-        self.assertRaises(gl.errors.AssertionError, self.expn_err.sliceConditions, '1234')
-        self.assertRaises(gl.errors.AssertionError, self.expn_err.sliceConditions, 1234)
+        self.assertRaises(AssertionError, self.expn_err.sliceConditions, '1234')
+        self.assertRaises(AssertionError, self.expn_err.sliceConditions, 1234)
         slic = self.expn_err.sliceConditions(sorted(self.expn_err.getConditionNames()))
 
     def test_reloading_from_numpy_array(self):
