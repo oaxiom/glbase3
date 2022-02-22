@@ -59,6 +59,7 @@ class manifold_tsne(base_manifold):
             raise AssertionError('num_pcs must be either an integer or a list')
 
         self.__model = TSNE(n_components=2,
+            learning_rate='auto',
             perplexity=perplexity,
             init='pca',
             random_state=self.random_state,
