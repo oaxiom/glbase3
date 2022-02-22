@@ -58,22 +58,30 @@ else:
 
 if 'networkx' in available_modules:
     config.NETWORKX_AVAIL = True
-    # pass silently as pygraphviz is optional.
+else:
+    config.log.warning('networkx not available')
 
 if 'pygraphviz' in available_modules:
     config.PYGRAPHVIZ_AVAIL = True
+else:
+    pass
     # pass silently as pygraphviz is optional.
 
 if 'graphviz' in available_modules: # sometimes comes in the wrong namespace!
     config.PYGRAPHVIZ_AVAIL = True
+else:
+    pass
     # pass silently as pygraphviz is optional.
 
 if 'pydot' in available_modules:
     config.PYDOT_AVAIL = True
-    # pass silently as pydot is optional.
+else:
+    config.log.warning('pydot not available')
 
 if 'statsmodels' in available_modules:
     config.STATSMODELS_AVAIL = True
+else:
+    config.log.warning('statsmodels not available')
 
 #try:
 #    import numexpr

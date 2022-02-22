@@ -30,15 +30,14 @@ from .format import minimal_bed
 if config.STATSMODELS_AVAIL:
     from statsmodels.nonparametric.smoothers_lowess import lowess
 else:
-    raise AssertionError('Asked for a hic, but statsmodels is not available')
+    config.log.warning('Asked for a hic, but statsmodels is not available')
 
 import matplotlib.pyplot as plot
 
 if config.H5PY_AVAIL:
     import h5py
 else:
-    raise AssertionError('Asked for a hic, but h5py is not available')
-
+    config.log.warning('Asked for a hic, but h5py is not available')
 
 def reshap_mats2(mat, dimX, dimY):
     '''
