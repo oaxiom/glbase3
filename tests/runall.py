@@ -18,7 +18,6 @@ from test_annotate import Test_Annotate
 from test_collisions import Test_Collisions_Overlaps
 from test_delayedlist import Test_Delayedlist
 from test_draw import Test_Draw
-from test_ecrbase import Test_EcrBase_Interface
 from test_expression import Test_Expression
 from test_fastq import Test_Fastq
 from test_flats import Test_Flat_Function
@@ -44,7 +43,6 @@ def get_suite():
         unittest.TestLoader().loadTestsFromTestCase(Test_Flat_Function),
         unittest.TestLoader().loadTestsFromTestCase(Test_Delayedlist),
         unittest.TestLoader().loadTestsFromTestCase(Test_Expression),
-        unittest.TestLoader().loadTestsFromTestCase(Test_EcrBase_Interface),
         unittest.TestLoader().loadTestsFromTestCase(Test_Utils),
         unittest.TestLoader().loadTestsFromTestCase(Test_Annotate),
         unittest.TestLoader().loadTestsFromTestCase(Test_TSVCSV),
