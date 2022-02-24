@@ -18,16 +18,16 @@ class Test_Location(unittest.TestCase):
     def test_loading(self):
         a = location(loc="Chr1:10-20")
         self.assertEqual(str(a), "chr1:10-20")
-        
+
         a = location(chr="1", left=1000, right=2000)
         self.assertEqual(str(a), "chr1:1000-2000")
-        
+
         a = location(chr=1, left=1000, right=2000)
         self.assertEqual(str(a), "chr1:1000-2000")
-        
+
         a = location(chr="X", left=1000, right=2000)
         self.assertEqual(str(a), "chrX:1000-2000")
-        
+
         a = location(loc="Chr2_RANDOM:100-200") # should still load...
         self.assertEqual(str(a), "chr2_RANDOM:100-200")
 
@@ -122,7 +122,7 @@ class Test_Location(unittest.TestCase):
         self.assertEqual(a.qcollide(location(loc="chr1:20-20")), True) # edge right
         self.assertEqual(a.qcollide(location(loc="chr1:21-21")), False) # edge right
         self.assertEqual(a.qcollide(location(loc="chr1:9-9")), False) # edge right
-        
+
         # qcollide() is not the expected method. These should fail as qcollide
         # does not check chromosome.
         self.assertEqual(a.qcollide(location(loc="chr2:12-16")), True) # This will pass for qcollide()
@@ -135,10 +135,10 @@ class Test_Location(unittest.TestCase):
         self.assertEqual(a.collide(location(loc="chr1:15-25")), True) # right overhang
         self.assertEqual(a.collide(location(loc="chr1:5-15")), True) # left overhang
         self.assertEqual(a.collide(location(loc="chr1:5-25")), True) # outdies
-        self.assertEqual(a.collide(location(loc="chr1:10-10")), True) # edghe left
-        self.assertEqual(a.collide(location(loc="chr1:20-20")), True) # edghe right
-        self.assertEqual(a.collide(location(loc="chr1:21-21")), False) # edghe right
-        self.assertEqual(a.collide(location(loc="chr1:9-9")), False) # edghe right
+        self.assertEqual(a.collide(location(loc="chr1:10-10")), True) # edge left
+        self.assertEqual(a.collide(location(loc="chr1:20-20")), True) # edge right
+        self.assertEqual(a.collide(location(loc="chr1:21-21")), False) # edge right
+        self.assertEqual(a.collide(location(loc="chr1:9-9")), False) # edge right
         self.assertEqual(a.collide(location(loc="chr2:12-16")), False) # chromosome fail
         self.assertEqual(a.collide(location(loc="chr2:8-9")), False) # chromosome and loc fail
 
@@ -175,7 +175,7 @@ class Test_Location(unittest.TestCase):
         a = location("chr1:1000-2000")
         l = a.pointLeft()
         r = a.pointRight()
-        
+
         self.assertEqual(l, "chr1:1000-1000")
         self.assertEqual(r, "chr1:2000-2000")
 

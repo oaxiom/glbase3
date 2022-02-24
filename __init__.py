@@ -122,7 +122,6 @@ from .draw import adjust_text
 from .hic import hic, merge_hiccys
 from .massspec import massspec
 from .glgo import glgo
-#from .ecrbase import ecrbase, tfbs_iter
 #from .region import region
 #from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
 from . import realtime

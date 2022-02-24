@@ -107,11 +107,7 @@ class location:
     these methods below should copy the location and send a modified version back.
     """
     def expand(self, base_pairs):
-        new = copy.deepcopy(self)
-        new.loc["left"] -= base_pairs
-        new.loc["right"] += base_pairs
-        new.__update()
-        return new
+        return location(chr=self.loc['chr'], left=self.loc["left"] - base_pairs, right=self.loc["right"] + base_pairs)
 
     def expandLeft(self, base_pairs):
         new = copy.deepcopy(self)
@@ -163,14 +159,11 @@ class location:
         return new
 
     def pointify(self):
-        new = copy.deepcopy(self)
         centre = (self.loc["left"] + self.loc["right"]) // 2
-        new.loc = {"chr": self.loc["chr"], "left": centre, "right": centre}
-        new.__update()
-        return new
+        return location(chr=self.loc['chr'], left=centre, right=centre)
 
     def collide(self, loc):
-        if loc["chr"] != self["chr"]:
+        if loc.loc["chr"] != self.loc["chr"]:
             return(False)
         return self.loc["right"] >= loc.loc["left"] and self.loc["left"] <= loc.loc["right"]
 
@@ -204,9 +197,7 @@ class location:
         (Internal)
         ignore the assert.
         """
-        centreA = (self.loc["left"] + self.loc["right"]) // 2
-        centreB = (loc["left"] + loc["right"]) // 2
-        return centreA - centreB
+        return ((self.loc["left"] + self.loc["right"]) // 2) - ((loc["left"] + loc["right"]) // 2)
 
     def __sub__(self, loc):
         """
@@ -215,7 +206,7 @@ class location:
 
             distance = locA - locB
         """
-        return(self.distance(loc))
+        return self.distance(loc)
 
     def offset(self, base_pairs):
         """
