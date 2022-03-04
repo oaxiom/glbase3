@@ -321,7 +321,7 @@ class manifold_SOM(object):
                 for i in range(self.dim):
                     cc.append ('Variable-'+ str(i+1))
                     self.compnames = np.asarray(cc)[np.newaxis,:]
-            except:
+            except TypeError:
                 print('no data yet: please first set training data to the SOM')
         else:
             assert len(compname) == self.dim, 'compname should have the same size'

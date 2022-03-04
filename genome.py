@@ -216,7 +216,7 @@ class genome(genelist):
 
         try:
             loc = location(loc=loc)
-        except:
+        except TypeError, IndexError:
             raise AssertionError("cannot cooerce location into correct form. Location is mangled?")
 
         ret = []

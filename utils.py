@@ -645,7 +645,7 @@ def transpose(list):
     """
     try:
         rows = len(list[0])
-    except:
+    except TypeError, IndexError:
         rows = 1 # probably.
     cols = len(list)
 
@@ -748,7 +748,6 @@ def hex_to_rgb(hex_str):
     return tuple((int(hex_str.lstrip('#')[i:i+2], 16)/255) for i in (0, 2, 4))
 
 def qdeepcopy(anobject):
-    # You should wrap me in a try: except:
     return pickle.loads(pickle.dumps(anobject, -1))
 
 def fastq(filename, gzip=False):

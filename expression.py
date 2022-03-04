@@ -567,7 +567,7 @@ class expression(base_expression):
             A new expression-data object with the same settings as the original,
             but containing only the expression-data conditions specified in
             the 'conditions' argument.
-            
+
         """
         assert conditions, "sliceConditions: You must specify a list of conditions to keep"
         assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
@@ -2562,73 +2562,6 @@ class expression(base_expression):
             item["conditions"].append(toAdd)
         self._optimiseData()
         return(True)
-
-    def cumulative_distributions(self, genelists=None, filename=None, key=None, **kargs):
-        """
-        **Purpose**
-
-            draw a set of cumulative distributions, based on a selection
-            of genelist-like objects that can be mapped to
-            this expression object using 'key'
-
-        **Arguments**
-
-            genelists (Required)
-                a list or other iterable of genelists
-
-            filename (Required)
-                the filename to save the image to.
-
-            key (Required)
-                the key to use to match the microarray to the genelist.
-
-        **Returns**
-
-            An image, saved to 'filename'
-        """
-        valig_args = ["genelists", "filename", "key"]
-        for k in kargs:
-            if k not in valig_args:
-                raise ArgumentError(self.cumulative_distributions, k)
-
-        assert filename, "you must specify a valid filename"
-        assert key, "you must specify a mapping key"
-        assert genelists[0], "you must specify a valid list of genelists"
-        assert key in genelists[0], "key '%s' not found in the genelists" % key
-        assert key in self, "key '%s' not found in the expression-data" % key
-
-        mapped_scores = []
-
-        fig = self.draw.getfigure(**kargs)
-        ax = fig.add_subplot(111)
-        axis = fig.add_subplot(111)
-
-        for g in genelists:
-            mapped = self.map(genelist=g, key=key)
-
-            nmap = []
-            # this will sum all items in array.
-            for a in mapped:
-                print(a["conditions"])
-                s = sum(a["conditions"])
-                nmap.append(s)
-
-            # cumulate the nmap
-            for i, v in enumerate(nmap):
-                try:
-                    nmap[i] = nmap[i] + nmap[i+1]
-                except:
-                    break
-
-            print(nmap)
-
-        # matplotlib junk is inappropriately here: to go later.
-
-        axis.plot(nmap, label=g.name)
-
-        axis.set_title("")
-        #axis.show_legend()
-        fig.savefig(filename)
 
     def drawBarChart(self, gene_symbols=None, filename=None, key=None, labels=None,
         errs_are_absolute=False, error_keys=None, fake_entries=True, **kargs):

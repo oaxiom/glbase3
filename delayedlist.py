@@ -14,13 +14,7 @@ from .genelist import genelist
 from .errors import AssertionError, NotSupportedError, DelayedListError
 from .location import location
 
-# try to load non-standard libs.
-try:
-    import matplotlib.pyplot as plot
-    MATPLOTLIB_AVAIL = True
-except:
-    print("Warning: matplotlib not available or not installed")
-    MATPLOTLIB_AVAIL = False
+import matplotlib.pyplot as plot
 
 class delayedlist(genelist):
     """
@@ -214,7 +208,7 @@ class delayedlist(genelist):
         (Override)
         Impossible to optimise the data.
         so we just reset the entry point.
-        This makes the iterator work like you would expect:
+        This makes the iterator work like you would expect
         a new iterator will go back to the beginning of the list.
         """
         if self.filehandle:
