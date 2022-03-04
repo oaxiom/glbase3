@@ -207,7 +207,7 @@ class genome_sql(base_track):
 
         try:
             loc = location(loc=loc)
-        except TypeError, IndexError:
+        except (TypeError, IndexError):
             raise AssertionError("cannot cooerce location into correct form. Location is mangled?")
 
         table_name = "chr_%s" % loc["chr"]

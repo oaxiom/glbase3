@@ -645,7 +645,7 @@ def transpose(list):
     """
     try:
         rows = len(list[0])
-    except TypeError, IndexError:
+    except (TypeError, IndexError):
         rows = 1 # probably.
     cols = len(list)
 
