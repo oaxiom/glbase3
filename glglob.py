@@ -1439,7 +1439,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         # Also add it into the return data.
                         if cluster_index+1 not in ret_data:
                             ret_data[cluster_index+1] = {"genelist": genelist(name="cluster_%s" % (cluster_index+1,)), "cluster_membership": cluster_id["id"]}
-                        this_loc = location(loc="chr%s:%s-%s" % (chrom, int(block_id[0]), int(block_id[1]))) # does not include the pileup_distance
+                        this_loc = location(loc=f"chr{chrom}:{int(block_id[0])}-{int(block_id[1])}") # does not include the pileup_distance
                         ret_data[cluster_index+1]["genelist"].linearData.append({"loc": this_loc})
                         groups.append(cluster_index+1)
 
@@ -1475,7 +1475,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 colbar_label = "Tag density"
 
         if norm_by_library_size:
-            colbar_label = "Normalised %s" % colbar_label
+            colbar_label = f"Normalised {colbar_label}"
 
         self.__pileup_y_label = "Tag density" # Trust me, you don't want to log them...
 
@@ -1578,10 +1578,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             maxy = max([a.max() for a in self.__pileup_data[cid]])
             miny = min([a.min() for a in self.__pileup_data[cid]])
 
-            for cfig, data in enumerate(self.__pileup_data[cid]):
+            for cfig, data in enumerate(zip(self.__pileup_data[cid], self.__pileup_groups_membership[cid-1]["id"])):
+                membership = data[1]
+                data = data[0]
                 ax = fig.add_subplot(1, len(self.__pileup_data[cid]), cfig+1)
                 x = numpy.arange(len(data))
-                ax.plot(x, data)
+                if membership:
+                    ax.plot(x, data, c='red')
+                else:
+                    ax.plot(x, data)
 
                 ax.set_xlim([0, maxx-2]) # -2 to trim off the unsightly tail due to binning.
                 [t.set_visible(False) for t in ax.get_xticklabels()]
@@ -1594,8 +1599,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
                 self.draw.do_common_args(ax, **kargs)
 
-            self.draw.savefigure(fig, this_filename)
-            config.log.info('Saved {}'.format(this_filename))
+            real_filename = self.draw.savefigure(fig, this_filename)
+            config.log.info(f'Saved {real_filename}')
         return self.__pileup_data
 
     def genome_dist_radial(self, genome, layout, filename=None, randoms=None, **kargs):
@@ -2486,7 +2491,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not range_bracket: # suggest reasonable range;
                 range_bracket = [0.02, 0.1]
 
-        if norm_by_library_size or normalize:
+        if norm_by_library_size:
             colbar_label = "Normalised {}".format(colbar_label)
 
             # Data is always saved unnormalised;
