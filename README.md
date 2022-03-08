@@ -1,3 +1,5 @@
+![Tests](https://github.com/oaxiom/glbase3/actions/workflows/tests.yml/badge.svg)
+
 # README #
 
 ### What is glbase3? ###
