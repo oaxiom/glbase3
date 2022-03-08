@@ -210,12 +210,12 @@ class flat_track():
             except TypeError: # probably a location string. try to cooerce
                 loc = location(loc=loc)
                 # Don't catch any exceptions here. Should break.
-            c = str(loc['chr'])
-            left = int(loc['left'])
-            rite = int(loc['right'])
+            c = str(loc.loc['chr'])
+            left = int(loc.loc['left'])
+            rite = int(loc.loc['right'])
 
         if 'chr' not in c:
-            c = 'chr{0}'.format(c)
+            c = f'chr{c}'
 
         ret_array = self.mats[c][left:rite]
 
@@ -581,7 +581,12 @@ class flat_track():
         __already_warned = []
 
         for gl in genelists:
-            for loc, strand in zip(gl['loc'], gl['strand']):
+            if respect_strand:
+                strands = gl['strand']
+            else: # put a placeholder if not using strand
+                strands = ['+'] * len(gl)
+
+            for loc, strand in zip(gl['loc'], strands):
                 loc_chrom = loc['chr']
 
                 if loc_chrom not in available_chroms:
