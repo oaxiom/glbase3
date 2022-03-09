@@ -407,6 +407,7 @@ class draw:
             kargs["aspect"] = "long"
         fig = self.getfigure(**kargs)
 
+        row_order = False
         if row_cluster:
             # ---------------- Left side plot (tree) -------------------
             ax1 = fig.add_subplot(141)
@@ -455,6 +456,7 @@ class draw:
             if row_colbar:
                 row_colbar = [row_colbar[index] for index in row_order]
 
+        col_order = False
         if col_cluster:
             # ---------------- top side plot (tree) --------------------
             transposed_data = data.T
