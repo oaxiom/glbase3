@@ -3326,6 +3326,7 @@ class expression(base_expression):
 
     def barh_single_item(self, key=None, value=None, filename=None, tree=None,
         plot_mean=True, plot_stdev=False, fold_change=False, tight_layout=False,
+        vline_for_condition=None,
         bar_cols=None, vert_space=0.75, hori_space=0.5, **kargs):
         """
         **Purpose**
@@ -3357,6 +3358,9 @@ class expression(base_expression):
 
             bar_cols (Optional, default=None)
                 a list of colours to use to colour the bars
+
+            vline_for_condition (Optiona, default=False)
+                draw a vline for the indicated condition
 
             fold_change (Optional, default=False)
                 by default barh_single_itme expects absolute levels of expression, but if you want to
@@ -3394,10 +3398,18 @@ class expression(base_expression):
 
         if not item:
             config.log.warning("barh_single_item: '%s:%s' not found in this list, not saving" % (key, value))
-            return(None)
+            return None
 
         if not bar_cols:
             bar_cols = 'grey'
+
+        if vline_for_condition:
+            assert vline_for_condition in self._conditions, f"{vline_for_condition} not found in this expression data"
+            val = item['conditions'][self._conditions.index(vline_for_condition)]
+            if 'vlines' in kargs and kargs:
+                kargs['vlines'].append(val)
+            else:
+                kargs['vlines'] = [val,]
 
         err = None
         # re-order "conditions" by tree, if present:
@@ -3495,6 +3507,7 @@ class expression(base_expression):
             fig.tight_layout()
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("barh_single_item: Saved '%s'" % actual_filename)
+
         return item
 
     def violinplot_by_conditions(self,
