@@ -4173,8 +4173,14 @@ class expression(base_expression):
         config.log.info("bundle: Saved '%s'" % actual_filename)
         return res
 
-    def volcano(self, condition_name, p_value_key, label_key=None, filename=None,
-        label_fontsize=6, label_significant=0.01, **kargs):
+    def volcano(self,
+        condition_name,
+        p_value_key,
+        label_key=None,
+        filename=None,
+        label_fontsize:int =6,
+        label_significant=0.01,
+        **kargs):
         """
         **Purpose**
             draw a Volcano plot (fold change versus P/Q-value

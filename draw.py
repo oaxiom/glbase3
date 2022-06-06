@@ -2731,7 +2731,11 @@ class draw:
 
         pos = numpy.arange(len(order))
 
-        r = ax.violinplot([data[k] for k in order], pos, points=50, widths=0.5,
+        r = ax.violinplot(
+            [data[k] for k in order],
+            pos,
+            points=50,
+            widths=0.5,
             showmeans=mean,
             showmedians=median,
             )
@@ -3043,7 +3047,6 @@ class draw:
             labs.append(k)
             for kk in all_keys:
                 vals[kk].append(float(data_dict[k][kk]))
-        print(vals)
 
         scaled = {k: [] for k in all_keys}
         sums = None
@@ -3090,10 +3093,79 @@ class draw:
         [t.set_fontsize(6) for t in ax.get_xticklabels()]
         fig.savefig(filename)
         fig.savefig(filename.replace('.png', '.pdf'))
-        print('Saved %s' % filename)
         self.do_common_args(ax, **kargs)
         fig.savefig(filename)
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("proportional_bar: Saved '{0}'".format(real_filename))
+        return real_filename
+
+    def boxplots_vertical(self,
+        filename,
+        data,
+        qs=None,
+        title=None,
+        xlims=None,
+        sizer=0.022,
+        vert_height=4,
+        cols='lightgrey',
+        bot_pad=0.1,
+        showmeans=False,
+        **kargs):
+
+        assert filename, 'A filename to save the image to is required'
+
+        plot.rcParams['pdf.fonttype'] = 42
+
+        mmheat_hei = 0.1+(sizer*len(data))
+
+        fig = self.getfigure(**kargs)
+        fig.subplots_adjust(left=0.4, right=0.8, top=mmheat_hei, bottom=bot_pad)
+        ax = fig.add_subplot(111)
+        ax.tick_params(right=True)
+
+        dats = list(data.values())
+        r = ax.boxplot(
+            dats,
+            showfliers=False,
+            whis=True,
+            patch_artist=True,
+            widths=0.5,
+            vert=False,
+            showmeans=showmeans)
+
+        print([i.get_data() for i in r['medians']])
+
+        plot.setp(r['medians'], color='black', lw=2) # set nicer colours
+        plot.setp(r['boxes'], color='black', lw=0.5)
+        plot.setp(r['caps'], color="grey", lw=0.5)
+        plot.setp(r['whiskers'], color="grey", lw=0.5)
+
+        ax.set_yticks(numpy.arange(len(data.keys()))+1)
+        ax.set_yticklabels(data.keys())
+
+        xlim = ax.get_xlim()[1]
+        if xlims:
+            ax.set_xlim(xlims)
+            xlim = xlims[1]
+
+        if qs:
+            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+                ax.text(xlim+(xlim/8), i+1, '{:.1f}'.format(qs[k]), ha='left', va='center', fontsize=6,)
+
+        for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+            p.set_facecolor(cols[i])
+
+        if title:
+            ax.set_title(title, fontsize=6)
+
+        [t.set_fontsize(6) for t in ax.get_yticklabels()]
+        [t.set_fontsize(6) for t in ax.get_xticklabels()]
+
+        self.do_common_args(ax, **kargs)
+
+        fig.savefig(filename)
+
+        real_filename = self.savefigure(fig, filename)
+        config.log.info(f"boxplots_vertical: Saved '{real_filename}'")
         return real_filename

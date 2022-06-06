@@ -1685,7 +1685,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
     def GO_heatmap(self, filename, p_value_limit=0.01, num_top=5, pvalue_key='pvalue',
             size=[8, 6], bracket=[1.3,4], row_cluster=True, col_cluster=False, # heatmap args
-            heat_wid=0.15, cmap=cm.Reds, border=True, row_font_size=7,
+            heat_wid=0.15, cmap=cm.Reds, border=True, row_font_size=6,
             heat_hei='proportional', grid=True, ontology=None, draw_numbers_fmt='{:.1f}',
             draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5, do_negative_log10=True,
             **kargs):
@@ -1806,10 +1806,10 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         goex = expression(loadable_list=newe, cond_names=cond_names)
         if len(goex) == 0:
             config.log.warning('GO list was empty, skipping')
-            return(False)
+            return False
 
         if heat_hei == 'proportional':
-            heat_hei=0.011*len(goex)
+            heat_hei=0.008*len(goex)
 
         res = goex.heatmap(filename=filename, size=size, bracket=bracket,
             row_cluster=row_cluster, col_cluster=col_cluster,
@@ -1820,7 +1820,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             draw_numbers_fmt=draw_numbers_fmt,
             draw_numbers_font_size=draw_numbers_font_size)
         config.log.warning("GO_heatmap: Saved heatmap '%s'" % filename)
-        return(reversed(res["reordered_rows"]))
+        return reversed(res["reordered_rows"])
 
     def measure_density(self, trks, peaks, norm_by_library_size=True, log=False,
         read_extend=0, pointify=True, expand=1000,
