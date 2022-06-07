@@ -327,6 +327,7 @@ class massspec(base_expression):
         minimum_unique_peptides,
         minimum_intensity,
         species,
+        remove_fusions=True,
         ):
         '''
         **Purpose**
@@ -353,6 +354,9 @@ class massspec(base_expression):
                 Hs : Human
                 Mm : Mouse
 
+            remove_fusions (Optional, default=True)
+                remove fusion genes (i.e. with a '-' character)
+
         **Returns**
             number of peptides deleted
 
@@ -365,7 +369,8 @@ class massspec(base_expression):
         if mode == 'coip':
             newl = self.__filter_coipms(minimum_unique_peptides=minimum_unique_peptides,
                 minimum_intensity=minimum_intensity,
-                species=species)
+                species=species,
+                remove_fusions=remove_fusions)
 
         if not newl:
             raise AssertionError('All peptides have been filtered out, list is empty')
@@ -377,12 +382,14 @@ class massspec(base_expression):
         config.log.info(f'filter: List now {len(self)} peptides long')
         return starting_len - len(self)
 
-    def __filter_coipms(self, minimum_unique_peptides, minimum_intensity, species):
+    def __filter_coipms(self, minimum_unique_peptides, minimum_intensity, species, remove_fusions):
         newl = []
 
         for pep in self.linearData:
             pep_name = pep['name']
             # Simple filter for common contaminants
+            if remove_fusions and '-' in pep_name: continue
+
             if True in [pep_name.startswith(i) for i in self.supported_species[species]]: continue
 
             if True not in [i>minimum_unique_peptides for i in pep['peptide_counts']]:
