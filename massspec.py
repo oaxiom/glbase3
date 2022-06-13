@@ -25,7 +25,7 @@ class massspec(base_expression):
     valid_datasets = {'intensities', 'call', 'fold_change'}
     supported_species = {
         'Hs': {'RPL', 'RPS', 'TUB', 'GAPDH', 'ACT',
-            'MRPS', 'sm-', 'MYH', 'FLN', 'MYO1D',
+            'MRPS', 'sm-', 'MYH', 'FLN', 'MYO', 'APOA1',
             'MYL',
             'IGHG', 'IGLV', 'IGHV', 'IGKV',
             'COL',

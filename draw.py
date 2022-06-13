@@ -3134,7 +3134,7 @@ class draw:
             vert=False,
             showmeans=showmeans)
 
-        print([i.get_data() for i in r['medians']])
+        #print([i.get_data() for i in r['medians']])
 
         plot.setp(r['medians'], color='black', lw=2) # set nicer colours
         plot.setp(r['boxes'], color='black', lw=0.5)
@@ -3153,8 +3153,12 @@ class draw:
             for i, k, p in zip(range(0, len(data)), data, r['boxes']):
                 ax.text(xlim+(xlim/8), i+1, '{:.1f}'.format(qs[k]), ha='left', va='center', fontsize=6,)
 
-        for i, k, p in zip(range(0, len(data)), data, r['boxes']):
-            p.set_facecolor(cols[i])
+        if isinstance(cols, list):
+            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+                p.set_facecolor(cols[i])
+        else:
+            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+                p.set_facecolor(cols)
 
         if title:
             ax.set_title(title, fontsize=6)
