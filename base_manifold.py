@@ -176,7 +176,7 @@ class base_manifold:
             cluster_centroids=self.centroids,
             draw_clusters=draw_clusters,
             **kargs
-        )
+            )
 
     def cluster(self, method=None, num_clusters=None, filename=None):
         '''
