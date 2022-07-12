@@ -1292,91 +1292,6 @@ class draw:
 
         return self.savefigure(fig, filename)
 
-    def cute_boxplot(self,
-        filename:str,
-        data,
-        qs=None,
-        title:str = None,
-        xlims=None,
-        sizer:float = 0.022,
-        vert_height:int = 4,
-        colors = None,
-        bot_pad = 0.1,
-        vlines = [0], # override the do_comon_args
-        hlines = None, # override the do_comon_args
-        showmeans = False,
-        showfliers = False,
-        **kargs):
-
-        assert filename, 'You must specify a filename'
-        if isinstance(colors, list): assert len(colors) == len(data.keys()), 'colors is not the same length as the data'
-        if isinstance(qs, list): assert len(colors) == len(data.keys()), 'qs is not the same length as the data'
-
-        # Because it draws bottom to top, almost always the user will prefer if the
-        # data is reversed.
-
-        keys = list(data.keys())
-        keys.reverse()
-        dats = list(data.values())
-        dats.reverse()
-        if qs: qs.reverse()
-        if colors: colors.reverse()
-
-        mmheat_hei = 0.1+(sizer*len(data))
-
-        if 'figsize' not in kargs:
-            kargs['figsize'] = [2.8,vert_height]
-
-        fig = self.getfigure(**kargs)
-
-        fig.subplots_adjust(left=0.4, right=0.8, top=mmheat_hei, bottom=bot_pad)
-        ax = fig.add_subplot(111)
-
-        ax.tick_params(right=True)
-
-        m = 0
-        if vlines:
-            [ax.axvline(vli, ls=":", lw=0.5, color="grey") for vli in vlines]
-        if hlines:
-            [ax.axhline(vli, ls=":", lw=0.5, color="grey") for vli in hlines]
-
-        r = ax.boxplot(dats,
-            showfliers=showfliers,
-            whis=True,
-            patch_artist=True,
-            widths=0.5,
-            vert=False,
-            showmeans=showmeans)
-
-        plot.setp(r['medians'], color='black', lw=2) # set nicer colours
-        plot.setp(r['boxes'], color='black', lw=0.5)
-        plot.setp(r['caps'], color="grey", lw=0.5)
-        plot.setp(r['whiskers'], color="grey", lw=0.5)
-
-        ax.set_yticks(numpy.arange(len(data.keys()))+1)
-        ax.set_yticklabels(keys)
-
-        xlim = ax.get_xlim()[1]
-        if xlims:
-            ax.set_xlim(xlims)
-            xlim = xlims[1]
-
-        if qs:
-            for i, q, p in zip(range(0, len(keys)+1), qs, r['boxes']):
-                ax.text(xlim+(xlim/8), i+1, '{:.1e}'.format(q), ha='left', va='center', fontsize=6,)
-
-        if isinstance(colors, list):
-            [p.set_facecolor(k) for k, p in zip(colors, r['boxes'])]
-
-        if title:
-            ax.set_title(title, fontsize=6)
-
-        [t.set_fontsize(6) for t in ax.get_yticklabels()]
-        [t.set_fontsize(6) for t in ax.get_xticklabels()]
-
-        self.do_common_args(ax, **kargs)
-        return self.savefigure(fig, filename)
-
     def _scatter(self, x=None, y=None, filename=None, **kargs):
         """
         super thin wrapper aroung matplotlib's scatter
@@ -3102,7 +3017,8 @@ class draw:
 
     def boxplots_vertical(self,
         filename,
-        data,
+        data_as_list,
+        data_labels,
         qs=None,
         title=None,
         xlims=None,
@@ -3111,22 +3027,22 @@ class draw:
         cols='lightgrey',
         bot_pad=0.1,
         showmeans=False,
+        cond_order=None,
         **kargs):
 
         assert filename, 'A filename to save the image to is required'
 
         plot.rcParams['pdf.fonttype'] = 42
 
-        mmheat_hei = 0.1+(sizer*len(data))
+        mmheat_hei = 0.1+(sizer*len(data_as_list))
 
         fig = self.getfigure(**kargs)
         fig.subplots_adjust(left=0.4, right=0.8, top=mmheat_hei, bottom=bot_pad)
         ax = fig.add_subplot(111)
         ax.tick_params(right=True)
 
-        dats = list(data.values())
         r = ax.boxplot(
-            dats,
+            data_as_list,
             showfliers=False,
             whis=True,
             patch_artist=True,
@@ -3141,8 +3057,8 @@ class draw:
         plot.setp(r['caps'], color="grey", lw=0.5)
         plot.setp(r['whiskers'], color="grey", lw=0.5)
 
-        ax.set_yticks(numpy.arange(len(data.keys()))+1)
-        ax.set_yticklabels(data.keys())
+        ax.set_yticks(numpy.arange(len(data_labels))+1)
+        ax.set_yticklabels(data_labels)
 
         xlim = ax.get_xlim()[1]
         if xlims:
@@ -3150,14 +3066,16 @@ class draw:
             xlim = xlims[1]
 
         if qs:
-            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
-                ax.text(xlim+(xlim/8), i+1, '{:.1f}'.format(qs[k]), ha='left', va='center', fontsize=6,)
+            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, qs):
+                if p < 0.05:
+                    ax.text(xlim+(xlim/12), i+1, '*', ha='left', va='center', fontsize=6,)
+                ax.text(xlim+(xlim/8), i+1, f'{p:.1e}', ha='left', va='center', fontsize=6,)
 
         if isinstance(cols, list):
-            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
                 p.set_facecolor(cols[i])
         else:
-            for i, k, p in zip(range(0, len(data)), data, r['boxes']):
+            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
                 p.set_facecolor(cols)
 
         if title:
@@ -3171,5 +3089,4 @@ class draw:
         fig.savefig(filename)
 
         real_filename = self.savefigure(fig, filename)
-        config.log.info(f"boxplots_vertical: Saved '{real_filename}'")
         return real_filename

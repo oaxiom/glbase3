@@ -18,6 +18,7 @@ from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
+from scipy.stats import ttest_ind, mannwhitneyu
 
 from . import config, utils
 from .base_expression import base_expression
@@ -2074,69 +2075,112 @@ class expression(base_expression):
         config.log.info("boxplot: Saved %s" % actual_filename)
         return actual_filename
 
-    def boxplot_cute(self,
+    def boxplots_vertical(self,
         filename=None,
-        showfliers=True,
-        whis=1.5,
-        showmeans=False,
+        cond_order=None,
+        box_colors='lightgrey',
+        p_values=None,
+        stats_baseline=None,
+        stats_test=None,
+        stats_multiple_test_correct=True,
         **kargs):
         """
         **Purpose**
+            Draw cute vertical boxplots. These can be preferable to the horizontal
+            boxplots as they have more space for labels. The disadvantage is that
+            they can only realistically present about 20 samples before the flow off
+            the top of the figure. Also they tend to overemphasise vertical
+            changes.
 
-        Draw cute horizontal boxplots of all conditions.
+            Nonetheless, they have their place. This implementation is also useful
+            as you can provide your own q-values (presented on the right hand side)
+            of you can specify the stats test and a one versus all stats comparison.
 
         **Arguments**
             filename (Required)
-                filename to save as. The file extension may be modified
-                depending the setting of the current config.DEFAULT_DRAWER
+                filename to save the image to
 
-            log (True|False of 2..n for log2, log10)
-                log the y axis (defaults to e)
-                send an integer for the base, e.g. for log10
+            cond_order (Optinoal, default=None)
+                optional order for the conditions (bottom to top), otherwise the condition order
+                is taken from the order of expression.getConditionNames()
 
-                log=10
+            box_colors (Optional, default='lightgrey')
+                either one color, or a list of colors for each box in the boxplot
 
-                for log2
+            p_values (Optional, default=None)
+                A list of p-values, or None if you are using the stats_* system
+                described below
 
-                log=2
+            stats_baseline (Optional, default=None)
+                condition name for all comparisons to be versus.
 
-                for mathematical constant e
+            stats_test (Optional, default=None)
+                Which statistics test to use.
+                One of:
+                'ttest_ind' (two-sided, equal_var=True)
+                'welch' (two-sided, equal_var=False)
+                'mannwhitneyu'
 
-                log=True
-                log="e"
+            stats_multiple_test_correct (Optional, default=None)
+                if False do not correct for multiple testing.
+                If True then use Benjamini-Hochberg to correct.
+                (Uses fdr_bh in statsmodels.stats.multitest.multipletests)
 
-            showfliers (Optional, default=True)
-                draw the 9/95 % outlier ticks on the plot
-
-            whis (Optional, default=1.5)
-                The location of the whiskers for the boxplot, see
-                matplotlib for details of the settings
-
-            Also common arguments for figures.
-
-        **Results**
-
-        saves an image with the correct filetype extension for the current
-        config.DEFAULT_DRAWER.
-        returns the actual filename used to save the file.
+        **Returns**
+            None
         """
+        from statsmodels.stats.multitest import multipletests
+
         assert filename, "must provide a filename"
+        if isinstance(box_colors, list):
+            assert len(box_colors) == len(self._conditions), 'box_colors must be the same length as the number of conditions in this dataset'
 
-        data = self.serialisedArrayDataDict
+        # Figure out the q-value tests:
+        if p_values and stats_test:
+            raise AssertionError('stats_test and p_values cannot both be true')
+        elif p_values:
+            assert isinstance(p_values, list), 'p_values must be a list'
+            assert len(p_values) == len(self.serialisedArrayDataList), 'p_values must be the same length as the number of conditions in this dataset'
+        elif stats_test:
+            assert stats_baseline in self._conditions, 'stats_baseline not found in this expression data sets conditions'
+            assert stats_test in ('ttest_ind', 'welch', 'mannwhitneyu'), f'stats_test {stats_test} not found in (ttest_ind, welch, mannwhitneyu)'
 
-        if "log" in kargs and kargs["log"]:
-            data = self.__log_transform_data(data, log=kargs["log"])
+            p_values = []
+            for c in self._conditions:
+                if c == stats_baseline:
+                    p = 1.0
+                else:
+                    if stats_test == 'ttest_ind':      p = ttest_ind(self[c], self[stats_baseline], equal_var=True)[1]
+                    elif stats_test == 'welch':        p = ttest_ind(self[c], self[stats_baseline], equal_var=False)[1]
+                    elif stats_test == 'mannwhitneyu': p = mannwhitneyu(self[c], self[stats_baseline])[1]
+                p_values.append(p)
+        if stats_test and stats_multiple_test_correct:
+            p_values = list(multipletests(p_values, method='fdr_bh')[1])
+
+        if not cond_order:
+            data_as_list = [self.serialisedArrayDataDict[k] for k in self._conditions]
+            data_labels = self._conditions
+        else:
+            data_as_list = [self.serialisedArrayDataDict[k] for k in cond_order]
+            data_labels = cond_order
 
         # do plot
-        actual_filename = self.draw.cute_boxplot(
-            data=data,
+        real_filename = self.draw.boxplots_vertical(
             filename=filename,
-            showmeans=showmeans,
-            showfliers=showfliers,
+            data_as_list=data_as_list,
+            data_labels = data_labels,
+            qs=p_values,
+            title=None,
+            xlims=None,
+            sizer=0.02,
+            vert_height=4, # does nothing?!
+            cols=box_colors,
+            bot_pad=0.1,
+            showmeans=False,
             **kargs)
 
-        config.log.info("boxplot: Saved {}".format(actual_filename))
-        return actual_filename
+        config.log.info(f"boxplots_vertical: Saved '{real_filename}'")
+        return None
 
     def violinplot(self, filename=None, beans=False, **kargs):
         """
