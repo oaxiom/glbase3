@@ -2079,6 +2079,7 @@ class expression(base_expression):
         filename=None,
         cond_order=None,
         box_colors='lightgrey',
+        vert_sizer=0.022,
         p_values=None,
         stats_baseline=None,
         stats_test=None,
@@ -2099,6 +2100,9 @@ class expression(base_expression):
         **Arguments**
             filename (Required)
                 filename to save the image to
+
+            vert_sizer (Optional, default=0.022)
+                the vertical space each boxplot takes up.
 
             cond_order (Optinoal, default=None)
                 optional order for the conditions (bottom to top), otherwise the condition order
@@ -2164,19 +2168,19 @@ class expression(base_expression):
             data_as_list = [self.serialisedArrayDataDict[k] for k in cond_order]
             data_labels = cond_order
 
+        print(data_as_list)
+        print(data_labels)
+
         # do plot
         real_filename = self.draw.boxplots_vertical(
             filename=filename,
-            data_as_list=data_as_list,
+            data_as_list = data_as_list,
             data_labels = data_labels,
             qs=p_values,
-            title=None,
-            xlims=None,
-            sizer=0.02,
+            sizer=vert_sizer,
             vert_height=4, # does nothing?!
             cols=box_colors,
             bot_pad=0.1,
-            showmeans=False,
             **kargs)
 
         config.log.info(f"boxplots_vertical: Saved '{real_filename}'")

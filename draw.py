@@ -2092,10 +2092,10 @@ class draw:
             ax.set_yticklabels(kargs["yticklabels"])
         if "vlines" in kargs and kargs["vlines"]:
             for l in kargs["vlines"]:
-                ax.axvline(l, ls=":", color="grey")
+                ax.axvline(l, ls=":", color="grey", lw=0.5)
         if "hlines" in kargs and kargs["hlines"]:
             for l in kargs["hlines"]:
-                ax.axhline(l, ls=":", color="grey")
+                ax.axhline(l, ls=":", color="grey", lw=0.5)
         if "alines" in kargs and kargs['alines']:
             for quple in kargs['alines']:
                 # quples are interleaved, list of x's and list of y's
@@ -3066,17 +3066,17 @@ class draw:
             xlim = xlims[1]
 
         if qs:
-            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, qs):
+            for i, p in zip(range(0, len(data_as_list)), qs):
                 if p < 0.05:
                     ax.text(xlim+(xlim/12), i+1, '*', ha='left', va='center', fontsize=6,)
                 ax.text(xlim+(xlim/8), i+1, f'{p:.1e}', ha='left', va='center', fontsize=6,)
 
         if isinstance(cols, list):
-            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
-                p.set_facecolor(cols[i])
+            for i, k, b in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
+                b.set_facecolor(cols[i])
         else:
-            for i, k, p in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
-                p.set_facecolor(cols)
+            for i, k, b in zip(range(0, len(data_as_list)), data_as_list, r['boxes']):
+                b.set_facecolor(cols)
 
         if title:
             ax.set_title(title, fontsize=6)
