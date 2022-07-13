@@ -2084,6 +2084,7 @@ class expression(base_expression):
         stats_baseline=None,
         stats_test=None,
         stats_multiple_test_correct=True,
+        stats_color_significant=False,
         **kargs):
         """
         **Purpose**
@@ -2130,6 +2131,10 @@ class expression(base_expression):
                 If True then use Benjamini-Hochberg to correct.
                 (Uses fdr_bh in statsmodels.stats.multitest.multipletests)
 
+            stats_color_significant (Optinoal, default=False
+                color statistically significant boxes by the color specified with this value
+                overrides box_colors
+
         **Returns**
             None
         """
@@ -2154,9 +2159,10 @@ class expression(base_expression):
                 if c == stats_baseline:
                     p = 1.0
                 else:
-                    if stats_test == 'ttest_ind':      p = ttest_ind(self[c], self[stats_baseline], equal_var=True)[1]
-                    elif stats_test == 'welch':        p = ttest_ind(self[c], self[stats_baseline], equal_var=False)[1]
-                    elif stats_test == 'mannwhitneyu': p = mannwhitneyu(self[c], self[stats_baseline])[1]
+                    print(c)
+                    if stats_test == 'ttest_ind':      p = ttest_ind(self[stats_baseline], self[c], equal_var=True, alternative='two-sided')[1]
+                    elif stats_test == 'welch':        p = ttest_ind(self[stats_baseline], self[c], equal_var=False, alternative='two-sided')[1]
+                    elif stats_test == 'mannwhitneyu': p = mannwhitneyu(self[stats_baseline], self[c], alternative='two-sided')[1]
                 p_values.append(p)
         if stats_test and stats_multiple_test_correct:
             p_values = list(multipletests(p_values, method='fdr_bh')[1])
@@ -2168,8 +2174,11 @@ class expression(base_expression):
             data_as_list = [self.serialisedArrayDataDict[k] for k in cond_order]
             data_labels = cond_order
 
-        print(data_as_list)
-        print(data_labels)
+        if stats_color_significant:
+            box_colors = []
+            for q in p_values:
+                if q < 0.01: box_colors.append(stats_color_significant)
+                else: box_colors.append('lightgrey')
 
         # do plot
         real_filename = self.draw.boxplots_vertical(

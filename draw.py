@@ -3067,7 +3067,7 @@ class draw:
 
         if qs:
             for i, p in zip(range(0, len(data_as_list)), qs):
-                if p < 0.05:
+                if p < 0.01:
                     ax.text(xlim+(xlim/12), i+1, '*', ha='left', va='center', fontsize=6,)
                 ax.text(xlim+(xlim/8), i+1, f'{p:.1e}', ha='left', va='center', fontsize=6,)
 
