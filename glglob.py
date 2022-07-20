@@ -2210,7 +2210,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         cache_data = False,
         bracket = None,
         range_bracket = None,
-        frames = True,
+        frames:bool = False,
         row_labels = None,
         col_labels = None,
         read_extend:int = 200,
@@ -2331,7 +2331,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 pileup data generated. If the file does exist, data will be read from that
                 file and used for heatmap drawing.
 
-            frames (Optional, default=True)
+            frames (Optional, default=False)
                 Draw black frames around the heatmaps and category maps.
 
             imshow (Optional, default=False)

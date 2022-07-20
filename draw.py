@@ -1210,6 +1210,10 @@ class draw:
                 if row_labels and col == 0:
                     ax.set_ylabel(row_labels[row], fontsize=6)
 
+                if col == num_cols-1: #Right most column
+                    ax.yaxis.set_label_position("right")
+                    ax.set_ylabel(data.shape[0], fontsize=6)
+
                 ax.set_frame_on(frames)
 
                 ax.set_xlim([0,data.shape[1]])

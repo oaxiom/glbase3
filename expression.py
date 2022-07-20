@@ -6,7 +6,7 @@
 
 """
 
-import sys, os, csv, string, math, copy, heapq, itertools, functools
+import sys, os, csv, string, math, copy, heapq, itertools, functools, statistics
 
 from operator import itemgetter
 from collections.abc import Iterable
@@ -2135,6 +2135,9 @@ class expression(base_expression):
                 color statistically significant boxes by the color specified with this value
                 overrides box_colors
 
+                If there is a | in there then the left value is the down, the right value is the color
+                used for up-regulated. e.g. : "blue|red"
+
         **Returns**
             None
         """
@@ -2155,17 +2158,21 @@ class expression(base_expression):
             assert stats_test in ('ttest_ind', 'welch', 'mannwhitneyu'), f'stats_test {stats_test} not found in (ttest_ind, welch, mannwhitneyu)'
 
             p_values = []
+            base_line = self[stats_baseline]
             for c in self._conditions:
                 if c == stats_baseline:
                     p = 1.0
                 else:
                     print(c)
-                    if stats_test == 'ttest_ind':      p = ttest_ind(self[stats_baseline], self[c], equal_var=True, alternative='two-sided')[1]
-                    elif stats_test == 'welch':        p = ttest_ind(self[stats_baseline], self[c], equal_var=False, alternative='two-sided')[1]
-                    elif stats_test == 'mannwhitneyu': p = mannwhitneyu(self[stats_baseline], self[c], alternative='two-sided')[1]
+                    if stats_test == 'ttest_ind':      p = ttest_ind(base_line, self[c], equal_var=True, alternative='two-sided')[1]
+                    elif stats_test == 'welch':        p = ttest_ind(base_line, self[c], equal_var=False, alternative='two-sided')[1]
+                    elif stats_test == 'mannwhitneyu': p = mannwhitneyu(base_line, self[c], alternative='two-sided')[1]
                 p_values.append(p)
-        if stats_test and stats_multiple_test_correct:
+
+        if stats_test and stats_multiple_test_correct and p_values:
+            print(p_values)
             p_values = list(multipletests(p_values, method='fdr_bh')[1])
+            print(p_values)
 
         if not cond_order:
             data_as_list = [self.serialisedArrayDataDict[k] for k in self._conditions]
@@ -2174,11 +2181,18 @@ class expression(base_expression):
             data_as_list = [self.serialisedArrayDataDict[k] for k in cond_order]
             data_labels = cond_order
 
-        if stats_color_significant:
+        if p_values and stats_color_significant:
             box_colors = []
-            for q in p_values:
-                if q < 0.01: box_colors.append(stats_color_significant)
-                else: box_colors.append('lightgrey')
+            m = statistics.median(base_line)
+            for c, q in zip(self._conditions, p_values):
+                if q < 0.01:
+                    if '|' in stats_color_significant:
+                        if statistics.median(self[c]) < m: box_colors.append(stats_color_significant.split('|')[0])
+                        else: box_colors.append(stats_color_significant.split('|')[1])
+                    else:
+                        box_colors.append(stats_color_significant)
+                else:
+                    box_colors.append('lightgrey')
 
         # do plot
         real_filename = self.draw.boxplots_vertical(

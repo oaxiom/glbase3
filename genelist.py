@@ -2799,8 +2799,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 the previous name.
 
         **Returns**
-            None. This is one of the few IN PLACE methods and returns
-            None.
+            self
         """
         try:
             list_to_load[0]
@@ -2824,7 +2823,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.name = name
 
         self._optimiseData()
-        return None
+        return self
 
     def raw_data(self):
         """
