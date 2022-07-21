@@ -2163,16 +2163,13 @@ class expression(base_expression):
                 if c == stats_baseline:
                     p = 1.0
                 else:
-                    print(c)
                     if stats_test == 'ttest_ind':      p = ttest_ind(base_line, self[c], equal_var=True, alternative='two-sided')[1]
                     elif stats_test == 'welch':        p = ttest_ind(base_line, self[c], equal_var=False, alternative='two-sided')[1]
                     elif stats_test == 'mannwhitneyu': p = mannwhitneyu(base_line, self[c], alternative='two-sided')[1]
                 p_values.append(p)
 
         if stats_test and stats_multiple_test_correct and p_values:
-            print(p_values)
             p_values = list(multipletests(p_values, method='fdr_bh')[1])
-            print(p_values)
 
         if not cond_order:
             data_as_list = [self.serialisedArrayDataDict[k] for k in self._conditions]
