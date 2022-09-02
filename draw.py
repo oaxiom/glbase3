@@ -2891,7 +2891,7 @@ class draw:
                 yd.append(d)
 
 
-        ax.scatter(xd, yd, edgecolors='black', lw=0.5, c='none', s=20)
+        ax.scatter(xd, yd, edgecolors='black', lw=0.5, c='none', s=15)
         if False not in [i>=3 for i in lengths]:
             ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
 
@@ -2902,11 +2902,10 @@ class draw:
         ax.set_xticklabels(labs, rotation=45, rotation_mode="anchor", ha="right")
         ax.set_ylabel(yticktitle)
 
-        if False not in [i>=2 for i in lengths]:
-            ls = []
-            for i in zip(xs, means):
-                l = mlines.Line2D([i[0]-0.3, i[0]+0.3], [i[1], i[1]], c='red', lw=1)
-                ax.add_line(l) #ax.scatter(xs, ms, color='red', marker='_')
+        #if False not in [i>=2 for i in lengths]:
+        for i in zip(xs, means):
+            l = mlines.Line2D([i[0]-0.3, i[0]+0.3], [i[1], i[1]], c='red', lw=1)
+            ax.add_line(l) #ax.scatter(xs, ms, color='red', marker='_')
 
         self.do_common_args(ax, **kargs)
 
