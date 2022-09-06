@@ -842,7 +842,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 else:
                     save_name = "_".join(str(item[n]).replace(' ', '_') for n in name)
 
-                oh.write(f">{save_name}\n" % )
+                oh.write(f">{save_name}\n")
                 oh.write(f"{item[seq_key]}\n")
         config.log.info(f"Saved FASTA file: {filename}")
         return True

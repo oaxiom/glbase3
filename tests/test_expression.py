@@ -71,7 +71,6 @@ class Test_Expression(unittest.TestCase):
         self.assertListEqual([-0.18394180184548975, -0.3592106040535497, -0.8164965809277261, -0.7548294124240691], self.expn_Z_col_wise[4]['conditions'])
 
         self.expn_Z_col_all.column_Z(False) # Isnt this the same?
-        print(self.expn_Z_col_all.all())
         self.assertListEqual([-1.1188618555710315, -0.7745966692414833, -0.5163977794943223, -0.17213259316477422], self.expn_Z_col_all[0]['conditions'])
         self.assertListEqual([-0.6885303726590963, -0.7745966692414833, -0.5163977794943223, -0.6024640760767094], self.expn_Z_col_all[1]['conditions'])
         self.assertListEqual([-0.6885303726590963, 0.08606629658238711, 0.7745966692414833, 1.5491933384829666], self.expn_Z_col_all[2]['conditions'])
