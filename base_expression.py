@@ -11,7 +11,7 @@ import sys, os, csv, string, math, collections
 from operator import itemgetter
 
 import numpy
-from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std 
+from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std
 import gzip as gzipfile
 
 from . import config
@@ -317,7 +317,7 @@ class base_expression(genelist):
                 else:
                     if not no_header:
                         title_row = [k for k in write_keys in k in list(self.keys())]
-                        writer.writerow(write_keys + self.getConditionNames() + ["err_%s" % i for i in self.getConditionNames()])
+                        writer.writerow(write_keys + self.getConditionNames() + [f"err_{i}" for i in self.getConditionNames()])
 
                     for data in self.linearData:
                         line = [data[k] for k in write_keys if k in data]
@@ -358,7 +358,7 @@ class base_expression(genelist):
 
         returns False if not valid.
         """
-        assert (key in self.linearData[0]) or key in self._conditions, "'%s' search key not found in list or array data" % key
+        assert (key in self.linearData[0]) or key in self._conditions, f"'{key}' search key not found in list or array data"
 
         if key in self.linearData[0]:
             return(genelist.sort(self, key, reverse=reverse)) # use the parents sort.
@@ -424,7 +424,7 @@ class base_expression(genelist):
                     nl = t
                     if not __nan_warnings:
                         __nan_warnings = True
-                        config.log.warning("Expression list contains 'not a number' values, setting them to <nan_value=%s>" % nan_value)
+                        config.log.warning(f"Expression list contains 'not a number' values, setting them to <nan_value={nan_value}>")
 
                 new["conditions"] = nl
                 for k in expn:

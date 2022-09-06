@@ -262,7 +262,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         fills the genelist with the CSV table.
         """
-        assert os.path.exists(os.path.realpath(filename)), "File %s not found" % filename
+        assert os.path.exists(os.path.realpath(filename)), f"File {filename} not found"
 
         self.name = '.'.join(os.path.split(filename)[1].split(".")[:-1]) # Put here otherwise realpath will force name from the symbolic link, not from the actual link!
         self.path = os.path.split(os.path.realpath(filename))[0]
@@ -365,7 +365,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.__deathline = column # For debugging purposes
             self.__deathindx = index
 
-            if not column: # if row is completely empty, so just omit.
+            if not column: # if row is completely empty omit.
                 continue
 
             if index <= skiplines or skiptill != "Done":
@@ -383,7 +383,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             if "debug" in format and format["debug"]:
                 debug_line += 1
-                print("{0}:'{1}'".format(index, column))
+                print(f"{index}:'{column}'")
                 if isinstance(format["debug"], int) and debug_line > format["debug"]:
                     break # If an integer, collect that many items.
 
@@ -787,7 +787,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     line.append("") # a blank key, fail gracefully.
             writer.writerow(line)
         oh.close()
-        config.log.info("Saved '%s'" % filename)
+        config.log.info(f"Saved '{filename}'")
         return None
 
     def saveFASTA(self, filename=None, seq_key="seq", **kargs):
@@ -821,7 +821,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         valid_args = ["filename", "name"]
         for key in kargs:
-            assert key in valid_args, "saveFASTA() - Argument '%s' is not recognised" % key
+            assert key in valid_args, f"saveFASTA() - Argument '{key}' is not recognised"
 
         assert filename, "No filename specified"
         assert self.linearData[0]["seq"], "No sequence data available in this list"
@@ -838,13 +838,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             for index, item in enumerate(self.linearData):
                 if name == "null_":
-                    save_name = "null_%s" % index
+                    save_name = f"null_{index}"
                 else:
                     save_name = "_".join(str(item[n]).replace(' ', '_') for n in name)
 
-                oh.write(">%s\n" % save_name)
-                oh.write("%s\n" % item[seq_key])
-        config.log.info("Saved FASTA file: %s" % filename)
+                oh.write(f">{save_name}\n" % )
+                oh.write(f"{item[seq_key]}\n")
+        config.log.info(f"Saved FASTA file: {filename}")
         return True
 
     def saveBED(self, filename=None, extra_keys=None, id=None, score=None, uniqueID=False, loc_only=False,
@@ -928,7 +928,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             oh.write("%s\n" % ("\t".join(todo)))
 
         oh.close()
-        config.log.info("Saved '%s' BED file" % filename)
+        config.log.info(f"Saved '{filename}' BED file")
         return filename
 
     def saveGTF(self, filename=None, strand=None, source=None, feature=None, score=None, frame=None,

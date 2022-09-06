@@ -178,7 +178,7 @@ class _base_genelist:
                 newl.linearData.append(copy.deepcopy(item))
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def __add__(self, gene_list):
         """
@@ -382,7 +382,7 @@ class _base_genelist:
             if compressed:
                 config.log.warning("compression not currently implemented, saving anyway")
             pickle.dump(self, oh, -1)
-        config.log.info("Saved binary version of list: '{}'".format(filename))
+        config.log.info(f"Saved binary version: '{filename}'")
 
     def from_pandas(self, pandas_data_frame):
         """
