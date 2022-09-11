@@ -299,6 +299,8 @@ class _base_genelist:
                         # Turns out ~12% of loading was spent in this test:
                         if ':' in value and '-' in value: # Shortcut
                             return location(loc=value)
+                        else:
+                            raise ValueError
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
                         return str(value).strip()
         return "" # return an empty datatype.

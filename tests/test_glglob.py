@@ -26,7 +26,7 @@ class Test_glglob(unittest.TestCase):
         self.data2 = glbase3.genelist(filename="test_data/testB.csv", format={'loc': 0, 'name':1})
         self.data3 = glbase3.genelist(filename="test_data/testC.csv", format={'loc': 0, 'name':1})
         #self.data4 = glbase3.genelist(filename="test_data/ccat_list.region", format=glbase3.format_ccat_output)
-        print(self.data1)
+        #print(self.data1)
         self.g = glbase3.glglob(self.data1, self.data2, self.data3, type="peaklist")
 
     def test_chip_seq_cluster_heatmap_error(self):
