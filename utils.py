@@ -16,7 +16,6 @@ degenerate character N=[ATCG]
 
 import sys, os, numpy, string, csv, random, math, pickle, gzip
 import scipy.stats as stats
-from scipy.spatial.distance import pdist
 
 from . import config
 
@@ -63,34 +62,6 @@ def expandDegenerateMotifs(motif):
 
     return l
 
-def iti(_fm, _fmcpos, _cl, _list):    # my iterator
-    """
-    This is possibly the best piece of code I've ever made!
-    Mainly because it's almost entirely unitelligable....
-    It's some sort of iterator to to generate
-    N-mers.
-    I think this has been replaced by regexs now.
-    fm = a triple of the form (number to flip, location, seq_at_pos)
-    """
-    # do some set up
-    if not _cl: # also okay if _cl == False; be careful with these, as may be False, but not None
-        _cl = []
-        for n in range(len(_fm)):
-            _cl.append("")
-
-    # the main iterator;
-    if _fmcpos >= len(_fm):
-        return(False) # reached end of list, signal to stick it back on the end;
-    n = _fm[_fmcpos]
-        #print n
-    for _ in range(n[0]):
-        _cl[n[1]] = osc(_cl[n[1]], n[2])
-        if not iti(_fm, _fmcpos+1, _cl, _list): # each time we iterate at the end of the motif add it to the list;
-            # convert the list back to a string
-            _copy = string.join(_cl, '')
-            _list.append(_copy)
-    return True
-
 def movingAverage(_list, window=20, normalise=False, bAbsiscaCorrect=True):
     """
     actually a sliding window
@@ -122,85 +93,6 @@ def movingAverage(_list, window=20, normalise=False, bAbsiscaCorrect=True):
             y.append(score)
 
     return (x, y)
-
-def cumulative_line(listIn, percent=True):
-    """
-    convert the array to a cumulative array
-
-    The array is expected to be some sort of list of numbers.
-    This will return the array added in a cumulative manner from 0 .. 100 %
-    The returned list will always be floats.
-
-    (If percent is left as True - the default)
-    """
-    s = sum(listIn)
-    m = max(listIn)
-
-    c = 0
-    rc = 0
-    n = []
-    for i in listIn:
-        c += i
-        if c >= 50:
-            rc -= i
-        else:
-            rc += i
-        n.append(rc)
-
-    return (numpy.array(n) / float(s)) * 100 if percent else n
-
-def osc(last, type):
-    """
-    R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
-    degenerate character N=[ATCG]
-    """
-    if type == "k":
-        if last == "g":
-            return("t")
-        elif last == "t":
-            return("g")
-        return "g"
-    elif type == "m":
-        if last == "a":
-            return("c")
-        elif last == "c":
-            return("a")
-        return "a"
-    elif type == "n":
-        if last == "a":
-            return("c")
-        elif last == "c":
-            return("g")
-        elif last == "g":
-            return("t")
-        elif last == "t":
-            return("a")
-        return "a"
-    elif type == "r":
-        if last == "a":
-            return("g")
-        elif last == "g":
-            return("a")
-        return "a"
-    elif type == "s":
-        if last == "c":
-            return("g")
-        elif last == "g":
-            return("c")
-        return "g"
-    elif type == "w":
-        if last == "a":
-            return("t")
-        elif last == "t":
-            return("a")
-        return "a"
-    elif type == "y":
-        if last == "c":
-            return("t")
-        elif last == "t":
-            return("c")
-        return"c"
-    return type
 
 def rc(seq):
     """
@@ -251,151 +143,13 @@ def rc_expanded(seq):
 
     return "".join(tseq)
 
-def expandElement(_element, _preserve=True): #
-    """
-    _element = (string) to expand
-
-    returns
-    (list) of expanded elements
-    """
-    dir = {0 : "a",
-           1 : "c",
-           2 : "g",
-           3 : "t"}
-
-    if _preserve:
-        lib = [_element] # return string, preserve the previous element in lib[0]
-    else:
-        lib = []
-
-    for left in range(4): # base iterator;
-        for right in range(4):
-            lib.append(dir[left]+_element+dir[right])
-
-    return lib
-
-def expandElementRightOnly(_element, _preserve=True): #
-    """
-    _element = (string) to expand
-
-    THis one only expands the element one base pair 3'
-
-    returns
-    (list) of expanded elements
-    """
-    dir = {0 : "a",
-           1 : "c",
-           2 : "g",
-           3 : "t"}
-
-    if _preserve:
-        lib = [_element] # return string, preserve the previous element in lib[0]
-    else:
-        lib = []
-
-    for right in range(4):
-        lib.append(_element+dir[right])
-
-    return lib
-
-def expandElementRightOnly_degenerate(_element, _preserve=True): #
-    """
-    _element = (string) to expand
-
-    THis one only expands the element one base pair 3'
-    will use a degenerate code;
-    R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
-    degenerate character N=[ATCG]
-
-    returns
-    (list) of expanded elements
-    """
-    dir = {0 : "a",
-           1 : "c",
-           2 : "g",
-           3 : "t",
-           4 : "r",
-           5 : "y",
-           6 : "k",
-           7: "m",
-           8: "s",
-           9: "w",
-           10:"n"}
-
-    if _preserve:
-        lib = [_element] # return string, preserve the previous element in lib[0]
-    else:
-        lib = []
-
-    for right in range(11):
-        lib.append(_element+dir[right])
-
-    return lib
-
-def expandElementRightOnly_degenerate_n(_element, _preserve=True): #
-    """
-    _element = (string) to expand
-
-    THis one only expands the element one base pair 3'
-    will use a degenerate code;
-    this one n only
-    returns
-    (list) of expanded elements
-    """
-    dir = {0 : "a",
-           1 : "c",
-           2 : "g",
-           3 : "t",
-           4:"n"}
-
-    if _preserve:
-        lib = [_element] # return string, preserve the previous element in lib[0]
-    else:
-        lib = []
-
-    for right in range(5):
-        lib.append(_element+dir[right])
-
-    return lib
-
-def convertFASTAtoCSV(filename):
-    """
-    load a fasta file and output it into a big list;
-    expects filename to be correct
-    """
-    assert os.path.exists(filename), "filename %s not found" % filename
-
-    try:
-        openfile = open(filename, "rb")
-        savefile = open(filename+'_out.csv', "wb")
-    except IOError:
-        print("Error opening File")
-        sys.exit()
-
-    writer = csv.writer(savefile)
-
-    record = ""
-    entry = Node("empty")
-    for line in openfile:
-        if line[0] != ">": # not a FASTA block, so add this line to the sequence
-            entry.seq += line.strip().replace('\r\n', '') # strip out the new line WINDOWS specific!
-
-        if line[0] == ">": # fasta start block
-            # start recording
-            # add the old Node to the list
-            if entry.name != "empty":
-                # convert the list to a tuple
-                writer.writerow([entry.name, "", "", "", entry.seq])
-                del entry
-            entry = Node(line) # make a new node
-
 def convertFASTAtoDict(filename, gzip_input=False):
     """
     load a fasta file and output it into a big list;
     expects filename to be correct
     returns a list of the form [{name, seq}, ... {name, seq}]
     """
-    assert os.path.exists(filename), "filename %s not found" % filename
+    assert os.path.exists(filename), f"filename {filename} not found"
 
     openfile = gzip.open(filename, "rt") if gzip_input else open(filename, "rt")
     result = []
@@ -417,77 +171,6 @@ def convertFASTAtoDict(filename, gzip_input=False):
                 result.append(entry) # You have to think about this one, but it works as it appends a view!
                 # And so will not miss the last item!
     return result
-
-def scanNumberOfBasePairs(fastafilehandle):
-    """
-    pass me a fasta file handle (already open()'d) and this will return the raw count
-    or some other iterable object;
-    """
-    dict = {"a" : 0,
-            "A" : 0,
-            "c" : 1,
-            "C" : 1,
-            "g" : 2,
-            "G" : 2,
-            "t" : 3,
-            "T" : 3}
-
-    a = [0, 0, 0, 0]
-    for line in fastafilehandle:
-        if line[0] != ">": # there is a more elegant way to do this...
-            lcline = line.lower()
-            a[dict["a"]] += lcline.count("a")
-            a[dict["c"]] += lcline.count("c")
-            a[dict["g"]] += lcline.count("g")
-            a[dict["t"]] += lcline.count("t")
-    return a
-
-def collide(Aleft, Aright, Bleft, Bright):
-    # quickest rejections first;
-    if Aright < Bleft:
-        return False
-    if Aleft > Bright:
-        return False
-
-    if Aleft == Bleft: return 1 # I have to cheat here otherwise it returns 0 which will evaluate as False;
-    if Aleft == Bright: return 1
-    if Aright == Bleft: return 1
-    if Aright == Bright: return 1
-
-    if Aright >= Bright:
-        A = abs(Aleft - Bright)
-        B = abs(Aright - Bright)
-        C = abs(Aleft - Bleft)
-        D = abs(Aright - Bleft)
-        closest = min(A, B, C, D)
-        return closest # Bright point is within A, thus collision
-
-    if Aleft <= Bleft:
-        A = abs(Aleft - Bright)
-        B = abs(Aright - Bright)
-        C = abs(Aleft - Bleft)
-        D = abs(Aright - Bleft)
-        closest = min(A, B, C, D)
-        return closest # Bleft point is within A, thus collision.
-
-    if Bleft <= Aright and Bright >= Aright:
-        A = abs(Aleft - Bright)
-        B = abs(Aright - Bright)
-        C = abs(Aleft - Bleft)
-        D = abs(Aright - Bleft)
-        closest = min(A, B, C, D)
-        return closest # Aright point is within B, thus collision
-
-    if Bright >= Aleft and Bleft <= Aleft:
-        A = abs(Aleft - Bright)
-        B = abs(Aright - Bright)
-        C = abs(Aleft - Bleft)
-        D = abs(Aright - Bleft)
-        closest = min(A, B, C, D)
-        return closest # Aleft point is within B, thus collision.
-
-    #print "unhandled!"
-    return False
 
 def qcollide(Aleft, Aright, Bleft, Bright):
     """
@@ -513,51 +196,6 @@ def qcollide(Aleft, Aright, Bleft, Bright):
 
     #print "unhandled!"
     return False
-
-def removeDuplicatesFromListOfDicts(list_of_dicts, key):
-    """
-    remove duplicates from a list of dicts based on key,
-    returns the list in the format it arrived.
-    only checks key. Does not check anything else.
-    """
-    ulist = []
-    newlist = []
-    dupecount = 0
-
-    for line in list_of_dicts:
-        if line[key] in ulist:
-            # don't write this enty,
-            dupecount +=1
-        else:
-            # add to ulist and write to file;
-            if line[key]: # if column is empty don't add it to the list, but write to file
-                ulist.append(line[key])
-            newlist.append(line)
-    #print ">> Duplicates Found:", dupecount
-    return newlist
-
-def removeDuplicatesFrom2DList(_list, column_no = 3):
-    """
-    delete duplicates based on the column no
-    returns a list
-    deletes dupes in a 2D-csv like list;
-    """
-    ulist = []
-    newlist = []
-    dupecount = 0
-
-    for line in _list:
-        if line[column_no] in ulist:
-            # don't write this enty,
-            dupecount +=1
-            print("Duplicate:%s" % (line[column_no]))
-        else:
-            # add to ulist and write to file;
-            if line[column_no]: # if column is empty don't add it to the list, but write to file
-                ulist.append(line[column_no])
-            newlist.append(line)
-    #print ">> Duplicates Found:", dupecount
-    return newlist
 
 def FASTAToLIST(filename):
     """
@@ -639,7 +277,7 @@ def std(intList):
 
 def transpose(list):
     """
-    a transpose command, rotates a mtrix or equivalent by 90
+    a transpose command, rotates a matrix or equivalent by 90
 
     more like a transpose from R than anything else.
     """

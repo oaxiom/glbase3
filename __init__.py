@@ -100,9 +100,9 @@ else:
 # Now import the rest of my libraries - assumes here they are available.
 # If I can get config and errors then these are probably available too.
 
+from .genelist import genelist
 from .helpers import glload, change_drawing_mode, fold2UpOrDown, fold2Down, fold2Up, XDown, XUp, lst_find, cat_columns, strandSorter
 from .location import location
-from .genelist import genelist
 from .expression import expression
 from .genome import genome
 from .genome_sql import genome_sql # To replace genome

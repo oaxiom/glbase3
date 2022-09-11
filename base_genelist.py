@@ -296,7 +296,9 @@ class _base_genelist:
                     return int(value)
                 except ValueError:
                     try: # see if I can cooerce it into a location:
-                        return location(loc=value)
+                        # Turns out ~12% of loading was spent in this test:
+                        if ':' in value and '-' in value: # Shortcut
+                            return location(loc=value)
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
                         return str(value).strip()
         return "" # return an empty datatype.
