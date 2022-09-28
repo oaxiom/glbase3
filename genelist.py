@@ -4184,7 +4184,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         log_fc_values = False,
         fc_threshold = 1, # In log2;
         highlights = None,
-        highlights_key = None,
+        highlight_key = None,
         figsize=[3,3],
         only_tes:bool = False,
         only_genes:bool = False,
@@ -4219,7 +4219,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 fold-change threshold to use as significant;
 
             highlights (Optional)
-                A list of
+                A list of items to draw a label over on the plot
 
             highlights_key (Optional, required if highlights is True, or one of the only_* is True)
                 Key to match highlights in;
@@ -4242,14 +4242,15 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
         assert not (only_tes and only_genes), 'You cant have both only_tes and only_genes both True'
         if only_tes:
-            assert highlights_key, 'if only_tes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
-            assert highlights_key in self.keys(), 'highlights_key not found in this genelist'
+            assert highlight_key, 'if only_tes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
         if only_genes:
-            assert highlights_key, 'if only_genes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
-            assert highlights_key in self.keys(), 'highlights_key not found in this genelist'
+            assert highlight_key, 'if only_genes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
 
         if highlights:
-            assert highlights_key in self.key(), 'highlights_key not found in this genelist'
+            assert highlight_key, 'highlight_key must have a value if highlights=True'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
 
         fcs = self[fc_val_key]
         qs = self[q_val_key]
@@ -4267,10 +4268,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         highs = {}
 
         for item, fc, q in zip(self.linearData, fcs, qs):
-            if only_tes and ':' not in item[highlights_key]:
+            if only_tes and ':' not in item[highlight_key]:
                 continue
 
-            if only_genes and ':' in item[highlights_key]:
+            if only_genes and ':' in item[highlight_key]:
                 continue
 
             if fc >= fc_threshold and q > q_threshold:
@@ -4283,8 +4284,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 rest.append((fc, q))
 
             if highlights:
-                if item[highlights_key] in highlights:
-                    highs[item[highlights_key]] = (fc, q)
+                if item[highlight_key] in highlights:
+                    highs[item[highlight_key]] = (fc, q)
 
         # Repack for return
         if upgl:

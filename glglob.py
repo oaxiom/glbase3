@@ -1687,7 +1687,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             size=[8, 6], bracket=[1.3,4], row_cluster=True, col_cluster=False, # heatmap args
             heat_wid=0.15, cmap=cm.Reds, border=True, row_font_size=6,
             heat_hei='proportional', grid=True, ontology=None, draw_numbers_fmt='{:.1f}',
-            draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5, do_negative_log10=True,
+            draw_numbers=True, draw_numbers_threshold=2.0, draw_numbers_font_size=5,
+            do_negative_log10=True,
+            #row_colbar=None, col_colbar=None, # Not possible as cond_names is not known...
             **kargs):
         '''
         **Purpose**
@@ -1719,7 +1721,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 DAVID will give you a table containing all GO categories. Use this to specify using only
                 a single ontology to use. Assumes the genelists have a 'ontology' key.
 
-            This function will also accept all glbase heatmap arguments (see expression.heatmap).
+            do_negative_log10 (Optional, default=True)
+                By default convert the value in pvalue into the -log10()
+                Set this to False if you don't want to convert
+
+            This function will also accept most glbase heatmap arguments (see expression.heatmap).
             A few args have altered defaults:
 
             heat_hei (Optional, default='proportional')
@@ -1730,10 +1736,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 the bracket for the min and max of the heatmap. This sort of bracket
                 assumes your data is -log10 transformed and so the p-value would
                 range from 0.05 to 0.0001
-
-            do_negative_log10 (Optional, default=True)
-                By default convert the value in pvalue into the -log10()
-                Set this to False if you don't want to convert
 
         **Returns**
             The resorted row names (as a list) and a heatmap in filename
@@ -1811,14 +1813,24 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if heat_hei == 'proportional':
             heat_hei=0.008*len(goex)
 
+        if do_negative_log10:
+            colbar_label = f'-log10({pvalue_key})'
+            draw_numbers_threshold = -math.log10(p_value_limit)
+        else:
+            colbar_label = f'{pvalue_key}'
+            draw_numbers_threshold = p_value_limit
+
         res = goex.heatmap(filename=filename, size=size, bracket=bracket,
             row_cluster=row_cluster, col_cluster=col_cluster,
             heat_wid=heat_wid, cmap=cmap, border=border,
             row_font_size=row_font_size, heat_hei=heat_hei, grid=grid,
-            draw_numbers=draw_numbers, colbar_label='-log10(%s)' % pvalue_key,
-            draw_numbers_threshold = -math.log10(p_value_limit),
+            draw_numbers=draw_numbers,
+            colbar_label=colbar_label,
+            draw_numbers_threshold = draw_numbers_threshold,
             draw_numbers_fmt=draw_numbers_fmt,
-            draw_numbers_font_size=draw_numbers_font_size)
+            draw_numbers_font_size=draw_numbers_font_size,
+            **kargs)
+
         config.log.warning("GO_heatmap: Saved heatmap '%s'" % filename)
         return reversed(res["reordered_rows"])
 

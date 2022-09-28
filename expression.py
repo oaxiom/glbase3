@@ -4246,8 +4246,10 @@ class expression(base_expression):
         p_value_key,
         label_key=None,
         filename=None,
-        label_fontsize:int =6,
+        label_fontsize:int=6,
         label_significant=0.01,
+        highlights=None,
+        highlight_key=None,
         **kargs):
         """
         **Purpose**
@@ -4277,6 +4279,21 @@ class expression(base_expression):
             spot_size (Optional, default=5)
                 The size of each dot.
 
+            highlights (Optional, default=None)
+                use this to label specific genes or items in the volcano.
+
+                Should be a list or set;
+
+                Requires highlights_key to be a valid key in the expression object to find the
+                labels location.
+
+                Note this is different from the label_significant system which will label
+                all points above certain thresholds.
+
+            highlights_key (Optional, default=None)
+                The key to search for highlight labels on the volcano.
+                Only needed if highlights contains values;
+
             available key-word arguments:
             xlabel, ylabel, title, log (set this to the base to log the data by),
             xlims, ylims, spot_size,
@@ -4287,6 +4304,11 @@ class expression(base_expression):
         assert filename, "no filename specified"
         assert condition_name in self.serialisedArrayDataDict, "%s condition not found" % x_condition_name
         assert p_value_key in self.keys(), '"%s" p_value_key not found in this list' % p_value_key
+        if highlights:
+            assert highlight_key, 'highlight_key must hold a value if highlights=True'
+            assert highlight_key in self.keys(), f'highlight_key "{highlight_key}" not found in this list'
+            assert len(highlights) > 0, 'highlights has no entries'
+            highlights = set(highlights)
 
         x_data = self.getDataForCondition(condition_name)
         y_data = self[p_value_key]
@@ -4311,12 +4333,21 @@ class expression(base_expression):
                     matches.append(label)
                 kargs["spot_labels"] = matches
 
+            if highlights:
+                highs_for_nice_scatter = []
+                for x, p, label in zip(x_data, y_data, self[highlight_key]):
+                    if label in highlights:
+                        tx.append(x)
+                        ty.append(p)
+                        highs_for_nice_scatter.append( (x, p, label) )
+
             real_filename = self.draw.nice_scatter(x=x_data, y=y_data,
                 filename=filename,
                 #spots=(tx, ty),
                 xlims=[-xlim, xlim],
                 plot_diag_slope=False,
                 label_fontsize=label_fontsize,
+                highlights=highs_for_nice_scatter,
                 **kargs)
         #else:
         #    real_filename = self.draw.nice_scatter(x_data, y_data, filename, xlims=[-xlim, xlim],

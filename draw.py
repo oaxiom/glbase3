@@ -170,7 +170,7 @@ class draw:
                 the size of the row labels (in points). If set this will also override the hiding of
                 labels if there are too many elements.
 
-            col_font_size or xticklabel_fontsize (Optional, default=8)
+            col_font_size or xticklabel_fontsize (Optional, default=6)
                 the size of the column labels (in points)
 
             heat_wid (Optional, default=0.25)
@@ -2248,7 +2248,8 @@ class draw:
         return self.savefigure(fig, filename)
 
     def nice_scatter(self, x=None, y=None, filename=None, do_best_fit_line=False,
-        print_correlation=False, spot_size=4, plot_diag_slope=False, label_fontsize=14,
+        print_correlation=False, spot_size=4, plot_diag_slope=False, label_fontsize=6,
+        highlights=None,
         **kargs):
         """
         **Purpose**
@@ -2301,9 +2302,9 @@ class draw:
         if "spots" in kargs and kargs["spots"]:
             if "spots_cols" in kargs and kargs["spots_cols"]:
                 # Will recognise a string or sequence autmagivally.
-                ax.scatter(kargs["spots"][0], kargs["spots"][1], s=spot_size*2, c=kargs["spots_cols"], alpha=0.8, edgecolor="none")
+                ax.scatter(kargs["spots"][0], kargs["spots"][1], s=spot_size*2, c=kargs["spots_cols"], alpha=0.7, edgecolor="none")
             else:
-                ax.scatter(kargs["spots"][0], kargs["spots"][1], s=spot_size*2, c="orange", alpha=0.8, edgecolor="none")
+                ax.scatter(kargs["spots"][0], kargs["spots"][1], s=spot_size*2, c="orange", alpha=0.7, edgecolor="none")
 
             if "spot_labels" in kargs and kargs["spot_labels"]:
                 # for the matplot.lib < 100: I want to label everything.
@@ -2333,6 +2334,11 @@ class draw:
                     ax.set_title("Pearson=%.4f" % scipy.stats.pearsonr(x,y)[0])
         if plot_diag_slope:
             ax.plot([min(x+y), max(x+y)], [min(x+y), max(x+y)], ":", color="grey")
+
+        if highlights:
+            for h in highlights:
+                # h = [x, y, label]
+                ax.text(h[0], h[1], h[2], fontsize=6, ha='center', va='center')
 
         if "logx" in kargs and kargs["logx"]:
             ax.set_xscale("log", basex=kargs["logx"])
