@@ -1,7 +1,7 @@
 docutils==0.16
 graphviz==0.14
 h5py==2.10.0
-joblib==0.17.0
+joblib==1.2.0
 legacy-api-wrap==1.2
 leidenalg==0.7.0
 matplotlib==3.3.0
