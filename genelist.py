@@ -1180,7 +1180,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         (Override)
         report the underlying representation
         """
-        return("glbase.genelist")
+        return "glbase.genelist"
 
     def __str__(self):
         """
@@ -1198,7 +1198,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 out = "%s\n%s" % (out, "%s: %s" % (len(self.linearData), ", ".join(["%s: %s" % (key, self.linearData[-1][key]) for key in self.linearData[-1]])))
 
         elif len(self.linearData) == 0:
-            out = "This list is Empty"
+            out = "This list is empty"
 
         else: # just print first entry.
             out = []
@@ -4303,17 +4303,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         dn = list(zip(*dn))
         rest = list(zip(*rest))
         if up:
-            ax.scatter(up[0], up[1], c='red', s=3, ec='none')
+            ax.scatter(up[0], up[1], c='red', s=2, ec='none', alpha=0.3)
         if dn:
-            ax.scatter(dn[0], dn[1], c='blue', s=3, ec='none')
+            ax.scatter(dn[0], dn[1], c='blue', s=2, ec='none', alpha=0.3)
 
-        ax.scatter(rest[0], rest[1], c='grey', s=3, alpha=0.1, ec='none')
+        ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
         if highlights and highs:
             for gene_name in highs:
                 ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
-
-        if up: ax.text(9, 41, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
-        if dn: ax.text(-9, 41, 'Down: {}'.format(len(dn[0])), fontsize=6)
 
         ax.axhline(q_threshold, ls=':', c='grey')
         ax.axvline(-fc_threshold, ls=':', c='grey')
@@ -4326,10 +4323,19 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         ax.tick_params(axis='y', labelsize=6)
 
         self.draw.do_common_args(ax, **kargs)
+
+        cxlims = ax.get_xlim()
+        cylims = ax.get_ylim()
+
+        ylim_pad = (cylims[1] - cylims[0]) * 0.05
+
+        if up: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='left')
+        if dn: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='right')
+
         real_filename = self.draw.savefigure(fig, filename)
 
         config.log.info('volcanoplot: Saved {}'.format(real_filename))
         return upgl, dngl, real_filename
 
 
-genelist = Genelist # Basically used only im map() for some dodgy old code I do not want to refactor.
+genelist = Genelist # Hack alert! Basically used only in map() for some dodgy old code I do not want to refactor.

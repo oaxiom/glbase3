@@ -43,7 +43,7 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .manifold_mdsquish import manifold_mdsquish
 
 class expression(base_expression):
-    def __init__(self, loadable_list=None, filename=None, format=None, expn=None, gzip=False, **kargs):
+    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, gzip=False, **kargs):
         """
         **Purpose**
             The base container for expression data.
@@ -114,6 +114,56 @@ class expression(base_expression):
 
     def __repr__(self):
         return "glbase.expression"
+
+    def __str_helper(self, index):
+        item = []
+        for key in self.linearData[index]:
+            if key == 'conditions':
+                pass
+            elif key == 'err':
+                pass
+            else:
+                item.append(f"{key}: {self.linearData[index][key]}") # % (,  for key in self.linearData[index]])
+
+        # Make sure data and err go on the end
+        for key in self.linearData[index]:
+            if key == 'conditions':
+                linc = str([f'{i:.2f}' for i in self.linearData[index][key]]).replace("'", '')
+                item.append(f"data: {linc}")
+            elif key == 'err':
+                linc = str([f'{i:.2f}' for i in self.linearData[index][key]]).replace("'", '')
+                item.append(f"error: Data has standard error data avaiable")
+
+        item = ', '.join(item)
+        return f"{index}: {item}"
+
+    def __str__(self):
+        """
+        (Override)
+        give a sensible print out.
+        """
+        if len(self.linearData) > config.NUM_ITEMS_TO_PRINT:
+            out = []
+            # welcome to perl
+            for index in range(config.NUM_ITEMS_TO_PRINT):
+                out.append(self.__str_helper(index))
+
+            out.append(f"... truncated, showing {config.NUM_ITEMS_TO_PRINT}/{len(self.linearData)}")
+
+            if config.PRINT_LAST_ITEM:
+                out.append(self.__str_helper(len(self.linearData)-1))
+
+            out = '\n'.join(out)
+
+        elif len(self.linearData) == 0:
+            out = "This list is empty"
+
+        else: # just print first entry.
+            out = []
+            out.append(self.__str_helper(0))
+            out = "%s\nShowing %s/%s" % ("\n".join(out), len(self.linearData), len(self.linearData))
+
+        return out
 
     def __getitem__(self, index):
         """
