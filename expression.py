@@ -2905,6 +2905,7 @@ class expression(base_expression):
         return({"data": all_data, "labels": self._conditions})
 
     def tree(self, mode="conditions", filename=None, row_name_key=None,
+        _data=None, # supply your own data matrix, should be numpy array;
         cluster_mode="euclidean", color_threshold=None, label_size=6, cut=False,
         radial=False, optimal_ordering=True,
         **kargs):
@@ -2969,7 +2970,10 @@ class expression(base_expression):
 
         fig = self.draw.getfigure(**kargs)
 
-        data = numpy.array(self.serialisedArrayDataList)
+        if _data is None:
+            _data = numpy.array(self.serialisedArrayDataList)
+        else:
+            data = _data # Pass through custom data.
 
         if "log" in kargs:
             data = self.__log_transform_data(self.serialisedArrayDataList, log=kargs["log"])

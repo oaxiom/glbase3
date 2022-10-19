@@ -651,7 +651,7 @@ class draw:
         cb.set_label(kargs["colbar_label"], fontsize=6)
         cb.ax.tick_params(labelsize=4)
 
-        return{
+        return {
             "real_filename": self.savefigure(fig, filename, dpi=dpi),
             "reordered_cols": col_names,
             "reordered_rows": kargs["row_names"],

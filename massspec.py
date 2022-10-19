@@ -14,10 +14,19 @@ from collections.abc import Iterable
 
 from . import config, utils
 from .base_expression import base_expression
+from .expression import expression
 from .draw import draw
 from .progress import progressbar
 from .errors import AssertionError, ArgumentError
 from .utils import fold_change
+
+def booler(b):
+    r = []
+    for i in b:
+        if i is None: r.append(0.1)
+        elif i is True: r.append(1)
+        else: raise AssertionErorr(f"booler failed to collapse data on {i}")
+    return r
 
 class massspec(base_expression):
     supported_formats = {'maxquant_txt'}
@@ -806,17 +815,15 @@ class massspec(base_expression):
         if dataset == 'call': assert self.called, 'Asking for the call dataset, but this massspec has not been called, run massspec.call()'
         if dataset == 'fold_change': assert self.fold_change, 'Asking for the fold_change dataset, but this massspec does not have a fold_change, run massspec.call()'
 
+        import matplotlib.colors as colors
 
         if dataset == 'intensities':
             data = numpy.array([p['intensities'] for p in self.linearData]).T
-            if not cmap: cmap = 'copper'
-            if not bracket: bracket = [0, 10]
+            if not cmap: cmap = colors.LinearSegmentedColormap.from_list("grey-or", ["lightgrey", "orange", 'red', 'purple'])
+            if not bracket: bracket = [0, 20]
 
         elif dataset == 'call':
-            def booler(b):
-                if b is None: return 0.1
-                elif b is True: return 1
-            data = numpy.array([[booler(i) for i in p['call']] for p in self.linearData]).T
+            data = numpy.array([booler(p['call']) for p in self.linearData]).T
             cmap1 = colors.LinearSegmentedColormap.from_list("grey-or", ["lightgrey", "orange"])
             if not cmap: cmap = cmap1
             if not bracket: bracket = [0, 1]
@@ -917,10 +924,7 @@ class massspec(base_expression):
 
         elif dataset == 'call':
             assert self.called, 'correlation_heatmap: Asking for the call dataset, but this massspec has not been called, run massspec.call()'
-            def booler(b):
-                if b is None: return 0.1
-                elif b is True: return 1
-            data_table = numpy.array([[booler(i) for i in p['call']] for p in self.linearData]).T
+            data_table = numpy.array([booler(p['call']) for p in self.linearData]).T
 
         elif dataset == 'fold_change':
             assert self.fold_change, 'correlation_heatmap: Asking for the fold_change dataset, but this massspec does not have a fold_change, run massspec.call()'
@@ -1028,9 +1032,7 @@ class massspec(base_expression):
 
         config.log.info('Built network')
         # Remove isolated nodes;
-        #pos = nx.nx.kamada_kawai_layout(g)
-        #pos = nx.circular_layout(g, scale=0.2)
-        pos = nx.spring_layout(g, k=1, iterations=1000, seed=1234)
+        pos = nx.spring_layout(g, k=1, iterations=200, seed=1234)
         config.log.info('Layout done')
 
         fig = self.draw.getfigure(figsize=figsize)
@@ -1039,8 +1041,8 @@ class massspec(base_expression):
         ax.axis("off")
         ax.set_position([0,0, 1,1])
         nx.draw_networkx_edges(g, pos=pos, alpha=0.1)
-        nx.draw_networkx_nodes(g, pos=pos, nodelist=set(co_interactors), alpha=0.6, node_size=100, node_color="tab:red")
-        nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=100, node_color="tab:orange")
+        nx.draw_networkx_nodes(g, pos=pos, nodelist=set(co_interactors), alpha=0.4, node_size=200, linewidths=0, node_color="tab:red")
+        nx.draw_networkx_nodes(g, pos=pos, nodelist=baits, alpha=0.9, node_size=400, linewidths=0, node_color="tab:orange")
         nx.draw_networkx_labels(g, pos=pos, font_size=fontsize, alpha=0.9)
 
         self.draw.do_common_args(ax, **kargs)
@@ -1115,3 +1117,89 @@ class massspec(base_expression):
             raise NotImplementedError('Venn5 not implemented')
 
         return None # Should not reach
+
+    def tree(self, mode="conditions",
+        dataset=None,
+        row_label_key=None,
+        filename=None, row_name_key=None,
+        cluster_mode="euclidean", color_threshold=None, label_size=6, cut=False,
+        radial=False, optimal_ordering=True,
+        **kargs):
+        """
+        **Purpose**
+            Draw a hierarchical clustered tree of either the 'conditions' or 'rows'
+
+        **Arguments**
+            filename (Required)
+                filename to save an image to.
+
+            mode (Optional, default="conditions")
+                cluster either the "conditions" or the "rows" or "genes". (rows are usually genes)
+
+            dataset (Required)
+                massspec objects have several datasets that could be plotted.
+                You must specify one of:
+
+                'call', 'intensities', 'fold-change'
+
+            row_name_key (Optional, default=None)
+                A key to use for the row_names, if mode == "row"
+
+            cluster_mode (Optional, default="euclidean")
+                A metric to cluster the data by.
+
+            color_threshold (Optional, default=None)
+                By default tree() uses the Scipy/MATLAB default colours to signify
+                links with similar distances. Set to -1 to change the tree to all blue.
+
+                see scipy.cluster.hierarch.dendrogram
+
+            label_size (Optional, default=7)
+                The size of the text attached to the leaf labels.
+
+            cut (Optional, default=False)
+                the cut threshold on the tree, to select groups and return the cut.
+                Will draw a line on the dendrgram tree indicating its position.
+                The value should range from 0..1.0
+
+                Note that if cut is used then row_name_key must also be valid
+
+                Also note that the order of the clusters returned is random.
+
+            bracket (Optional, default=False)
+                The min and max to bracket the data. This is mainly here for compatibility with heatmap()
+                So that the row/col trees in heatmap and here exactly match
+
+            optimal_ordering (Optional, default=True)
+                See https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
+
+        **Returns**
+            if cut is False:
+                The Tree in a dictionary {"dendrogram": ..., "linkage": ..., "distance": ...}
+            if cut is True:
+                A list of genelists, containing all of the items from the cut.
+
+        """
+        assert filename, "heatmap: you must specify a filename"
+        assert row_label_key in list(self.keys()), f'row_label_key "{row_label_key}" not found in this genelist'
+        assert dataset in self.valid_datasets, f'dataset {dataset} is not found in {self.valid_datasets}'
+        if dataset == 'call': assert self.called, 'Asking for the call dataset, but this massspec has not been called, run massspec.call()'
+        if dataset == 'fold_change': assert self.fold_change, 'Asking for the fold_change dataset, but this massspec does not have a fold_change, run massspec.call()'
+
+        if dataset == 'call':
+            _data = [booler(i['calls']) for i in self.linearData]
+            _data = numpy.array(_data).T # Transpose to get the expected shape for expression.tree()
+        elif dataset == 'intensities':
+            _data = [i['intensities'] for i in self.linearData]
+            _data = numpy.array(_data).T # Transpose to get the expected shape for expression.tree()
+        else:
+            raise AssertionError(f'No method implemented for {dataset}')
+
+        ret = expression.tree(self, mode=mode,
+            _data=_data, # send out own custom matrix
+            filename=filename, row_name_key=row_name_key,
+            cluster_mode="euclidean", color_threshold=color_threshold, label_size=label_size, cut=cut,
+            radial=radial, optimal_ordering=optimal_ordering,
+            **kargs)
+
+        return ret
