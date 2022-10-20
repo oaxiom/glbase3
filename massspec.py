@@ -134,11 +134,6 @@ class massspec(base_expression):
     def __repr__(self):
         return "<massspec class>"
 
-    '''
-    def sort(self): # To implement
-        raise NotImplementedError
-    '''
-
     def find(self): # To implement
         raise NotImplementedError
 
@@ -1024,6 +1019,9 @@ class massspec(base_expression):
                 if call:
                     if expt_to_bait[ip] == pep['name']:
                         continue
+                    # Don't add link between baits, this makes the network look a bit better;
+                    #if expt_to_bait[ip] in expt_to_bait and pep['name'] in expt_to_bait:
+                    #    continue
                     g.add_edge(expt_to_bait[ip], pep['name'])
                     co_interactors.append(pep['name'])
 
