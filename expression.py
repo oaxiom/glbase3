@@ -1301,6 +1301,9 @@ class expression(base_expression):
                 If a filename, mean_replicates will output a square table for all of the Pearson
                 correlation values for each pair of RNA samples, where replicates are available.
 
+            skip_pearson_test (Optional, default=False)
+                skip the Pearson test for the replicates.
+
             pearson_hist (Optional, default=False)
                 Save a histogram of the distribution of Pearson correlations.
 
@@ -1344,11 +1347,14 @@ class expression(base_expression):
 
         output_pears = False
         pearson_hist_filename = False
+        skip_pearson_test = False
 
         if "output_pears" in kargs and kargs["output_pears"]:
             output_pears = kargs["output_pears"]
         if "pearson_hist" in kargs and kargs["pearson_hist"]:
             pearson_hist_filename = kargs["pearson_hist"]
+        if 'skip_pearson_test' in kargs:
+            skip_pearson_test = kargs['skip_pearson_test']
 
         new_serialisedArrayDataDict = {}
         errors = {}
@@ -1392,51 +1398,52 @@ class expression(base_expression):
         # Load back
         newgl._load_numpy_back_into_linearData() # Already calls _optimiseData()
 
-        pear_out = numpy.zeros([len(self._conditions), len(self._conditions)])
-        # check pairs for pearson correlation
-        for r in reps:
-            # r can be a list n entries long. I need to compare all vs all
-            for i1, p1 in enumerate(r):
-                for i2, p2 in enumerate(r):
-                    if i1 != i2 and i1 < i2:
-                        p1d = self.getDataForCondition(p1)
-                        p2d = self.getDataForCondition(p2)
-                        corr = scipy.stats.pearsonr(p1d, p2d)
-                        if corr[0] < threshold:
-                            config.log.warning("Samples '%s' vs '%s', pearson=%.2f" % (p1, p2, corr[0]))
-                        if output_pears:
+        if not skip_pearson_test:
+            pear_out = numpy.zeros([len(self._conditions), len(self._conditions)])
+            # check pairs for pearson correlation
+            for r in reps:
+                # r can be a list n entries long. I need to compare all vs all
+                for i1, p1 in enumerate(r):
+                    for i2, p2 in enumerate(r):
+                        if i1 != i2 and i1 < i2:
+                            p1d = self.getDataForCondition(p1)
+                            p2d = self.getDataForCondition(p2)
+                            corr = scipy.stats.pearsonr(p1d, p2d)
+                            if corr[0] < threshold:
+                                config.log.warning(f"Samples '{p1}' vs '{p2}', pearson={corr[0]:.2f}")
+                            if output_pears:
+                                p1ind = self._conditions.index(p1)
+                                p2ind = self._conditions.index(p2)
+                                pear_out[p1ind, p2ind] = corr[0]
+                                pear_out[p2ind, p1ind] = corr[0]
+                            pearson_vals.append(corr[0])
+                        elif i1 == i2 and output_pears:
                             p1ind = self._conditions.index(p1)
-                            p2ind = self._conditions.index(p2)
-                            pear_out[p1ind, p2ind] = corr[0]
-                            pear_out[p2ind, p1ind] = corr[0]
-                        pearson_vals.append(corr[0])
-                    elif i1 == i2 and output_pears:
-                        p1ind = self._conditions.index(p1)
-                        pear_out[p1ind, p1ind] = 1.0
+                            pear_out[p1ind, p1ind] = 1.0
 
-        self.check_condition_names_are_unique()
+            self.check_condition_names_are_unique()
 
-        if output_pears:
-            oh = open(output_pears, "w")
-            oh.write("\t%s\n" % "\t".join(self._conditions))
-            for i, row in enumerate(pear_out):
-                d_out = []
-                for d in row:
-                    if d == 0:
-                        d_out.append("")
-                    else:
-                        d_out.append(str(d))
-                oh.write("%s\t%s\n" % (self._conditions[i], "\t".join(d_out)))
-            oh.close()
-            config.log.info("mean_replicates: Saved Pearson correlation table '%s'" % (output_pears,))
+            if output_pears:
+                oh = open(output_pears, "w")
+                oh.write("\t%s\n" % "\t".join(self._conditions))
+                for i, row in enumerate(pear_out):
+                    d_out = []
+                    for d in row:
+                        if d == 0:
+                            d_out.append("")
+                        else:
+                            d_out.append(str(d))
+                    oh.write("%s\t%s\n" % (self._conditions[i], "\t".join(d_out)))
+                oh.close()
+                config.log.info(f"mean_replicates: Saved Pearson correlation table '{output_pears}'")
 
-        if pearson_hist_filename:
-            fig = self.draw.getfigure(**kargs)
-            axis = fig.add_subplot(111)
-            axis.hist(pearson_vals, bins=50, range=[0, 1], facecolor='grey', ec="none", alpha=1.0)
-            axis.set_xlim([0,1])
+            if pearson_hist_filename:
+                fig = self.draw.getfigure(**kargs)
+                axis = fig.add_subplot(111)
+                axis.hist(pearson_vals, bins=50, range=[0, 1], facecolor='grey', ec="none", alpha=1.0)
+                axis.set_xlim([0,1])
 
-            config.log.info("mean_replicates: Saved Pearson histogram '%s'" % self.draw.savefigure(fig, pearson_hist_filename))
+                config.log.info("mean_replicates: Saved Pearson histogram '%s'" % self.draw.savefigure(fig, pearson_hist_filename))
 
         config.log.info("mean_replicates: Started with %s conditions, ended with %s" % (len(self._conditions), len(newgl[0]["conditions"])))
         return newgl
