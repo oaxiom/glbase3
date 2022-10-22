@@ -2978,7 +2978,7 @@ class expression(base_expression):
         fig = self.draw.getfigure(**kargs)
 
         if _data is None:
-            _data = numpy.array(self.serialisedArrayDataList)
+            data = numpy.array(self.serialisedArrayDataList)
         else:
             data = _data # Pass through custom data.
 
