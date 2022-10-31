@@ -3019,15 +3019,18 @@ class expression(base_expression):
         if cut:
             # I believe that the old code is actually correct
             ret = []
-            config.log.info("tree: Using local threshold '%.2f'" % color_threshold)
+            config.log.info(f"tree: Using local threshold '{color_threshold:.2f}'")
             clus = scipy.cluster.hierarchy.fcluster(link, color_threshold, 'distance')
             for i, net in enumerate(sorted(set(clus))):
                 # get all of the gene names back out.
                 idxs = [idx for idx, x in enumerate(clus) if x == net]
                 newl = [{row_name_key: row_names[idx]} for idx in idxs]
+                # Do a map to get back to an expression()
                 newgl = genelist()
                 newgl.load_list(newl)
-                ret.append(newgl)
+                newe = newgl.map(genelist=self, key=row_name_key, silent=True)
+
+                ret.append(newe)
 
             '''
             ret = []
