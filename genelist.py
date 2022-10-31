@@ -3027,7 +3027,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Purpose**
             split() the values of key into key:value pairs and add them back into the genelist
 
-            A good example is this:
+            An example is this:
 
             After loading a fasta  the entries are like this:
 
@@ -3045,7 +3045,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             0: seq: EIV, transcript_biotype: TR_D_gene, pep: known, gene_biotype: TR_D_gene, gene: ENSG00000223997, transcript: ENST00000415118, chromosome: GRCh37:14:22907539:22907546:1
 
-            NOTE: This will work for a relatively simple example, but will fail rapidly in more complex versions.
+            NOTE: This will work for a relatively simple example, but will fail in more complex versions.
+
             Notice how the first ENSP00000451042 is lost as it does not have a val_sep (:).
 
         **Arguments**
@@ -3083,51 +3084,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
         config.log.info("splitKeyValue: split '%s' into ~'%s'%s'%s' key value pairs" % (key, len(k), val_sep, len(v)))
-        return newl
-
-    def splitKey(self, key, key_names, keep_original=False):
-        """
-        **Purpose**
-            split a key that is a list into a new set of keys using key_names.
-
-            For example:
-                a = [{"data": [0, 5, 20]}]
-
-                b = a.splitKey("data", ["data_one", "data_two", "data_three"])
-
-                b = [{"data_one": 0, "data_two": 5, "data_three": 20}]
-
-            Some restrictions:
-            1. The length of key_names must equal the length of the list stored in Key
-            2. All lists stored in 'key' must be the same length.
-            3. The data stored in key is assumed to always be in the same order
-
-        **Arguments**
-            key
-                the key to split
-
-            key_names
-                A list of key names to use to split the key up by
-
-            keep_original (Optional, default=False)
-                keep the original key as well. Default behaviour deletes the key and its data
-
-        **Returns**
-            The new list
-        """
-        assert key in self.linearData[0], "'%s' not found in this genelist" % key
-        assert len(key_names) == len(self.linearData[0][key]), "the key_names list is not the same length as the data in the genelist"
-
-        newl = self.deepcopy()
-
-        for item in newl:
-            for i, newk in enumerate(key_names):
-                item[newk] = item[key][i]
-
-            if not keep_original:
-                del item[key]
-
-        newl._optimiseData()
         return newl
 
     def joinKey(self, new_key_name, formatter, keyA, keyB, keep_originals=False):

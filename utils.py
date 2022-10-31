@@ -225,7 +225,7 @@ def FASTAToLIST(filename):
             entry = Node(line) # make a new node
 
     # all done;
-    return (elementList)
+    return elementList
 
 def loadTSVAsLIST(file):
     oh = open(file, "rU")
