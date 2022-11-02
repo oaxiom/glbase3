@@ -44,7 +44,7 @@ Then it can go::
 
 """
 
-import sys, os, copy, random, numpy, math
+import sys, os, copy, random, numpy, math, statistics
 from collections.abc import Iterable
 
 from numpy import array, arange, mean, max, min, std, float32
@@ -378,7 +378,7 @@ class draw:
             I must guess the vmax value. I will do this by working out the
             mean then determining a symmetric colour distribution
             """
-            me = mean(data)
+            me = statistics.mean(data)
             ma = abs(me - max(data))
             mi = abs(min(data) + me)
             if ma > mi:
@@ -941,8 +941,8 @@ class draw:
         [item.set_markeredgewidth(0.2) for item in ax3.xaxis.get_ticklines()]
         [t.set_fontsize(6) for t in ax3.get_xticklabels()]
 
-        m = utils.mean(peakdata)
-        s = utils.std(peakdata)
+        m = statistics.mean(peakdata)
+        s = statistics.std(peakdata)
 
         ax3.axvline(x=m, color='black', linestyle=":", linewidth=1)
         ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
@@ -1479,8 +1479,8 @@ class draw:
         ax2.set_position(position_histogram)
         n, bins, patches = ax2.hist(data, bins=20, orientation='horizontal', histtype="stepfilled", color=(0,0,0))
 
-        m = mean(data) # hehe, numpy pawns my homemade routine for nontrivial samples.
-        s = std(data)
+        m = statistics.mean(data) # hehe, numpy pawns my homemade routine for nontrivial samples.
+        s = statistics.std(data)
 
         y = mlab.normpdf( bins, m, s)
         l = ax2.plot(bins, y, 'r--', linewidth=1)
@@ -2205,7 +2205,7 @@ class draw:
             mean then determining a symmetric colour distribution
             """
             if symmetric:
-                me = mean(data)
+                me = statistics.mean(data)
                 ma = abs(me - max(data))
                 mi = abs(min(data) + me)
                 if ma > mi:

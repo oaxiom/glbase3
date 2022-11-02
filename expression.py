@@ -1321,7 +1321,7 @@ class expression(base_expression):
             all_reps = set([x for sublist in reps for x in sublist]) # Flatten the 2D list.
             missing_conds = [c for c in all_reps if c not in self._conditions]
             for c in sorted(missing_conds):
-                config.log.warning('  missing {}'.format(c))
+                config.log.warning(f'  missing {c}')
 
             # filter out the missing conditions;
             missing_conds = set(missing_conds)
@@ -1367,7 +1367,7 @@ class expression(base_expression):
                     # get the p it is in:
                     p = [i for i in reps if cond in i][0] # the indeces of the replicates to merge, the [0] is so that if the rep is in two sets I don't end up with multiple sets
                     expn_vals = numpy.array([self.serialisedArrayDataDict[i] for i in p])
-                    mean = sum(expn_vals) / float(len(p))
+                    mean = expn_vals.mean() # sum(expn_vals) / float(len(p))
                     err = numpy.std(expn_vals, axis=0) / math.sqrt(len(expn_vals))
                     new_serialisedArrayDataDict[p[0]] = mean # merge into the 0th replicate key
                     errors[p[0]] = err

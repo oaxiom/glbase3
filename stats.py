@@ -4,6 +4,7 @@ stats sub_class for expression objects
 
 """
 
+import statistics
 import numpy
 import scipy.stats
 

@@ -8,10 +8,6 @@ they are used (if at all).
 
 So excuse the terrible code in places. I will deprecate occasional functions from this.
 
-R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
-degenerate character N=[ATCG]
-3-fold degenerate motifs re not used like the Lander paper.
-
 """
 
 import sys, os, numpy, string, csv, random, math, pickle, gzip
@@ -227,11 +223,6 @@ def FASTAToLIST(filename):
     # all done;
     return elementList
 
-def loadTSVAsLIST(file):
-    oh = open(file, "rU")
-    reader = csv.reader(oh, dialect=csv.excel_tab)
-    return [line for line in reader]
-
 # This code comes from http://www.johndcook.com/standard_deviation.html
 # the point of all this complexity is to allow incremental computation of mean and std in
 # a numerically stable way.
@@ -265,15 +256,6 @@ class accumulate_mean:
 
     def value(self):
         return self.val
-
-def mean(intList):
-    try:
-        return sum(intList) / float(len(intList))
-    except TypeError:
-        return intList # intList is probably a single int -
-
-def std(intList):
-    return math.sqrt(mean([(abs(x - mean(intList) ) ** 2) for x in intList]))
 
 def transpose(list):
     """

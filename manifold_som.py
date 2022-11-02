@@ -28,7 +28,7 @@ also released under the MIT license
 
 """
 
-import sys, os, timeit, math, textwrap, random, itertools
+import sys, os, timeit, math, textwrap, random, itertools, statistics
 from time import time
 
 import numpy as np
