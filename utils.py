@@ -259,9 +259,8 @@ class accumulate_mean:
 
 def transpose(list):
     """
-    a transpose command, rotates a matrix or equivalent by 90
-
-    more like a transpose from R than anything else.
+    FOR DEPRECATION, use numpy.T
+    A transpose command, rotates a matrix or equivalent by 90
     """
     try:
         rows = len(list[0])
@@ -381,7 +380,7 @@ def fastq(filename, gzip=False):
 
     """
     oh = gzip.open(filename, "rt") if gzip else open(filename, "rU")
-    name = "dummy"
+    name = "."
     while name != "":
         name = oh.readline().strip()
         seq = oh.readline().strip()
@@ -406,7 +405,7 @@ def fastqPE(filename1, filename2, gziped=True):
         oh1 = open(filename1, "rt")
         oh2 = open(filename2, "rt")
 
-    name1 = "dummy"
+    name1 = "."
     while name1 != "":
         name1 = oh1.readline().strip()
         seq1 = oh1.readline().strip()
@@ -418,7 +417,6 @@ def fastqPE(filename1, filename2, gziped=True):
         strand2 = oh2.readline().strip()
         qual2 = oh2.readline().strip()
 
-        res = ({"name": name1, "strand": strand1, "seq": seq1, "qual": qual1},
+        yield ({"name": name1, "strand": strand1, "seq": seq1, "qual": qual1},
             {"name": name2, "strand": strand2, "seq": seq2, "qual": qual2})
-        yield res
     return

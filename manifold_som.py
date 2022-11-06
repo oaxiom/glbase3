@@ -34,7 +34,6 @@ from time import time
 import numpy as np
 import scipy.spatial as spdist
 from scipy.sparse import csr_matrix
-#from sklearn.decomposition import RandomizedPCA
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from sklearn import neighbors
