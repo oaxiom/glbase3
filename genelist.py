@@ -1250,7 +1250,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         return self.getRowsByKey(key=key, list_of_values=list_of_items, use_re=use_re, **kargs)
 
-    def getRowsByKey(self, key=None, values=None, use_re=True, case_sensitive=True, **kargs):
+    def getRowsByKey(self, key=None, values=None, use_re=True, case_sensitive=True,
+        silent=False, **kargs):
         """
         **Purpose**
             extract all rows from a genelist for which the values in key are in the
@@ -1327,10 +1328,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if newl:
             newl._optimiseData()
         else:
-            config.log.info("getRowsByKey: Found 0 items")
+            if not silent: config.log.info("getRowsByKey: Found 0 items")
             return None
 
-        config.log.info("getRowsByKey: Found %s items" % len(newl))
+        if not silent: config.log.info(f"getRowsByKey: Found {len(newl)} items")
+
         return newl
 
     def filter_by_in(self, key=None, value=None, remove=True, **kargs):

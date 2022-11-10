@@ -29,8 +29,7 @@ class progressbar:
             self.maximum = -1
 
         self.__writer = output
-        self.__barwidth = 30 # bar_width in characters. This may need to change on later computers
-                             # with larger terminals
+        self.__barwidth = 30 # bar_width in characters.
         self.__last_percent = -1 # only print if __last_pecent is incremented.
 
     def update(self, new_value):
