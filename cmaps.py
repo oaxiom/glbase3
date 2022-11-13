@@ -10,9 +10,9 @@ row i:   x  y0  y1
               /
 row i+1: x  y0  y1
 
-Each row in the table for a given color is a sequence of x, y0, y1 tuples. 
-In each sequence, x must increase monotonically from 0 to 1. For any input 
-value z falling between x[i] and x[i+1], the output value of a given color 
+Each row in the table for a given color is a sequence of x, y0, y1 tuples.
+In each sequence, x must increase monotonically from 0 to 1. For any input
+value z falling between x[i] and x[i+1], the output value of a given color
 will be linearly interpolated between y1[i] and y0[i+1]:
 
 """
@@ -23,14 +23,14 @@ from matplotlib.colors import LinearSegmentedColormap
 
 def discretize(cmap, N):
     """
-    From: 
+    From:
     http://www.scipy.org/Cookbook/Matplotlib/ColormapTransformations
-    
+
     Return a discrete colormap from the continuous colormap cmap.
-    
-        cmap: colormap instance, eg. cm.jet. 
+
+        cmap: colormap instance, eg. cm.jet.
         N: number of colors.
-    
+
     Example
         x = resize(arange(100), (5,100))
         djet = cmap_discretize(cm.jet, 5)
@@ -51,7 +51,7 @@ def discretize(cmap, N):
         for ki, key in enumerate(('red', 'green', 'blue'))
     }
 
-    return LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
+    return LinearSegmentedColormap(cmap.name + "_%d" % N, cdict, 1024)
 
 # Do the reverse ones here:
 # Um...
@@ -59,13 +59,13 @@ def discretize(cmap, N):
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
-    
+
     a = np.linspace(0, 1, 256).reshape(1,-1)
     a = np.vstack((a,a))
-    
+
     maps = [discretize("RdBu", 6), discretize("PuBu", 6), discretize("Accent", 12)]
     nmaps = len(maps)
-    
+
     fig = plt.figure(figsize=(5,10))
     fig.subplots_adjust(top=0.99, bottom=0.01, left=0.2, right=0.99)
     for i,m in enumerate(maps):

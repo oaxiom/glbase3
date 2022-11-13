@@ -1367,7 +1367,7 @@ class expression(base_expression):
                     # get the p it is in:
                     p = [i for i in reps if cond in i][0] # the indeces of the replicates to merge, the [0] is so that if the rep is in two sets I don't end up with multiple sets
                     expn_vals = numpy.array([self.serialisedArrayDataDict[i] for i in p])
-                    mean = expn_vals.mean() # sum(expn_vals) / float(len(p))
+                    mean = expn_vals.mean(axis=0) # sum(expn_vals) / float(len(p))
                     err = numpy.std(expn_vals, axis=0) / math.sqrt(len(expn_vals))
                     new_serialisedArrayDataDict[p[0]] = mean # merge into the 0th replicate key
                     errors[p[0]] = err

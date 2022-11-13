@@ -202,7 +202,9 @@ class base_expression(genelist):
         genelist._optimiseData(self) # do the parent optimise.
 
         # generate a serialised version of the array conditions.
-        self.numpy_array_all_data = numpy.array([i["conditions"] for i in self.linearData])
+        #print([len(i["conditions"]) for i in self.linearData])
+        self.numpy_array_all_data = numpy.array([numpy.array(i["conditions"]) for i in self.linearData])
+        #print(self.numpy_array_all_data)
 
         # could be done with dict comp:
         data = {}
