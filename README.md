@@ -1,12 +1,12 @@
 ![Tests](https://github.com/oaxiom/glbase3/actions/workflows/tests.yml/badge.svg)
 
-# README #
+# README
 
-### What is glbase3? ###
+## What is glbase3?
 
 glbase3 is a flexible and multifunctional toolkit allowing the user to perform many common analyses on ChIP-seq-like and RNA-seq data
 
-### How do I get set up? ###
+## How do I get set up?
 
 I strongly recommend installing the github version of glbase. glbase is updated regularly to remove bugs and add features. 
 
@@ -18,13 +18,17 @@ Go to the directory you wish glbase to install to (for example /Users/name/tools
 
 Then at the command type:
 
+```
 $ git clone https://github.com/oaxiom/glbase3.git
+```
 
 This will create a directory 'glbase', containing all of the code.
 
 Next add glbase to your python path by adding this line to ~/.bash_profile (Mac) or ~/.bashrc (Unix, Linux) or equivalent:
 
+```
 export PYTHONPATH=/Users/name/tools:$PYTHONPATH
+```
 
 To update glbase to the most recent version in the repositories, simply:
 
@@ -32,28 +36,30 @@ git pull
 
 To update to the most recent version.
 
-### Running the test suite ###
+## Running the test suite
 
 These should all pass:
 
+```
 $ cd glbase3/tests
 $ python runall.py
+```
 
-### Documentation ###
+## Documentation
 
 Each function is documented in the source code.
 
-### Tutorials ###
+## Tutorials
 
 You can find self-contained tutorials in:
 
 /glbase3/examples/
 
-### License ###
+## License
 
 glbase is distributed under the MIT license:
 
-Copyright (C) 2009-2021 Andrew Hutchins
+Copyright (C) 2009-2022 Andrew Hutchins
     
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
     
@@ -64,7 +70,7 @@ Except as contained in this notice, the name(s) of the above copyright holders s
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-### Author & Contributions ###
+## Author & Contributions
 
 Andrew P. Hutchins. 
 http://www.chrom-lab.org
