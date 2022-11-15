@@ -942,7 +942,7 @@ class draw:
         [t.set_fontsize(6) for t in ax3.get_xticklabels()]
 
         m = statistics.mean(peakdata)
-        s = statistics.std(peakdata)
+        s = statistics.stdev(peakdata)
 
         ax3.axvline(x=m, color='black', linestyle=":", linewidth=1)
         ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
