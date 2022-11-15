@@ -1335,6 +1335,40 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newl
 
+    def filter_remove_noncanonical_choromosomes(self,
+        key=None,
+        canonical_names=None,
+        trim_chr_if_present=True
+        ):
+        '''
+        **Purpose**
+            Remove all locations in htis genelist that do not match any one of the
+            canonical_names
+
+        **Arguments**
+            key (Required)
+                key containing a <location> object
+
+            canonical_names (Required)
+                list of chromsome names considered canonical
+
+        '''
+        assert key, 'You must specify a key'
+        assert canonical_names, 'You must specify a value'
+        assert key in self.keys(), f'{key} key not found in this genelist'
+        assert isinstance(canonical_names, list), 'canonical_names should be a list'
+        assert isinstance(self.linearData[0][key], location), f'{key} doe not appear to be a location'
+
+        newgl = self.deepcopy()
+
+        newl = [item for item in newgl.linearData if item[key].loc['chr'] in canonical_names]
+        newgl.linearData = newl
+        newgl._optimiseData()
+
+        config.log.info(f'filter_remove_noncanonical_choromosomes: Kept {len(newl)} matching entries')
+
+        return newgl
+
     def filter_by_in(self, key=None, value=None, remove=True, **kargs):
         """
         **Purpose**
