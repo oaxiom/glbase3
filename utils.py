@@ -369,7 +369,7 @@ def hex_to_rgb(hex_str):
 def qdeepcopy(anobject):
     return pickle.loads(pickle.dumps(anobject, -1))
 
-def fastq(filename, gzip=False):
+def fastq(filename, gziped=False):
     """
     generator object to parse a fastQ file
 
@@ -379,7 +379,7 @@ def fastq(filename, gzip=False):
     #,,5,</<-<+++5+568A+6+5+++##5+5++5###+5+55-55A-A--5#######55+5<)+4)43++14#####*1*1*2011*0*1*1*1####***111(/'####/###-(((###############/-(/((./(((((((
 
     """
-    oh = gzip.open(filename, "rt") if gzip else open(filename, "rU")
+    oh = gzip.open(filename, "rt") if gziped else open(filename, "rU")
     name = "."
     while name != "":
         name = oh.readline().strip()

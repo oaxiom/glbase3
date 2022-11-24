@@ -61,7 +61,7 @@ class base_expression(genelist):
 
         if not loadable_list and not expn:
             config.log.info("expression: made an empty expression object")
-            return()
+            return
 
         if loadable_list:
             self.load_list(loadable_list, expn, **kargs)
@@ -400,9 +400,13 @@ class base_expression(genelist):
 
         **Returns**
             None. This is one of the few IN PLACE methods. and returns
-            None.
         """
         assert list_to_load[0], "list_to_load does not appear to be a valid list"
+
+        if cond_names:
+            assert len(cond_names) == len(set(cond_names)), 'It appears cond names are not unique'
+        elif expn:
+            assert len(expn) == len(set(expn)), 'It appears cond names (expn) is not unique'
 
         __nan_warnings = False
         if expn:
