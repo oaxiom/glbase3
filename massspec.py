@@ -366,7 +366,7 @@ class massspec(base_expression):
 
         '''.format(self.valid_call_modes)
         assert mode in self.valid_call_modes, f'mode "{mode}" not found in {self.valid_call_modes}'
-        assert species in self.supported_species, f"species {species} not found in {self.supported_species}"
+        assert species in self.supported_species, f"species {species} not found in {self.supported_species.keys()}"
 
         starting_len = len(self)
 
