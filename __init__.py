@@ -122,8 +122,6 @@ from .draw import adjust_text
 from .hic import hic, merge_hiccys
 from .massspec import massspec
 from .glgo import glgo
-#from .region import region
-#from .intervaltree import intervaltree # Later integrate into genelist; expose here for now
 from . import realtime
 from . import utils
 from . import format
@@ -150,7 +148,6 @@ __all__ = [
     "expression",
     "genome",
     "genome_sql",
-    #"track", # Deprecated. use flat_track
     "flat_track",
     "delayedlist",
     'massspec',
@@ -171,11 +168,8 @@ __all__ = [
     "fc",
     #"rigidgrid", # Unavailable
     #"ecrbase",
-    #"region",
     "realtime",
-    #"realtime2", # This is deprecated
     #"tfbs_iter",
-    'intervaltree',  # Useful utils to export
     "utils",
     'adjust_text',
     "change_drawing_mode",
