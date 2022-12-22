@@ -1997,14 +1997,16 @@ class draw:
         **Returns**
             the actual filename used to save the image
         """
-        print(config.draw_mode)
         if config.draw_mode == 'jupyter':
             fig.show()
-            return None
+            if not filename: # if filename is something, then allow
+                return None
 
-        temp_draw_mode = config.draw_mode
-        if isinstance(config.draw_mode, str):
-            temp_draw_mode = [config.draw_mode] # for simple compat
+            temp_draw_mode = ['pdf']
+        else:
+            temp_draw_mode = config.draw_mode
+            if isinstance(config.draw_mode, str):
+                temp_draw_mode = [config.draw_mode] # for simple compat
 
         for mode in temp_draw_mode:
             assert mode in config.valid_draw_modes, f"'{temp_draw_mode}' is not a supported drawing mode"
@@ -2019,7 +2021,8 @@ class draw:
                 save_name = "%s.%s" % (head, mode)
 
             fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches, dpi=dpi)
-            plot.close(fig) # Saves a huge amount of memory.
+            if config.draw_mode != 'jupyter': # Cannot close in jupyter, it will delete the figure
+                plot.close(fig) # Saves a huge amount of memory when saving thousands of images
         return save_name
 
     def do_common_args(self, ax, **kargs):
