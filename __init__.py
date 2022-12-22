@@ -96,6 +96,19 @@ if 'umap' in available_modules:
 else:
     pass # pass silently as umap is optional.
 
+# Work out if we are in IPython and/or jupyter and reconfigure some settings
+
+try:
+    shell = get_ipython().__class__.__name__
+    if shell == 'ZMQInteractiveShell':
+        config.draw_mode = 'jupyter' # Jupyter notebook or qtconsole
+    elif shell == 'TerminalInteractiveShell':
+        pass # Terminal running IPython
+    else:
+        pass # Other type (?)
+except NameError:
+    pass # Probably standard Python interpreter
+
 # ----------------------------------------------------------------------
 # Now import the rest of my libraries - assumes here they are available.
 # If I can get config and errors then these are probably available too.
