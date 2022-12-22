@@ -1997,12 +1997,17 @@ class draw:
         **Returns**
             the actual filename used to save the image
         """
+        print(config.draw_mode)
+        if config.draw_mode == 'jupyter':
+            fig.show()
+            return None
+
         temp_draw_mode = config.draw_mode
         if isinstance(config.draw_mode, str):
             temp_draw_mode = [config.draw_mode] # for simple compat
 
         for mode in temp_draw_mode:
-            assert mode in config.valid_draw_modes, "'%s' is not a supported drawing mode" % temp_draw_mode
+            assert mode in config.valid_draw_modes, f"'{temp_draw_mode}' is not a supported drawing mode"
 
             if mode == 'svg':
                 matplotlib.rcParams["image.interpolation"] = 'nearest'
@@ -2946,7 +2951,7 @@ class draw:
             ...
 
         '''
-        assert filename, 'A filename to save the image to is required'
+        #assert filename, 'A filename to save the image to is required'
         assert data_dict, 'data_dict is required'
         assert isinstance(data_dict, dict), 'data_dict is not a dict'
 
@@ -3015,10 +3020,8 @@ class draw:
         plot.legend(loc='upper left', bbox_to_anchor=(0.0, -0.4), prop={'size': 6})
         [t.set_fontsize(6) for t in ax.get_yticklabels()]
         [t.set_fontsize(6) for t in ax.get_xticklabels()]
-        fig.savefig(filename)
-        fig.savefig(filename.replace('.png', '.pdf'))
+
         self.do_common_args(ax, **kargs)
-        fig.savefig(filename)
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("proportional_bar: Saved '{0}'".format(real_filename))

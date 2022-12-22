@@ -1990,7 +1990,7 @@ class expression(base_expression):
         return(None)
 
     def scatter(self, x_condition_name, y_condition_name, filename=None, genelist=None, key=None,
-        label=False, label_fontsize=12, **kargs):
+        label=False, label_fontsize=6, **kargs):
         """
         **Purpose**
             draw an X/Y dot plot or scatter plot, get R^2 correlation etc.
