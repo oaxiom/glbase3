@@ -1835,6 +1835,9 @@ class expression(base_expression):
             if CV > minCV and CV < maxCV:
                 row['CV'] = CV
                 newl.linearData.append(row)
+
+        assert len(newl) > 0, 'filterCV resulted in an empty list'
+
         newl._optimiseData()
         config.log.info("filter_by_CV: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
         return(newl)

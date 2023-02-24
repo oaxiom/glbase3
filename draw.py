@@ -2058,6 +2058,7 @@ class draw:
                 ticks - True/False, display any ticks at all
                 xticks - List of tick positions you want to draw
                 yticks - List of tick positions you want to draw
+                grid - True/False switch the grid on or off
 
         **Returns**
             None
@@ -2113,7 +2114,7 @@ class draw:
                 # quples are interleaved, list of x's and list of y's
                 ax.plot((quple[0], quple[2]), (quple[1], quple[3]), ls=':', color='grey', lw=0.5)
         if "grid" in kargs and kargs["grid"]:
-            ax.grid()
+            ax.grid(kargs["grid"])
         if "ticks" in kargs and not kargs["ticks"]:
             ax.tick_params(top="off", bottom="off", left="off", right="off")
         if "ticks_top" in kargs and not kargs["ticks_top"]:
@@ -2968,7 +2969,7 @@ class draw:
                 for kk in data_dict[k]:
                     if kk not in all_keys:
                         all_keys.append(kk)
-            print('Found {0} keys'.format(all_keys))
+            config.log.info(f'Found {all_keys} keys')
         else:
             all_keys = key_order
 
@@ -3019,6 +3020,7 @@ class draw:
         ax.set_xticks([0, 50, 100])
         ax.set_xticklabels(['0%', '50%', '100%'])
         ax.set_title(title, size=6)
+        ax.grid(False)
         ax.legend()
         plot.legend(loc='upper left', bbox_to_anchor=(0.0, -0.4), prop={'size': 6})
         [t.set_fontsize(6) for t in ax.get_yticklabels()]

@@ -41,7 +41,6 @@ else:
 
 try:
     import matplotlib
-    matplotlib.use("Agg") # cluster friendly!
     config.MATPLOTLIB_AVAIL = True
 except ImportError:
     raise LibraryNotFoundError("Fatal - matplotlib not available or not installed")
@@ -102,12 +101,15 @@ try:
     shell = get_ipython().__class__.__name__
     if shell == 'ZMQInteractiveShell':
         config.draw_mode = 'jupyter' # Jupyter notebook or qtconsole
+        matplotlib.rcParams['axes.grid'] = False
+        matplotlib.use('TkAgg')
     elif shell == 'TerminalInteractiveShell':
         pass # Terminal running IPython
     else:
         pass # Other type (?)
 except NameError:
-    pass # Probably standard Python interpreter
+    matplotlib.use("Agg") # cluster friendly!
+    # Probably standard Python interpreter
 
 # ----------------------------------------------------------------------
 # Now import the rest of my libraries - assumes here they are available.
