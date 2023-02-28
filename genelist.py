@@ -4321,8 +4321,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         ylim_pad = (cylims[1] - cylims[0]) * 0.05
 
-        if up: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
-        if dn: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
+        print(cxlims)
+
+        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
+        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
 
         real_filename = self.draw.savefigure(fig, filename)
 
