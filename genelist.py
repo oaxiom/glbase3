@@ -453,23 +453,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                         self.buckets[chr][b] = []
                     self.buckets[chr][b].append(n) # use index to maintain uniqueness.
 
-        # Then to do a collision =
-        """
-        left_buck = (item[loc_key]["left"]//config.bucket_size)*config.bucket_size
-        right_buck = (item[loc_key]["right"]//config.bucket_size)*config.bucket_size
-        buckets_reqd = range(left_buck, right_buck, config.bucket_size)
-
-        for buck in buckets_reqd:
-            cbuck = set(self.buckets[chr][buck]) # unique ids
-        """
-
-        """
-        # Build a quickfinder:
-
-        This is dict representation of the list, and allows you to do things like:
-
-        indeces = self.qkeyfind[key][value]
-        """
         self.qkeyfind = {}
         for index, item in enumerate(self.linearData):
             for key in item:
@@ -481,9 +464,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                         self.qkeyfind[key][item[key]] = []
                     self.qkeyfind[key][item[key]].append(index)
                 except TypeError:
+                    # TODO: This is indeed present if the genelist is an expresion object;
                     # The item in unhashable and cannot be added to the qkeyfind
                     # This should be pretty rare if not impossible.
-                    #print '!Unhashable key: %s for qkeyfind system' % key
+                    #config.log.error(f'!Unhashable key: {key} for qkeyfind system')
                     pass
 
                 # Now to do a find you just go:
