@@ -61,6 +61,7 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
             node_size.append((n[1]['size'],))
     #else: Assume they know what they are doing
 
+    print(pos)
     xy = numpy.asarray([pos[v[0]] for v in nodelist])
 
     node_collection = ax.scatter(xy[:,0], xy[:,1],
@@ -82,7 +83,7 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
 def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_color='k', style='solid',
     alpha=None, edge_cmap=None, edge_vmin=None, edge_vmax=None, traversal_weight=1.0,
     edge_delengthify=0.15,
-    arrows=True,label=None, zorder=1, **kwds):
+    arrows=True, label=None, zorder=1, **kwds):
     """
     Code cleaned-up version of networkx.draw_networkx_edges
 
@@ -91,13 +92,16 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     width_adjuster - the line width is generated from the weight if present, use this adjuster to thicken the lines (multiply)
     """
     if edgelist is None:
-        edgelist = G.edges()
+        edgelist = list(G.edges())
 
     if not edgelist or len(edgelist) == 0:  # no edges!
         return None
 
+    print(pos)
+
     # set edge positions
     edge_pos = [(pos[e[0]], pos[e[1]]) for e in edgelist]
+
     new_ep = []
     for e in edge_pos:
         x, y = e[0]
@@ -113,18 +117,22 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         dy -= ely
 
         new_ep.append(((x, y), (dx,dy)))
+
     edge_pos = numpy.asarray(new_ep)
 
     if numpy.iterable(width):
         lw = width
-
     else:
+        # Weight is broken...
         #print [G.get_edge_data(n[0], n[1])['weight'] for n in edgelist]
         # see if I can find an edge attribute:
-        if 'weight' in G.get_edge_data(edgelist[0][0], edgelist[0][1]): # Test an edge
-            lw = [0.5+((G.get_edge_data(n[0], n[1])['weight']-traversal_weight)*width_adjuster) for n in edgelist]
-        else:
-            lw = (width,)
+        aedge = edgelist[0]
+        #if 'weight' in G[aedge[0]][aedge[1]]: # G.is_weighted() seems new?
+        #   lw = [0.5+((G[n[0]][n[1]]['weight']-traversal_weight)*width_adjuster) for n in edgelist]
+        #else:
+        #lw = [G[n[0]][n[1]]['weight'] for n in edgelist]
+        lw = width
+    '''
     if not is_string_like(edge_color) and numpy.iterable(edge_color) and len(edge_color) == len(edge_pos):
         if numpy.alltrue([cb.is_string_like(c) for c in edge_color]):
             # (should check ALL elements)
@@ -143,22 +151,26 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         if is_string_like(edge_color) or len(edge_color) == 1:
             edge_colors = (colorConverter.to_rgba(edge_color, alpha), )
         else:
-            raise ValueError('edge_color must be a single color or list of exactly m colors where m is the number or edges')
+            raise ValueError('edge_color must be a single color or list the same size as the number or edges')
+    '''
+
 
     edge_collection = LineCollection(edge_pos,
-        colors=edge_colors,
+        #colors=edge_colors,
         linewidths=lw,
-        antialiaseds=(1,),
+        #antialiaseds=(1,),
         linestyle=style,
-        transOffset=ax.transData,
+        offsets=None,
+        #transOffset=ax.transData,
         zorder=zorder)
 
-    edge_collection.set_label(label)
+    #edge_collection.set_label(label)
     ax.add_collection(edge_collection)
 
     #if cb.is_numlike(alpha):
     edge_collection.set_alpha(alpha)
 
+    '''
     if edge_colors is None:
         if edge_cmap is not None:
             assert(isinstance(edge_cmap, Colormap))
@@ -169,6 +181,8 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
 
         else:
             edge_collection.set_clim(edge_vmin, edge_vmax)
+    '''
+
     # update view
     '''
     minx = numpy.amin(numpy.ravel(edge_pos[:,:,0]))
@@ -183,7 +197,8 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     ax.update_datalim(corners)
     ax.autoscale_view()
     '''
-    return(edge_collection)
+
+    return edge_collection
 
 def draw_node_labels(G, pos, labels=None, font_size=12, font_color='k',
     font_family='sans-serif', font_weight='normal', alpha=1.0, bbox=None, ax=None,
@@ -200,8 +215,8 @@ def draw_node_labels(G, pos, labels=None, font_size=12, font_color='k',
         labels = {n: n for n in G.nodes()}
 
     # set optional alignment
-    horizontalalignment = kargs.get('horizontalalignment', 'center')
-    verticalalignment = kargs.get('verticalalignment', 'center')
+    horizontalalignment = kargs.get('horizontalalignment', default='center')
+    verticalalignment = kargs.get('verticalalignment', default='center')
 
     text_items = {}  # there is no text collection so we'll fake one
     for n, label in list(labels.items()):
@@ -440,12 +455,8 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
 
     """
     # Kargs and defaults:
-    edge_color = 'grey'
-    edge_width = 1.0
-    if 'edge_color' in kargs and kargs['edge_color']:
-        edge_color = kargs['edge_color']
-    if 'edge_width' in kargs and kargs['edge_width']:
-        edge_width = kargs['edge_width']
+    edge_color = kargs.get('edge_color', default='grey')
+    edge_width = kargs.get('edge_width', default=1.0)
 
     # optional return data
     ret_groups = None

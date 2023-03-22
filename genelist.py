@@ -158,7 +158,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             else:
                 raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer')
 
-            config.log.info("genelist: loaded '{0}' found {1:,} items".format(filename, len(self.linearData)))
+            config.log.info(f"genelist: loaded '{filename}' found {len(self.linearData):,} items")
         elif loadable_list:
             self.load_list(loadable_list)
 
@@ -538,7 +538,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A new genelist or None
         """
-        assert key in self.keys(), '"{0}" key not found in this list'.format(key)
+        assert key in self.keys(), f'"{key}" key not found in this list'
 
         if mode == "greedy":
             r = self._findDataByKeyGreedy(key, value)
@@ -547,7 +547,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if r:
                 r = [r]
         else:
-            raise AssertionError("mode '%s' for get() is not known" % mode)
+            raise AssertionError(f"mode '{mode}' for get() is not known")
 
         # The internal methods return vanilla lists for compatability with er... internal stuffs
         # repackage to a new gl.
@@ -738,7 +738,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             oh = open(filename, "w")
 
         if not self.linearData: # data is empty, fail graciously.
-            config.log.error("csv file '%s' is empty, no file written" % filename)
+            config.log.error(f"csv file '{filename}' is empty, no file written")
             oh.close()
             return None
 
@@ -2629,7 +2629,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             return newl
 
         else:
-            assert key in list(self.keys()), "the key '{}' was not found in this genelist".format(key)
+            assert key in list(self.keys()), f"the key '{key}' was not found in this genelist"
 
             newl = self.shallowcopy()
             newl.linearData = []
