@@ -215,8 +215,8 @@ def draw_node_labels(G, pos, labels=None, font_size=12, font_color='k',
         labels = {n: n for n in G.nodes()}
 
     # set optional alignment
-    horizontalalignment = kargs.get('horizontalalignment', default='center')
-    verticalalignment = kargs.get('verticalalignment', default='center')
+    horizontalalignment = kargs.get('horizontalalignment', 'center')
+    verticalalignment = kargs.get('verticalalignment', 'center')
 
     text_items = {}  # there is no text collection so we'll fake one
     for n, label in list(labels.items()):
@@ -455,8 +455,8 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
 
     """
     # Kargs and defaults:
-    edge_color = kargs.get('edge_color', default='grey')
-    edge_width = kargs.get('edge_width', default=1.0)
+    edge_color = kargs.get('edge_color', 'grey')
+    edge_width = kargs.get('edge_width', 1.0)
 
     # optional return data
     ret_groups = None
