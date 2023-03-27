@@ -624,6 +624,8 @@ class expression(base_expression):
         assert not isinstance(conditions, str), "sliceConditions: You must specify an iterable of conditions to keep"
         assert isinstance(conditions, (tuple, list, set, Iterable)), "sliceConditions: You must specify an iterable of conditions to keep"
 
+        assert len(conditions) == len(set(conditions)), 'The provided condition names are not unique'
+
         conditions = list(conditions) # Some weird bugs if not a list;
         for item in conditions:
             assert item in self._conditions, "sliceConditions: '%s' condition not found in this expression data" % item
