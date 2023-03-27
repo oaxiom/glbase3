@@ -326,7 +326,7 @@ hmmer_domtbl = fc(name="hmmer_domtbl",
 
 def _load_hmmer_domtbl(filename, gzip=False):
     """
-    # Unbelievably stupid format for hmmer:
+    # Irritating format for hmmer:
     Load the hmmer domtblout format table
     """
     oh = gzipfile.open(filename, "rt") if gzip else open(filename, "rt")

@@ -36,7 +36,7 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
         #nodelist = list(G) # data?
     elif isinstance(nodelist, list): # The node_boundary just sends back a list of node names
         # Convert to a tuple-like list of nodes, to match the output from G.nodes()
-        nodelist = [(n, G.node[n]) for n in nodelist] # get the node back out from the full network
+        nodelist = [(n, {}) for n in nodelist]
 
     # set the colors from the attributes if present:
     if 'color' in nodelist[0][1]: # Test a node to see if color attrib present
@@ -61,7 +61,6 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
             node_size.append((n[1]['size'],))
     #else: Assume they know what they are doing
 
-    print(pos)
     xy = numpy.asarray([pos[v[0]] for v in nodelist])
 
     node_collection = ax.scatter(xy[:,0], xy[:,1],
@@ -97,7 +96,7 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     if not edgelist or len(edgelist) == 0:  # no edges!
         return None
 
-    print(pos)
+    #print(pos)
 
     # set edge positions
     edge_pos = [(pos[e[0]], pos[e[1]]) for e in edgelist]
