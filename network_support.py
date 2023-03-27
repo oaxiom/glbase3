@@ -101,6 +101,7 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
     # set edge positions
     edge_pos = [(pos[e[0]], pos[e[1]]) for e in edgelist]
 
+    '''
     new_ep = []
     for e in edge_pos:
         x, y = e[0]
@@ -116,8 +117,8 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         dy -= ely
 
         new_ep.append(((x, y), (dx,dy)))
-
     edge_pos = numpy.asarray(new_ep)
+    '''
 
     if numpy.iterable(width):
         lw = width
