@@ -211,7 +211,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not bracket:
                 bracket = [-0.2, 1]
 
-        matrix = zeros( (len(self), len(self)), dtype=numpy.float64 ) # Must be float;
+        matrix = zeros( (len(self), len(self)), dtype=float) # Must be float;
 
         config.log.info('Stage 1: Overlaps')
         p = progressbar(num_samples)
@@ -416,7 +416,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             if not bracket:
                 bracket = [0.0, 0.4]
             # I need a float matrix? I thought the default is a float64?
-            matrix = zeros( (len(self), len(self)), dtype=numpy.float64) # 2D matrix.
+            matrix = zeros( (len(self), len(self)), dtype=float) # 2D matrix.
         else: # Integers will do fine to store the overlaps
             if not bracket:
                 bracket = [-0.2, 1]
@@ -1362,7 +1362,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             if len(dd) < block_len:
                                 config.log.warning('Block miss (short)')
                                 num_missing = block_len - len(dd)
-                                ad = numpy.zeros(num_missing, dtype=numpy.float32)
+                                ad = numpy.zeros(num_missing, dtype=float)
                                 dd = numpy.append(dd, ad)
                             elif len(dd) > block_len:
                                 config.log.warning('Block miss (long)')
@@ -1432,7 +1432,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 pileup_data[cluster_index+1] = [None for i in list_of_peaks]
 
                             if pileup_data[cluster_index+1][peaks] is None: # numpy testing.
-                                pileup_data[cluster_index+1][peaks] = numpy.array(row, dtype=numpy.float64)
+                                pileup_data[cluster_index+1][peaks] = numpy.array(row, dtype=float)
                             else:
                                 pileup_data[cluster_index+1][peaks] += row
 
@@ -2444,7 +2444,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             if len(dd) < block_len: # This should be a very rare case...
                                 config.log.warning('Block miss (short)')
                                 num_missing = block_len - len(dd)
-                                ad = numpy.zeros(num_missing, dtype=numpy.float32)
+                                ad = numpy.zeros(num_missing, dtype=float)
                                 dd = numpy.append(dd, ad)
                             elif len(dd) > block_len: # Should be never?
                                 config.log.warning('Block miss (long)')

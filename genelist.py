@@ -3528,7 +3528,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         labels = ["Gene desert", "-200 kb to -100 kb", "-100 kb to -50 kb", "-50 kb to -10 kb", "-10 kb to 0 kb",
             "0 kb to 10 kb", "10 kb to 50 kb", "50 kb to 100 kb", "100 kb to 200 kb"]
 
-        data = numpy.array([hist[k] for k in kord], dtype=numpy.float64)
+        data = numpy.array([hist[k] for k in kord], dtype=float)
         rand = numpy.array([numpy.mean(back[k]) for k in kord])
 
         total = sum(data)
@@ -3667,7 +3667,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         ax = fig.add_subplot(111)
         ax.set_position([0.1, 0.2, 0.8, 0.70])
 
-        data = numpy.array([hist[k] for k in kord], dtype=numpy.float64)
+        data = numpy.array([hist[k] for k in kord], dtype=float)
 
         total = sum(data)
 

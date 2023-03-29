@@ -436,7 +436,7 @@ class base_track:
                 cached_chrom = self.get_array_chromosome(l['chr'], read_extend=read_extend) # Will hit the DB if not already in cache
                 # if we are a flat_track, we need to put it to a numpy array:
                 if isinstance(cached_chrom, list):
-                    cached_chrom = numpy.array(cached_chrom, dtype=numpy.float32)
+                    cached_chrom = numpy.array(cached_chrom, dtype=float)
 
             actual_width = cached_chrom.shape[0] - l['left']
 
@@ -467,7 +467,7 @@ class base_track:
                     a = a[::-1]
             if number_of_tags_in_library:
                 #print(a, number_of_tags_in_library)
-                a = numpy.array(a, dtype=numpy.float)
+                a = numpy.array(a, dtype=float)
                 a /= float(number_of_tags_in_library) # This is 1.0 if norm_by_read_count == False
 
             # bin the data
