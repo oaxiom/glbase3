@@ -1708,10 +1708,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             distance
                The distance (in base pairs) to look for a match.
 
-            image_filename (Optional)
-                If set to a filename it will cause annotate to save a moving average window of
-                the distances annotated.
-
             window (Optional)
                 annotate() draws a histogram of the distance to the
                 nearest tss_loc creates an image and saves it to image_filename.
@@ -1846,19 +1842,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newgl = genelist.shallowcopy() # make a new copy, I need to copy to preserve the attributes.
         # or if it is a derived class.
         newgl.load_list(newl)
-
-        if image_filename:
-            # first I need to bin the data (by 1) - then do the moving average.
-            linData = numpy.zeros(distance*2) # set-up a blank array
-            for item in dist_hist:
-                linData[int(item - distance)] += 1
-            x, m_average = utils.movingAverage(linData, window)
-
-            self.draw._plot(image_filename,
-                m_average, x=x,
-                title="%s - loc of site around tss, moving window (%s)" % (newgl.name, window),
-                xlabel="Distance to transcription start site (base pairs)",
-                ylabel="Frequency (Raw)", **kargs)
 
         config.log.info("Annotated %s, found: %s within: %s bp" % (newgl.name, len(newgl), distance))
         return newgl

@@ -2403,7 +2403,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             oh = open(os.path.realpath(cache_data), "rb")
             matrix = pickle.load(oh)
             oh.close()
-            config.log.info("chip_seq_heatmap: Reloaded previously cached pileup data: '%s'" % cache_data)
+            config.log.info(f"chip_seq_heatmap: Reloaded previously cached pileup data: '{cache_data}'")
             # sanity check the matrix data
             assert isinstance(matrix, dict), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
             assert isinstance(matrix[0], dict), '{} does not match the expected data, suggest you rebuild'.format(cache_data)
@@ -2421,13 +2421,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             # New version that grabs all data and does the calcs in memory, uses more memory but ~2-3x faster
             for tindex, trk in enumerate(list_of_trks):
                 for plidx, peaklist in enumerate(list_of_peaks):
+                    peaklist_linearData_loc = peaklist['loc'] # faster?
                     for chrom in porder[plidx]:
                         # The chr_blocks iterates across all chromosomes, so this only hits the db once per chromosome:
                         data = trk.get_array_chromosome(chrom, read_extend=read_extend) # This will use the fast cache version if available.
 
                         for pidx, peak in enumerate(porder[plidx][chrom]): # peak is the index to look into
-                            left = peaklist.linearData[peak]['loc']['left']
-                            rite = peaklist.linearData[peak]['loc']['right']
+                            left = peaklist_linearData_loc[peak]['left']
+                            rite = peaklist_linearData_loc[peak]['right']
                             cpt = (left + rite) // 2
                             left = cpt - pileup_distance
                             rite = cpt + pileup_distance
@@ -2451,7 +2452,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                                 dd = dd[0:block_len] # just grab the start. probably unreliable though?
 
                             if respect_strand:
-                                if peaklist.linearData[peak]["strand"] in negative_strand_labels: # For the reverse strand all I have to do is flip the array.
+                                if peaklist_linearData[peak]["strand"] in negative_strand_labels: # For the reverse strand all I have to do is flip the array.
                                     dd = dd[::-1]
 
                             # Fill in the matrix table:
