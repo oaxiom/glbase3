@@ -19,11 +19,11 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
     # PE version, assumes l and r are frags
     n = 0
     for ch in sorted(chr_sizes.keys()):
-        config.log.info('Extracting %s' % ch)
+        config.log.info(f'Extracting {ch}')
         this_chrom = [0] * (chr_sizes[ch]+1)
 
         for file in infilename:
-            config.log.info("Collecting from %s" % (file,))
+            config.log.info(f"Collecting from {file}")
             oh = open(file, "rt") if not gzip else opengzip.open(file, 'rt')
             for line in oh: # Skip glbase overhead:
                 if "#" in line:
@@ -45,7 +45,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
                     config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
                 n += 1 # need to do this
             oh.close()
-        config.log.info('Committing %s' % ch)
+        #config.log.info('Committing %s' % ch)
         f.add_chromosome_array(ch.strip(), numpy.array(this_chrom))
         del this_chrom
 
@@ -188,7 +188,7 @@ def bed_to_flat(infilename, outfilename, name, isPE, read_extend=None, strand=Fa
         oh.close()
     total_read_count = int(n)
     f.set_total_num_reads(total_read_count)
-    config.log.info('Total read count %s' % total_read_count)
+    config.log.info(f'Total read count {total_read_count:,}')
 
     config.log.info('Observed chromsomes sizes:')
     for ch in chr_sizes:

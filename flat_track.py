@@ -155,12 +155,11 @@ class flat_track():
         if 'chr' not in chromosome:
             chromosome = 'chr{}'.format(chromosome)
 
-        grp = self.hdf5_handle.create_group('matrix_{}'.format(chromosome))
+        grp = self.hdf5_handle.create_group(f'matrix_{chromosome}')
         grp.create_dataset('mat', arr.shape, dtype=float, data=arr, chunks=True, compression='lzf')
-        config.log.info('Added chrom={} to table'.format(chromosome))
+        config.log.info(f'Added chrom={chromosome} to table')
 
         self.chrom_names.append(chromosome)
-
         return None
 
     def get_all_chrom_names(self):

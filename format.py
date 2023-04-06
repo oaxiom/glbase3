@@ -358,7 +358,7 @@ def _load_hmmer_domtbl(filename, gzip=False):
 
 go_GREAT_shown = fc(name="go_GREAT_shown",
     description="GO shown-* tables from GREAT",
-    format={"commentlines": "#", "term": 0, "rank": 1, "q-value": 3, "force_tsv": True}
+    format={"commentlines": "#", "name": 0,  "qvalue": 3, "force_tsv": True}
     )
 
 go_DAVID = fc(name="go_DAVID",

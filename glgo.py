@@ -15,6 +15,8 @@ from .draw import draw
 
 # Available formats
 # go_DAVID
+# go_GREAT_shown
+# go_GOseq
 
 # Bind the GO data into glbase?
 # If so make the data available here:
@@ -46,7 +48,7 @@ class glgo(genelist):
         pass
 
     def barh(self, filename, ontology=None, maximum=None, pad=1e-105, key="qvalue",
-        label_fontsize=7, mark_significance=True, tight_layout=True, qvalue_limit=0.1, **kargs):
+        label_fontsize=6, mark_significance=True, tight_layout=True, qvalue_limit=0.1, **kargs):
         """
         **Purpose**
             Draw a barchart for some ontology
@@ -95,6 +97,7 @@ class glgo(genelist):
             None
         """
         self.sort(key)
+
         if ontology:
             data = self.get(key="ontology", value=ontology, mode="greedy") # get only for this ontology
         else:
@@ -104,15 +107,12 @@ class glgo(genelist):
         half_bar_width = bar_width / 2.0
 
         if not data: # Check that we got some entries
-            config.log.warning("No items found for ontology '%s'" % ontology)
-            # Don't throw an error just warn and ignore.
-            return(None)
+            config.log.warning(f"No items found for ontology '{ontology}'")
+            return None # Don't throw an error just warn and ignore.
 
         if maximum:
             data = data[0:maximum]
         data.reverse()
-
-        #print data
 
         vals = [i[key] for i in data] # data ends up unfolded.
         labs = [i["name"] for i in data]
@@ -167,7 +167,9 @@ class glgo(genelist):
         elif "position" in kargs and kargs["position"] and len(kargs["position"]) == 4:
             ax.set_position(kargs["position"])
         else:
-            ax.set_position([0.7, 0.05, 0.25, 0.90]) # My favourite position. Uhm...
+            ax.set_position([0.7, 0.05, 0.25, 0.90])
+
         actual_filename = self.draw.savefigure(fig, filename)
-        config.log.info("barh(): saved '%s'" % actual_filename)
-        return(None)
+        config.log.info(f"barh(): saved '{actual_filename}'")
+
+        return None
