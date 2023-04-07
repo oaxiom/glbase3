@@ -525,7 +525,7 @@ class flat_track():
             bkgd = None
 
         leg = ax.legend()
-        [t.set_fontsize(6) for t in leg.get_texts()]
+        [t.set_fontsize(3) for t in leg.get_texts()]
         ax.set_ylabel("Magnitude")
 
         if window_size:
@@ -670,8 +670,7 @@ class flat_track():
             ax.plot(stacked, stacked_hist, label=gl.name, alpha=0.7)
             all_hists[gl.name] = (stacked, stacked_hist)
 
-        leg = ax.legend()
-        [t.set_fontsize(6) for t in leg.get_texts()]
+        leg = ax.legend(fontsize=6)
 
         ax.set_ylabel("Magnitude")
 
