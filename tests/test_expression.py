@@ -242,6 +242,18 @@ class Test_Expression(unittest.TestCase):
         data = self.expn.correlation_heatmap(axis="genes", label_key="name", filename="test_images/corr_heatmap5.png", mode="pearson")
         data = self.expn.correlation_heatmap(axis="genes", label_key="name", filename="test_images/corr_heatmap6.png", mode="spearman")
 
+    def test_cooerce_int(self):
+        A = [
+            {"name": "gene1", "conditions": [1.0, 2.0, 3.0 , -4.0]},
+            {"name": "gene2", "conditions": [7.0 ,8.0 ,9.0 , -0.0]}
+            ]
+        expn = gl.expression(loadable_list=A, cond_names=["cA", "cB", "cC", "cD"])
+
+        expn.coerce(int)
+
+        self.assertEqual(expn[0]['conditions'][0], 1)
+        self.assertEqual(expn[1]['conditions'][0], 7)
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Expression)
     unittest.TextTestRunner(verbosity=2).run(suite)

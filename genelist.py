@@ -1319,7 +1319,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newl
 
-    def filter_remove_noncanonical_choromosomes(self,
+    def filter_remove_noncanonical_chromosomes(self,
         key=None,
         canonical_names=None,
         trim_chr_if_present=True

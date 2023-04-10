@@ -590,7 +590,7 @@ class flat_track():
 
                 if loc_chrom not in available_chroms:
                     if loc_chrom not in __already_warned:
-                        config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(loc_chrom))
+                        config.log.warning(f'Asked for chromosome {loc_chrom} but not in this flat_track, skipping')
                         __already_warned.append(loc_chrom)
                     continue
 
@@ -599,7 +599,7 @@ class flat_track():
                 rite_flank = self.get(None, c=loc_chrom, left=loc['right'], rite=loc['right']+window_size, strand="+")
 
                 if center.size < 100:
-                    config.log.warning('center is shorter than 100 bp {}, skipping'.format(loc))
+                    config.log.warning(f'center is shorter than 100 bp {loc}, skipping')
                     continue
 
                 # scale center to 0 1000
@@ -680,11 +680,13 @@ class flat_track():
         ax.axvline(half_scale+full_scale, ls=":", color="grey")
         ax.set_xlabel('Base pairs (bp)')
 
+        ax.tick_params(axis='both', labelsize=6)
+
         self._draw.do_common_args(ax, **kargs)
 
         actual_filename = self._draw.savefigure(fig, filename)
 
-        config.log.info("pileup(): Saved '%s'" % actual_filename)
+        config.log.info(f"pileup(): Saved '{actual_filename}'")
 
         return (all_hists, bkgd)
 
