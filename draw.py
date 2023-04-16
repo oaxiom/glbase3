@@ -2009,7 +2009,7 @@ class draw:
                 temp_draw_mode = [config.draw_mode] # for simple compat
 
         for mode in temp_draw_mode:
-            assert mode in config.valid_draw_modes, f"'{temp_draw_mode}' is not a supported drawing mode"
+            assert mode in config.valid_draw_modes, f"'{mode}' is not a supported drawing mode"
 
             if mode == 'svg':
                 matplotlib.rcParams["image.interpolation"] = 'nearest'

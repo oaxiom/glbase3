@@ -582,11 +582,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         **Returns**
             A venn diagram saved in filename.
         """
-        valid_args = ["filename", "key", "title", "experimental_proportional_venn"]
-        for k in kargs:
-            if not k in valid_args:
-                raise ArgumentError(self.map, k)
-
         assert len(self.linearData) <= 5, "currently glglob venn diagrams only support at most 5 overlaps"
         assert len(self.linearData) >= 2, "you must send at least two lists"
         assert filename, "no filename specified for venn_diagrams to save to"

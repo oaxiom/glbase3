@@ -107,9 +107,11 @@ class expression(base_expression):
             gzip (Optional)
                 is the filename gzipped?
         """
+        assert loadable_list or filename, 'You must provide one or other of filename or loadable_list'
+
         if loadable_list:
             base_expression.__init__(self, loadable_list=loadable_list, expn=expn, **kargs)
-        else:
+        elif filename:
             base_expression.__init__(self, filename=filename, expn=expn, format=format, gzip=gzip, **kargs)
 
     def __repr__(self):

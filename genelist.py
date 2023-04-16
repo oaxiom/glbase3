@@ -3244,10 +3244,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert filename, "must specify a filename to save as"
         assert expression, "must provide some expression data"
         assert match_key, "'match_key' is required"
-        assert match_key in list(self.linearData[0].keys()), "match_key '{}' not found in this list".format(match_key)
-        assert match_key in list(expression.linearData[0].keys()), "match_key '{}' not found in expression object".format(match_key)
+        assert match_key in list(self.linearData[0].keys()), f"match_key '{match_key}' not found in this list"
+        assert match_key in list(expression.linearData[0].keys()), f"match_key '{match_key}' not found in expression object"
         if spline_interpolate:
-            assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), "'%s' spline_interpolate method not found" % spline_interpolate
+            assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), f"'{spline_interpolate}' spline_interpolate method not found"
 
         tag_key = None
         if "tag_key" in kargs and kargs["tag_key"]:
@@ -3303,17 +3303,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "bracket" not in kargs:
             kargs["bracket"] = [0, 1]
 
-        # Sorry this is a bit of a mess. I was still getting the hang of kargs and
-        # Now I can't be arsed to clean it up.
-        # Actually, I just spent quite a while getting it into
-        # A more sensible shape. Now my enthusiasm has evaporated...
         actual_filename = self.draw._heatmap_and_plot(peakdata=peak_data,
             bin=bin,
             row_label_key=match_key,
             imshow=imshow,
             **kargs)
 
-        config.log.info("frequencyAgainstArray: Saved '%s'" % actual_filename)
+        config.log.info(f"frequencyAgainstArray: Saved '{actual_filename}'")
         return newgl
 
     def islocinlist(self, loc, key="loc", mode="collide", delta=200):
