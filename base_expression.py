@@ -227,7 +227,13 @@ class base_expression(genelist):
         self.saveTSV(filename=filename, tsv=False, interleave_errors=interleave_errors, no_header=no_header, no_col1_header=no_col1_header, **kargs)
         config.log.info(f"saveCSV(): Saved '{filename}'")
 
-    def saveTSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
+    def saveTSV(self,
+        filename:str=None,
+        tsv:bool=True,
+        interleave_errors:bool=True,
+        no_header:bool=False,
+        no_col1_header:bool=False,
+        **kargs):
         """
         (Override)
         **Purpose**
@@ -267,14 +273,24 @@ class base_expression(genelist):
 
                 i.e. the top left column label is empty.
 
+                Useful for compatibility with R
+
         **Returns**
             returns None
 
         """
         self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=interleave_errors, no_header=no_header, no_col1_header=no_col1_header, **kargs)
+
         config.log.info(f"saveTSV(): Saved '{filename}'")
 
-    def _save_TSV_CSV(self, filename=None, tsv=True, interleave_errors=True, no_header=False, no_col1_header=False, **kargs):
+    def _save_TSV_CSV(self,
+        filename:str=None,
+        tsv:bool=True,
+        interleave_errors:bool=True,
+        no_header:bool=False,
+        no_col1_header:bool=False,
+        gzip:bool=False,
+        **kargs):
         """
         Internal unified saveCSV/TSV for expression objects
         """
@@ -285,55 +301,62 @@ class base_expression(genelist):
 
         assert filename, "you must specify a filename"
 
-        with open(os.path.realpath(filename), "w") as oh:
-            writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
-            array_data_keys = ("conditions", "err", "cv_err")
+        if gzip:
+            oh = gzipfile.open(os.path.realpath(filename), "wt")
+        else:
+            oh = open(os.path.realpath(filename), "w")
 
-            write_keys = []
-            if "key_order" in kargs:
-                write_keys = kargs["key_order"]
-                # now add in any missing keys to the right side of the list:
-                for item in list(self.keys()):
-                    if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
-                        write_keys.append(item)
-            else:
-                        # just select them all:
-                write_keys = [k for k in list(self.keys()) if k not in array_data_keys]
+        writer = csv.writer(oh, dialect=csv.excel_tab) if tsv else csv.writer(oh)
+        array_data_keys = ("conditions", "err", "cv_err")
 
-            if "err" in list(self.keys()):
-                if interleave_errors:
-                    conds = ["mean_%s" % c for c in self.getConditionNames()]
-                    errs = ["err_%s" % c for c in self.getConditionNames()]
-                    paired = [val for pair in zip(conds, errs) for val in pair]
+        write_keys = []
+        if "key_order" in kargs:
+            write_keys = kargs["key_order"]
+            # now add in any missing keys to the right side of the list:
+            for item in list(self.keys()):
+                if item not in write_keys and item not in array_data_keys: # But omit the array_data_keys
+                    write_keys.append(item)
+        else:
+                    # just select them all:
+            write_keys = [k for k in list(self.keys()) if k not in array_data_keys]
 
-                    if not no_header:
-                        title_row = [k for k in write_keys if k in list(self.keys())]
-                        writer.writerow(title_row + paired)
+        if "err" in list(self.keys()):
+            if interleave_errors:
+                conds = ["mean_%s" % c for c in self.getConditionNames()]
+                errs = ["err_%s" % c for c in self.getConditionNames()]
+                paired = [val for pair in zip(conds, errs) for val in pair]
 
-                    for data in self.linearData:
-                        line = [data[k] for k in write_keys if k in data]
-
-                        interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
-
-                        writer.writerow(line + interleaved_data)# conditions go last.
-                else:
-                    if not no_header:
-                        title_row = [k for k in write_keys in k in list(self.keys())]
-                        writer.writerow(write_keys + self.getConditionNames() + [f"err_{i}" for i in self.getConditionNames()])
-
-                    for data in self.linearData:
-                        line = [data[k] for k in write_keys if k in data]
-                        writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
-            else: # no error, very easy:
                 if not no_header:
                     title_row = [k for k in write_keys if k in list(self.keys())]
-                    if no_col1_header:
-                        title_row[0] = ""
-                    writer.writerow(title_row + self.getConditionNames())
+                    writer.writerow(title_row + paired)
 
                 for data in self.linearData:
                     line = [data[k] for k in write_keys if k in data]
-                    writer.writerow(line + data["conditions"])# conditions go last.
+
+                    interleaved_data = [val for pair in zip(data["conditions"], data["err"]) for val in pair] # I never understand how these work, but what the hell.
+
+                    writer.writerow(line + interleaved_data)# conditions go last.
+            else:
+                if not no_header:
+                    title_row = [k for k in write_keys in k in list(self.keys())]
+                    writer.writerow(write_keys + self.getConditionNames() + [f"err_{i}" for i in self.getConditionNames()])
+
+                for data in self.linearData:
+                    line = [data[k] for k in write_keys if k in data]
+                    writer.writerow(line + data["conditions"] + data["err"])# conditions go last.
+        else: # no error, very easy:
+            if not no_header:
+                title_row = [k for k in write_keys if k in list(self.keys())]
+                if no_col1_header:
+                    title_row[0] = ""
+                writer.writerow(title_row + self.getConditionNames())
+
+            for data in self.linearData:
+                line = [data[k] for k in write_keys if k in data]
+                writer.writerow(line + data["conditions"])# conditions go last.
+
+        oh.close()
+
         return None
 
     def sort(self, key, reverse=False):
