@@ -16,7 +16,7 @@ import matplotlib.cm as cm
 import matplotlib.cbook as cb
 import matplotlib.patches
 import networkx as nx
-from networkx.utils import is_string_like
+#from networkx.utils import is_string_like
 from operator import itemgetter
 
 from . import config, utils
