@@ -1427,7 +1427,7 @@ class expression(base_expression):
                             p2d = self.serialisedArrayDataDict[p2]
                             corr = scipy_stats_pearsonr(p1d, p2d)[0] # This is very slow...
                             if corr < threshold:
-                                config.log.warning(f"Samples '{p1}' vs '{p2}', pearson={corr[0]:.2f}")
+                                config.log.warning(f"Samples '{p1}' vs '{p2}', pearson={corr:.2f}")
                             if output_pears:
                                 p1ind = self._conditions.index(p1)
                                 p2ind = self._conditions.index(p2)
