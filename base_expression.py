@@ -230,6 +230,7 @@ class base_expression(genelist):
     def saveTSV(self,
         filename:str=None,
         tsv:bool=True,
+        include_errs:bool = True,
         interleave_errors:bool=True,
         no_header:bool=False,
         no_col1_header:bool=False,
@@ -252,6 +253,9 @@ class base_expression(genelist):
         **Arguments**
             filename
                 The filename (with a valid path) to save the file to.
+
+            include_errs (Optional, default=True)
+                include the error data (if available) in the resulting tSV file.
 
             interleave_errors (Optional, default=True)
                 By default the errors are interleaved so that the sample data will be arranged:
@@ -279,17 +283,24 @@ class base_expression(genelist):
             returns None
 
         """
-        self._save_TSV_CSV(filename=filename, tsv=tsv, interleave_errors=interleave_errors, no_header=no_header, no_col1_header=no_col1_header, **kargs)
+        self._save_TSV_CSV(filename=filename,
+            tsv=tsv,
+            interleave_errors=interleave_errors,
+            include_errs = include_errs,
+            no_header=no_header,
+            no_col1_header=no_col1_header,
+            **kargs)
 
         config.log.info(f"saveTSV(): Saved '{filename}'")
 
     def _save_TSV_CSV(self,
-        filename:str=None,
-        tsv:bool=True,
-        interleave_errors:bool=True,
-        no_header:bool=False,
-        no_col1_header:bool=False,
-        gzip:bool=False,
+        filename:str = None,
+        tsv:bool = True,
+        include_errs:bool = True,
+        interleave_errors:bool = True,
+        no_header:bool = False,
+        no_col1_header:bool = False,
+        gzip:bool = False,
         **kargs):
         """
         Internal unified saveCSV/TSV for expression objects
@@ -320,7 +331,7 @@ class base_expression(genelist):
                     # just select them all:
             write_keys = [k for k in list(self.keys()) if k not in array_data_keys]
 
-        if "err" in list(self.keys()):
+        if include_errs and "err" in list(self.keys()):
             if interleave_errors:
                 conds = ["mean_%s" % c for c in self.getConditionNames()]
                 errs = ["err_%s" % c for c in self.getConditionNames()]
