@@ -1384,48 +1384,59 @@ class expression(base_expression):
                 errors[cond] = numpy.zeros(len(self.serialisedArrayDataDict[cond]))
                 new_condition_name_list.append(cond)
 
-        # reload self.serialisedArrayDataDict back into numpy_array_all_data
-        newgl = self.deepcopy()
-        newgl._conditions = new_condition_name_list
-
-        # Get an numpy array of all of the data:
-        newgl.serialisedArrayDataDict = new_serialisedArrayDataDict
-        newgl.numpy_array_all_data = numpy.vstack([new_serialisedArrayDataDict[i] for i in new_condition_name_list])
-        newgl.numpy_array_all_data = newgl.numpy_array_all_data.T
-
-        # Do the same for errors:
-        # Get an array of all errors:
-        error_stack = numpy.vstack([errors[i] for i in new_condition_name_list]).T
-        for i, row in enumerate(error_stack):
-            newgl.linearData[i]["err"] = list(row)
-
-        # Load back
-        newgl._load_numpy_back_into_linearData() # Already calls _optimiseData()
-
         if not skip_pearson_test:
-            pear_out = numpy.zeros([len(self._conditions), len(self._conditions)])
+            '''
+            # It's a lot faster, but leads to incomplete output, and seems to crash occasioanlly.
+            # Also has a very hihg peak memory use. Not sure why.
+            pear_out = numpy.corrcoef(self.numpy_array_all_data) # The original (unmerged) data
             # check pairs for pearson correlation
             for r in reps:
                 # r can be a list n entries long. I need to compare all vs all
                 for i1, p1 in enumerate(r):
                     for i2, p2 in enumerate(r):
                         if i1 != i2 and i1 < i2:
-                            p1d = self.getDataForCondition(p1)
-                            p2d = self.getDataForCondition(p2)
-                            corr = scipy.stats.pearsonr(p1d, p2d)
-                            if corr[0] < threshold:
+                            p1ind = self._conditions.index(p1)
+                            p2ind = self._conditions.index(p2)
+                            print(p1ind, p2ind)
+
+                            r_corr = pear_out[p1ind, p2ind]
+
+                            if r_corr < threshold:
+                                config.log.warning(f"Samples '{p1}' vs '{p2}', pearson={r_corr:.2f}")
+
+                            if output_pears:
+                                pear_out[p1ind, p2ind] = r_corr
+                                pear_out[p2ind, p1ind] = r_corr
+
+                            pearson_vals.append(r_corr)
+
+                        elif i1 == i2 and output_pears:
+                            p1ind = self._conditions.index(p1)
+                            p2ind = self._conditions.index(p2)
+                            pear_out[p1ind, p1ind] = 1.0
+            '''
+            pear_out = numpy.zeros([len(self._conditions), len(self._conditions)])
+            # check pairs for pearson correlation
+            scipy_stats_pearsonr = scipy.stats.pearsonr # Reduce call overhead
+            for r in reps:
+                # r can be a list n entries long. I need to compare all vs all
+                for i1, p1 in enumerate(r):
+                    for i2, p2 in enumerate(r):
+                        if i1 != i2 and i1 < i2:
+                            p1d = self.serialisedArrayDataDict[p1]
+                            p2d = self.serialisedArrayDataDict[p2]
+                            corr = scipy_stats_pearsonr(p1d, p2d)[0] # This is very slow...
+                            if corr < threshold:
                                 config.log.warning(f"Samples '{p1}' vs '{p2}', pearson={corr[0]:.2f}")
                             if output_pears:
                                 p1ind = self._conditions.index(p1)
                                 p2ind = self._conditions.index(p2)
-                                pear_out[p1ind, p2ind] = corr[0]
-                                pear_out[p2ind, p1ind] = corr[0]
-                            pearson_vals.append(corr[0])
+                                pear_out[p1ind, p2ind] = corr
+                                pear_out[p2ind, p1ind] = corr
+                            pearson_vals.append(corr)
                         elif i1 == i2 and output_pears:
                             p1ind = self._conditions.index(p1)
                             pear_out[p1ind, p1ind] = 1.0
-
-            self.check_condition_names_are_unique()
 
             if output_pears:
                 oh = open(output_pears, "w")
@@ -1448,6 +1459,28 @@ class expression(base_expression):
                 axis.set_xlim([0,1])
 
                 config.log.info("mean_replicates: Saved Pearson histogram '%s'" % self.draw.savefigure(fig, pearson_hist_filename))
+
+        ##### Finish up and pack return data
+
+        # reload self.serialisedArrayDataDict back into numpy_array_all_data
+        newgl = self.deepcopy()
+        newgl._conditions = new_condition_name_list
+
+        # Get an numpy array of all of the data:
+        newgl.serialisedArrayDataDict = new_serialisedArrayDataDict
+        newgl.numpy_array_all_data = numpy.vstack([new_serialisedArrayDataDict[i] for i in new_condition_name_list])
+        newgl.numpy_array_all_data = newgl.numpy_array_all_data.T
+
+        # Do the same for errors:
+        # Get an array of all errors:
+        error_stack = numpy.vstack([errors[i] for i in new_condition_name_list]).T
+        for i, row in enumerate(error_stack):
+            newgl.linearData[i]["err"] = list(row)
+
+        # Load back
+        newgl._load_numpy_back_into_linearData() # Already calls _optimiseData()
+
+        newgl.check_condition_names_are_unique()
 
         config.log.info("mean_replicates: Started with %s conditions, ended with %s" % (len(self._conditions), len(newgl[0]["conditions"])))
         return newgl
