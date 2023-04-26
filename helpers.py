@@ -40,7 +40,7 @@ def glload(
     **Returns**
         The glbase object previously saved as a binary file
     """
-    assert os.path.exists(os.path.realpath(filename)), "File '%s' not found" % filename
+    assert os.path.isfile(os.path.realpath(filename)), "File '{filename}' not found"
 
     try:
         oh = open(os.path.realpath(filename), "rb")
@@ -48,6 +48,8 @@ def glload(
         oh.close()
     except pickle.UnpicklingError:
         raise BadBinaryFileFormatError(filename)
+    except FileNotFoundError:
+        raise AsseritionError('File "{filename}" changed whislt trying to read it')
 
     # Recalculate the _optimiseData for old lists, and new features
     try:

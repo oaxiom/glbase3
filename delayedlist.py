@@ -52,7 +52,7 @@ class delayedlist(genelist):
         self.__len_estimate = None
 
         assert filename, "No Filename"
-        assert os.path.exists(filename), "%s not found" % (filename)
+        assert os.path.isfile(filename), "{filename} not found"
         assert format, "You must provide a format for delayedlist. I cannot guess its format."
 
         self.path = os.path.split(os.path.realpath(filename))[0]

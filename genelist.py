@@ -188,7 +188,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         the format specifier.
         """
         assert filename, "No filename specified"
-        assert os.path.exists(os.path.realpath(filename)), "File %s not found" % filename
+        assert os.path.isfile(os.path.realpath(filename)), f"File {filename} not found"
 
         self.path = os.path.split(os.path.realpath(filename))[0]
         self.filename = os.path.split(os.path.realpath(filename))[1]
@@ -262,7 +262,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         fills the genelist with the CSV table.
         """
-        assert os.path.exists(os.path.realpath(filename)), f"File {filename} not found"
+        assert os.path.isfile(os.path.realpath(filename)), f"File {filename} not found"
 
         self.name = '.'.join(os.path.split(filename)[1].split(".")[:-1]) # Put here otherwise realpath will force name from the symbolic link, not from the actual link!
         self.path = os.path.split(os.path.realpath(filename))[0]
@@ -284,14 +284,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             try:
                 self._loadCSV(filename=self.fullfilename, format=format, **kargs)
             except Exception:
-                try: # try again, guessing it might be a tsv
-                    config.log.warning("Failed to load as a 'csv'. Try to load as a 'tsv' file")
-                    format["dialect"] = csv.excel_tab
-                    self._loadCSV(filename=self.fullfilename, format=format, **kargs)
-                except Exception: # oh dear. Die.
-                    if self.__deathline:
-                        config.log.error("Died on line: '%s'" % self.__deathline)
-                    raise UnRecognisedCSVFormatError("'%s' appears mangled, the file does not fit the format specifier" % self.fullfilename, self.fullfilename, format)
+                # oh dear. Die.
+                if self.__deathline:
+                    config.log.error(f"Died on line: '{self.__deathline}'")
+                raise UnRecognisedCSVFormatError("'%s' appears mangled, the file does not fit the format specifier" % self.fullfilename, self.fullfilename, format)
 
     def _loadCSV(self, **kargs):
         """
@@ -304,7 +300,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert "filename" in kargs, "No filename specified"
         assert "format" in kargs, "_loadCSV requres a format specifier"
-        assert os.path.exists(kargs["filename"]), "%s file not found" % kargs["filename"]
+        assert os.path.isfile(kargs["filename"]), f"{kargs['filename']} file not found"
 
         filename = kargs["filename"]
         format = kargs["format"]

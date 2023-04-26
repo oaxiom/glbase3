@@ -281,7 +281,7 @@ class genome(genelist):
         the sequence specified by the location.
         """
         assert os.path.realpath(path), "'path' argument is required"
-        assert os.path.exists(os.path.realpath(path)), "Path does not exist"
+        assert os.path.isdir(os.path.realpath(path)), f"Path {path} does not exist"
 
         self.fasta_dir = os.path.realpath(path)
         fastas = os.listdir(self.fasta_dir)

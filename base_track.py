@@ -44,7 +44,7 @@ class base_track:
         if new:
             self.__setup_db(filename) # return an empty track
         else:
-            assert os.path.exists(filename), "track '%s' cannot be found" % filename
+            assert os.path.isfile(filename), f"track '{filename}' cannot be found"
             self.__load_tables(filename)
             self._load_meta_data()
             # Unpack any meta_data
@@ -177,11 +177,11 @@ class base_track:
         # kill any previously exisiting file (Use with care!)
         # make sure the directory is available:
         path = os.path.split(filename)[0]
-        if path and not os.path.exists(path):
+        if path and not os.path.isdir(path):
             os.makedirs(path)
 
         try:
-            if os.path.exists(filename): # overwrite old file.
+            if os.path.isfile(filename): # overwrite old file.
                 os.remove(filename)
                 # This could potentially fail - I should report and fail
                 # nicely... At the moment it just throws an exception.

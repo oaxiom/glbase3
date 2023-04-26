@@ -34,7 +34,7 @@ class base_expression(genelist):
             assert expn, "'expn' argument cannot be empty"
             assert filename, "no filename to load"
             assert format, "required argument 'format' is missing"
-            assert os.path.exists(os.path.realpath(filename)), "'%s' not found" % filename
+            assert os.path.isfile(os.path.realpath(filename)), "'%s' not found" % filename
         else:
             # probably should put some more sanity checking in here.
             assert loadable_list[0], "the list to load does not appear to be a proper list"

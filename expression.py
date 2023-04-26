@@ -107,12 +107,20 @@ class expression(base_expression):
             gzip (Optional)
                 is the filename gzipped?
         """
-        assert loadable_list or filename, 'You must provide one or other of filename or loadable_list'
+        # Not correct, it is possible to generate an empty expression object, for example to load a pandas table
+        # This also makes it compatible with genelist() which can also be empty.
+        #assert loadable_list or filename, 'You must provide one or other of filename or loadable_list'
 
         if loadable_list:
             base_expression.__init__(self, loadable_list=loadable_list, expn=expn, **kargs)
         elif filename:
             base_expression.__init__(self, filename=filename, expn=expn, format=format, gzip=gzip, **kargs)
+        else:
+            genelist.__init__(self)
+
+            self.filename = filename
+            self._conditions = [] # Provide a dummy conditions temporarily
+            self.name = "None"
 
     def __repr__(self):
         return "glbase.expression"

@@ -2,7 +2,7 @@
 
 glbase class to perform functions on fastq files.
 
-Generally glbase is not efficient at this and other tools may be preferable. 
+Generally glbase is not efficient at this and other tools may be preferable.
 
 """
 
@@ -20,32 +20,32 @@ class fastq(delayedlist):
     """
     def __init__(self, filename=None, qual_format=False, **kargs):
         """
-        **Process the fastq file**        
-        
+        **Process the fastq file**
+
         **Arguments**
             filename (Required)
                 The filename to load
-            
+
             qual_format (Required)
                 Expects one of phred33 or phred64
-                
+
         """
         genelist.__init__(self) # no kargs though. I want the empty version.
 
         assert filename, "No Filename"
-        assert os.path.exists(filename), "%s not found" % (filename)
+        assert os.path.isfile(filename), "%s not found" % (filename)
         assert qual_format, "You must specify the qual format"
         assert qual_format in ("phred33", "phred64"), "qual format '%s' not recognised"
-        
+
         self.__phred_warning = False
-        
+
         self.filename = filename
         self.name = os.path.split(self.filename)[1]
         self.filehandle = None
         self.qual_format = qual_format
-        
+
         self._optimiseData()
-        
+
     def __repr__(self):
         return("glbase.fastq")
 
@@ -54,26 +54,26 @@ class fastq(delayedlist):
 
     def _optimiseData(self):
         """
-        The optimesData() __iter__ cycle is a bit funky inside delayedlists. Basically 
+        The optimesData() __iter__ cycle is a bit funky inside delayedlists. Basically
         _optimiseData opens the file and gets it ready for iter and resets the file between
         operations.
-        
+
         From the user perspective they should run:
-        
+
         fq = fastq(filename)
         for item in fq:
             print item
-        
-        fq.splitPE() 
+
+        fq.splitPE()
         """
         if self.filehandle:
             self.filehandle.close()
-        self.filehandle = open(self.filename, "rU")       
-            
+        self.filehandle = open(self.filename, "rU")
+
     def __iter__(self):
         """
         (Override)
-        
+
         iter is now locked to a single fastq format.
         """
         id = self.filehandle.readline().strip()
@@ -83,21 +83,21 @@ class fastq(delayedlist):
         seq = self.filehandle.readline().strip()
         strand = self.filehandle.readline().strip()
         qual = self.__conv_quals(self.filehandle.readline().strip())
-        
+
         d = {"id": id, "seq": seq, "strand": strand, "qual": qual}
-        
-        yield d 
+
+        yield d
 
     def __conv_quals(self, raw_quals):
         """
         convert the quals into phred scores for internal representation
         """
-        
+
         if self.qual_format == "phred33":
             qq = [ord(i)-33 for i in raw_quals]
         elif self.qual_format == "phred64":
             qq = [ord(i)-64 for i in raw_quals]
-        
+
         if not self.__phred_warning:
             if True in [i>40 for i in qq]:
                 config.log.warning("Phred Quality > 40, are you sure you selected the correct quality format?")
@@ -105,20 +105,20 @@ class fastq(delayedlist):
             elif True in [i<0 for i in qq]:
                 config.log.warning("Phred Quality < 0, are you sure you selected the correct quality format?")
                 self.__phred_warning = True
-            
-        return(qq)        
+
+        return(qq)
 
     def __phred33_str(self, qual):
         """ convert the quals to Phred33 """
         return "".join(chr(i+33) for i in qual)
-        
+
     def splitPE(self, file1, file2):
         """
         **Purpose**
             split a paired-end file into two separate files.
-            
+
             It's for when you get an interleaved file like this:
-            
+
             @HWI-ST507:76:A81MKNABXX:7:1:5257:1711:1
             CTCCTAGAGGGAAATATGGAGCAATTACATATTGTTCTCTAGGA
             +
@@ -127,18 +127,18 @@ class fastq(delayedlist):
             CAGGAGGGTCTGTGGTAGAAGGCTGTTACATACATAATAAA
             +
             HHHHHHHHCHBEEEE9EEBEEEDCECFBFBCB>?ACC>C##
-            
-            Where the paired-end are sequentially ordered. 
-            
+
+            Where the paired-end are sequentially ordered.
+
             Note that there is only light checking of the paired reads and it assumes that
-            each 
-            
+            each
+
             Also note that by default this tool ALWAYS writes the quals in Phred33 format.
-            
+
         **Arguments**
             file1, file2 (Required)
-                names of the files for the two 
-                
+                names of the files for the two
+
         """
         config.log.info("Started '%s'" % self.name)
         __unpaired_warning = False
