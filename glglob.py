@@ -1477,7 +1477,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         tab_max = max([tab.max() for tab in list_of_tables]) # need to get new tab_max for log'd values.
         tab_min = min([tab.min() for tab in list_of_tables])
         #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
-        tab_mean = mean([numpy.average(tab) for tab in list_of_tables])
+        tab_mean = mean([numpy.average(tab.astype(float)) for tab in list_of_tables])
         tab_stdev = numpy.std(numpy.array([tab for tab in list_of_tables]))
 
         config.log.info("chip_seq_cluster_heatmap: min=%.2f, max=%.2f, mean=%.2f, stdev=%.2f" % (tab_min, tab_max, tab_mean, tab_stdev))
