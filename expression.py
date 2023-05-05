@@ -3976,8 +3976,17 @@ class expression(base_expression):
         config.log.info("time_course_plot: Saved '%s'" % actual_filename)
         return(actual_filename)
 
-    def fc_scatter(self, cond1, cond2, filename=None, plot_diagonals=True, zoom_bracket=[-3,3],
-        label_key="name", text_threshold=1.0, alpha=0.2, **kargs):
+    def fc_scatter(self,
+        cond1:str,
+        cond2:str,
+        filename:str = None,
+        plot_diagonals:bool = True,
+        zoom_bracket=[-3,3],
+        label_key:str = "name",
+        text_threshold:float = 1.0,
+        alpha:float = 0.1,
+        pearsonr:bool = True,
+        **kargs):
         """
         **Purpose**
             Draw a scatter plot of the fold-changes between two conditions
@@ -4017,8 +4026,11 @@ class expression(base_expression):
             text_threshold (Optional, default=1.0)
                 Only draw the gene label if > abs(text_threshold) in any direction
 
-            alpha (Optional, default=0.2)
+            alpha (Optional, default=0.1)
                 Blening fraction for the alpha (opacity) channel for the dots.
+
+            pearsonr (Optional, default=True)
+                Add the Pearson R and p-value to the title.
 
         **Returns**
             None
@@ -4043,22 +4055,6 @@ class expression(base_expression):
             # do the colouring here if away from the diagonal
             if label_key:
                 labs.append(names[index])
-            """
-                    # get the distance from the diagonal:
-            dx = (ex[l1] - ex[l2]) # i.e. x - y
-            dy = (ex[l2] - ex[l1]) # i.e. y - x
-
-            d = dx * dx # actually the squared distance
-            print dx, dy, d
-            if d > 0.05 or d < -0.05:
-                cols.append("red")
-                labs.append(g["name"])
-                print "%s\t%.2f" % (g["name"], d)
-                both.append({"ensg": g["ensg"]})
-            else:
-                cols.append("blue")
-                labs.append("")
-            """
 
         # plot
         if "size" not in kargs:
@@ -4102,19 +4098,10 @@ class expression(base_expression):
         ax.set_ylabel(cond2)
 
         # best fit:
-        """
-        (ar, br) = polyfit(pt_x, pt_y, 1)
-        print ar, br
-        #xr = polyval([ar,br], pt_x)
-        slope, intercept, r_value, p_value, std_err = linregress(pt_x,pt_y)
+        if pearsonr:
+            r = scipy.stats.pearsonr(pt_x, pt_y)
 
-        print "m, x, r2:", slope, intercept, r_value*r_value
-
-        mx = [min(pt_x), max(pt_x)]
-        my = [(slope * min(pt_x)) + intercept, (slope * max(pt_x)) + intercept]
-
-        ax.plot(mx, my, "r.-")
-        """
+            ax.set_title(f"R={r[0]:.2f} p={r[1]:.2e}")
 
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("fc_scatter: Saved '%s'" % actual_filename)
