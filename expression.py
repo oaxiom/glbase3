@@ -3986,6 +3986,9 @@ class expression(base_expression):
         text_threshold:float = 1.0,
         alpha:float = 0.1,
         pearsonr:bool = True,
+        spot_size:int = 5,
+        hist2d:bool = False,
+        highlights = None,
         **kargs):
         """
         **Purpose**
@@ -4032,6 +4035,12 @@ class expression(base_expression):
             pearsonr (Optional, default=True)
                 Add the Pearson R and p-value to the title.
 
+            spot_size (Optional, default=5)
+                Spot size for the scatters
+
+            highlights (Optional, default=False)
+                genes to highlight on the plot
+
         **Returns**
             None
         """
@@ -4062,10 +4071,12 @@ class expression(base_expression):
         fig = self.draw.getfigure(**kargs)
 
         ax = fig.add_subplot(121)
-        ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols)
-        for i in range(len(labs)):
-            if abs(pt_x[i]) > text_threshold or abs(pt_y[i]) > text_threshold:
-                ax.text(pt_x[i], pt_y[i], labs[i], size=5, ha="center")
+        ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols, s=spot_size)
+
+        if highlights:
+            for i in range(len(labs)):
+                if labs[i] in highlights:
+                    ax.text(pt_x[i], pt_y[i], labs[i], size=6, ha="center")
 
         # Diagonal slopes:
         ax.plot([5, -5], [5, -5], ":", color="grey")
@@ -4078,22 +4089,36 @@ class expression(base_expression):
         ax.set_xlabel(cond1)
         ax.set_ylabel(cond2)
 
+        # NEed to do early for range on hist2d
+        if 'xlims' in kargs and 'ylims' in kargs and kargs['xlims'] and kargs['ylims']:
+            xlims = kargs['xlims']
+            ylims = kargs['ylims']
+        else:
+            minmax = max([abs(min(c1d)), max(c1d), abs(min(c2d)), max(c2d)])
+            xlims = [-minmax,minmax]
+            ylims = [-minmax,minmax]
+
         ax = fig.add_subplot(122)
-        ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols)
-        #for i in xrange(len(labs)):
-        #    ax.text(pt_x[i], pt_y[i], labs[i], size=6, ha="center")
+        if hist2d:
+            ax.hist2d(pt_x, pt_y, bins=50,
+                range=[kargs['xlims'], kargs['ylims']],
+                cmin=1)
+
+        else:
+            ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols,
+                s=spot_size)
 
         # Diagonal slopes:
         if plot_diagonals:
             ax.plot([5, -5], [5, -5], ":", color="grey")
             ax.plot([-5, 5], [5,-5], ":", color="grey")
 
-        minmax = max([abs(min(c1d)), max(c1d), abs(min(c2d)), max(c2d)])
+        ax.set_xlim(xlims)
+        ax.set_ylim(ylims)
 
         ax.axvline(0, color="grey", ls=":")
         ax.axhline(0, color="grey", ls=":")
-        ax.set_xlim([-minmax,minmax])
-        ax.set_ylim([-minmax,minmax])
+
         ax.set_xlabel(cond1)
         ax.set_ylabel(cond2)
 
