@@ -17,20 +17,20 @@ import copy, pickle
 
 class location:
     def __init__(self, loc=None, chr=None, left=None, right=None):
-        if isinstance(loc, location):
-            # It's actually already a loc.
-            # I want to copy it and leave.
-            self.chrom = loc.chrom
-            self.left = loc.left
-            self.right = loc.right
+        if loc:
+            if isinstance(loc, location):
+                # It's actually already a loc.
+                # I want to copy it and leave.
+                self.chrom = loc.chrom
+                self.left = loc.left
+                self.right = loc.right
 
-        elif isinstance(loc, str):
-            s = loc.lower().replace(",", "") # ucsc includes commas, remove them so you can cut and paste
-            t = s.split(":")
-            self.chrom = t[0].strip("chr").rstrip().upper()
-            self.left = int(t[1].split("-")[0])
-            self.right = int(t[1].split("-")[1])
-
+            elif isinstance(loc, str):
+                s = loc.lower().replace(",", "") # ucsc includes commas, remove them so you can cut and paste
+                t = s.split(":")
+                self.chrom = t[0].strip("chr").rstrip().upper()
+                self.left = int(t[1].split("-")[0])
+                self.right = int(t[1].split("-")[1])
         else:
             self.chrom = str(chr).strip("chr").rstrip().upper()
             self.left  = int(left)
