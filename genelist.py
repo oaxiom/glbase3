@@ -1341,7 +1341,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newgl = self.deepcopy()
 
-        newl = [item for item in newgl.linearData if item[key].loc['chr'] in canonical_names]
+        newl = [item for item in newgl.linearData if item[key].chrom in canonical_names]
         newgl.linearData = newl
         newgl._optimiseData()
 

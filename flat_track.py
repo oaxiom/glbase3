@@ -209,9 +209,9 @@ class flat_track():
             except TypeError: # probably a location string. try to cooerce
                 loc = location(loc=loc)
                 # Don't catch any exceptions here. Should break.
-            c = str(loc.loc['chr'])
-            left = int(loc.loc['left'])
-            rite = int(loc.loc['right'])
+            c = str(loc.chrom)
+            left = int(loc.left)
+            rite = int(loc.right)
 
         if 'chr' not in c:
             c = f'chr{c}'

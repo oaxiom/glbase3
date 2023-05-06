@@ -998,8 +998,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for idx, gl in enumerate(list_of_peaks):
             for p1 in gl["loc"]:
                 #p1 = p1.pointify().expand(merge_peaks_distance) # about 10% of the time is in __getitem__ from the loc, so unpack it;
-                cpt = (p1.loc["left"] + p1.loc['right']) // 2
-                p1_chr = 'chr{0}'.format(p1['chr'])
+                cpt = (p1.left + p1.right) // 2
+                p1_chr = 'chr{0}'.format(p1.chrom)
                 p1_left = cpt - merge_peaks_distance
                 p1_right = cpt + merge_peaks_distance
                 if not p1_chr in chr_blocks:
@@ -1973,8 +1973,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         prog = progressbar(len(trks))
         for it, t in enumerate(trks):
             for p in peaks:
-                p_loc_chrom = 'chr{0}'.format(p['loc'].loc['chr'])
-                p_loc = (p['loc'].loc['left'] + p['loc'].loc['right']) // 2
+                p_loc_chrom = 'chr{0}'.format(p['loc'].chrom)
+                p_loc = (p['loc'].left + p['loc'].right) // 2
                 p_loc_left = p_loc - peak_window_half
                 p_loc_rite = p_loc + peak_window_half
 
@@ -2113,7 +2113,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         rets = {f['name']: [] for f in list_of_flats}
 
         super_set_of_peaks = super_set_of_peaks.pointify().expand('loc', peak_window) # Make peaks symmetric
-        super_set_of_peaks = [p['loc'].loc for p in super_set_of_peaks]
+        super_set_of_peaks = [{'chr': p['loc'].chrom, 'left': p['loc'].left, 'right': p['loc'].right} for p in super_set_of_peaks]
 
         # First I estimate the local background
         for f in list_of_flats:
