@@ -1945,18 +1945,18 @@ class hic:
         for aidx, item in enumerate(bedpe.linearData):
             p.update(aidx)
 
-            l1 = item['loc1'].loc
-            l2 = item['loc2'].loc
+            l1 = item['loc1']
+            l2 = item['loc2']
 
-            if l1['chr'] != l2['chr']:
+            if l1.chrom != l2.chrom:
                 __intra_chroms += 1
                 continue # differnent chroms are not supported
 
-            chrom = 'chr{}'.format(l1['chr'])
+            chrom = 'chr{}'.format(l1.chrom)
 
             try:
-                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1['left'], l1['right'], do_assert_check=False)
-                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, l2['left'], l2['right'], do_assert_check=False)
+                localLeft1, localRight1 = self.__quick_find_binID_spans(chrom, l1.left, l1.right, do_assert_check=False)
+                localLeft2, localRight2 = self.__quick_find_binID_spans(chrom, l2.left, l2.right, do_assert_check=False)
             except KeyError:
                 # The chrom is in one list, but not in the other, ignore it
                 continue
@@ -2028,8 +2028,8 @@ class hic:
             anchors = anchors['loc']
             p = progressbar(len(anchors))
             for lidx, loc in enumerate(anchors):
-                chrom = 'chr{}'.format(loc.loc['chr'])
-                cpt = ((loc.loc['left'] + loc.loc['right']) // 2) // self['bin_size']
+                chrom = 'chr{}'.format(loc.chrom)
+                cpt = ((loc.left + loc.right) // 2) // self['bin_size']
 
                 if cpt in used_bins:
                     continue
