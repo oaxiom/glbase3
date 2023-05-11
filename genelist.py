@@ -885,17 +885,19 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A saved bed file and None
         """
+        assert 'loc' in self.keys(), 'This list has no "loc" key'
+
         if 'gzip' in kargs and kargs['gzip']:
             oh = gzip.open(filename, "wt")
         else:
             oh = open(filename, "w")
 
         for index, item in enumerate(self.linearData):
-            todo = ["chr%s" % str(item["loc"]["chr"]), str(item["loc"]["left"]), str(item["loc"]["right"])]
+            todo = ["chr%s" % str(item["loc"].chrom), str(item["loc"].left), str(item["loc"].right)]
             if not loc_only:
                 if uniqueID:
                     if id:
-                        todo += ["%s-%s" % (str(item[id]), index)]
+                        todo += [f"{str(item[id])}-{index}"]
                     else:
                         todo += ["%s-%s" % (self.name.replace(' ', '_'), index)]
                 else:
