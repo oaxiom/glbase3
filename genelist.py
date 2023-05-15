@@ -3554,7 +3554,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         actual_filename = self.draw.savefigure(fig, filename)
         return (data, rand, err, labels)
 
-    def genome_distribution(self, genome, random_lists, filename=None, **kargs):
+    def genome_distribution(self,
+        genome,
+        random_lists,
+        filename=None,
+        radial=True,
+        **kargs):
         """
         **Purpose**
             draw a genome distribution plot, based on the frequency of the nearest annotated gene
@@ -3571,6 +3576,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             filename (Required)
                 the filename to use to save the resulting figure to.
 
+            radial (Optional, default=True)
+                Draw the plot as a radial plot
+
         **Returns**
             The values:
                 hist, back, back_err, labels
@@ -3586,20 +3594,20 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             prints a table of distributions to the console (stdout)
         """
+        assert filename, 'You must specify a filename to save the image to'
+
         if random_lists:
             if not isinstance(random_lists, list):
                 background = [random_lists] # make a one item'd list
+            todos = [self] + random_lists
+        else:
+            todos = [self]
 
         hist = {"desert": 0, (-200, -100): 0, (-100, -50): 0, (-50, -10): 0, (-10, 0): 0,
             (0, 10): 0, (10, 50): 0, (50, 100): 0, (100, 200): 0}
 
         back = {"desert": [], (-200, -100): [], (-100, -50): [], (-50, -10): [], (-10, 0): [],
             (0, 10): [], (10, 50): [], (50, 100): [], (100, 200): []}
-
-        if random_lists:
-            todos = [self] + random_lists
-        else:
-            todos = [self]
 
         for i, glist in enumerate(todos):
             ann = genome.annotate(genelist=glist, distance=200000, closest_only=True)
@@ -3657,47 +3665,94 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             t = [dlabels[k], hist[k], numpy.mean(back[k]), numpy.std(back[k]), numpy.std(back[k])/math.sqrt(len(back[k]))]
             #print "\t".join([str(i) for i in t])
 
-        fig = self.draw.getfigure(**kargs)
-        ax = fig.add_subplot(111)
-        ax.set_position([0.1, 0.2, 0.8, 0.70])
-
         data = numpy.array([hist[k] for k in kord], dtype=float)
-
         total = sum(data)
-
         data = (data / total)*100
-
-        x_bar = numpy.arange(len(labels))
-        width = 0.35
-        ax.bar(x_bar, data, width, color="orange", label=self.name, ec="none")
 
         if random_lists:
             rand = numpy.array([numpy.mean(back[k]) for k in kord])
             rand = rand*100
             err = [(numpy.array(back[k]))*100 for k in kord]
-            print(err)
             err = [numpy.std(i) for i in err]
-            print(err)
-            ax.bar(x_bar + width, rand, width, color="grey", yerr=err, ec='none', ecolor="black", label="Background")
+
+        if radial:
+            if 'figsize' not in kargs:
+                kargs['figsize'] = (3,3)
+
+            fig = self.draw.getfigure(**kargs)
+            #fig.subplots_adjust(0.02, 0.02, 0.97, 0.97, wspace=0.1, hspace=0.1)
+            ax = fig.add_subplot(111, polar=True)
+
+            erad = 0.69813170079773 # each segment gets 0.69813170079773 (or thereabouts) rads
+            eradh = erad / 2.0
+            eradq = eradh / 2.0
+            theta = numpy.arange(0.0, 2*numpy.pi, 2*numpy.pi/len(data))
+            width = (numpy.pi/4)*len(data) # in rads?
+            width = 0.5
+
+            ax.set_theta_offset(3*numpy.pi /2)
+            ax.set_theta_direction(-1)
+
+            colors = ["#FFF800", # (255, 248, 0)
+                "#000E7C", # (0, 14, 177)
+                "#001EFF", # (0, 30, 255)
+                "#6275FF", # (98, 117, 255)
+                "#B1BAFF", # (177, 186, 255)
+                "#FFB7B1", # (255, 183, 177)
+                "#FF6E62", # (255, 110, 98)
+                "#FF1300", # (255, 19, 0)
+                "#7C0900"] # (124, 9, 0)
+
+            #N = 20
+            #theta = np.linspace(0.0, 2 * np.pi, N, endpoint=False)
+
+            ax.bar(theta, data, width=erad-0.20, bottom=0.0, color=colors, alpha=1.0, zorder=2)
+            ax.bar(theta, rand, width=erad,      bottom=0.0, color='grey', alpha=0.3, zorder=1, yerr=err)
+
+            #ax.set_xticks(theta-0.10)
+            ax.set_xticklabels("")
+            l = ax.get_ylim()
+            #print k, ["%s%%" % i for i in range(l[0], l[1]+5, l[1]//len(axes[k].get_yticklabels()))]
+            #print [str(t) for t in axes[k].get_yticklabels()]
+            [t.set_fontsize(6) for t in ax.get_yticklabels()]
+            #print ["%s%%" % (i*10, ) for i, t in enumerate(axes[k].get_yticklabels())]
+            #print [t.get_text() for t in axes[k].get_yticklabels()]
+            ylabs = ["%s%%" % str(i) for i in range(int(l[0]), int(l[1])+5, int(l[1]//len(ax.get_yticklabels())))][1:]
+            ax.set_yticklabels(ylabs, fontsize=6)
+
         else:
-            rand = None # spoof entries for the return()
-            err = None
+            fig = self.draw.getfigure(**kargs)
+            ax = fig.add_subplot(111)
+            ax.set_position([0.1, 0.2, 0.8, 0.70])
 
-        ax.set_xticklabels(labels)
-        ymax = max(max(rand), max(data))
-        ax.set_ylim([0,ymax + (ymax/10)])
-        ax.legend(prop={'size':6})
+            x_bar = numpy.arange(len(labels))
+            width = 0.35
+            ax.bar(x_bar, data, width, color="orange", label=self.name, ec="none")
 
-        ax.set_ylabel("Percent in category", size=6)
+            if random_lists:
+                ax.bar(x_bar + width, rand, width, color="grey", yerr=err, ec='none', ecolor="black", label="Background")
+            else:
+                rand = None # spoof entries for the return()
+                err = None
 
-        ax.set_xticks(x_bar)
-        fig.autofmt_xdate()
-        [t.set_fontsize(6) for t in ax.get_xticklabels()]
-        [t.set_fontsize(6) for t in ax.get_yticklabels()]
+            ax.set_xticklabels(labels)
+            ymax = max(max(rand), max(data))
+            ax.set_ylim([0,ymax + (ymax/10)])
+            ax.legend(prop={'size':6})
+
+            ax.set_ylabel("Percent in category", size=6)
+
+            ax.set_xticks(x_bar)
+            fig.autofmt_xdate()
+            [t.set_fontsize(6) for t in ax.get_xticklabels()]
+            [t.set_fontsize(6) for t in ax.get_yticklabels()]
 
         self.draw.do_common_args(ax, **kargs)
         if filename:
             actual_filename = self.draw.savefigure(fig, filename)
+
+        config.log.info(f'Saved Genome distribution image to {actual_filename}')
+
         return (data, rand, err, labels)
 
     def hist(self, key=None, filename=None, range=None, suppress_zeros=False, log=None,
