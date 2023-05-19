@@ -771,10 +771,16 @@ class draw:
 
         return(self.savefigure(fig, filename))
 
-    def _heatmap_and_plot(self, peak_data=None, match_key=None,
-        arraydata=None, peakdata=None, bin=None, draw_frames=False,
+    def _heatmap_and_plot(self,
+        peak_data=None,
+        match_key=None,
+        arraydata=None,
+        peakdata=None,
+        bin=None,
+        draw_frames=False,
         plot_bracket=None,
-        imshow=False, **kargs):
+        imshow=False,
+        **kargs):
         """
         Required:
 
@@ -831,7 +837,7 @@ class draw:
         left_heatmap = [0.10,  0.05,  0.20,  0.85]
         scale_bar =    [0.10,  0.97,  0.30,  0.02]
         binding_map =  [0.32,  0.05,  0.08,  0.85]
-        freq_plot =    [0.42,   0.05,  0.4,   0.85]
+        freq_plot =    [0.42,   0.05,  0.4,  0.85]
 
         # Now do the plots:
         fig = self.getfigure(**kargs)
@@ -938,10 +944,8 @@ class draw:
         ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
         ax3.axvline(x=(m-s), color='r', linestyle=":", linewidth=0.5)
 
-        print(kargs)
-
         if plot_bracket:
-            ax3.set_xlim(kargs['plot_bracket'])
+            ax3.set_xlim(plot_bracket)
 
         return self.savefigure(fig, kargs["filename"], dpi=600)
 

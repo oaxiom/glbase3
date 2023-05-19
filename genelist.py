@@ -3298,8 +3298,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "bracket" not in kargs:
             kargs["bracket"] = [0, 1]
 
-        print(kargs)
-
         actual_filename = self.draw._heatmap_and_plot(
             arraydata=arraydata.T,
             row_names=expression["name"],
