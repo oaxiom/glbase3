@@ -3178,9 +3178,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         match_key=None,
         expression=None,
         spline_interpolate=False,
-        imshow=False,
+        imshow:bool = False,
         step_style=False,
-        window=None, **kargs):
+        window=None,
+        **kargs):
         """
         Draw a peaklist and compare against an array.
         Draws a three panel figure showing an array heatmap, the binding events
@@ -3239,7 +3240,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             plots a multi-panel image of the array and a moving average plot of the density of
             chip-seq peaks. Saves the image to filename.
         """
-        assert filename, "must specify a filename to save as"
+        assert filename, "must specify a filename to save to"
         assert expression, "must provide some expression data"
         assert match_key, "'match_key' is required"
         assert match_key in list(self.linearData[0].keys()), f"match_key '{match_key}' not found in this list"
@@ -3294,14 +3295,17 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         # reload/override not really a good way to do this...
         # I should reload a new dict... As I may inadvertantly override another argument?
-        kargs["filename"] = filename
-        kargs["arraydata"] = arraydata.T
-        kargs["row_names"] = expression["name"]
-        kargs["col_names"] = expression.getConditionNames()
         if "bracket" not in kargs:
             kargs["bracket"] = [0, 1]
 
-        actual_filename = self.draw._heatmap_and_plot(peakdata=peak_data,
+        print(kargs)
+
+        actual_filename = self.draw._heatmap_and_plot(
+            arraydata=arraydata.T,
+            row_names=expression["name"],
+            col_names=expression.getConditionNames(),
+            filename=filename,
+            peakdata=peak_data,
             bin=bin,
             row_label_key=match_key,
             imshow=imshow,
@@ -3719,6 +3723,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             #print [t.get_text() for t in axes[k].get_yticklabels()]
             ylabs = ["%s%%" % str(i) for i in range(int(l[0]), int(l[1])+5, int(l[1]//len(ax.get_yticklabels())))][1:]
             ax.set_yticklabels(ylabs, fontsize=6)
+
+            ax.annotate('TSS', xy=(3*numpy.pi+0.5, l[1]) , xytext=(3*numpy.pi, l[1]+(l[1]/10)), arrowprops={'arrowstyle':'->'})
 
         else:
             fig = self.draw.getfigure(**kargs)
