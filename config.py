@@ -61,8 +61,6 @@ valid_draw_modes = frozenset(["png", "ps", "eps", "svg", 'pdf'])
 class flat:
     block_size = 2000
     cache = 100000 # maximum number of blocks to keep in memory.
-    # these are equivalent to about 800 Mb's of memory on a Fedora box
-    # And 650 Mbs on Mac OSX. Never tested on Windows
 
 def change_draw_size(size):
     # These would be better as attached to the variable? __call__() ?

@@ -4051,6 +4051,15 @@ class expression(base_expression):
         c2d = self.getDataForCondition(cond2)
         names = self[label_key]
 
+        # NEed to do early for range on hist2d
+        if 'xlims' in kargs and 'ylims' in kargs and kargs['xlims'] and kargs['ylims']:
+            xlims = kargs['xlims']
+            ylims = kargs['ylims']
+        else:
+            minmax = max([abs(min(c1d)), max(c1d), abs(min(c2d)), max(c2d)])
+            xlims = [-minmax,minmax]
+            ylims = [-minmax,minmax]
+
         # load the data for plotting
         pt_x = []
         pt_y = []
@@ -4088,15 +4097,8 @@ class expression(base_expression):
         ax.set_ylim(zoom_bracket)
         ax.set_xlabel(cond1)
         ax.set_ylabel(cond2)
-
-        # NEed to do early for range on hist2d
-        if 'xlims' in kargs and 'ylims' in kargs and kargs['xlims'] and kargs['ylims']:
-            xlims = kargs['xlims']
-            ylims = kargs['ylims']
-        else:
-            minmax = max([abs(min(c1d)), max(c1d), abs(min(c2d)), max(c2d)])
-            xlims = [-minmax,minmax]
-            ylims = [-minmax,minmax]
+        ax.set_xlim(xlims)
+        ax.set_ylim(ylims)
 
         ax = fig.add_subplot(122)
         if hist2d:

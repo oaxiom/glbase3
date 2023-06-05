@@ -2742,7 +2742,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             result_key (Optional)
                 the name of the key to store the result in.
-                (defualts to '<key1><operation><key2>')
+                (defaults to '<key1><operation><key2>')
                 Will overwrite a key if it is already present.
 
         **Returns**
@@ -2819,8 +2819,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         #except Exception:
         #    self.linearData = copy.deepcopy(list_to_load)
 
-        # See if we have a name:
-        if name:
+        if name: # Overwrite name if set
             self.name = name
 
         self._optimiseData()
@@ -2936,7 +2935,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         for i in self:
             for k in i:
                 if i[k] == value:
-                    return(i)
+                    return i
 
         return False
 
@@ -3695,7 +3694,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             ax.set_theta_offset(3*numpy.pi /2)
             ax.set_theta_direction(-1)
 
-            colors = ["#FFF800", # (255, 248, 0)
+            colors = [
+                "#FFF800", # (255, 248, 0)
                 "#000E7C", # (0, 14, 177)
                 "#001EFF", # (0, 30, 255)
                 "#6275FF", # (98, 117, 255)
@@ -3827,7 +3827,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.draw.do_common_args(ax, **kargs)
         real_filename = self.draw.savefigure(fig, filename)
 
-        config.log.info("Saved '%s'" % real_filename)
+        config.log.info(f"Saved '{real_filename}'")
         return values
 
     def bar_chart(self, filename=None, labels=None, data=None, percents=False,
@@ -3927,7 +3927,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if not isinstance(random_backgrounds, list):
                 random_backgrounds = [random_backgrounds]
             for item in random_backgrounds:
-                assert key in item.linearData[0], "key '%s' not found in the random background" % key # check the first entry only.
+                assert key in item.linearData[0], f"key '{key}' not found in the random background" # check the first entry only.
 
         # get the counts:
         # All stored in qkeyfind
