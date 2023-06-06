@@ -201,22 +201,11 @@ class base_expression(genelist):
         """
         genelist._optimiseData(self) # do the parent optimise.
 
-        # generate a serialised version of the array conditions.
-        #print([len(i["conditions"]) for i in self.linearData])
+        self.check_condition_names_are_unique()
+
         self.numpy_array_all_data = numpy.array([numpy.array(i["conditions"]) for i in self.linearData])
-        #print(self.numpy_array_all_data)
-
-        # could be done with dict comp:
-        data = {}
-        for index, name in enumerate(self._conditions):
-            if name not in data:
-                data[name] = self.numpy_array_all_data[:,index]
-        self.serialisedArrayDataDict = data
-
-        # list;
+        self.serialisedArrayDataDict = {name: self.numpy_array_all_data[:,index] for index, name in enumerate(self._conditions)}
         self.serialisedArrayDataList = [self.serialisedArrayDataDict[key] for key in self._conditions]
-        #self.serialisedArrayDataList = all_array_data # This consumes massive amounts of memory.
-        # presumably something downstream is doing something nasty.
 
         return True
 

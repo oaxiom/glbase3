@@ -3068,7 +3068,8 @@ class draw:
             patch_artist=True,
             widths=0.5,
             vert=False,
-            showmeans=showmeans)
+            showmeans=showmeans,
+            meanprops={'marker': 'o'})
 
         #print([i.get_data() for i in r['medians']])
 

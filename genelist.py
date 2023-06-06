@@ -408,20 +408,22 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not self.linearData: # list is empty, not possible to optimise anything...
             return False
 
+        keys = self.keys()
+
         # Guess a loc key
         loc_key = None
-        if "tss_loc" in self.linearData[0]: # always use tss_loc in preference of loc, if available
+        if "tss_loc" in keys: # always use tss_loc in preference of loc, if available
             loc_key = "tss_loc"
-        elif "loc" in self.linearData[0]:
+        elif "loc" in keys:
             loc_key = "loc" # Don't change this though. annotate() relies on the bucket system using tss_loc
 
-        if "tss_loc" in self.linearData[0] and "loc" in self.linearData[0]:
+        if "tss_loc" in keys and "loc" in keys:
             config.log.warning("List contains both 'tss_loc' and 'loc'. By default glbase will use 'tss_loc' for overlaps/collisions/annotations")
 
-        if loc_key in self.linearData[0]: # just checking the first entry.
-            self.dataByChr = {}
-            self.dataByChrIndexLookBack = {}
-            self.buckets = {}
+        self.dataByChr = {}
+        self.dataByChrIndexLookBack = {}
+        self.buckets = {}
+        if loc_key:
             for n, item in enumerate(self.linearData): # build the chromosome quick search maps.
                 chr = item[loc_key]["chr"]
                 if chr not in self.dataByChr:
@@ -432,7 +434,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # I can't remember what this look-back is for, but you
                 # can use it to get the linearData index even though looking at the
                 # dataByChr data It is not documented for a reason!
-                # New bucket system to go in here.
 
                 if chr not in self.buckets:
                     self.buckets[chr] = {}
