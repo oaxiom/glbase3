@@ -378,7 +378,11 @@ class draw:
             I must guess the vmax value. I will do this by working out the
             mean then determining a symmetric colour distribution
             """
-            me = statistics.mean(data)
+            try:
+                me = statistics.mean(data)
+            except (AttributeError, TypeError):
+                me = data.mean()
+
             ma = abs(me - max(data))
             mi = abs(min(data) + me)
             if ma > mi:

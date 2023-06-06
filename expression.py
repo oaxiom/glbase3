@@ -3989,6 +3989,8 @@ class expression(base_expression):
         spot_size:int = 5,
         hist2d:bool = False,
         highlights = None,
+        cmap = cm.RdBu_r,
+        cols = None,
         **kargs):
         """
         **Purpose**
@@ -4041,6 +4043,10 @@ class expression(base_expression):
             highlights (Optional, default=False)
                 genes to highlight on the plot
 
+            cols (Optional, default='blue')
+                a list of colors for each spot. Must bne in the same order as the
+                data in theis object.
+
         **Returns**
             None
         """
@@ -4064,11 +4070,11 @@ class expression(base_expression):
         pt_x = []
         pt_y = []
         labs = []
-        cols = []
+        if not cols: cols = []
         for index, x in enumerate(c1d):
             pt_x.append(c1d[index])
             pt_y.append(c2d[index])
-            cols.append("blue")
+            if not cols: cols.append("blue")
 
             # do the colouring here if away from the diagonal
             if label_key:
@@ -4102,9 +4108,10 @@ class expression(base_expression):
 
         ax = fig.add_subplot(122)
         if hist2d:
-            ax.hist2d(pt_x, pt_y, bins=50,
+            ax.hist2d(pt_x, pt_y, bins=30,
                 range=[kargs['xlims'], kargs['ylims']],
-                cmin=1)
+                cmin=0,
+                cmap=cmap)
 
         else:
             ax.scatter(pt_x, pt_y, alpha=alpha, edgecolor='none', color=cols,
