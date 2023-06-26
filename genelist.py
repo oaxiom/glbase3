@@ -3707,12 +3707,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 "#7C0900"] # (124, 9, 0)
 
             #N = 20
-            #theta = np.linspace(0.0, 2 * np.pi, N, endpoint=False)
+            #theta = numpy.linspace(0.0, 2 * np.pi, N, endpoint=False)
 
             ax.bar(theta, data, width=erad-0.20, bottom=0.0, color=colors, alpha=1.0, zorder=2)
             ax.bar(theta, rand, width=erad,      bottom=0.0, color='grey', alpha=0.3, zorder=1, yerr=err)
 
-            #ax.set_xticks(theta-0.10)
+            ax.set_xticks(numpy.linspace(0.0, 2 * numpy.pi, len(data), endpoint=False)+(2*numpy.pi / len(data) / 2))
             ax.set_xticklabels("")
             l = ax.get_ylim()
             #print k, ["%s%%" % i for i in range(l[0], l[1]+5, l[1]//len(axes[k].get_yticklabels()))]
