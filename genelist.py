@@ -3182,6 +3182,28 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         step_style=False,
         window=None,
         **kargs):
+
+        config.log.warning('frequencyAgainstArray() is deprecated, please use the identical fAA()')
+
+        return self.fAA(
+            filename=filename,
+            match_key=match_key,
+            expression=expression,
+            spline_interpolate=spline_interpolate,
+            imshow = imshow,
+            step_style=step_style,
+            window=window,
+            **kargs)
+
+    def fAA(self,
+        filename=None,
+        match_key=None,
+        expression=None,
+        spline_interpolate=False,
+        imshow:bool = False,
+        step_style=False,
+        window=None,
+        **kargs):
         """
         Draw a peaklist and compare against an array.
         Draws a three panel figure showing an array heatmap, the binding events
