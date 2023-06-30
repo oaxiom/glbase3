@@ -3183,6 +3183,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         window=None,
         **kargs):
 
+        # Deprecated 2023-06-26
+
         config.log.warning('frequencyAgainstArray() is deprecated, please use the identical fAA()')
 
         return self.fAA(
@@ -4220,6 +4222,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         fc_threshold = 1, # In log2;
         highlights = None,
         highlight_key = None,
+        highlight_override:bool = False,
         figsize=[3,3],
         only_tes:bool = False,
         only_genes:bool = False,
@@ -4257,7 +4260,15 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 A list of items to draw a label over on the plot
 
             highlights_key (Optional, required if highlights is True, or one of the only_* is True)
-                Key to match highlights in;
+                Key to match highlights in
+
+            highlight_override (Optional, default=False)
+                If True, then draw the matches in highlight in red (don't label).
+                This mode ignores FC and q-value thresholds for coloring, although you'd
+                still want to provide them for drawing the threshold lines on the plot.
+
+                This is useful for e.g. highlighting a set of genes/TEs and where they appear on the
+                Volcano
 
             only_tes (Optional, default=False)
                 only plot the TEs (with a ':' in highlights_key
@@ -4284,6 +4295,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
 
         if highlights:
+            assert highlight_key, 'highlight_key must have a value if highlights=True'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
+
+        if highlight_override:
+            assert highlights, 'If highlight_override then highlights must be valid as well'
             assert highlight_key, 'highlight_key must have a value if highlights=True'
             assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
 
@@ -4334,18 +4350,39 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         ax = fig.add_subplot(111)
 
-        up = list(zip(*up))
-        dn = list(zip(*dn))
-        rest = list(zip(*rest))
-        if up:
-            ax.scatter(up[0], up[1], c='red', s=2, ec='none', alpha=0.3)
-        if dn:
-            ax.scatter(dn[0], dn[1], c='blue', s=2, ec='none', alpha=0.3)
+        if highlight_override:
+            up = []
+            rest = []
+            # we only use up and rest;
+            for item, fc, q in zip(self.linearData, fcs, qs):
 
-        ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
-        if highlights and highs:
-            for gene_name in highs:
-                ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
+                if item[highlight_key] in highlights:
+                    print(item)
+                    up.append((fc, q))
+                else:
+                    rest.append((fc, q))
+
+            up = list(zip(*up))
+            rest = list(zip(*rest))
+
+            if rest:
+                ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
+            if up:
+                ax.scatter(up[0], up[1], c='red', s=3, ec='none', alpha=0.3)
+
+        else: # Traditional red/blue style
+            up = list(zip(*up))
+            dn = list(zip(*dn))
+            rest = list(zip(*rest))
+            if up:
+                ax.scatter(up[0], up[1], c='red', s=2, ec='none', alpha=0.3)
+            if dn:
+                ax.scatter(dn[0], dn[1], c='blue', s=2, ec='none', alpha=0.3)
+
+            ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
+            if highlights and highs:
+                for gene_name in highs:
+                    ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
 
         ax.axhline(q_threshold, ls=':', c='grey')
         ax.axvline(-fc_threshold, ls=':', c='grey')
@@ -4363,8 +4400,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         cylims = ax.get_ylim()
 
         ylim_pad = (cylims[1] - cylims[0]) * 0.05
-
-        print(cxlims)
 
         if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
         if up: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')

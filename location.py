@@ -111,34 +111,19 @@ class location:
     def expandRight(self, base_pairs):
         return location(chr=self.chrom, left=self.left, right=self.right + base_pairs)
 
-    '''
-    # deprecate these methods
     def shrink(self, base_pairs):
         return location(chr=self.chrom, left=self.left + base_pairs, right=self.right - base_pairs)
 
     def shrinkLeft(self, base_pairs):
-        new = copy.deepcopy(self)
-        new.loc["left"] += base_pairs
-        new.__update()
-        return new
+        return location(chr=self.chrom, left=self.left - base_pairs, right=self.right )
 
     def shrinkRight(self, base_pairs):
-        new = copy.deepcopy(self)
-        new.loc["right"] -= base_pairs
-        new.__update()
-        return new
-    '''
+        return location(chr=self.chrom, left=self.left, right=self.right - base_pairs)
 
     def pointLeft(self):
-        """
-        get a new location at the exact left of the coordinate
-        """
         return location(chr=self.chrom, left=self.left, right=self.left)
 
     def pointRight(self):
-        """
-        get a new location at the exact right of the coordinate
-        """
         return location(chr=self.chrom, left=self.right, right=self.right)
 
     def pointify(self):
