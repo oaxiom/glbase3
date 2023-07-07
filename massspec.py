@@ -83,11 +83,12 @@ class massspec(base_expression):
 
                 Gene1;Gene2;Gene3, PID1; PID2; PID3
 
-                If mq_use_lfq is True then each ambiguous match is treated as a full match
-                (generally more useful, as map() will correctly work), if False then preserve each
-                matching protein entry as is.
+                If mq_split_ambiguous_names is True then each ambiguous match is treated
+                as a full match (generally more useful, as map() will correctly work),
+                if False then preserve each protein names as reported by MaxQuant.
 
         '''.format(self.supported_formats)
+
         assert isinstance(filenames, list), 'filenames must be a list'
         assert format in self.supported_formats
 
@@ -365,6 +366,7 @@ class massspec(base_expression):
             number of peptides deleted
 
         '''.format(self.valid_call_modes)
+
         assert mode in self.valid_call_modes, f'mode "{mode}" not found in {self.valid_call_modes}'
         assert species in self.supported_species, f"species {species} not found in {self.supported_species.keys()}"
 
@@ -544,6 +546,7 @@ class massspec(base_expression):
         """
         **Purpose**
             merge replicate MS samples.
+            Takes the maximum of each column;
 
         **Arguments**
             merge_data (Required)
@@ -1186,6 +1189,7 @@ class massspec(base_expression):
                 A list of genelists, containing all of the items from the cut.
 
         """
+        assert mode in ("conditions", "rows", "genes"), f'{mode} not found'
         assert filename, "heatmap: you must specify a filename"
         assert row_label_key in list(self.keys()), f'row_label_key "{row_label_key}" not found in this genelist'
         assert dataset in self.valid_datasets, f'dataset {dataset} is not found in {self.valid_datasets}'
@@ -1193,10 +1197,13 @@ class massspec(base_expression):
         if dataset == 'fold_change': assert self.fold_change, 'Asking for the fold_change dataset, but this massspec does not have a fold_change, run massspec.call()'
 
         if dataset == 'call':
-            _data = [booler(i['calls']) for i in self.linearData]
+            _data = [booler(i['call']) for i in self.linearData]
             _data = numpy.array(_data).T # Transpose to get the expected shape for expression.tree()
         elif dataset == 'intensities':
             _data = [i['intensities'] for i in self.linearData]
+            _data = numpy.array(_data).T # Transpose to get the expected shape for expression.tree()
+        elif dataset == 'fold_change':
+            _data = [i['fold_change'] for i in self.linearData]
             _data = numpy.array(_data).T # Transpose to get the expected shape for expression.tree()
         else:
             raise AssertionError(f'No method implemented for {dataset}')
