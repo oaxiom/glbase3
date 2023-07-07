@@ -470,7 +470,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         #A = nx.to_agraph(G)
         #pos = A.graphviz_layout(G, layout)
         # pygraphviz is no longer avaialble ...
-        pos = nx.spring_layout(G)
+        pos = nx.spring_layout(G, k=1)
 
     # trim isolated nodes
     if trim_isolated_nodes:

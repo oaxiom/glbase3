@@ -963,7 +963,8 @@ class massspec(base_expression):
         filename:str,
         expt_to_bait=None,
         figsize=[8,8],
-        fontsize=6,
+        fontsize:int =6,
+        k:int =1,
         **kargs):
         """
         **Purpose**
@@ -974,14 +975,21 @@ class massspec(base_expression):
             Requires networkx
 
         **Arguments**
-            filename (Required)
+            filename (str, Required)
                 filename to save the image of the network
 
             expt_to_bait (Required)
                A dict with the bait for each experiment. Use '-' for controls.
 
+               Note that the baits do not need to exist in the mass spec data, and an
+               extra node will be added. This is useful for things like comparing cell types
+
             fontsize (Optional, default=6)
                 fontsize for the nodes;
+
+            k (int, Optional, default=1)
+                k parameter for networkx.spring_layout. reduce to move nodes closer,
+                increase to move them further away
 
         **Returns**
             The networkx network
@@ -1030,7 +1038,7 @@ class massspec(base_expression):
 
         config.log.info('Built network')
         # Remove isolated nodes;
-        pos = nx.spring_layout(g, k=1, iterations=200, seed=1234)
+        pos = nx.spring_layout(g, k=k, iterations=200, seed=1234)
         config.log.info('Layout done')
 
         fig = self.draw.getfigure(figsize=figsize)
