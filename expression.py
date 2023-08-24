@@ -4103,8 +4103,8 @@ class expression(base_expression):
         ax.set_ylim(zoom_bracket)
         ax.set_xlabel(cond1)
         ax.set_ylabel(cond2)
-        ax.set_xlim(xlims)
-        ax.set_ylim(ylims)
+        #ax.set_xlim(xlims)
+        #ax.set_ylim(ylims)
 
         ax = fig.add_subplot(122)
         if hist2d:

@@ -429,7 +429,7 @@ class manifold_pca:
         perc_weights = self.get_loading_percents()
 
         fig = self.__draw.getfigure(**kargs)
-        ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=elevation, azim=rotation)
+        ax = fig.add_subplot(projection='3d') # Axes3D(fig, rect=[0, 0, .95, 1], elev=elevation, azim=rotation)
 
         cols = self.cols
         if spot_cols:
