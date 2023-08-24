@@ -512,18 +512,12 @@ class draw:
             hm = ax3.pcolormesh(data, cmap=colour_map, vmin=vmin, vmax=vmax, antialiased=False, edgecolors=edgecolors, lw=0.4)
 
         if col_colbar:
-            # Must be reordered by the col_cluster if present, done above;
-            newd = {}
-            colors_ = dict(list(matplotlib_colors.cnames.items()))
-            for c in colors_:
-                newd[c] = matplotlib_colors.hex2color(colors_[c])
-
             new_colbar = []
             for c in col_colbar:
                 if '#' in c:
                     new_colbar.append([utils.hex_to_rgb(c)]) # needs to be tupled?
                 else: # must be a named color:
-                    new_colbar.append([newd[c]])
+                    new_colbar.append([matplotlib_colors.to_rgb(c)])
 
             col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
 
@@ -552,18 +546,12 @@ class draw:
             ax4.set_yticklabels("")
 
         if row_colbar:
-            # Must be reordered by the row_cluster if present, done above;
-            newd = {}
-            colors_ = dict(list(matplotlib_colors.cnames.items()))
-            for c in colors_:
-                newd[c] = matplotlib_colors.hex2color(colors_[c])
-
             new_colbar = []
             for c in row_colbar:
                 if '#' in c:
                     new_colbar.append([utils.hex_to_rgb(c)]) # needs to be tupled?
                 else: # must be a named color:
-                    new_colbar.append([newd[c]])
+                    new_colbar.append([matplotlib_colors.to_rgb(c)])
 
             row_colbar = numpy.array(new_colbar)
 
