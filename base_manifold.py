@@ -11,7 +11,6 @@ from operator import itemgetter
 import numpy, random
 import matplotlib.pyplot as plot
 import matplotlib.patches
-from mpl_toolkits.mplot3d import Axes3D, art3d
 import scipy.cluster.vq
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE

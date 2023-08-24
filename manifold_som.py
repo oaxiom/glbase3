@@ -42,7 +42,7 @@ from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.colors import LogNorm
 from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import art3d
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.spatial.distance import pdist
 
@@ -518,7 +518,8 @@ class manifold_SOM(object):
         else:
             X, Y = np.mgrid[0:self.mapsize[0], 0:self.mapsize[1]]
 
-            ax = Axes3D(fig, elev=75, azim=95) #rect=[0, 0, .95, 1], )
+            ax = fig.add_subplot(projection='3d')
+            ax.view_init(75, 95, 0)
 
             hm = ax.plot_surface(X, Y, hist_grid, cmap=cm.PuOr_r, shade=True,
                 cstride=1, rstride=1, linewidth=0, antialiased=False) # antialiased stops transparent edges

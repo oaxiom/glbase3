@@ -9,8 +9,8 @@ from operator import itemgetter
 import numpy
 import matplotlib.pyplot as plot
 import matplotlib.patches
-from mpl_toolkits.mplot3d import Axes3D, art3d
 import scipy.cluster.vq
+from mpl_toolkits.mplot3d import art3d
 from sklearn.decomposition import PCA
 
 from . import config
@@ -429,7 +429,8 @@ class manifold_pca:
         perc_weights = self.get_loading_percents()
 
         fig = self.__draw.getfigure(**kargs)
-        ax = fig.add_subplot(projection='3d') # Axes3D(fig, rect=[0, 0, .95, 1], elev=elevation, azim=rotation)
+        ax = fig.add_subplot(projection='3d')
+        ax.view_init(elevation, rotation, 0)
 
         cols = self.cols
         if spot_cols:
