@@ -588,7 +588,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert key, "Must specify a 'key' to map the two lists"
 
         if mode == 'collide': # Deflect to the collide routine
-            return(self.__venn_collide(key=key, filename=filename))
+            return self.__venn_collide(key=key, filename=filename)
 
         proportional = False
         if "experimental_proportional_venn" in kargs and kargs["experimental_proportional_venn"]:

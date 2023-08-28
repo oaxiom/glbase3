@@ -1352,7 +1352,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newgl
 
-    def filter_by_in(self, key=None, value=None, remove=True, **kargs):
+    def filter_by_in(self, key=None, value=None, remove=None, **kargs):
         """
         **Purpose**
             filter the genelist, and
@@ -1380,7 +1380,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert key, 'You must specify a key'
         assert value, 'You must specify a value'
-        assert key in self.keys(), '{} key not found in this genelist'.format(key)
+        assert key in self.keys(), f'{key} key not found in this genelist'
+        assert remove in (True, False), 'You must specify True/False for the remove argument'
 
         newgl = self.deepcopy()
 
@@ -1423,7 +1424,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 The value of change required to pass the test.
 
         **Returns**
-            A new expression-object containing only the items that pass.
+            A new genelist-like object containing only the items that pass.
         """
         assert key, "filter_by_value: 'key' argument is required"
         assert evaluator in ("gt", "lt", "gte", "lte", "equal", ">", "<", ">=", "<=", "=="), "filter_by_value: evaluator argument '%s' not recognised" % evaluator
@@ -4384,9 +4385,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 for gene_name in highs:
                     ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
 
-        ax.axhline(q_threshold, ls=':', c='grey')
-        ax.axvline(-fc_threshold, ls=':', c='grey')
-        ax.axvline(fc_threshold, ls=':', c='grey')
+        ax.axhline(q_threshold, ls=':', c='grey', lw=0.5)
+        ax.axvline(-fc_threshold, ls=':', c='grey', lw=0.5)
+        ax.axvline(fc_threshold, ls=':', c='grey', lw=0.5)
 
         ax.set_xlim([-10, 10])
         ax.set_ylim([-2, 40])

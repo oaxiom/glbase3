@@ -1961,7 +1961,7 @@ class draw:
 
         if len(size) == 2: # overrides aspect/size
             size_in_in = (size[0], size[1])
-            return(plot.figure(figsize=size_in_in))
+            return plot.figure(figsize=size_in_in)
 
         data = {"normal": {"small": (5,4), "medium": (8,6), "large": (12,9), "huge": (16,12)},
                 "square": {"small": (4,4), "medium": (7,7), "large": (9,9), "huge": (12,12)},
