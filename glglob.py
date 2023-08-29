@@ -604,7 +604,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             realfilename = self.draw.venn2(len(A), len(B), len(AB),
                 self.linearData[0].name, self.linearData[1].name,
                 filename, **kargs)
-            return(None)
+            return None
 
         elif len(self.linearData) == 3:
             A = set(self.linearData[0][key])
