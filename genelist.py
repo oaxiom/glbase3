@@ -1205,9 +1205,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def _collectIdenticalKeys(self, gene_list):
         """
         (Internal)
-        What it says, returns a list of valid keys in common between this list and gene_list
+        returns a list of keys in common between this list and gene_list
         """
-        return(list(set(self.keys()) & set(gene_list.keys())))
+        return list(set(self.keys()) & set(gene_list.keys()))
 
     def getColumns(self, return_keys=None):
         """
@@ -1875,7 +1875,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("Pointified peaklist '%s'" % self.name)
-        return(newl)
+        return newl
 
     def addEmptyKey(self, key=None, value=None):
         """
@@ -1966,7 +1966,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("Expanded '%s' in genelist '%s' by %s base pairs" % (key, self.name, base_pairs))
-        return(newl)
+        return newl
 
     def pointLeft(self, key="loc"):
         """
@@ -1993,7 +1993,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("pointLeft genelist %s" % (self.name))
-        return(newl)
+        return newl
 
     def pointRight(self, key="loc"):
         """
@@ -2019,7 +2019,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("pointRight genelist %s" % (self.name))
-        return(newl)
+        return newl
 
     def collide(self, compare_mode="Collide", loc_key="loc", delta=200, title=None, bins=20,
         add_tags=False, image_filename=None, keep_rank=False, genelist=None, **kargs):
@@ -2106,7 +2106,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     perc = 1.0
                 config.log.info("{0}: found {1} (Jaccard={2:.3f}) overlaps in [{3} & {4}] with '{5}' key".format(compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
 
-        return(newl)
+        return newl
 
     def overlap(self,
         compare_mode="Overlap",
@@ -2192,7 +2192,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             else:
                 config.log.info("%s two lists using '%s' key, found: %s overlaps" % (compare_mode, loc_key, len_res))
 
-        return(newl)
+        return newl
 
     def _unified_collide_overlap(self, compare_mode=None, loc_key="loc", delta=200, title=None, bins=20, add_tags=False, image_filename=None,
         keep_rank=False, **kargs):
@@ -2381,7 +2381,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             return None
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def removeDuplicatesByLoc(self, mode, key="loc", delta=200, use_strand=False,
         delete_any_matches=False):
@@ -2655,7 +2655,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("removeExactDuplicates: %s exact duplicates" % (len(self) - len(newl)))
-        return(newl)
+        return newl
 
     def removeEmptyDataByKey(self, key=None):
         """
@@ -2712,7 +2712,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
 
         config.log.info("Removed empty data in %s key: %s entries" % (key, len(self) - len(newl)))
-        return(newl)
+        return newl
 
     def act(self, operation, key1, key2, result_key=None):
         """
@@ -3185,7 +3185,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **kargs):
 
         # Deprecated 2023-06-26
-
         config.log.warning('frequencyAgainstArray() is deprecated, please use the identical fAA()')
 
         return self.fAA(
@@ -3332,6 +3331,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             bin=bin,
             row_label_key=match_key,
             imshow=imshow,
+            window=window,
             **kargs)
 
         config.log.info(f"frequencyAgainstArray: Saved '{actual_filename}'")
@@ -4326,10 +4326,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if only_genes and ':' in item[highlight_key]:
                 continue
 
-            if fc >= fc_threshold and q > q_threshold:
+            if fc > fc_threshold and q > q_threshold:
                 up.append((fc, q))
                 upgl.append(item)
-            elif fc <= -fc_threshold and q > q_threshold:
+            elif fc < -fc_threshold and q > q_threshold:
                 dn.append((fc, q))
                 dngl.append(item)
             else:
@@ -4409,6 +4409,5 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         config.log.info('volcanoplot: Saved {}'.format(real_filename))
         return upgl, dngl, real_filename
-
 
 genelist = Genelist # Hack alert! Basically used only in map() for some dodgy old code I do not want to refactor.
