@@ -131,7 +131,6 @@ from .pwms import pwms
 from .expression import expression
 from .logos import logo
 from .draw import draw
-from .format_container import fc
 from .fastq import fastq
 from .draw import adjust_text
 from .hic import hic, merge_hiccys
@@ -167,29 +166,27 @@ __all__ = [
     "delayedlist",
     'massspec',
     "glglob",
-    "hic",# primary objects
+    "hic",
     'config',
-    'merge_hiccys', # hic support
     "location",
     "pwm", "pwms", # PWM object support
     "format",
     "glload",
+
     # Tools/
     "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat", 'merge_flats',
+    'merge_hiccys', # hic support
     "logo",
     "motif",
     "rnaseqqc",
     "glgo",
-    "fc",
     #"rigidgrid", # Unavailable
-    #"ecrbase",
     "realtime",
-    #"tfbs_iter",
     "utils",
     'adjust_text',
     "change_drawing_mode",
     "progressbar",
     "draw",
-    "cmaps", "strandSorter",# Miscellaneous
-    "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
+    "cmaps",
+    "strandSorter", "fold2UpOrDown", "fold2Down", 'fold2Up', 'XDown', 'XUp', 'lst_find', 'cat_columns', 'strandSorter'
     ]

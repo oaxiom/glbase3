@@ -28,14 +28,14 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plot
 import scipy.stats as stats
 from scipy.stats import pearsonr
-from .base_track import base_track
+from .base_sql import base_sql
 
 import numpy
 from numpy import array, zeros, set_printoptions, int32, append, linspace, argmax, amax, delete
 
 TRACK_CACHE_SIZE = 10 # number of track segments to cache.
 
-class genome_sql(base_track):
+class genome_sql(base_sql):
     """
     track definition, used for things like sequence reads across the genome
 
