@@ -12,11 +12,12 @@ import sys, os, unittest
 sys.path.append(os.path.realpath("../"))
 
 import glbase3 as gl
+import format_container as fc
 
 class Test_Formats(unittest.TestCase):
     def setUp(self):
         # I spook a nice neat fc easier for testing.
-        self.f = gl.fc("f",
+        self.f = fc.fc("f",
             format={"name": 0, "description": 1, "strand": 2, "force_tsv": True},
             description="A simple format")
 
