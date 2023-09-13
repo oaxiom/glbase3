@@ -53,13 +53,13 @@ class genome_sql(base_sql):
 
     """
     def __init__(self, name=None, new=False, filename=None, norm_factor=1.0, **kargs):
-        base_track.__init__(self, name, new, filename, norm_factor)
+        base_sql.__init__(self, name, new, filename, norm_factor)
 
         if new:
             self.__setup_tables(filename)
 
     def __repr__(self):
-        return("glbase.genome_sql")
+        return "glbase.genome_sql"
 
     def __setup_tables(self, filename):
         """
@@ -92,7 +92,7 @@ class genome_sql(base_sql):
         c.execute("CREATE TABLE %s (transcript_left INT, transcript_right INT, cds_left INT, cds_right INT, exonStarts TEXT, exonEnds TEXT, name TEXT, strand TEXT, feature_type TEXT)" % (table_name, ))
 
         c.close()
-        return(True)
+        return True
 
     def __has_chromosome(self, chromosome):
         """
@@ -222,7 +222,7 @@ class genome_sql(base_sql):
         if not result: # Compatability with chipFish
             result = []
 
-        return(result)
+        return result
 
     def get_chromosome_names(self):
         """
@@ -240,7 +240,7 @@ class genome_sql(base_sql):
 
         self._c.execute("SELECT chromosome FROM main")
         r = [i[0] for i in self._c.fetchall()]
-        return(set(r))
+        return set(r)
 
     def get_feature_count(self):
         """
@@ -259,7 +259,7 @@ class genome_sql(base_sql):
         self._c.execute("SELECT chromosome, num_features FROM main")
         r = [int(i[1]) for i in self._c.fetchall()]
 
-        return(sum(r))
+        return sum(r)
 
     def __iter__(self):
         """
