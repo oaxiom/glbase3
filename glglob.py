@@ -2417,6 +2417,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             for tindex, trk in enumerate(list_of_trks):
                 for plidx, peaklist in enumerate(list_of_peaks):
                     peaklist_linearData_loc = peaklist['loc'] # faster?
+                    peaklist_linearData = peaklist.linearData
                     for chrom in porder[plidx]:
                         # The chr_blocks iterates across all chromosomes, so this only hits the db once per chromosome:
                         data = trk.get_array_chromosome(chrom, read_extend=read_extend) # This will use the fast cache version if available.
