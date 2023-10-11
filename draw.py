@@ -3035,7 +3035,6 @@ class draw:
         cols='lightgrey',
         bot_pad=0.1,
         showmeans=False,
-        cond_order=None,
         **kargs):
 
         assert filename, 'A filename to save the image to is required'
@@ -3057,11 +3056,14 @@ class draw:
             widths=0.5,
             vert=False,
             showmeans=showmeans,
-            meanprops={'marker': 'o'})
+            meanprops={'marker': 'o', 'markerfacecolor':'black',
+                       'markeredgecolor':'black',
+                       'markersize':'3'})
 
         #print([i.get_data() for i in r['medians']])
 
         plot.setp(r['medians'], color='black', lw=2) # set nicer colours
+        if showmeans: plot.setp(r['means'], color='black', lw=2)
         plot.setp(r['boxes'], color='black', lw=0.5)
         plot.setp(r['caps'], color="grey", lw=0.5)
         plot.setp(r['whiskers'], color="grey", lw=0.5)

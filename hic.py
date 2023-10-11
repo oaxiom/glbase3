@@ -1041,9 +1041,13 @@ class hic:
             vmin = data.min()
             vmax = data.max()
 
-        # ---------------- (A/B plots) ---------------------
+        # ---------------- (A/B plots side line graphs) ---------------------
         if key == 'AB':
-            ABdata = numpy.array(self.AB[str(chr)])
+            if chr:
+                ABdata = numpy.array(self.AB[str(chr)])
+            elif loc:
+                localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
+                ABdata = self.AB[chrom][localLeft:localRight]
 
             ax1 = fig.add_subplot(142)
             ax1.set_position(ABtop)
@@ -1062,7 +1066,6 @@ class hic:
             #ax2.tick_params(left=None, bottom=None)
             #ax2.set_xticklabels('')
             #ax2.set_yticklabels('')
-
 
         # ---------------- (heatmap) -----------------------
         ax3 = fig.add_subplot(141)

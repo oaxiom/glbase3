@@ -4227,6 +4227,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         figsize=[3,3],
         only_tes:bool = False,
         only_genes:bool = False,
+        spot_size:int = 3,
         **kargs
         ):
         '''
@@ -4277,6 +4278,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             only_genes (Optional, default=False)
                 only plot the genes (lacking a ':' in highlights_key
 
+            spot_size (Optional, default=3)
+                Spot size for each dot in the scatter.
+
         **Returns**
             The genes picked as up-regulated
             The genes picked as down-regulated;
@@ -4289,10 +4293,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
         assert not (only_tes and only_genes), 'You cant have both only_tes and only_genes both True'
         if only_tes:
-            assert highlight_key, 'if only_tes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
+            assert highlight_key, 'if only_tes=True, you need to specify a highlight_key to look for the ":" character that signifies TEs'
             assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
         if only_genes:
-            assert highlight_key, 'if only_genes=True, you need to specify a highlights_key to look for the ":" character that signifies TEs'
+            assert highlight_key, 'if only_genes=True, you need to specify a highlight_key to look for the ":" character that signifies TEs'
             assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
 
         if highlights:
@@ -4367,20 +4371,20 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             rest = list(zip(*rest))
 
             if rest:
-                ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
+                ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
             if up:
-                ax.scatter(up[0], up[1], c='red', s=3, ec='none', alpha=0.3)
+                ax.scatter(up[0], up[1], c='red', s=spot_size, ec='none', alpha=0.3)
 
         else: # Traditional red/blue style
             up = list(zip(*up))
             dn = list(zip(*dn))
             rest = list(zip(*rest))
             if up:
-                ax.scatter(up[0], up[1], c='red', s=2, ec='none', alpha=0.3)
+                ax.scatter(up[0], up[1], c='red', s=spot_size, ec='none', alpha=0.3)
             if dn:
-                ax.scatter(dn[0], dn[1], c='blue', s=2, ec='none', alpha=0.3)
+                ax.scatter(dn[0], dn[1], c='blue', s=spot_size, ec='none', alpha=0.3)
 
-            ax.scatter(rest[0], rest[1], c='grey', s=2, alpha=0.1, ec='none')
+            ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
             if highlights and highs:
                 for gene_name in highs:
                     ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
