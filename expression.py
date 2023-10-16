@@ -746,7 +746,7 @@ class expression(base_expression):
         z[numpy.isnan(z)] = 0
         self.numpy_array_all_data = z.T
 
-        self._load_numpy_back_into_linearData()
+        self._load_numpy_back_into_linearData() # calls _optimseData()
 
     def column_Z(self, col_wise_variance=True):
         '''
