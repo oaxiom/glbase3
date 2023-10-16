@@ -15,7 +15,7 @@ pydot==1.4.1
 python-igraph==0.8.0
 regex==2020.10.11
 scikit-learn==0.23.2
-scipy==1.5.2
+scipy==1.10.0
 seaborn==0.10.0
 statsmodels==0.12.0
 umap-learn==0.4.6
