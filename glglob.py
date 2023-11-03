@@ -49,7 +49,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         # we then store them in the linearData set
 
         if args: # So we can have empty glglobs.
-            self.linearData = args
+            self.linearData = [i for i in args]
+            print(self.linearData)
             self._optimiseData()
         else:
             self.linearData = []
@@ -2683,3 +2684,45 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return {"pearsonr": results["reordered_data"], "labels": results["reordered_cols"]}
 
+    def saveGMT(self,
+        filename:str=None,
+        key:str=None,
+        ):
+        '''
+        **Purpose**
+            Save a glglob as a GMT for GSEA analysis
+
+            A GMT is a file format suitable for GSEA analysis. This converts all of the genelist
+            objects into a valid GMT.
+
+            A typical GMT looks like this:
+
+            ALPHA6BETA4INTEGRIN    Alpha6Beta4Integrin    LAMB1    PTPN11    PTK2 ...
+
+            glglobs will convert to:
+
+            genelist.name   genelist.name   GENE1   GENE2   GENE3   ...
+            genelist.name   genelist.name   GENE1   GENE2   GENE3   ...
+            genelist.name   genelist.name   GENE1   GENE2   GENE3   ...
+            genelist.name   genelist.name   GENE1   GENE2   GENE3   ...
+            genelist.name   genelist.name   GENE1   GENE2   GENE3   ...
+            ...
+
+        **Arguments**
+            filename (Required)
+                filename to save the GMT data to.
+
+        '''
+        assert filename, 'You must specify a filename'
+        assert key in self.linearData[0].keys(), f'{key} not found in a genelist in this glglob'
+
+        oh = open(filename, 'wt')
+
+        for gl in self.linearData:
+            oh.write(f'{gl.name}\t{gl.name}\t')
+            oh.write('\t'.join([str(n) for n in gl[key]]))
+            oh.write('\n')
+
+        oh.close()
+
+        return

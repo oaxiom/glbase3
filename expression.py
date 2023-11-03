@@ -25,7 +25,7 @@ from .base_expression import base_expression
 from .draw import draw
 from .progress import progressbar
 from .errors import AssertionError, ArgumentError
-from .genelist import genelist
+from .genelist import genelist, Genelist # Name mangling for the win!
 from .location import location
 from .stats import stats
 
@@ -2035,7 +2035,7 @@ class expression(base_expression):
         self.draw.do_common_args(ax, **kargs)
         realfilename = self.draw.savefigure(fig, filename)
         config.log.info("draw_scatter_CV: Saved '%s'" % (realfilename))
-        return(None)
+        return None
 
     def scatter(self, x_condition_name, y_condition_name, filename=None, genelist=None, key=None,
         label=False, label_fontsize=6, **kargs):
@@ -2102,6 +2102,10 @@ class expression(base_expression):
             kargs["ylabel"] = y_condition_name
 
         if genelist and key:
+            if isinstance(genelist, list): # Compatability for passing a simple list;
+                gl = Genelist()
+                gl.load_list([{key: v} for v in genelist])
+                genelist = gl
             matches = genelist.map(genelist=self, key=key) # make sure resulting object is array
             tx = matches.getDataForCondition(x_condition_name)
             ty = matches.getDataForCondition(y_condition_name)
@@ -2113,8 +2117,8 @@ class expression(base_expression):
             real_filename = self.draw.nice_scatter(x_data, y_data, filename, **kargs)
 
 
-        config.log.info("scatter: Saved '%s'" % real_filename)
-        return(True)
+        config.log.info(f"scatter: Saved '{real_filename}'")
+        return True
 
     def boxplot(self,
         filename=None,
