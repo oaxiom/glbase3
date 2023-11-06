@@ -2714,6 +2714,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         '''
         assert filename, 'You must specify a filename'
+        assert key, 'You must specify a key'
         assert key in self.linearData[0].keys(), f'{key} not found in a genelist in this glglob'
 
         oh = open(filename, 'wt')
