@@ -1352,7 +1352,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newgl
 
-    def filter_by_in(self, key=None, value=None, remove=None, **kargs):
+    def filter_by_in(self, key=None, value=None, remove=True, **kargs):
         """
         **Purpose**
             filter the genelist, and
