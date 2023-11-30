@@ -4383,8 +4383,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 ax.scatter(up[0], up[1], c='red', s=spot_size, ec='none', alpha=0.3)
             if dn:
                 ax.scatter(dn[0], dn[1], c='blue', s=spot_size, ec='none', alpha=0.3)
+            if rest:
+                ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
 
-            ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
             if highlights and highs:
                 for gene_name in highs:
                     ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)

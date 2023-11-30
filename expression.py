@@ -4498,9 +4498,9 @@ class expression(base_expression):
         **Returns**
             the actual filename saved as and a new image in filename.
         """
-        assert filename, "no filename specified"
+        assert filename, "No filename specified"
         assert condition_name in self.serialisedArrayDataDict, "%s condition not found" % x_condition_name
-        assert p_value_key in self.keys(), '"%s" p_value_key not found in this list' % p_value_key
+        assert p_value_key in self.keys(), f'"{p_value_key}" p_value_key not found in this list'
         if highlights:
             assert highlight_key, 'highlight_key must hold a value if highlights=True'
             assert highlight_key in self.keys(), f'highlight_key "{highlight_key}" not found in this list'
@@ -4518,7 +4518,7 @@ class expression(base_expression):
         xlim = max(x_data)
 
         if label_key:
-            assert label_key in self.keys(), 'label_key "%s" not found in this list' % label_key
+            assert label_key in self.keys(), f'label_key "{label_key}" not found in this list'
             tx = []
             ty = []
             matches = []

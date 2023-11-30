@@ -1834,11 +1834,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
     def measure_density(self,
         trks:Iterable,
         peaks:Iterable,
-        norm_by_library_size=True,
+        density_measure_method:str = 'sum',
+        norm_by_library_size:bool = True,
         log=False,
-        read_extend=0,
-        pointify=True,
-        expand=1000,
+        read_extend:int = 0,
+        pointify:bool = True,
+        expand:int = 1000,
         **kargs):
         """
         **Purpose**
@@ -1850,6 +1851,11 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
             peaks (Required)
                 a list of peaks, a genelist containing a 'loc' key
+
+            density_measure_method(Optional, default='sum')
+                How to measure the peaks density:
+                    'sum': sum all the reads within the window used.
+                    'max':
 
             read_extend (Optional, default=200)
                 read extend the sequence tags in the tracks by xbp
@@ -1871,10 +1877,19 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             an expression object, with the conditions as the tag density from the tracks
 
         """
+        density_measure_methods = {
+            'sum': numpy.sum,
+            'max': numpy.max,
+            'average': numpy.average,
+            }
+
         assert list(trks), 'measure_density: trks must be an iterable'
         assert 'loc' in list(peaks.keys()), 'measure_density: no loc key found in peaks'
         all_trk_names = [t["name"] for t in trks]
         assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track.meta_data["name"] to unique names'
+        assert density_measure_method in density_measure_methods, f'density_measure_methods "{density_measure_method}" not found'
+
+        density_measure_method = density_measure_methods[density_measure_method]
 
         peaks = peaks.deepcopy()
         if pointify:
@@ -1913,9 +1928,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     continue
 
                 if norm_by_library_size:
-                    p["conditions"][it] = numpy.average(d) / all_sizes[it]
+                    p["conditions"][it] = density_measure_method(d) / all_sizes[it]
                 else:
-                    p["conditions"][it] = numpy.average(d)
+                    p["conditions"][it] = density_measure_method(d)
 
         expn = expression(loadable_list=peaks.linearData, cond_names=[t["name"] for t in trks])
         if log:
@@ -1924,7 +1939,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         return(expn)
 
     def measure_enrichment(self, trks, peaks, log=False,
-        read_extend=0, peak_window=200,local_lambda=5000,
+        read_extend=0, peak_window=200, local_lambda=5000,
         **kargs):
         """
         **Purpose**
