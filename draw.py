@@ -1308,7 +1308,7 @@ class draw:
         if "xaxis" in kargs: axis.set_xticks(kargs["xaxis"])
         if "yaxis" in kargs: axis.set_yticks(kargs["yaxis"])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _qhist(self, filename=None, data=None, bins=60, **kargs):
         """
@@ -2702,7 +2702,7 @@ class draw:
         spot_cols='grey',
         overplot=None,
         spot_size=40,
-        label_font_size=7,
+        label_font_size=6,
         label_style=None,
         cut=None,
         squish_scales=False,

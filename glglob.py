@@ -22,6 +22,7 @@ from .progress import progressbar
 from .genelist import genelist
 from .expression import expression
 from .data import positive_strand_labels, negative_strand_labels
+from collections.abc import Iterable
 
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -1830,8 +1831,14 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         config.log.warning("GO_heatmap: Saved heatmap '%s'" % filename)
         return reversed(res["reordered_rows"])
 
-    def measure_density(self, trks, peaks, norm_by_library_size=True, log=False,
-        read_extend=0, pointify=True, expand=1000,
+    def measure_density(self,
+        trks:Iterable,
+        peaks:Iterable,
+        norm_by_library_size=True,
+        log=False,
+        read_extend=0,
+        pointify=True,
+        expand=1000,
         **kargs):
         """
         **Purpose**
@@ -1864,7 +1871,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             an expression object, with the conditions as the tag density from the tracks
 
         """
-        assert isinstance(trks, list), 'measure_density: trks must be a list'
+        assert list(trks), 'measure_density: trks must be an iterable'
         assert 'loc' in list(peaks.keys()), 'measure_density: no loc key found in peaks'
         all_trk_names = [t["name"] for t in trks]
         assert len(set(all_trk_names)) == len(all_trk_names), 'track names are not unique. Please change the track.meta_data["name"] to unique names'
@@ -2349,7 +2356,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 and all other elements as vectors).
 
         **Returns**
-            Returns None
+            Returns dictionary of numpy matrix
         """
         assert not (range_bracket and bracket), "You can't use both bracket and range_bracket"
         assert False not in ['loc' in gl.keys() for gl in list_of_peaks], 'At least one of your peak data (list_of_peaks) does not contain a "loc" key'
@@ -2612,8 +2619,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 dpi=300,
                 )
 
-        config.log.info("chip_seq_heatmap: Saved overlap heatmap to '{0}'".format(real_filename))
-        return None
+        config.log.info(f"chip_seq_heatmap: Saved overlap heatmap to '{real_filename}'")
+        return matrix
 
     def hic_correlate(self,
         list_of_hiccys:list,
