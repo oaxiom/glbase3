@@ -1769,12 +1769,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     if float(item[pvalue_key]) < p_value_limit:
                         if item['name'] not in go_store:
                             go_store[item['name']] = [-1] * (number_of_clusters)
-                        go_store[item['name']][idx] = -math.log10(item['pvalue'])
+                        go_store[item['name']][idx] = -math.log10(item[pvalue_key])
                 else:
                     if float(item[pvalue_key]) > -math.log10(p_value_limit): # i.e. 0.01
                         if item['name'] not in go_store:
                             go_store[item['name']] = [-1] * (number_of_clusters)
-                        go_store[item['name']][idx] = item['pvalue']
+                        go_store[item['name']][idx] = item[pvalue_key]
 
 
         # fill in the holes:
@@ -1787,12 +1787,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                         if float(item[pvalue_key]) < p_value_limit:
                             if item['name'] not in go_store:
                                 go_store[item['name']] = [-1] * (number_of_clusters)
-                            go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0]['pvalue']))
+                            go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0][pvalue_key]))
                     else:
                         if float(item[pvalue_key]) > -math.log10(p_value_limit): # i.e. 0.01
                             if item['name'] not in go_store:
                                 go_store[item['name']] = [-1] * (number_of_clusters)
-                            go_store[k][cond_names_idx[go.name]] = float(this_k[0]['pvalue'])
+                            go_store[k][cond_names_idx[go.name]] = float(this_k[0][pvalue_key])
 
         newe = []
 
@@ -1850,12 +1850,12 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 a list of tracks/flats
 
             peaks (Required)
-                a list of peaks, a genelist containing a 'loc' key
+                a genelist containing a 'loc' key
 
             density_measure_method(Optional, default='sum')
                 How to measure the peaks density:
                     'sum': sum all the reads within the window used.
-                    'max':
+                    'max': max value within the window
 
             read_extend (Optional, default=200)
                 read extend the sequence tags in the tracks by xbp

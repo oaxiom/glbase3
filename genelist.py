@@ -3254,8 +3254,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 Save the heatmap as blocks (imshow=False) or save as an image (imshow=True)
 
         **Result**
-            returns a new peaklist containing the overlapping sites only. The microarray condition value
-            will be added to the data and you can get a new microarray out using something like:
+            returns a new peaklist containing the overlapping sites only. The expression condition value
+            will be added to the data and you can get a new expression object out using something like:
 
             o = p.frequencyAgainstArray()
 
