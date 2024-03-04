@@ -925,6 +925,7 @@ class hic:
         bracket=None,
         colour_map=cm.inferno_r,
         log2=False,
+        diff_map = None,
         **kargs):
         """
         **Purpose**
@@ -959,6 +960,9 @@ class hic:
             bracket (Optional, default=None)
                 clip the data within the ranges [low, high]
 
+            diff_map (Optional, default=None)
+                If you send another hiccy, it plots the O/E between the two ICE matrices
+
             log2 (Optional, default=False)
                 transform the data to log2 before plotting;
 
@@ -970,23 +974,30 @@ class hic:
         assert filename, "heatmap: you must specify a filename"
         if chr and loc:
             raise AssertionError('chr and loc both contain values. You can only use one')
+        if diff_map:
+            assert isinstance(diff_map, hic), 'diff_map must be a hiccy'
+            assert key == 'diff_map', 'If you use diff_map then key must be diff_map'
 
         dataset_to_use = {
             'matrix': self.mats,
             'OE': self.OE,
             'AB': self.OE,
+            'diff_map': self.mats, # Special case
             }
         # TODO: sanity checking on matrix availability;
         cmap_to_use = {
             'matrix': cm.viridis,
             'OE': cm.RdBu_r,
             'AB': cm.BrBG_r,
+            'diff_map': cm.RdBu_r,
             }
 
         assert key in dataset_to_use, '{} is not a valid dataset key'.format(key)
 
         if chr:
             data = dataset_to_use[key][str(chr)]
+            if key == 'diff_map':
+                data = (2**data) - (2**diff_map.mats[str(chr)])
             #ABdata = self.AB[str(chr)]
         elif loc:
             if not isinstance(loc, location):
@@ -1000,6 +1011,13 @@ class hic:
             localLeft, localRight, loc, _, _ = self.__find_binID_spans(loc)
 
             data = dataset_to_use[key][chrom][localLeft:localRight, localLeft:localRight]
+            if key == 'diff_map':
+                print(data)
+                data2 = diff_map.mats[chrom][localLeft:localRight, localLeft:localRight]
+                print(data2)
+                data = (data) - (data2)
+                print(data)
+
             #ABdata = self.AB[chrom][localLeft:localRight]
         else:
             raise NotImplementedError('chr=None not implemented')

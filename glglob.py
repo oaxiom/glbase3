@@ -1938,8 +1938,13 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         return(expn)
 
-    def measure_enrichment(self, trks, peaks, log=False,
-        read_extend=0, peak_window=200, local_lambda=5000,
+    def measure_enrichment(self,
+        trks,
+        peaks,
+        log=False,
+        read_extend:int = 0,
+        peak_window:int = 200,
+        local_lambda:int = 5000,
         **kargs):
         """
         **Purpose**
@@ -1953,7 +1958,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             peaks (Required)
                 a list of peaks, a genelist containing a 'loc' key
 
-            read_extend (Optional, default=200)
+            read_extend (Optional, default=0)
                 read extend the sequence tags in the tracks by xbp
 
             log (Optional, default=False)

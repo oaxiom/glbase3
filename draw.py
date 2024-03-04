@@ -2844,7 +2844,12 @@ class draw:
         config.log.info("scatter: Saved '%s%s' vs '%s%s' scatter to '%s'" % (mode, x, mode, y, real_filename))
         return ret_data
 
-    def dotbarplot(self, data, filename, yticktitle='Number', **kargs):
+    def dotbarplot(self,
+        data,
+        filename:str,
+        yticktitle='Number',
+        draw_stds:bool = True,
+        **kargs):
         """
         **Purpose**
             A drawing wrapper for the new style dot-mean-stderr plots.
@@ -2884,7 +2889,8 @@ class draw:
 
         # Get the means/stdevs:
         means = [numpy.mean(data[k]) for k in data]
-        stds = [numpy.std(data[k]) / math.sqrt(len(data[k])) for k in data]
+        if draw_stds:
+            stds = [numpy.std(data[k]) / math.sqrt(len(data[k])) for k in data]
         lengths = [len(data[k]) for k in data] # for working out if it is valid to plot errs or mean
 
         # convert the data array into a linear list of x and y:
@@ -2899,9 +2905,12 @@ class draw:
 
         ax.scatter(xd, yd, edgecolors='black', lw=0.5, c='none', s=15)
         if False not in [i>=3 for i in lengths]:
-            ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
+            if draw_stds:
+                ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
+            else:
+                ax.bar(xs, means, ls='-', color='black', lw=0.5)
 
-        ax.set_ylim([0, max(yd)+10])
+        #ax.set_ylim([0, max(yd)+10])
         ax.set_xlim([-0.2, len(labs)+0.2])
         ax.set_xticks(xs)
         ax.set_xticklabels(list(labs))
