@@ -768,6 +768,7 @@ class draw:
         match_key=None,
         arraydata=None,
         peakdata=None,
+        backgrounds=None,
         bin=None,
         draw_frames=False,
         plot_bracket=None,
@@ -920,6 +921,10 @@ class draw:
 
         ax3 = fig.add_subplot(144)
         ax3.plot(peakdata, arange(len(peakdata))) # doesn't use the movingAverage generated x, scale it across the entire graph.
+        if random_backgrounds:
+            for b in random_backgrounds:
+                ax3.plot(b, arange(len(peakdata)), ls=':', lw=0.5, c='lightgrey')
+
         ax3.set_frame_on(draw_frames)
         ax3.set_position(freq_plot)
         ax3.set_yticklabels("")

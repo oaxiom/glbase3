@@ -3174,37 +3174,20 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Saved pie to '%s'" % newfilename)
         return data
 
-    def frequencyAgainstArray(self,
-        filename=None,
-        match_key=None,
-        expression=None,
-        spline_interpolate=False,
-        imshow:bool = False,
-        step_style=False,
-        window=None,
-        **kargs):
-
+    def frequencyAgainstArray(self, *args, **kargs):
         # Deprecated 2023-06-26
-        config.log.warning('frequencyAgainstArray() is deprecated, please use the identical fAA()')
-
-        return self.fAA(
-            filename=filename,
-            match_key=match_key,
-            expression=expression,
-            spline_interpolate=spline_interpolate,
-            imshow = imshow,
-            step_style=step_style,
-            window=window,
-            **kargs)
+        raise AssertionError('frequencyAgainstArray() is deprecated, please use the identical fAA()')
 
     def fAA(self,
-        filename=None,
-        match_key=None,
+        filename:str = None,
+        match_key:str = None,
         expression=None,
-        spline_interpolate=False,
+        random_backgrounds:int = False,
+        spline_interpolate:bool = False,
         imshow:bool = False,
         step_style=False,
         window=None,
+        bracket=None,
         **kargs):
         """
         Draw a peaklist and compare against an array.
@@ -3217,6 +3200,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             filename (Required)
                 a file name for the image including the path.
+
+            random_backgrounds (Optional, default=False)
+                If random_backgrounds is true, int random_backgrounds will be drawn from
+                the expression object of the same length as this genelist.
 
             window (Optional)
                 size of the sliding window to use.
@@ -3280,10 +3267,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         arraydata = expression.getExpressionTable() # for compatability
         #arraydata = numpy.array([array_dict_data[key] for key in array_dict_data]) # needs to be sorted already.
         # There is a potential bug here, with the column names if multiple data is sent.
-        if "bracket" in kargs:
-            arraydata = self.draw.bracket_data(arraydata, kargs["bracket"][0], kargs["bracket"][1])
+        if bracket:
+            arraydata = self.draw.bracket_data(arraydata, bracket[0], bracket[1])
 
-        bin = [0 for x in arraydata]
+        bin = [0] * len(arraydata)
 
         newgl = self.shallowcopy()
         newl = []
@@ -3304,7 +3291,34 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 newl += newf
 
         if not newl:
-            raise AssertionError("frequencyAgainstArray: no matches were found, it's possible this is correct, but it is unlikely. I suspect you have not specified match_key correctly")
+            raise AssertionError("fAA: no matches were found, it's possible this is correct, but it is unlikely. I suspect you have not specified match_key correctly")
+
+        if not window: # get 10% of the list
+            window = int(len(bin) * 0.1) # bin is the same length as the data
+
+        backgrounds = None
+        if random_backgrounds:
+            backgrounds = []
+
+            for b in random_backgrounds:
+                binned_back = [0] * len(arraydata)
+
+                random_sampling = random.sample(expression[match_key], len(self))
+                matches = set(random_sampling)
+
+                for idx, key in enumerate(expression[match_key]):
+                    if key in matches:
+                        binned_back[idx] = 1 # Does not support tag_key
+
+            if spline_interpolate:
+                f = scipy.interpolate.interp1d(list(range(len(binned_back))), binned_back, kind=spline_interpolate)
+                xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
+                peak_data = list(f(xnew)) # dump out the falues from formula
+            else:
+                binned_back = utils.movingAverage(binned_back, window, normalise=True)[1]
+
+                backgrounds.append(binned_back)
+
 
         newgl.load_list(newl)
 
@@ -3313,8 +3327,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
             peak_data = list(f(xnew)) # dump out the falues from formula
         else:
-            if not window: # get 10% of the list
-                window = int(len(bin) * 0.1) # bin is the same length as the data
             peak_data = utils.movingAverage(bin, window, normalise=True)[1]
 
         # reload/override not really a good way to do this...
@@ -3328,6 +3340,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             col_names=expression.getConditionNames(),
             filename=filename,
             peakdata=peak_data,
+            random_backgrounds=backgrounds,
             bin=bin,
             row_label_key=match_key,
             imshow=imshow,
