@@ -3269,6 +3269,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         # There is a potential bug here, with the column names if multiple data is sent.
         if bracket:
             arraydata = self.draw.bracket_data(arraydata, bracket[0], bracket[1])
+        else:
+            bracket = [0, 1]
 
         bin = [0] * len(arraydata)
 
@@ -3296,32 +3298,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not window: # get 10% of the list
             window = int(len(bin) * 0.1) # bin is the same length as the data
 
-        backgrounds = None
-        if random_backgrounds:
-            backgrounds = []
-
-            for b in random_backgrounds:
-                binned_back = [0] * len(arraydata)
-
-                random_sampling = random.sample(expression[match_key], len(self))
-                matches = set(random_sampling)
-
-                for idx, key in enumerate(expression[match_key]):
-                    if key in matches:
-                        binned_back[idx] = 1 # Does not support tag_key
-
-            if spline_interpolate:
-                f = scipy.interpolate.interp1d(list(range(len(binned_back))), binned_back, kind=spline_interpolate)
-                xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
-                peak_data = list(f(xnew)) # dump out the falues from formula
-            else:
-                binned_back = utils.movingAverage(binned_back, window, normalise=True)[1]
-
-                backgrounds.append(binned_back)
-
-
-        newgl.load_list(newl)
-
         if spline_interpolate:
             f = scipy.interpolate.interp1d(list(range(len(bin))), bin, kind=spline_interpolate)
             xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
@@ -3329,10 +3305,33 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         else:
             peak_data = utils.movingAverage(bin, window, normalise=True)[1]
 
-        # reload/override not really a good way to do this...
-        # I should reload a new dict... As I may inadvertantly override another argument?
-        if "bracket" not in kargs:
-            kargs["bracket"] = [0, 1]
+        newgl.load_list(newl)
+
+        # Sort out backgrounds
+        backgrounds = None
+        if random_backgrounds:
+            backgrounds = []
+            match_key_names = expression[match_key]
+
+            for bidx, b in enumerate(range(random_backgrounds)):
+                config.log.info(f'Generate random background {bidx+1}')
+                binned_back = [0] * len(arraydata)
+
+                random_sampling = random.sample(match_key_names, len(newl)) # NOT len(self), len(the number of matches)
+                matches = set(random_sampling)
+
+                for idx, key in enumerate(expression[match_key]):
+                    if key in matches:
+                        binned_back[idx] = 1 # Does not support tag_key
+
+                if spline_interpolate:
+                    f = scipy.interpolate.interp1d(list(range(len(binned_back))), binned_back, kind=spline_interpolate)
+                    xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
+                    binned_back = list(f(xnew)) # dump out the falues from formula
+                else:
+                    binned_back = utils.movingAverage(binned_back, window, normalise=True)[1]
+
+                backgrounds.append(binned_back)
 
         actual_filename = self.draw._heatmap_and_plot(
             arraydata=arraydata.T,
@@ -3345,9 +3344,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             row_label_key=match_key,
             imshow=imshow,
             window=window,
+            bracket=bracket,
             **kargs)
 
-        config.log.info(f"frequencyAgainstArray: Saved '{actual_filename}'")
+        config.log.info(f"fAA: Saved '{actual_filename}'")
         return newgl
 
     def islocinlist(self, loc, key="loc", mode="collide", delta=200):

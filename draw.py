@@ -768,7 +768,7 @@ class draw:
         match_key=None,
         arraydata=None,
         peakdata=None,
-        backgrounds=None,
+        random_backgrounds=None,
         bin=None,
         draw_frames=False,
         plot_bracket=None,
@@ -920,10 +920,23 @@ class draw:
         # linegraph -----------------------------------------------------
 
         ax3 = fig.add_subplot(144)
-        ax3.plot(peakdata, arange(len(peakdata))) # doesn't use the movingAverage generated x, scale it across the entire graph.
         if random_backgrounds:
+            ms = []
+            ss = []
             for b in random_backgrounds:
-                ax3.plot(b, arange(len(peakdata)), ls=':', lw=0.5, c='lightgrey')
+                ax3.plot(b, arange(len(peakdata)), lw=0.5, c='lightgrey', alpha=0.5)
+
+                ms.append(statistics.mean(b))
+                ss.append(statistics.stdev(b))
+
+            m = statistics.mean(ms)
+            s = statistics.mean(ss)
+
+            ax3.axvline(x=m, color='grey', linestyle=":", linewidth=1)
+            ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
+            ax3.axvline(x=(m-s), color='r', linestyle=":", linewidth=0.5)
+
+        ax3.plot(peakdata, arange(len(peakdata))) # doesn't use the movingAverage generated x, scale it across the entire graph.
 
         ax3.set_frame_on(draw_frames)
         ax3.set_position(freq_plot)
@@ -933,13 +946,6 @@ class draw:
         ax3.tick_params(left=False, right=False)
         [item.set_markeredgewidth(0.2) for item in ax3.xaxis.get_ticklines()]
         [t.set_fontsize(6) for t in ax3.get_xticklabels()]
-
-        m = statistics.mean(peakdata)
-        s = statistics.stdev(peakdata)
-
-        ax3.axvline(x=m, color='black', linestyle=":", linewidth=1)
-        ax3.axvline(x=(m+s), color='r', linestyle=":", linewidth=0.5)
-        ax3.axvline(x=(m-s), color='r', linestyle=":", linewidth=0.5)
 
         if plot_bracket:
             ax3.set_xlim(plot_bracket)
