@@ -3182,7 +3182,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         filename:str = None,
         match_key:str = None,
         expression=None,
-        random_backgrounds:int = False,
+        random_backgrounds:int = 10,
         spline_interpolate:bool = False,
         imshow:bool = False,
         step_style=False,
@@ -3201,9 +3201,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             filename (Required)
                 a file name for the image including the path.
 
-            random_backgrounds (Optional, default=False)
-                If random_backgrounds is true, int random_backgrounds will be drawn from
-                the expression object of the same length as this genelist.
+            random_backgrounds (Optional, default=10)
+                If random_backgrounds is >0, int random (shuffled) backgrounds will be drawn from
+                the expression object of the same length as the number of matches
+                for this genelist.
 
             window (Optional)
                 size of the sliding window to use.

@@ -942,7 +942,8 @@ class draw:
         ax3.set_position(freq_plot)
         ax3.set_yticklabels("")
         ax3.set_ylim([0, len(peakdata)])
-        ax3.set_xlim([min(peakdata), (max(peakdata))+(max(peakdata)/10.0)])
+        pad = s*2
+        ax3.set_xlim([min(peakdata)-pad, (max(peakdata))+pad])
         ax3.tick_params(left=False, right=False)
         [item.set_markeredgewidth(0.2) for item in ax3.xaxis.get_ticklines()]
         [t.set_fontsize(6) for t in ax3.get_xticklabels()]
