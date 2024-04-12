@@ -2498,7 +2498,7 @@ class expression(base_expression):
         for item in self.linearData:
             item["conditions"] = [v*number for v in item["conditions"]]
         self._optimiseData()
-        return(None)
+        return None
 
     def add(self, number=None):
         """
