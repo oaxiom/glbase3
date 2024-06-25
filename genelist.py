@@ -4429,4 +4429,215 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info('volcanoplot: Saved {}'.format(real_filename))
         return upgl, dngl, real_filename
 
+    def plotMA(self,
+        filename:str,
+        q_val_key:str,
+        fc_val_key:str,
+        mean_val_key:str,
+        log_q_values = False,
+        q_threshold = 2, # In log10
+        log_fc_values = False,
+        fc_threshold = 1, # In log2;
+        log_mean_values = True,
+        highlights = None,
+        highlight_key = None,
+        highlight_override:bool = False,
+        figsize=[3,3],
+        only_tes:bool = False,
+        only_genes:bool = False,
+        spot_size:int = 3,
+        **kargs
+        ):
+        '''
+        **Purpose**
+            Draw a MA plot of log2(fold-change) versus log2(mean expression)
+
+            using the keys fc vs. p_adjust and mean
+
+        **Argumants**
+            filename (Required)
+                filename to save the image to.
+
+            q_val_key (Required)
+                q_value key name to use
+
+            fc_val_key (Required)
+                key containing the fold-change
+
+            log_q_values (Optional, default=False)
+                -log10 transform the q-values
+
+            q_threshold (Optional, default=2)
+                q-value threshold to use as significant;
+
+            log_fc_values (Optional, default=False)
+                -log10 transform the fold-change
+
+            fc_threshold (Optional, default=1)
+                fold-change threshold to use as significant;
+
+            highlights (Optional)
+                A list of items to draw a label over on the plot
+
+            highlights_key (Optional, required if highlights is True, or one of the only_* is True)
+                Key to match highlights in
+
+            highlight_override (Optional, default=False)
+                If True, then draw the matches in highlight in red (don't label).
+                This mode ignores FC and q-value thresholds for coloring, although you'd
+                still want to provide them for drawing the threshold lines on the plot.
+
+                This is useful for e.g. highlighting a set of genes/TEs and where they appear on the
+                Volcano
+
+            only_tes (Optional, default=False)
+                only plot the TEs (with a ':' in highlights_key
+
+            only_genes (Optional, default=False)
+                only plot the genes (lacking a ':' in highlights_key
+
+            spot_size (Optional, default=3)
+                Spot size for each dot in the scatter.
+
+        **Returns**
+            The genes picked as up-regulated
+            The genes picked as down-regulated;
+            filename save the image to
+        '''
+        assert filename, 'You must specify a filename'
+        assert q_val_key, 'You must specify q_val_key'
+        assert fc_val_key,  'You must specify fc_val_key'
+        assert mean_val_key, 'You must specify a mean_val_key'
+
+        assert q_val_key in self.keys(), 'q_val_key was not found in this genelist'
+        assert fc_val_key in self.keys(), 'fc_val_key was not found in this genelist'
+        assert mean_val_key in self.keys(), 'mean_val_key was not found in this genelist'
+
+        assert not (only_tes and only_genes), 'You cant have both only_tes and only_genes both True'
+        if only_tes:
+            assert highlight_key, 'if only_tes=True, you need to specify a highlight_key to look for the ":" character that signifies TEs'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
+        if only_genes:
+            assert highlight_key, 'if only_genes=True, you need to specify a highlight_key to look for the ":" character that signifies TEs'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
+
+        if highlights:
+            assert highlight_key, 'highlight_key must have a value if highlights=True'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
+
+        if highlight_override:
+            assert highlights, 'If highlight_override then highlights must be valid as well'
+            assert highlight_key, 'highlight_key must have a value if highlights=True'
+            assert highlight_key in self.keys(), 'highlight_key not found in this genelist'
+
+        fcs = self[fc_val_key]
+        qs = self[q_val_key]
+        means = self[mean_val_key]
+
+        if log_q_values:
+            qs = [-math.log10(i+1e-216) for i in qs]
+        if log_fc_values:
+            fcs = [math.log2(f) for f in fcs]
+        if log_mean_values:
+            means = [math.log2(f) for f in means]
+
+        up = []
+        dn = []
+        rest = []
+        upgl = []
+        dngl = []
+        highs = {}
+
+        for item, fc, mean, q in zip(self.linearData, fcs, means, qs):
+            if only_tes and ':' not in item[highlight_key]:
+                continue
+
+            if only_genes and ':' in item[highlight_key]:
+                continue
+
+            if fc > fc_threshold and q > q_threshold:
+                up.append((mean, fc))
+                upgl.append(item)
+            elif fc < -fc_threshold and q > q_threshold:
+                dn.append((mean, fc))
+                dngl.append(item)
+            else:
+                rest.append((mean, fc))
+
+            if highlights:
+                if item[highlight_key] in highlights:
+                    highs[item[highlight_key]] = (mean, q)
+
+        # Repack for return
+        if upgl:
+            gl = genelist()
+            upgl = gl.load_list(upgl)
+        if dngl:
+            gl = genelist()
+            dngl = gl.load_list(dngl)
+
+        fig = self.draw.getfigure(figsize=figsize)
+
+        ax = fig.add_subplot(111)
+
+        if highlight_override:
+            up = []
+            rest = []
+            # we only use up and rest;
+            for item, mean, fc, q in zip(self.linearData, means, fcs, qs):
+
+                if item[highlight_key] in highlights:
+                    up.append((mean, fc))
+                else:
+                    rest.append((mean, fc))
+
+            up = list(zip(*up))
+            rest = list(zip(*rest))
+
+            if rest:
+                ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
+            if up:
+                ax.scatter(up[0], up[1], c='red', s=spot_size, ec='none', alpha=0.3)
+
+        else: # Traditional red/blue style
+            up = list(zip(*up))
+            dn = list(zip(*dn))
+            rest = list(zip(*rest))
+            if up:
+                ax.scatter(up[0], up[1], c='red', s=spot_size, ec='none', alpha=0.3)
+            if dn:
+                ax.scatter(dn[0], dn[1], c='blue', s=spot_size, ec='none', alpha=0.3)
+            if rest:
+                ax.scatter(rest[0], rest[1], c='grey', s=spot_size, alpha=0.1, ec='none')
+
+            if highlights and highs:
+                for gene_name in highs:
+                    ax.text(highs[gene_name][0], highs[gene_name][1], gene_name, ha='center', va='center', fontsize=6)
+
+        #ax.axhline(q_threshold, ls=':', c='grey', lw=0.5)
+        #ax.axvline(-fc_threshold, ls=':', c='grey', lw=0.5)
+        #ax.axvline(fc_threshold, ls=':', c='grey', lw=0.5)
+        ax.axhline(0.0, ls=':', c='grey', lw=0.5)
+
+        #ax.set_xlim([4, 14])
+        ax.set_ylim([-4, 4])
+
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
+        self.draw.do_common_args(ax, **kargs)
+
+        cxlims = ax.get_xlim()
+        cylims = ax.get_ylim()
+
+        ylim_pad = (cylims[1] - cylims[0]) * 0.05
+
+        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
+        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
+
+        real_filename = self.draw.savefigure(fig, filename)
+
+        config.log.info('plotMA: Saved {}'.format(real_filename))
+        return upgl, dngl, real_filename
+
 genelist = Genelist # Hack alert! Basically used only in map() for some dodgy old code I do not want to refactor.
