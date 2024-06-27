@@ -50,7 +50,7 @@ from collections.abc import Iterable
 from numpy import array, arange, mean, max, min, std, float32
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.spatial.distance import pdist # not in scipy.cluster.hierarchy.distance as you might expect :(
-from scipy import polyfit, polyval
+from numpy import polyfit, polyval
 from scipy.stats import linregress
 import scipy.stats
 import numpy as np
