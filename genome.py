@@ -67,7 +67,7 @@ class genome(genelist):
 
             # sniff the file to see if it's a tsv or a csv.
             if "sniffer" in format:
-                oh = open(filename, "rU")
+                oh = open(filename, "rt")
                 reader = csv.reader(oh)
                 for item in reader:
                     if len(item) == 1:
@@ -291,7 +291,7 @@ class genome(genelist):
         for f in fastas:
             if f[0:3] == "chr" and f[-3:] == ".fa":
                 chr_key = f.split(".")[0].replace("chr", "")
-                self.seq[chr_key] = open(os.path.join(path, f), "rU")
+                self.seq[chr_key] = open(os.path.join(path, f), "rt")
                 self.seq_data[chr_key] = {"filename": f, "offset": 0, "linelength": 0}
 
                 # open the file and sniff the fasta data.

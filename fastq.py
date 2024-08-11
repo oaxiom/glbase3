@@ -4,6 +4,8 @@ glbase class to perform functions on fastq files.
 
 Generally glbase is not efficient at this and other tools may be preferable.
 
+But this provides some flexibility in processing that other tools can't always achieve.
+
 """
 
 import sys, os
@@ -68,7 +70,7 @@ class fastq(delayedlist):
         """
         if self.filehandle:
             self.filehandle.close()
-        self.filehandle = open(self.filename, "rU")
+        self.filehandle = open(self.filename, "rt")
 
     def __iter__(self):
         """
