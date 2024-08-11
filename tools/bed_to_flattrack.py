@@ -226,9 +226,9 @@ def bed_to_flat(
     if not sub_nucleosome_tracks:
         f = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
     else:
-        f1 = flat_track(filename=outfilename.replace('.flat', 'sub_nuc.flat'), new=True, name=name, bin_format=bin_format)
-        f2 = flat_track(filename=outfilename.replace('.flat', 'one_nuc.flat'), new=True, name=name, bin_format=bin_format)
-        f3 = flat_track(filename=outfilename.replace('.flat', 'mult_nuc.flat'), new=True, name=name, bin_format=bin_format)
+        f1 = flat_track(filename=outfilename.replace('.flat', '.sub_nuc.flat'), new=True, name=name, bin_format=bin_format)
+        f2 = flat_track(filename=outfilename.replace('.flat', '.one_nuc.flat'), new=True, name=name, bin_format=bin_format)
+        f3 = flat_track(filename=outfilename.replace('.flat', '.mult_nuc.flat'), new=True, name=name, bin_format=bin_format)
 
     config.log.info("Started %s -> %s" % (infilename, outfilename))
 
@@ -254,7 +254,7 @@ def bed_to_flat(
             if r > chr_sizes[ch]:
                 chr_sizes[ch] = r
             if n % 1000000 == 0 and n>0:
-                config.log.info("%s,000,000 reads parsed" % ((n // 1000000),))
+                config.log.info("{:,} reads parsed".format((n // 1000000),))
             n += 1 # need to do this
         oh.close()
     total_read_count = int(n)
@@ -265,11 +265,12 @@ def bed_to_flat(
         f1.set_total_num_reads(total_read_count)
         f2.set_total_num_reads(total_read_count)
         f3.set_total_num_reads(total_read_count)
+
     config.log.info(f'Total read count {total_read_count:,}')
 
     config.log.info('Observed chromsomes sizes:')
     for ch in chr_sizes:
-        config.log.info('Chromosome: {0} = {1:,} bp'.format(ch, chr_sizes[ch]))
+        config.log.info(f'Chromosome: {ch} = {chr_sizes[ch]:,} bp')
 
     if sub_nucleosome_tracks:
         is_pe_inner_loop_subnuc(f1, f2, f3, chr_sizes, infilename, gzip, total_read_count)
