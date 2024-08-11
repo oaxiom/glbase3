@@ -258,7 +258,13 @@ def bed_to_flat(
             n += 1 # need to do this
         oh.close()
     total_read_count = int(n)
-    f.set_total_num_reads(total_read_count)
+
+    if not sub_nucleosome_tracks:
+        f.set_total_num_reads(total_read_count)
+    else:
+        f1.set_total_num_reads(total_read_count)
+        f2.set_total_num_reads(total_read_count)
+        f3.set_total_num_reads(total_read_count)
     config.log.info(f'Total read count {total_read_count:,}')
 
     config.log.info('Observed chromsomes sizes:')
