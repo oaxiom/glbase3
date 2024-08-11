@@ -267,7 +267,7 @@ class flat_track():
         background=None,
         mask_zero=False,
         respect_strand=True,
-        norm_by_read_count=False,
+        norm_by_read_count=True,
         **kargs):
         """
         **Purpose**
@@ -323,7 +323,7 @@ class flat_track():
                 This is useful if you are, say, using the TSS's and want to maintain the
                 orientation with respect to the transcription direction.
 
-            norm_by_read_count (Optional, default=False)
+            norm_by_read_count (Optional, default=True)
                 If you are not using a norm_factor for this library then you probably want to set this to True.
                 It will divide the resulting number of reads by the total number of reads,
                 i.e. it will account for differences in library sizes.
@@ -380,7 +380,7 @@ class flat_track():
         return ret
 
     def _pileup_unscaled(self, genelists=None, filename=None, window_size=None, average=True,
-        background=None, mask_zero=False, respect_strand=True, norm_by_read_count=False, **kargs):
+        background=None, mask_zero=False, respect_strand=True, norm_by_read_count=True, **kargs):
 
         read_count = 1.0
         if norm_by_read_count:
@@ -551,7 +551,7 @@ class flat_track():
         background=None,
         mask_zero=False,
         respect_strand=True,
-        norm_by_read_count=False,
+        norm_by_read_count=True,
         **kargs):
         '''
 

@@ -74,25 +74,25 @@ def is_pe_inner_loop_subnuc(f1, f2, f3, chr_sizes, infilename, gzip, tot_tag_cou
                 l = int(line[1])
                 r = int(line[2])
                 d = r - l
-                
+
                 if d <= 143:
                     for bp in range(l, r): this_chrom_subN1[bp] += 1
                 elif d <= 286:
                     for bp in range(l, r): this_chrom_oneN2[bp] += 1
                 else:
-                    for bp in range(l, r): this_chrom_multN3[bp] += 1                    
+                    for bp in range(l, r): this_chrom_multN3[bp] += 1
 
                 if n % 1000000 == 0 and n>0:
                     config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
-                    
+
                 n += 1
-                
+
             oh.close()
         #config.log.info('Committing %s' % ch)
         f1.add_chromosome_array(ch.strip(), numpy.array(this_chrom_subN1))
         f2.add_chromosome_array(ch.strip(), numpy.array(this_chrom_oneN2))
         f3.add_chromosome_array(ch.strip(), numpy.array(this_chrom_multN3))
-        
+
         del this_chrom_subN1
         del this_chrom_oneN2
         del this_chrom_multN3
@@ -138,14 +138,14 @@ def is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend, tot_tag_count)
         del this_chrom
 
 def bed_to_flat(
-    infilename:str, 
-    outfilename:str, 
-    name:str, 
-    isPE:bool, 
-    read_extend:bool=None, 
-    strand:bool=False, 
-    gzip:bool=None, 
-    sub_nucleosome_tracks:bool =True, 
+    infilename:str,
+    outfilename:str,
+    name:str,
+    isPE:bool,
+    read_extend:bool=None,
+    strand:bool=False,
+    gzip:bool=None,
+    sub_nucleosome_tracks:bool =True,
     **kargs):
     """
     **Purpose**
@@ -213,8 +213,8 @@ def bed_to_flat(
     else:
         assert read_extend is not None, 'You must specify a read_extend if isPE=False'
         assert strand, 'if isPE=False, you must set strand=True and must have strang +/- in column 6 of the BED'
-    if sub_nucleosome_tracks: 
-        assert isPS, 'If sub_nucleosome_tracks=True then isPE must also be True'
+    if sub_nucleosome_tracks:
+        assert isPE, 'If sub_nucleosome_tracks=True then isPE must also be True'
         assert outfilename.endswith('.flat'), 'If sub_nucleosome_tracks=True then we enforce filename conventions with .flat at the end of the filename'
 
     if not isinstance(infilename, list):
@@ -229,7 +229,7 @@ def bed_to_flat(
         f1 = flat_track(filename=outfilename.replace('.flat', 'sub_nuc.flat'), new=True, name=name, bin_format=bin_format)
         f2 = flat_track(filename=outfilename.replace('.flat', 'one_nuc.flat'), new=True, name=name, bin_format=bin_format)
         f3 = flat_track(filename=outfilename.replace('.flat', 'mult_nuc.flat'), new=True, name=name, bin_format=bin_format)
-    
+
     config.log.info("Started %s -> %s" % (infilename, outfilename))
 
     s = time.time()

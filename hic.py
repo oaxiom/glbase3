@@ -1824,8 +1824,8 @@ class hic:
                     chrom = 'chr{0}'.format(chrom)
                 localLeft, localRight = self.__quick_find_binID_spans(chrom, anchor['loc']['left']-window, anchor['loc']['right']+window)
 
-                1/0 # I feel this is wrong somehow:
-                ##data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
+                #1/0 # I feel this is wrong somehow:
+                data = self.mats[chrom][localLeft:localRight, localLeft:localRight]
 
                 if data.shape != mat.shape:
                     data = reshap_mats(data, num_bins, num_bins)

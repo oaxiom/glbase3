@@ -2850,6 +2850,9 @@ class draw:
                 ret_data = genelist()
                 ret_data.load_list(tdata)
 
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
         self.do_common_args(ax, **kargs)
 
         real_filename = self.savefigure(fig, filename)

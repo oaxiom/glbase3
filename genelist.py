@@ -4326,7 +4326,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         qs = self[q_val_key]
 
         if log_q_values:
-            qs = [-math.log10(i+1e-216) for i in qs]
+            def remove_na(i):
+                if i == 'NA': return 1.0
+                return i
+            qs = [remove_na(i) for i in qs]
+            qs = [-math.log10(i+1e-216) for i in qs if i != 'NA']
         if log_fc_values:
             qs = [math.log2(f) for f in fcs]
 

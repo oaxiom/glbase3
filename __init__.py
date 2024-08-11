@@ -156,6 +156,7 @@ def version():
 config.set_log_level('info')
 
 # export all of the libraries, methods and helpers.
+# This is for from glbase3 import *
 __all__ = [
     "genelist",
     "fastq",
