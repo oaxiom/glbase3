@@ -254,7 +254,7 @@ def bed_to_flat(
             if r > chr_sizes[ch]:
                 chr_sizes[ch] = r
             if n % 1000000 == 0 and n>0:
-                config.log.info("{:,} reads parsed".format((n // 1000000),))
+                config.log.info("{:,}M reads parsed".format((n // 1e6),))
             n += 1 # need to do this
         oh.close()
     total_read_count = int(n)
