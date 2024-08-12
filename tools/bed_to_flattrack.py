@@ -145,7 +145,7 @@ def bed_to_flat(
     read_extend:bool=None,
     strand:bool=False,
     gzip:bool=None,
-    sub_nucleosome_tracks:bool =True,
+    sub_nucleosome_tracks:bool = False,
     **kargs):
     """
     **Purpose**
