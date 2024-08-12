@@ -272,19 +272,28 @@ def bed_to_flat(
     for ch in chr_sizes:
         config.log.info(f'Chromosome: {ch} = {chr_sizes[ch]:,} bp')
 
+    config.log.info("Finalising library")
     if sub_nucleosome_tracks:
         is_pe_inner_loop_subnuc(f1, f2, f3, chr_sizes, infilename, gzip, total_read_count)
+        f1.meta_data['total_read_count'] = total_read_count
+        f2.meta_data['total_read_count'] = total_read_count
+        f3.meta_data['total_read_count'] = total_read_count
+        f1.meta_data['isPE'] = True
+        f2.meta_data['isPE'] = True
+        f3.meta_data['isPE'] = True
+        f1.finalise()
+        f2.finalise()
+        f3.finalise()
     elif isPE:
         is_pe_inner_loop(f, chr_sizes, infilename, gzip, total_read_count)
         f.meta_data['isPE'] = True
+        f.meta_data['total_read_count'] = total_read_count
+        f.finalise()
     else:
         is_se_inner_loop(f, chr_sizes, infilename, gzip, read_extend, total_read_count)
         f.meta_data['isPE'] = False
-
-    f.meta_data['total_read_count'] = total_read_count
-
-    config.log.info("Finalising library")
-    f.finalise()
+        f.meta_data['total_read_count'] = total_read_count
+        f.finalise()
 
     e = time.time()
     config.log.info("Took: %.1f seconds" % (e-s))
