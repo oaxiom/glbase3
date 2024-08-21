@@ -926,6 +926,7 @@ class hic:
         colour_map=cm.inferno_r,
         log2=False,
         diff_map = None,
+        dpi:int = 1000,
         **kargs):
         """
         **Purpose**
@@ -1112,7 +1113,7 @@ class hic:
         cb.set_label(colbar_label)
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
-        actual_filename = self.draw.savefigure(fig, filename)
+        actual_filename = self.draw.savefigure(fig, filename, dpi=dpi)
         config.log.info("heatmap: Saved '%s'" % actual_filename)
 
     def tri_plot(self, filename, chr=None, loc=None, bracket=None, colour_map=cm.inferno_r,

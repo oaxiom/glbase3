@@ -1139,6 +1139,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         pileup_distance=1000, merge_peaks_distance=400, sort_clusters=True, cache_data=False, bracket=None,
         range_bracket=None, frames=False, titles=None, read_extend=200, imshow=True, cmap=cm.plasma,
         log_pad=None, log=2,
+        dpi:int = 1000,
         size=None, **kargs):
         """
         **Purpose**
@@ -1501,7 +1502,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 titles = [p.name for p in list_of_peaks]
             real_filename = self.draw.multi_heatmap(filename=filename, groups=groups, titles=titles, imshow=imshow, size=size,
                 list_of_data=list_of_tables, colour_map=cmap, colbar_label=colbar_label, bracket=bracket, frames=frames,
-                dpi=300, **kargs)
+                dpi=dpi, **kargs)
 
             config.log.info("chip_seq_cluster_heatmap: Saved overlap heatmap to '%s'" % real_filename)
 
@@ -2258,6 +2259,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         sort_by_intensity:bool = False,
         size = None,
         respect_strand:bool = False,
+        dpi:int = 1000,
         **kargs):
         """
         **Purpose**
@@ -2636,7 +2638,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 bracket=bracket,
                 brackets=brackets,
                 frames=frames,
-                dpi=300,
+                dpi=dpi,
                 )
 
         config.log.info(f"chip_seq_heatmap: Saved overlap heatmap to '{real_filename}'")

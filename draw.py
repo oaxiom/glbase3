@@ -2019,13 +2019,14 @@ class draw:
             # So that saving supports relative paths.
             path, head = os.path.split(filename)
             if "." in filename: # trust Ralf to send a filename without a . in it Now you get your own special exception!
-                save_name = "%s.%s" % (".".join(head.split(".")[:-1]), mode) # this will delete .. in filename, e.g. file.meh.png
+                save_name = "%s.%s" % (".".join(head.split(".")[:-1]), mode)
             else:
                 save_name = "%s.%s" % (head, mode)
 
             fig.savefig(os.path.join(path, save_name), bbox_inches=bbox_inches, dpi=dpi)
             if config.draw_mode != 'jupyter': # Cannot close in jupyter, it will delete the figure
                 plot.close(fig) # Saves a huge amount of memory when saving thousands of images
+
         return save_name
 
     def do_common_args(self, ax, **kargs):
