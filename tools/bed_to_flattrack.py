@@ -75,7 +75,9 @@ def is_pe_inner_loop_subnuc(f1, f2, f3, chr_sizes, infilename, gzip, tot_tag_cou
                 r = int(line[2])
                 d = r - l
 
-                if d <= 143:
+                if d < 50: # Remove excessively small tags
+                    pass
+                elif d <= 143:
                     for bp in range(l, r): this_chrom_subN1[bp] += 1
                 elif d <= 286:
                     for bp in range(l, r): this_chrom_oneN2[bp] += 1
