@@ -3304,7 +3304,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
             peak_data = list(f(xnew)) # dump out the falues from formula
         else:
-            peak_data = utils.movingAverage(bin, window, normalise=True)[1]
+            peak_data = utils.moving_average(bin, window)
 
         newgl.load_list(newl)
 
@@ -3321,7 +3321,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 random_sampling = random.sample(match_key_names, len(newl)) # NOT len(self), len(the number of matches)
                 matches = set(random_sampling)
 
-                for idx, key in enumerate(expression[match_key]):
+                for idx, key in enumerate(match_key_names):
                     if key in matches:
                         binned_back[idx] = 1 # Does not support tag_key
 
@@ -3330,7 +3330,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
                     binned_back = list(f(xnew)) # dump out the falues from formula
                 else:
-                    binned_back = utils.movingAverage(binned_back, window, normalise=True)[1]
+                    #binned_back = utils.movingAverage(binned_back, window, normalise=True)[1]
+                    binned_back = utils.moving_average(binned_back, window)
+                    #print(binned_back)
 
                 backgrounds.append(binned_back)
 

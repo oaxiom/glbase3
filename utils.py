@@ -12,6 +12,7 @@ So excuse the terrible code in places. I will deprecate occasional functions fro
 
 import sys, os, numpy, string, csv, random, math, pickle, gzip
 import scipy.stats as stats
+from scipy.ndimage.filters import uniform_filter1d
 
 from . import config
 
@@ -57,11 +58,23 @@ def expandDegenerateMotifs(motif):
     iti(newlist, 0, None, l)
 
     return l
+'''
+def moving_average(_list, window=20, normalise=False, bAbsiscaCorrect=True):
+    assert window < len(_list), "the window size for the moving average is too large"
+    assert window >= 1, "the window size is too small (%s < 1)" % window
+
+    if window == 1: # just return the original array
+        return numpy.arange(0, len(_list)), _list
+
+    return uniform_filter1d(_list, size=window, mode='reflect')[window//2:-window//2] # emulates previous version;
+'''
+
+def moving_average(a, window):
+    ret = numpy.cumsum(a, dtype=float)
+    ret[window:] = ret[window:] - ret[:-window]
+    return ret[window:] / window
 
 def movingAverage(_list, window=20, normalise=False, bAbsiscaCorrect=True):
-    """
-    actually a sliding window
-    """
     assert window < len(_list), "the window size for the moving average is too large"
     assert window >= 1, "the window size is too small (%s < 1)" % window
 

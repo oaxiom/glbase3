@@ -50,6 +50,10 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
         del this_chrom
 
 def is_pe_inner_loop_subnuc(f1, f2, f3, chr_sizes, infilename, gzip, tot_tag_count):
+    # This approach is perhaps a bit too naive.
+    # In reality, it will get fuzzy nuclesomes. You need a V plot to get real nucleosomes.
+    #
+
     # PE version, assumes l and r are frags
     n = 0
     for ch in sorted(chr_sizes.keys()):
@@ -214,7 +218,7 @@ def bed_to_flat(
         assert not strand, 'strand is ignored in isPE=True libraries'
     else:
         assert read_extend is not None, 'You must specify a read_extend if isPE=False'
-        assert strand, 'if isPE=False, you must set strand=True and must have strang +/- in column 6 of the BED'
+        assert strand, 'if isPE=False, you must set strand=True and must have strand +/- in column 6 of the BED'
     if sub_nucleosome_tracks:
         assert isPE, 'If sub_nucleosome_tracks=True then isPE must also be True'
         assert outfilename.endswith('.flat'), 'If sub_nucleosome_tracks=True then we enforce filename conventions with .flat at the end of the filename'

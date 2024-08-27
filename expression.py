@@ -912,7 +912,7 @@ class expression(base_expression):
             THIS IS AN IN-PLACE CONVERSION
         """
         if new_type == int:
-            self.numpy_array_all_data = self.numpy_array_all_data.astype(numpy.int32)
+            self.numpy_array_all_data = self.numpy_array_all_data.astype(numpy.int64)
             self._load_numpy_back_into_linearData()
         else:
             for item in self.linearData:
