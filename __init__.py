@@ -125,6 +125,7 @@ from .delayedlist import delayedlist
 from .glglob import glglob
 from .element import motif
 from .flat_track import flat_track
+from .flat_heat import flat_heat
 from .progress import progressbar
 from .pwm import pwm
 from .pwms import pwms
@@ -146,6 +147,7 @@ from .tools.merge_flat_track import merge_flats
 from .tools.gerp_to_flattrack import gerp_to_flat
 from .tools.bedgraph_to_flattrack import bedgraph_to_flat
 from .tools.bed_to_flattrack import bed_to_flat
+from .tools.bed_to_flatheat import bed_to_flatheat
 from .tools.wig_to_flattrack import wig_to_flat
 from .tools.rnaseq import rnaseqqc
 

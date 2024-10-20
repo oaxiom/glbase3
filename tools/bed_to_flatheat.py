@@ -10,19 +10,23 @@ Uses the new flat_track2
 
 import sys, os, csv, time, numpy
 
+from math import floor
+
 import gzip as opengzip
 from .. import flat_heat
 from .. import config
 from .. import location
 
-def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
+__warning_lr_not_sorted = False
+
+def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax):
     # PE version, assumes l and r are frags
     n = 0
     for ch in sorted(chr_sizes.keys()):
         config.log.info(f'Extracting {ch}')
         
         # Make a 2D array:
-        this_chrom = [0] * (chr_sizes[ch]+1)
+        this_chrom = numpy.zeros((chr_sizes[ch] // 10, ybins)) 
 
         for file in infilename:
             config.log.info(f"Collecting from {file}")
@@ -37,13 +41,26 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
                 #print line
 
                 # We assume a strict BED file
-                l = int(line[1])
-                r = int(line[2])
+                l = int(line[1]) // 10
+                r = int(line[2]) // 10
+                w = int(r - l)
 
+                if w > ymax:
+                    # issue warning?
+                    continue
+                    
+                if w < 0:
+                    if not __warning_lr_not_sorted:
+                        config.log.waring('right coordinate is less than left')
+                        __warning_lr_not_sorted = True
+                    continue
+                    
+                ybin = floor((w / ymax) * ybins)# in bins
+                
                 for bp in range(l, r):
-                    this_chrom[bp] += 1
+                    this_chrom[bp, ybin] += 1 # chrom data is per 10 bp.
 
-                if n % 1000000 == 0 and n>0:
+                if n % 1e6 == 0 and n>0:
                     config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
                 n += 1 # need to do this
             oh.close()
@@ -51,11 +68,13 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count):
         f.add_chromosome_array(ch.strip(), numpy.array(this_chrom))
         del this_chrom
 
-def bed_to_flat(
+def bed_to_flatheat(
     infilename:str,
     outfilename:str,
     name:str,
-    gzip:bool=False
+    ymax:int,
+    gzip:bool=False,
+    ybins:int=50,
     ):
     """
     **Purpose**
@@ -93,6 +112,13 @@ def bed_to_flat(
         name
             A name describing the track
 
+
+        ybins (int, optional, default=50)
+            number of bins for the y-axis
+        
+        ymax (int, Required)
+            size of the y-axis in base pairs.
+
         gzip (Optional, default=False)
             The input file(s) is a gzip file.
 
@@ -111,7 +137,7 @@ def bed_to_flat(
 
     bin_format = 'i'
 
-    f = flat_track(filename=outfilename, new=True, name=name, bin_format=bin_format)
+    f = flat_heat(filename=outfilename, new=True, name=name, ymax=ymax, ybins=ybins)
 
     config.log.info("Started %s -> %s" % (infilename, outfilename))
 
@@ -130,7 +156,7 @@ def bed_to_flat(
             line = line.split('\t')
             # We assume a strict BED file,
             ch = line[0]
-            r = int(line[2])+5000+read_extend # pad out any likely read extension
+            r = int(line[2])+5000 # pad out any likely read extension
 
             if ch not in chr_sizes:
                 chr_sizes[ch] = r
@@ -152,7 +178,7 @@ def bed_to_flat(
 
     config.log.info("Building library")
 
-    is_pe_inner_loop(f, chr_sizes, infilename, gzip, total_read_count)
+    is_pe_inner_loop(f, chr_sizes, infilename, gzip, total_read_count, ybins, ymax)
     f.meta_data['isPE'] = True
     f.meta_data['total_read_count'] = total_read_count
     f.finalise()
