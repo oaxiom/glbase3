@@ -266,14 +266,10 @@ class flat_heat:
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.chrom_names), 1), 'S10', dat)
 
     def pileup_heatmap(self,
-        genelists=None,
+        genelist=None,
         filename=None,
-        scaled=None,
-        scaled_view_fraction=0.5,
         window_size=None,
         average=True,
-        background=None,
-        mask_zero=False,
         respect_strand=True,
         norm_by_read_count=True,
         **kargs):
@@ -283,42 +279,19 @@ class flat_heat:
 
         **Arguments**
             genelists
-                A list of genelists with a "loc" key
+                A genelist with a "loc" key
 
             filename
                 The filename to save the image to
 
-            scaled (Required)
-                If True, then the pileup will be formatted so that the central <scaled_view_fraction>
-                will be the coordinates from the genelists, and the flanking regions will be taken
-                from  window_size |---|----|---| and fill the remaining space.
-
-                If False, draw a pileup, but center it on the middle of the coordinates in genelist.
-                No scaling is performed and the flanking parts are taken from the window_size
-
-            scaled_view_fraction (Optional, default=0.5)
-                Only used if scaled == True. This specifies the fraction of the pileup to use
-                for the central region (See scaled)
-
             window_size (Optional, default=None)
-                the number of base pairs to use around the centre of the location (if scaled)
+                the number of base pairs to use around the centre of the location 
 
                 If set to None then it will use the location as specified.
 
             average (Optional, default=True)
                 use the average score if set to True (i.e. divide by the number of items
                 in genelist), or use the cumulative score (the total) if set to False
-
-            background (Optional)
-                You can supply a list of background coordinates if you want. The lists
-                must contain a "loc" key.
-
-            mask_zero (Optional, default=False)
-                flat_tracks are continuous and must have a value at all base pairs. I fill
-                that value with 0
-                However, in some flat_tracks 0 actually means 'no data' and I want to ignore
-                those values in the pileup. If that is the case for you, set mask_zero to
-                True.
 
             <other graph-related args>
             pileup also respects:
@@ -345,7 +318,7 @@ class flat_heat:
 
         """
         # Common cleanup
-        assert genelists, "genelists is None?"
+        assert genelist, "genelist is None?"
 
         # flats have lazy setup of draw:
         if not self._draw:
@@ -354,10 +327,6 @@ class flat_heat:
         if not isinstance(genelists, list):
             genelists = [genelists] # make a one item'd list
 
-        if background:
-            if not isinstance(background, list):
-                background = [background] # make a one item'd list
-
         read_count = 1.0
         if norm_by_read_count:
             read_count = float(self.get_total_num_reads())
@@ -365,9 +334,6 @@ class flat_heat:
                 raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
 
         all_hists = {}
-
-        fig = self._draw.getfigure(**kargs)
-        ax = fig.add_subplot(111)
 
         x = None
         if window_size:
@@ -382,123 +348,58 @@ class flat_heat:
         available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
         __already_warned = []
 
-        for gl in genelists:
-            if window_size:
-                hist = numpy.zeros(window_size*2)
-                counts = numpy.zeros(window_size*2)
-                gl = gl.pointify().expand('loc', window_size)
-            else:
-                x = numpy.arange(loc_span) # - loc_span//2
-                hist = numpy.zeros(loc_span)
-                counts = numpy.zeros(loc_span) # used to get the average.
+        if window_size:
+            hist = numpy.zeros(window_size*2)
+            counts = numpy.zeros(window_size*2)
+            gl = gl.pointify().expand('loc', window_size)
+        else:
+            x = numpy.arange(loc_span) # - loc_span//2
+            hist = numpy.zeros(loc_span)
+            counts = numpy.zeros(loc_span) # used to get the average.
 
-            for i in gl:
-                if i['loc']['chr'] not in available_chroms:
-                    if i['loc']['chr'] not in __already_warned:
-                        config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(i['loc']['chr']))
-                        __already_warned.append(i['loc']['chr'])
+        gl = genelist
+        for i in gl:
+            if i['loc'].chrom not in available_chroms:
+                if i['loc'].chrom not in __already_warned:
+                    config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(i['loc'].chrom))
+                    __already_warned.append(i['loc'].chrom)
+                continue
+
+            a = self.get(i["loc"])
+            
+            if respect_strand:
+                # positive strand is always correct, so I leave as is.
+                # For the reverse strand all I have to do is flip the array.
+                if i["strand"] in negative_strand_labels:
+                    a = a[::-1,] # flip x-axis
+
+            if a.any(): # It's possible that get() will return nothing
+                # For example if you send bad chromosome names or the locations are nonsensical (things like:
+                # chr9_GL000201_RANDOM:-500-1500
+                # Check for a block miss:
+                if len(a) < loc_span: # This should be a very rare case...
+                    config.log.warning(f'Block miss (short) {i["loc"]}')
+                    # TODO: Fill in? Probably better to skip
                     continue
 
-                a = self.get(i["loc"])#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
+                hist += a
 
-                if respect_strand:
-                    # positive strand is always correct, so I leave as is.
-                    # For the reverse strand all I have to do is flip the array.
-                    if i["strand"] in negative_strand_labels:
-                        a = a[::-1]
+        if average:
+            hist /= len(gl)
 
-                if a.any(): # It's possible that get() will return nothing
-                    # For example if you send bad chromosome names or the locations are nonsensical (things like:
-                    # chr9_GL000201_RANDOM:-500-1500
-                    # Check for a block miss:
-                    if len(a) < loc_span: # This should be a very rare case...
-                        config.log.warning('Block miss (short)')
-                        num_missing = loc_span - len(a)
-                        ad = numpy.zeros(num_missing, dtype=float)
-                        a = numpy.append(a, ad)
+        if norm_by_read_count:
+            hist /= read_count
 
-                    hist += a
-
-                if mask_zero: # surely a better way of doing this...
-                    t = numpy.zeros(loc_span)
-                    for ee, xx in enumerate(a):
-                        if xx > 0:
-                            t[ee] = 1.0
-                    counts += t
-
-            if average and mask_zero:
-                hist /= counts
-            elif average and not mask_zero:
-                hist /= len(gl)
-
-            if norm_by_read_count:
-                hist /= read_count
-
-            ax.plot(x, hist, label=gl.name, alpha=0.7)
-            all_hists[gl.name] = hist
-
-        bkgd = None
-        if background:
-            if window_size:
-                bkgd = numpy.zeros(window_size*2)
-                counts = numpy.zeros(window_size*2)
-            else:
-                bkgd = numpy.zeros(loc_span)
-                counts = numpy.zeros(loc_span)
-
-            bkgd_items = 0
-            p = progressbar(len(background))
-            for i, back in enumerate(background):
-                for b in back:
-                    if b['loc']['chr'] not in available_chroms:
-                        if b['loc']['chr'] not in __already_warned:
-                            config.log.warning('Asked for {} chromosome but not in this flat_track, skipping'.format(b['loc']['chr']))
-                            __already_warned.append(b['loc']['chr'])
-                        continue
-
-                    if window_size:
-                        l = b["loc"].pointify()
-                        l = l.expand(window_size)
-                        a = self.get(l)[0:window_size*2]
-                    else:
-                        a = self.get(b["loc"])[0:loc_span]
-                    bkgd_items += 1
-
-                    if respect_strand:
-                        # positive strand is always correct, so I leave as is.
-                        # For the reverse strand all I have to do is flip the array.
-                        if b["strand"] in negative_strand_labels:
-                            a = a[::-1]
-
-                    bkgd += a
-                    if mask_zero:
-                        t = numpy.zeros(loc_span)
-                        for ee, xx in enumerate(a):
-                            if xx > 0:
-                                t[ee] = 1.0
-                        counts += t
-
-                if average and mask_zero:
-                    bkgd /= counts
-                elif average and not mask_zero:
-                    bkgd /= bkgd_items
-
-                if norm_by_read_count:
-                    hist /= read_count
-
-                if i == 0: # add only a single legend.
-                    ax.plot(x, bkgd, color="grey", alpha=0.3, label="Random Background")
-                else:
-                    ax.plot(x, bkgd, color="grey", alpha=0.3)
-
-                # reset arrays
-                bkgd = numpy.zeros(len(bkgd))
-                counts = numpy.zeros(len(counts))
-
-                p.update(i)
-
-        else:
-            bkgd = None
+        fig = self._draw.getfigure(**kargs)
+        ax1 = fig.add_subplot(121)
+        ax1.imshow(hist, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+            origin='lower', extent=[0, hist.shape[1], 0, hist.shape[0]],
+            interpolation=config.get_interpolation_mode(filename))
+        
+        ax0 = fig.add_subplot(122)
+        ax0.set_position(scalebar_location)
+        ax0.set_frame_on(False)
+        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
 
         leg = ax.legend()
         [t.set_fontsize(3) for t in leg.get_texts()]
@@ -514,7 +415,7 @@ class flat_heat:
 
         actual_filename = self._draw.savefigure(fig, filename)
 
-        config.log.info("pileup(scaled=False): Saved '{}'".format(actual_filename))
+        config.log.info("pileup_heatmap: Saved '{}'".format(actual_filename))
 
-        return (all_hists, bkgd)
+        return hist
     

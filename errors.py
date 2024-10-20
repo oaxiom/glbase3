@@ -96,7 +96,7 @@ class UnRecognisedCSVFormatError(Exception):
         """
         Format and ouput a series of messages so that I can see why the csv is not loading.
         """
-        oh = open(file_handle, "rU")
+        oh = open(file_handle, "rt")
         config.log.error("csv/tsv file did not pass the csv parser")
         config.log.error("Message: %s" % message)
         print("-----------------------")
