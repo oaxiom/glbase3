@@ -364,7 +364,6 @@ class flat_heat:
                 # For the reverse strand all I have to do is flip the array.
                 if i["strand"] in negative_strand_labels:
                     a = a[::-1,] # flip x-axis
-                print(a)
 
             if a.any(): # It's possible that get() will return an array full of zeros, if so, skip them
                 # For example if you send bad chromosome names or the locations are nonsensical (things like:
@@ -376,7 +375,6 @@ class flat_heat:
                     continue
                 
                 hist += a
-                print(hist.shape)
 
         if average:
             hist /= len(gl)
@@ -386,8 +384,6 @@ class flat_heat:
 
         vmin = hist.min()
         vmax = hist.max() 
-
-        print(hist.shape)
 
         fig = self._draw.getfigure(**kargs)
         ax1 = fig.add_subplot(211)

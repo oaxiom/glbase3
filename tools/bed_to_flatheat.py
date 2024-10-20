@@ -38,12 +38,11 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
                 line = line.split('\t')
                 if line[0] != ch:
                     continue
-                #print line
 
                 # We assume a strict BED file
-                l = int(line[1]) // 10
-                r = int(line[2]) // 10
-                w = int(r - l)
+                l = int(line[1]) // 10 # in bins
+                r = int(line[2]) // 10 # in bins
+                w = int(line[2]) - int(line[1]) # Not divided by 10 into bins
 
                 if w > ymax:
                     # issue warning?
