@@ -26,7 +26,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
         config.log.info(f'Extracting {ch}')
         
         # Make a 2D array:
-        this_chrom = numpy.zeros((chr_sizes[ch] // 10, ybins)) 
+        this_chrom = numpy.zeros((chr_sizes[ch] // 10, ybins+1)) # ybins+1 for 0 pad
 
         for file in infilename:
             config.log.info(f"Collecting from {file}")
@@ -45,7 +45,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
                 w = int(line[2]) - int(line[1]) # Not divided by 10 into bins
 
                 if w > ymax:
-                    # issue warning?
+                    # issue warning? I think no, as this gives flexibility on the BED you feed it.
                     continue
                     
                 if w < 0:
@@ -54,7 +54,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
                         __warning_lr_not_sorted = True
                     continue
                     
-                ybin = floor((w / ymax) * ybins)# in bins
+                ybin = floor((w / ymax) * (ybins)) # in bins
                 
                 for bp in range(l, r):
                     this_chrom[bp, ybin] += 1 # chrom data is per 10 bp.
