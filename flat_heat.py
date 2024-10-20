@@ -222,7 +222,7 @@ class flat_heat:
         if 'chr' not in c:
             c = f'chr{c}'
 
-        ret_array = self.mats[c][left:rite,]
+        ret_array = self.mats[c][left:rite,0:self.ybins]
 
         if mask_zero:
             mask = []
@@ -397,7 +397,7 @@ class flat_heat:
         cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
 
         ax1.set_xlabel("Base pairs around centre (bp)")
-        ax1.axvline(0, ls=":", color="grey")
+        ax1.axvline(window_size // 10, ls=":", color="grey")
 
         self._draw.do_common_args(ax1, **kargs)
 

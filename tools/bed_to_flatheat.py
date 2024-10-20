@@ -60,7 +60,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
                     this_chrom[bp, ybin] += 1 # chrom data is per 10 bp.
 
                 if n % 1e6 == 0 and n>0:
-                    config.log.info("{0:,} tags parsed ({1:.1f}%)".format(n, n/tot_tag_count*100))
+                    config.log.info("{0:,}M tags parsed ({1:.1f}%)".format(n //1e6, n/tot_tag_count*100))
                 n += 1 # need to do this
             oh.close()
         #config.log.info('Committing %s' % ch)
