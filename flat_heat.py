@@ -272,6 +272,7 @@ class flat_heat:
         average=True,
         respect_strand=True,
         norm_by_read_count=True,
+        colour_map = cm.BrBG,
         **kargs):
         """
         **Purpose**
@@ -308,6 +309,9 @@ class flat_heat:
                 If you are not using a norm_factor for this library then you probably want to set this to True.
                 It will divide the resulting number of reads by the total number of reads,
                 i.e. it will account for differences in library sizes.
+            
+            colour_map (Optional, default=cm.BrBG)
+                A matplotlib colormap 
 
         **Returns**
             (data, background)
@@ -335,7 +339,7 @@ class flat_heat:
         all_hists = {}
 
         x = numpy.arange(window_size*2) - (window_size*2)//2
-        loc_span = window_size*2
+        loc_span = window_size*2 // 10
 
         available_chroms = list(self.mats.keys())
         available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
@@ -343,14 +347,8 @@ class flat_heat:
 
         gl = genelist        
 
-        if window_size:
-            hist = numpy.zeros(window_size*2)
-            counts = numpy.zeros(window_size*2)
-            gl = gl.pointify().expand('loc', window_size)
-        else:
-            x = numpy.arange(loc_span) # - loc_span//2
-            hist = numpy.zeros(loc_span)
-            counts = numpy.zeros(loc_span) # used to get the average.
+        hist = numpy.zeros((loc_span, self.ybins), dtype=numpy.float64)
+        gl = gl.pointify().expand('loc', window_size)
 
         for i in gl:
             if i['loc'].chrom not in available_chroms:
@@ -366,17 +364,19 @@ class flat_heat:
                 # For the reverse strand all I have to do is flip the array.
                 if i["strand"] in negative_strand_labels:
                     a = a[::-1,] # flip x-axis
+                print(a)
 
-            if a.any(): # It's possible that get() will return nothing
+            if a.any(): # It's possible that get() will return an array full of zeros, if so, skip them
                 # For example if you send bad chromosome names or the locations are nonsensical (things like:
                 # chr9_GL000201_RANDOM:-500-1500
                 # Check for a block miss:
-                if len(a) < loc_span: # This should be a very rare case...
+                if a.shape[0] < loc_span: # This should be a very rare case...
                     config.log.warning(f'Block miss (short) {i["loc"]}')
                     # TODO: Fill in? Probably better to skip
                     continue
-
+                
                 hist += a
+                print(hist.shape)
 
         if average:
             hist /= len(gl)
@@ -384,28 +384,26 @@ class flat_heat:
         if norm_by_read_count:
             hist /= read_count
 
+        vmin = hist.min()
+        vmax = hist.max() 
+
+        print(hist.shape)
+
         fig = self._draw.getfigure(**kargs)
-        ax1 = fig.add_subplot(121)
-        ax1.imshow(hist, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
-            origin='lower', extent=[0, hist.shape[1], 0, hist.shape[0]],
+        ax1 = fig.add_subplot(211)
+        hm = ax1.imshow(hist.T, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+            origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
             interpolation=config.get_interpolation_mode(filename))
         
-        ax0 = fig.add_subplot(122)
-        ax0.set_position(scalebar_location)
+        ax0 = fig.add_subplot(212)
+        #ax0.set_position(scalebar_location)
         ax0.set_frame_on(False)
         cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
 
-        leg = ax.legend()
-        [t.set_fontsize(3) for t in leg.get_texts()]
-        ax.set_ylabel("Magnitude")
+        ax1.set_xlabel("Base pairs around centre (bp)")
+        ax1.axvline(0, ls=":", color="grey")
 
-        if window_size:
-            ax.set_xlabel("Base pairs around centre (bp)")
-            ax.axvline(0, ls=":", color="grey")
-        else:
-            ax.set_xlabel('Base pairs (bp)')
-
-        self._draw.do_common_args(ax, **kargs)
+        self._draw.do_common_args(ax1, **kargs)
 
         actual_filename = self._draw.savefigure(fig, filename)
 
