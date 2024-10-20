@@ -268,7 +268,7 @@ class flat_heat:
     def pileup_heatmap(self,
         genelist=None,
         filename=None,
-        window_size=None,
+        window_size:int=None,
         average=True,
         respect_strand=True,
         norm_by_read_count=True,
@@ -284,7 +284,7 @@ class flat_heat:
             filename
                 The filename to save the image to
 
-            window_size (Optional, default=None)
+            window_size (Required, default=None)
                 the number of base pairs to use around the centre of the location 
 
                 If set to None then it will use the location as specified.
@@ -319,13 +319,12 @@ class flat_heat:
         """
         # Common cleanup
         assert genelist, "genelist is None?"
+        assert window_size, 'You must specify a window size around the center point'
+        assert filename, 'You must specify a filename to save the heatmap to'
 
         # flats have lazy setup of draw:
         if not self._draw:
             self._draw = draw(self)
-
-        if not isinstance(genelists, list):
-            genelists = [genelists] # make a one item'd list
 
         read_count = 1.0
         if norm_by_read_count:
@@ -335,18 +334,14 @@ class flat_heat:
 
         all_hists = {}
 
-        x = None
-        if window_size:
-            x = numpy.arange(window_size*2) - (window_size*2)//2
-
-        if window_size:
-            loc_span = window_size*2
-        else:
-            loc_span = len(genelists[0].linearData[0]["loc"]) # I have to assume all locs are identical.
+        x = numpy.arange(window_size*2) - (window_size*2)//2
+        loc_span = window_size*2
 
         available_chroms = list(self.mats.keys())
         available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
         __already_warned = []
+
+        gl = genelist        
 
         if window_size:
             hist = numpy.zeros(window_size*2)
@@ -357,7 +352,6 @@ class flat_heat:
             hist = numpy.zeros(loc_span)
             counts = numpy.zeros(loc_span) # used to get the average.
 
-        gl = genelist
         for i in gl:
             if i['loc'].chrom not in available_chroms:
                 if i['loc'].chrom not in __already_warned:
