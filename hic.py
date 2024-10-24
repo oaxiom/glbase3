@@ -191,7 +191,7 @@ class hic:
         if new:
             self.readonly = False
             #try:
-            self.hdf5_handle = h5py.File(filename, 'w')  # This should be x to stop overwriting an exisiting file
+            self.hdf5_handle = h5py.File(filename, 'w')  # This should be x to stop overwriting an existing file
 
             # h5py hierarchy (Made at load_time)
             # Things stored:
@@ -827,8 +827,8 @@ class hic:
         dat = [str(n).encode("ascii", "ignore") for n in self.all_chrom_names]
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.all_chrom_names), 1), 'S10', dat)
 
-        self._OEmatrix()
-        self._ABcompart()
+        #self._OEmatrix()
+        #self._ABcompart()
 
         return True
 

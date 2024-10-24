@@ -24,7 +24,7 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
     n = 0
     for ch in sorted(chr_sizes.keys()):
         config.log.info(f'Extracting {ch}')
-        
+
         # Make a 2D array:
         this_chrom = numpy.zeros((chr_sizes[ch] // 10, ybins+1)) # ybins+1 for 0 pad
 
@@ -47,15 +47,15 @@ def is_pe_inner_loop(f, chr_sizes, infilename, gzip, tot_tag_count, ybins, ymax)
                 if w > ymax:
                     # issue warning? I think no, as this gives flexibility on the BED you feed it.
                     continue
-                    
+
                 if w < 0:
                     if not __warning_lr_not_sorted:
                         config.log.waring('right coordinate is less than left')
                         __warning_lr_not_sorted = True
                     continue
-                    
+
                 ybin = floor((w / ymax) * (ybins)) # in bins
-                
+
                 for bp in range(l, r):
                     this_chrom[bp, ybin] += 1 # chrom data is per 10 bp.
 
@@ -93,7 +93,7 @@ def bed_to_flatheat(
         chr1    3003917 3004094
 
         Note, that the flatheats DO NOT use strand.
-        
+
         flatheats must be from paired-end data
 
         Note, also, that normalisation is NOT required at generation, and can instead be
@@ -114,7 +114,7 @@ def bed_to_flatheat(
 
         ybins (int, optional, default=50)
             number of bins for the y-axis
-        
+
         ymax (int, Required)
             size of the y-axis in base pairs.
 
@@ -139,6 +139,7 @@ def bed_to_flatheat(
     f = flat_heat(filename=outfilename, new=True, name=name, ymax=ymax, ybins=ybins)
 
     config.log.info("Started %s -> %s" % (infilename, outfilename))
+    config.log.info(f'ymax={ymax}; ybins={ybins}')
 
     s = time.time()
     config.log.info('Preparse BED(s)')

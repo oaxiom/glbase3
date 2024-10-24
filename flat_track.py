@@ -614,7 +614,7 @@ class flat_track():
                 rite_flank = numpy.array(rite_flank, dtype=float)
 
                 if respect_strand:
-                    # positive strand is always correct, so I leave as is.
+                    # positive strand is correct, so I leave as is.
                     # For the reverse strand all I have to do is flip the array.
                     if strand in negative_strand_labels:
                         left_flank, rite_flank = rite_flank[::-1], left_flank[::-1] # And flip the 5' and 3' regions;

@@ -1775,7 +1775,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             # work out which of the buckets required:
             left_buck = ((loc["left"]-1)//config.bucket_size)*config.bucket_size
             right_buck = ((loc["right"])//config.bucket_size)*config.bucket_size
-            buckets_reqd = list(range(left_buck, right_buck+config.bucket_size, config.bucket_size)) # make sure to get the right spanning and left spanning sites
+            buckets_reqd = range(left_buck, right_buck+config.bucket_size, config.bucket_size) # make sure to get the right spanning and left spanning sites
 
             # get the ids reqd.
             loc_ids = set()
@@ -2111,12 +2111,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def overlap(self,
         compare_mode="Overlap",
         loc_key="loc",
-        delta=200,
+        delta:int=200,
         title=None,
-        bins=20,
-        add_tags=False,
+        bins:int=20,
+        add_tags:bool=False,
         image_filename=None,
-        keep_rank=False,
+        keep_rank:bool=False,
+        merge_keys:bool=False,
         **kargs):
         """
         **Purpose**
@@ -2156,7 +2157,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 Sets the number of bins in the frequency histogram showing the collision
                 distances.
 
-            merge (Optional, Default=False)
+            merge_keys (Optional, Default=False)
                 merge the two lists keys together. This is useful for
                 heterogenouse lists. For homogenous lists, don't set this
                 or set it to False and collide() will keep the resulting list
@@ -2180,7 +2181,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             the resulting "loc" key will be the left and right most extreme points
             of the two overlapping coordinates.
         """
-        newl = self._unified_collide_overlap(compare_mode, loc_key, delta, title, bins, add_tags, image_filename, keep_rank, **kargs)
+        newl = self._unified_collide_overlap(compare_mode,
+            loc_key,
+            delta,
+            title,
+            bins,
+            add_tags,
+            image_filename,
+            keep_rank,
+            merge_keys,
+            **kargs)
 
         len_res = 0 # because newl can be None.
         if newl:
@@ -2194,8 +2204,17 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newl
 
-    def _unified_collide_overlap(self, compare_mode=None, loc_key="loc", delta=200, title=None, bins=20, add_tags=False, image_filename=None,
-        keep_rank=False, **kargs):
+    def _unified_collide_overlap(self,
+        compare_mode=None,
+        loc_key="loc",
+        delta=200,
+        title=None,
+        bins=20,
+        add_tags=False,
+        image_filename=None,
+        keep_rank=False,
+        merge_keys:bool=False,
+        **kargs):
         """
         A new unified overlap() collide() code.
 
@@ -2221,10 +2240,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         assert loc_key in self[0], "_unified_collide_overlap: The 'loc_key' '%s' not found in this list" % (loc_key, )
         assert loc_key in gene_list[0], "_unified_collide_overlap: The 'loc_key' '%s' not found in the other list" % (loc_key, )
-
-        merge = False
-        if "merge" in kargs:
-            merge = kargs["merge"]
 
         mode = "and"
         if "logic" in kargs and kargs["logic"] != "and":
@@ -2285,7 +2300,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                             foundB[indexB] = True # gene_list
                             foundA[indexA] = True # self
 
-                        if merge:
+                        if merge_keys:
                             a = utils.qdeepcopy(other)
                             for k in item:
                                 if k not in a:

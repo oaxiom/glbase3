@@ -2091,9 +2091,9 @@ class draw:
         if "zlims" in kargs: # For 3D plots
             ax.set_zlim([kargs["zlim"][0], kargs["zlim"][1]])
         if "logx" in kargs:
-            ax.set_xscale("log", basex=kargs["logx"])
+            ax.set_xscale("log", base=kargs["logx"])
         if "logy" in kargs:
-            ax.set_yscale("log", basey=kargs["logy"])
+            ax.set_yscale("log", base=kargs["logy"])
         if "log" in kargs and kargs["log"]:
             ax.set_xscale("log", basex=kargs["log"])
             ax.set_yscale("log", basey=kargs["log"])
@@ -3053,6 +3053,7 @@ class draw:
         data_as_list,
         data_labels,
         qs=None,
+        p_threshold=0.01,
         title=None,
         xlims=None,
         sizer=0.022,
@@ -3103,7 +3104,7 @@ class draw:
 
         if qs:
             for i, p in zip(range(0, len(data_as_list)), qs):
-                if p < 0.01:
+                if p < p_threshold:
                     ax.text(xlim+(xlim/12), i+1, '*', ha='left', va='center', fontsize=6,)
                 ax.text(xlim+(xlim/8), i+1, f'{p:.1e}', ha='left', va='center', fontsize=6,)
 

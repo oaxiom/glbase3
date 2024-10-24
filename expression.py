@@ -2039,7 +2039,7 @@ class expression(base_expression):
 
             logx (Optional, default=2)
                 You usually calculate CV on the raw (un transofrmed data)
-                Generally it is easier to comprehend if the X axis (mean expression)
+                Hence, when displaying it is easier to comprehend if the X axis (mean expression)
                 is log2 transformed
         '''
         assert filename, "no filename specified"
