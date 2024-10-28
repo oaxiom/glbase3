@@ -256,12 +256,12 @@ class flat_heat:
     def pileup_heatmap(self,
         genelist=None,
         filename=None,
-        pointify:bool = True,
         window_size:int=None,
         average=True,
         respect_strand=True,
         norm_by_read_count=True,
         colour_map = cm.BrBG,
+        fast:bool = False,
         **kargs):
         """
         **Purpose**
@@ -273,13 +273,6 @@ class flat_heat:
 
             filename
                 The filename to save the image to
-
-            pointify (Optional, default=True)
-                Use the center point of the location.
-
-                This is reccomended. This method has lots of potential bradcasting
-                issues and fails easily. with pointify=True at least you know the
-                input genelist is uniform.
 
             window_size (Required, default=None)
                 the number of base pairs to use around the centre of the location
@@ -333,7 +326,7 @@ class flat_heat:
         if norm_by_read_count:
             read_count = float(self.get_total_num_reads())
             if read_count <= 0:
-                raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
+                raise AssertionError('norm_by_read_count=True, but this flat_heat has no total number of reads')
 
         all_hists = {}
 
@@ -348,6 +341,7 @@ class flat_heat:
         gl = genelist
 
         hist = numpy.zeros((loc_span, self.ybins), dtype=numpy.float64)
+
         gl = gl.pointify().expand('loc', window_size)
 
         p = progressbar(len(gl))
@@ -358,13 +352,9 @@ class flat_heat:
                     __already_warned.append(i['loc'].chrom)
                 continue
 
-            if pointify:
-                left = ((i['loc'].left + i['loc'].right) // 20)
-                rite = left + half_loc
-                left -= half_loc
-            else: #
-                left = (i['loc'].left // 10) - half_loc
-                rite = (i['loc'].right // 10) + half_loc
+            left = i['loc'].left // 10 # I only use pointfied
+            rite = left + half_loc
+            left -= half_loc
 
             #a = self.get(i["loc"]) # No method overhead, this part is too slow already...
             a = self.mats[f"chr{i['loc'].chrom}"][left:rite, 0:self.ybins]
