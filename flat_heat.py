@@ -37,7 +37,7 @@ class flat_heat:
         name:str=None,
         new:str=False,
         ymax:int=None,
-        ybins:int=50, 
+        ybins:int=50,
         ):
         """
         **Purpose**
@@ -54,7 +54,7 @@ class flat_heat:
 
             ybins (int, optional, default=50)
                 number of bins for the y-axis
-            
+
             ymax (int, Required if new=True)
                 size of the y-axis in base pairs.
 
@@ -78,6 +78,7 @@ class flat_heat:
             self.hdf5_handle.attrs['ybins'] = ybins
             self.hdf5_handle.attrs['ymax'] = ymax
             self.hdf5_handle.attrs['version'] = '1.0' # First version of the flatheat format
+            # TODO: self.hdf5_handle.attrs['flat_type'] = 'flat_heat'
             self.chrom_names = []
             self.meta_data = self.hdf5_handle.attrs
 
@@ -191,7 +192,7 @@ class flat_heat:
         """
         return self.hdf5_handle.attrs['num_reads']
 
-    def get(self, loc, c=None, left=None, rite=None, strand="+", mask_zero=False, **kargs):
+    def get(self, loc, c=None, left=None, rite=None, strand="+", **kargs):
         """
         **Purpose**
             get the data between location 'loc'
@@ -202,9 +203,6 @@ class flat_heat:
 
             strand (Optional, default = "+")
                 strand, but only valid for stranded tracks
-
-            mask_zero (Optional, default=False)
-                return a masked numpy array with zeros masked out.
 
         **Returns**
             an 'array('i', [0, 1, 2 ... n])' contiginous array
@@ -224,25 +222,15 @@ class flat_heat:
 
         ret_array = self.mats[c][left:rite,0:self.ybins]
 
-        if mask_zero:
-            mask = []
-            for dd in ret_array:
-                if int(dd*10000000) == 0: # delete if 10 sig figs close to 0
-                    mask.append(1)
-                else:
-                    mask.append(0)
-            # This may produce a warning, but apparently I can safely ignore it
-            ret_array = numpy.ma.masked_array(ret_array, mask=mask)
-
         return ret_array
 
     def get_array_chromosome(self, chrom=None, **kargs): # kargs for compat with trk
         """
         **Purpose**
-            Get the enrire array for the chromosome chrom. 
+            Get the enrire array for the chromosome chrom.
             Note that the x-axis is one column per every 10 bp. So you need to
             multiply coordinates by 10.
-            
+
             This method should probably be taken internal.
 
         **Arguments**
@@ -268,6 +256,7 @@ class flat_heat:
     def pileup_heatmap(self,
         genelist=None,
         filename=None,
+        pointify:bool = True,
         window_size:int=None,
         average=True,
         respect_strand=True,
@@ -285,10 +274,20 @@ class flat_heat:
             filename
                 The filename to save the image to
 
+            pointify (Optional, default=True)
+                Use the center point of the location.
+
+                This is reccomended. This method has lots of potential bradcasting
+                issues and fails easily. with pointify=True at least you know the
+                input genelist is uniform.
+
             window_size (Required, default=None)
-                the number of base pairs to use around the centre of the location 
+                the number of base pairs to use around the centre of the location
 
                 If set to None then it will use the location as specified.
+
+            bracket (Optional, default=[min, max])
+                set your own bracket for the heatmap.
 
             average (Optional, default=True)
                 use the average score if set to True (i.e. divide by the number of items
@@ -309,9 +308,9 @@ class flat_heat:
                 If you are not using a norm_factor for this library then you probably want to set this to True.
                 It will divide the resulting number of reads by the total number of reads,
                 i.e. it will account for differences in library sizes.
-            
+
             colour_map (Optional, default=cm.BrBG)
-                A matplotlib colormap 
+                A matplotlib colormap
 
         **Returns**
             (data, background)
@@ -340,25 +339,36 @@ class flat_heat:
 
         x = numpy.arange(window_size*2) - (window_size*2)//2
         loc_span = window_size*2 // 10
+        half_loc = loc_span // 2
 
         available_chroms = list(self.mats.keys())
         available_chroms += [c.replace('chr', '') for c in available_chroms] # help with name mangling
         __already_warned = []
 
-        gl = genelist        
+        gl = genelist
 
         hist = numpy.zeros((loc_span, self.ybins), dtype=numpy.float64)
         gl = gl.pointify().expand('loc', window_size)
 
-        for i in gl:
+        p = progressbar(len(gl))
+        for idx, i in enumerate(gl):
             if i['loc'].chrom not in available_chroms:
                 if i['loc'].chrom not in __already_warned:
                     config.log.warning('Asked for chromosome {} but not in this flat_track, skipping'.format(i['loc'].chrom))
                     __already_warned.append(i['loc'].chrom)
                 continue
 
-            a = self.get(i["loc"])
-            
+            if pointify:
+                left = ((i['loc'].left + i['loc'].right) // 20)
+                rite = left + half_loc
+                left -= half_loc
+            else: #
+                left = (i['loc'].left // 10) - half_loc
+                rite = (i['loc'].right // 10) + half_loc
+
+            #a = self.get(i["loc"]) # No method overhead, this part is too slow already...
+            a = self.mats[f"chr{i['loc'].chrom}"][left:rite, 0:self.ybins]
+
             if respect_strand:
                 # positive strand is always correct, so I leave as is.
                 # For the reverse strand all I have to do is flip the array.
@@ -373,8 +383,10 @@ class flat_heat:
                     config.log.warning(f'Block miss (short) {i["loc"]}')
                     # TODO: Fill in? Probably better to skip
                     continue
-                
+
                 hist += a
+
+            p.update(idx)
 
         if average:
             hist /= len(gl)
@@ -382,15 +394,19 @@ class flat_heat:
         if norm_by_read_count:
             hist /= read_count
 
-        vmin = hist.min()
-        vmax = hist.max() 
+        if bracket: # done here so clustering is performed on bracketed data
+            vmin = bracket[0]
+            vmax = bracket[1]
+        else:
+            vmin = hist.min()
+            vmax = hist.max()
 
         fig = self._draw.getfigure(**kargs)
         ax1 = fig.add_subplot(211)
         hm = ax1.imshow(hist.T, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
             interpolation=config.get_interpolation_mode(filename))
-        
+
         ax0 = fig.add_subplot(212)
         #ax0.set_position(scalebar_location)
         ax0.set_frame_on(False)
@@ -406,4 +422,4 @@ class flat_heat:
         config.log.info("pileup_heatmap: Saved '{}'".format(actual_filename))
 
         return hist
-    
+

@@ -165,7 +165,7 @@ __all__ = [
     "expression",
     "genome",
     "genome_sql",
-    "flat_track",
+    "flat_track", 'flat_heat',
     "delayedlist",
     'massspec',
     "glglob",
