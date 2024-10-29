@@ -365,9 +365,7 @@ class flat_heat:
                 # positive strand is always correct, so I leave as is.
                 # For the reverse strand all I have to do is flip the array.
                 if i["strand"] in negative_strand_labels:
-                    # a = a[::-1,] # flip x-axis
-                    a = numpy.flip(a, axis=1)
-                    #a = a
+                    a = numpy.flip(a, axis=0)# flip x-axis
 
             if a.any(): # It's possible that get() will return an array full of zeros, if so, skip them
                 # For example if you send bad chromosome names or the locations are nonsensical (things like:
@@ -398,9 +396,13 @@ class flat_heat:
         if 'figsize' not in kargs:
             kargs['figsize'] = (4,1.8)
 
+        # This histogram needs to be flipped otherwise the transpositon is in the wrong x orientation.
+
+        hist = numpy.flip(hist.T, axis=1)
+
         fig = self._draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
-        hm = ax.imshow(hist.T, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+        hm = ax.imshow(hist, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
             interpolation=config.get_interpolation_mode(filename))
 
