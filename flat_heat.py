@@ -262,6 +262,7 @@ class flat_heat:
         norm_by_read_count=True,
         colour_map = cm.BrBG,
         fast:bool = False,
+        bracket = None,
         **kargs):
         """
         **Purpose**
@@ -342,7 +343,7 @@ class flat_heat:
 
         hist = numpy.zeros((loc_span, self.ybins), dtype=numpy.float64)
 
-        gl = gl.pointify().expand('loc', window_size)
+        gl = gl.pointify()
 
         p = progressbar(len(gl))
         for idx, i in enumerate(gl):
@@ -352,7 +353,7 @@ class flat_heat:
                     __already_warned.append(i['loc'].chrom)
                 continue
 
-            left = i['loc'].left // 10 # I only use pointfied
+            left = i['loc'].left // 10 # I only use pointified.
             rite = left + half_loc
             left -= half_loc
 
@@ -363,7 +364,9 @@ class flat_heat:
                 # positive strand is always correct, so I leave as is.
                 # For the reverse strand all I have to do is flip the array.
                 if i["strand"] in negative_strand_labels:
-                    a = a[::-1,] # flip x-axis
+                    # a = a[::-1,] # flip x-axis
+                    a = numpy.flip(a, axis=1)
+                    #a = a
 
             if a.any(): # It's possible that get() will return an array full of zeros, if so, skip them
                 # For example if you send bad chromosome names or the locations are nonsensical (things like:
@@ -391,21 +394,32 @@ class flat_heat:
             vmin = hist.min()
             vmax = hist.max()
 
+        if 'figsize' not in kargs:
+            kargs['figsize'] = (4,2)
+
         fig = self._draw.getfigure(**kargs)
-        ax1 = fig.add_subplot(211)
-        hm = ax1.imshow(hist.T, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
+        ax = fig.add_subplot(111)
+        hm = ax.imshow(hist.T, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
             origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
             interpolation=config.get_interpolation_mode(filename))
 
-        ax0 = fig.add_subplot(212)
-        #ax0.set_position(scalebar_location)
-        ax0.set_frame_on(False)
-        cb = fig.colorbar(hm, orientation="horizontal", cax=ax0)
+        cb = fig.colorbar(hm, orientation="horizontal") #, cax=ax0)
+        cb.set_label('Normalised density', fontsize = 6)
+        cb.ax.tick_params(labelsize=6)
 
-        ax1.set_xlabel("Base pairs around centre (bp)")
-        ax1.axvline(window_size // 10, ls=":", color="grey")
+        ax.set_xlabel("Base pairs around centre (kbp)", fontsize = 6)
+        ax.axvline(window_size // 10, ls=":", color="grey", lw=0.5)
+        ax.set_xticks([0, half_loc, loc_span])
+        ax.set_xticklabels([f'-{window_size // 1000} kbp', '0', f'{window_size //1000} kbp'])
 
-        self._draw.do_common_args(ax1, **kargs)
+        ax.set_ylabel('Fragment size (bp)', fontsize = 6)
+        ax.set_yticks([0, self.ybins // 4, self.ybins // 2, (self.ybins // 4)*3, self.ybins])
+        ax.set_yticklabels(['0', f'{self.ymax // 4}',  f'{self.ymax // 2}', f'{self.ymax // 4}*3', f'{self.ymax}'])
+
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
+
+        self._draw.do_common_args(ax, **kargs)
 
         actual_filename = self._draw.savefigure(fig, filename)
 
