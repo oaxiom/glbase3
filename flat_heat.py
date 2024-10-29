@@ -23,6 +23,7 @@ from . import utils
 import numpy
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import scipy.interpolate as scipyinterp
 
 if config.H5PY_AVAIL:
@@ -395,7 +396,7 @@ class flat_heat:
             vmax = hist.max()
 
         if 'figsize' not in kargs:
-            kargs['figsize'] = (4,2)
+            kargs['figsize'] = (4,1.8)
 
         fig = self._draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
@@ -403,8 +404,17 @@ class flat_heat:
             origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
             interpolation=config.get_interpolation_mode(filename))
 
-        cb = fig.colorbar(hm, orientation="horizontal") #, cax=ax0)
-        cb.set_label('Normalised density', fontsize = 6)
+        axins = inset_axes(
+            ax,
+            width="2%",  # width: 5% of parent_bbox width
+            height="100%",  # height: 50%
+            loc="lower left",
+            bbox_to_anchor=(1.01, 0., 1, 1),
+            bbox_transform=ax.transAxes,
+            borderpad=0,
+        )
+        cb = fig.colorbar(hm, orientation="vertical" ,cax=axins)
+        cb.set_label('Normalised density', fontsize=6)
         cb.ax.tick_params(labelsize=6)
 
         ax.set_xlabel("Base pairs around centre (kbp)", fontsize = 6)
@@ -414,7 +424,7 @@ class flat_heat:
 
         ax.set_ylabel('Fragment size (bp)', fontsize = 6)
         ax.set_yticks([0, self.ybins // 4, self.ybins // 2, (self.ybins // 4)*3, self.ybins])
-        ax.set_yticklabels(['0', f'{self.ymax // 4}',  f'{self.ymax // 2}', f'{self.ymax // 4}*3', f'{self.ymax}'])
+        ax.set_yticklabels(['0', f'{self.ymax // 4}',  f'{self.ymax // 2}', f'{self.ymax // 4 *3}', f'{self.ymax}'])
 
         ax.tick_params(axis='x', labelsize=6)
         ax.tick_params(axis='y', labelsize=6)
