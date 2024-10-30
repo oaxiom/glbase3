@@ -71,7 +71,8 @@ class flat_track():
             self.hdf5_handle.attrs['name'] = name
             self.hdf5_handle.attrs['bin_format'] = bin_format
             self.hdf5_handle.attrs['num_reads'] = 0
-            self.hdf5_handle.attrs['version'] = '5.0' # Fifth major revision in the flat format
+            self.hdf5_handle.attrs['version'] = '5.1' # Fifth major revision in the flat format
+            self.hdf5_handle.attrs['file_type'] = 'flat'
             self.chrom_names = []
             self.meta_data = self.hdf5_handle.attrs
 
@@ -93,6 +94,8 @@ class flat_track():
                 sys.exit()
 
             self.meta_data = self.hdf5_handle.attrs
+
+            assert self.meta_data['file_type'] == 'flat', 'Not a flat file!'
 
             self.chrom_names = [i[0] for i in self.hdf5_handle['all_chrom_names'][()]]# flatten
             self.chrom_names = [n.decode("ascii", "ignore") for n in self.chrom_names]
