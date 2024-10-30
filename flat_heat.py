@@ -79,7 +79,7 @@ class flat_heat:
             self.hdf5_handle.attrs['ybins'] = ybins
             self.hdf5_handle.attrs['ymax'] = ymax
             self.hdf5_handle.attrs['version'] = '1.0' # First version of the flatheat format
-            # TODO: self.hdf5_handle.attrs['flat_type'] = 'flat_heat'
+            self.hdf5_handle.attrs['file_type'] = 'flat_heat'
             self.chrom_names = []
             self.meta_data = self.hdf5_handle.attrs
 
@@ -99,6 +99,8 @@ class flat_heat:
 
             self.meta_data = self.hdf5_handle.attrs
 
+            assert self.meta_data['file_type'] == 'flat_heat', 'Not a flat_heat file!'
+
             self.ybins = self.meta_data['ybins']
             self.ymax = self.meta_data['ymax']
 
@@ -110,7 +112,7 @@ class flat_heat:
                 self.mats[chrom] = self.hdf5_handle[f'matrix_{chrom}/mat']
 
             self.draw = draw()
-            config.log.info(f'Bound "{filename}" flat file')
+            config.log.info(f'Bound "{filename}" flat heat file')
 
         # NAme override:
         if name:

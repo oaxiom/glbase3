@@ -138,7 +138,7 @@ def bed_to_flatheat(
 
     f = flat_heat(filename=outfilename, new=True, name=name, ymax=ymax, ybins=ybins)
 
-    config.log.info("Started %s -> %s" % (infilename, outfilename))
+    config.log.info("Started %s -> %s flatheat" % (infilename, outfilename))
     config.log.info(f'ymax={ymax}; ybins={ybins}')
 
     s = time.time()
