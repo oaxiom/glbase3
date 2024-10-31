@@ -95,7 +95,10 @@ class flat_track():
 
             self.meta_data = self.hdf5_handle.attrs
 
-            assert self.meta_data['file_type'] == 'flat', 'Not a flat file!'
+            try:
+                assert self.meta_data['file_type'] == 'flat', 'Not a flat file!'
+            except KeyError:
+                config.log.warning('file_type not found in this track metadata. Bypassing for now, this will be enforced in future')
 
             self.chrom_names = [i[0] for i in self.hdf5_handle['all_chrom_names'][()]]# flatten
             self.chrom_names = [n.decode("ascii", "ignore") for n in self.chrom_names]
