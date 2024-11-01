@@ -380,6 +380,8 @@ class flat_heat:
 
                 hist += a
 
+            #print(a.shape, left, rite, self.ybins)
+
             p.update(idx)
 
         if average:
@@ -404,9 +406,15 @@ class flat_heat:
 
         fig = self._draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
-        hm = ax.imshow(hist, cmap=colour_map, vmin=vmin, vmax=vmax, aspect="auto",
-            origin='lower', extent=[0, hist.shape[0], 0, hist.shape[1]],
-            interpolation=config.get_interpolation_mode(filename))
+
+        hm = ax.imshow(hist,
+            cmap=colour_map,
+            vmin=vmin, vmax=vmax,
+            aspect="auto",
+            origin='lower',
+            extent=[0, hist.shape[1], 0, hist.shape[0]],
+            interpolation=config.get_interpolation_mode(filename)
+            )
 
         axins = inset_axes(
             ax,

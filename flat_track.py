@@ -96,6 +96,7 @@ class flat_track():
             self.meta_data = self.hdf5_handle.attrs
 
             try:
+                # TODO: Deprecate warning and enforce error.
                 assert self.meta_data['file_type'] == 'flat', 'Not a flat file!'
             except KeyError:
                 config.log.warning('file_type not found in this track metadata. Bypassing for now, this will be enforced in future')
