@@ -29,7 +29,7 @@ def booler(b):
     return r
 
 class massspec(base_expression):
-    supported_formats = {'maxquant_txt'}
+    supported_formats = {'maxquant_txt', 'company_txt'}
     valid_call_modes = {'coip'}
     valid_datasets = {'intensities', 'call', 'fold_change'}
     supported_species = {
@@ -96,6 +96,8 @@ class massspec(base_expression):
 
         if format == 'maxquant_txt':
             peps, sample_names = self.__maxquant_txt(filenames, gzip, mq_use_lfq=mq_use_lfq, mq_split_ambiguous_names=mq_split_ambiguous_names)
+        elif format == 'company_txt':
+            peps, sample_names = self.__company_txt(filenames, gzip)
         else:
             raise NotImplementedError
 
@@ -327,6 +329,100 @@ class massspec(base_expression):
 
         return peps, sample_names
 
+
+    def __company_txt(self, filenames, gzip):
+        # Format sent by a company. Similar, but not identical to MASCOT.
+        peps = {}
+        sample_names = []
+
+        intensity_search_key = 'Intensity '
+
+        # scan all the filenames to get all the sample_names;
+        for filename in filenames:
+            if gzip:
+                oh1 = gzip.open(filename, 'rt')
+            else:
+                oh1 = open(filename, 'rt')
+
+            for hit in oh1:
+                if 'Protein accession' in hit:
+                    hit = hit.strip().split('\t')
+                    for lab in hit:
+                        if 'Razor + unique peptides ' in lab:
+                            sample_names.append(lab.replace('Razor + unique peptides ', ''))
+                    break
+            oh1.close()
+
+        # Now load the peptide matches:
+        for filename in filenames:
+            if gzip:
+                oh1 = gzip.open(filename, 'rt')
+            else:
+                oh1 = open(filename, 'rt')
+
+            # need to get the sample_names:
+
+            for hit in oh1:
+                if 'Protein accession' in hit:
+                    # gets all the keys;
+                    intensity_keys = {}
+                    hit = hit.strip().split('\t')
+                    for idx, lab in enumerate(hit):
+                        if lab.startswith(intensity_search_key):
+                            intensity_keys[lab.replace(intensity_search_key, '')] = idx
+
+                    unique_count_keys = {}
+                    for idx, lab in enumerate(hit):
+                        if 'Razor + unique peptides ' in lab:
+                            unique_count_keys[lab.replace('Razor + unique peptides ', '')] = idx
+                    continue
+
+                hit = hit.strip().split('\t')
+                pep_name = hit[2]
+                pids = hit[0]
+
+                if not pep_name: # Unidentified, just skip it;
+                    continue
+
+                if pep_name not in peps:
+                    peps[pep_name] = {
+                        'pids': pids,
+                        'intensities': {k: [] for k in sample_names},
+                        'peptide_counts': {k: [] for k in sample_names},
+                        'call': {k: None for k in sample_names},
+                        'fold_change': {k: None for k in sample_names},
+                        }
+
+                #print(hit)
+
+                for sample_name in sample_names:
+                    if sample_name not in intensity_keys:
+                        # From a previous filename
+                        continue
+
+                    # fix columns with missing values;
+                    nhit = []
+                    for h in hit:
+                        if h: nhit.append(h)
+                        else: nhit.append(0)
+                    hit = nhit
+
+                    try:
+                        intensity = hit[intensity_keys[sample_name]]
+                        peps[pep_name]['intensities'][sample_name].append(float(intensity)/1e6)
+                        unq_peps = hit[unique_count_keys[sample_name]]
+                        peps[pep_name]['peptide_counts'][sample_name].append(int(float(unq_peps)))
+                    except IndexError:
+                        # Rows are truncated if not hit;
+                        intensity = 0
+                        peps[pep_name]['intensities'][sample_name].append(0)
+                        unq_peps = 0
+                        peps[pep_name]['peptide_counts'][sample_name].append(0)
+
+            oh1.close()
+
+        return peps, sample_names
+
     def filter(self,
         mode,
         minimum_unique_peptides,
@@ -398,10 +494,10 @@ class massspec(base_expression):
 
             if True in [pep_name.startswith(i) for i in self.supported_species[species]]: continue
 
-            if True not in [i>minimum_unique_peptides for i in pep['peptide_counts']]:
+            if True not in [i>=minimum_unique_peptides for i in pep['peptide_counts']]:
                 continue
 
-            if True not in [i>minimum_intensity for i in pep['intensities']]:
+            if True not in [i>=minimum_intensity for i in pep['intensities']]:
                 continue
 
             newl.append(pep)

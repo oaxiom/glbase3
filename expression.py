@@ -2355,7 +2355,7 @@ class expression(base_expression):
             **kargs)
 
         config.log.info(f"boxplots_vertical: Saved '{real_filename}'")
-        return None
+        return p_values
 
     def violinplot(self, filename=None, beans=False, **kargs):
         """

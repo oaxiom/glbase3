@@ -346,7 +346,7 @@ class flat_heat:
 
         hist = numpy.zeros((loc_span, self.ybins), dtype=numpy.float64)
 
-        gl = gl.pointify()
+        #gl = gl.pointify()
 
         p = progressbar(len(gl))
         for idx, i in enumerate(gl):

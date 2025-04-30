@@ -2876,7 +2876,7 @@ class draw:
 
         **Arguments**
             data (Required)
-                A dictionary of label: [0, 1, 2, ... n] values.
+                A dictionary of {label: [0, 1, 2, ... n]} values.
 
                 The x category labels will be taken from the dict key.
 
