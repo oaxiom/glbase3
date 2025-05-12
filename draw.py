@@ -89,14 +89,13 @@ class draw:
 
     def bracket_data(self,
         data,
-        min:int,
-        max:int):
+        min: int,
+        max: int):
         """
         brackets the data between min and max (ie. bounds the data with no scaling)
 
         This should be a helper?
         """
-        ran = max - min
         newd = copy.deepcopy(data)
         for x, row in enumerate(data):
             for y, value in enumerate(row):
@@ -104,33 +103,33 @@ class draw:
                     newd[x][y] = min
                 elif value > max:
                     newd[x][y] = max
-        return(newd)
+        return newd
 
     def heatmap(self,
-        filename:str = None,
-        cluster_mode:str = "euclidean",
-        row_cluster:bool = True,
-        col_cluster:bool = True,
+        filename: str = None,
+        cluster_mode: str = "euclidean",
+        row_cluster: bool = True,
+        col_cluster: bool = True,
         vmin = 0,
         vmax = None,
         colour_map=cm.RdBu_r,
-        col_norm:bool = False,
-        row_norm:bool = False,
+        col_norm: bool = False,
+        row_norm: bool = False,
         heat_wid = 0.25,
         heat_hei = 0.85,
         highlights = None,
-        digitize:bool = False,
-        border:bool = False,
-        draw_numbers:bool = False,
+        digitize: bool = False,
+        border: bool = False,
+        draw_numbers: bool = False,
         draw_numbers_threshold = -9e14,
         draw_numbers_fmt = '{:.1f}',
         draw_numbers_font_size = 6,
-        grid:bool = False,
-        row_color_threshold:bool = None,
-        col_names:bool = None,
-        row_colbar:bool = None,
-        col_colbar:bool = None,
-        optimal_ordering:bool = True,
+        grid: bool = False,
+        row_color_threshold: bool = None,
+        col_names: bool = None,
+        row_colbar: bool = None,
+        col_colbar: bool = None,
+        optimal_ordering: bool = True,
         dpi:int = 300,
         _draw_supplied_cell_labels = False,
         **kargs):
@@ -3053,13 +3052,13 @@ class draw:
         data_as_list,
         data_labels,
         qs=None,
-        p_threshold=0.01,
+        p_threshold:float =0.01,
         title=None,
         xlims=None,
-        sizer=0.022,
+        sizer:float =0.022,
         vert_height=4,
         cols='lightgrey',
-        bot_pad=0.1,
+        bot_pad:float =0.1,
         showmeans=False,
         **kargs):
 

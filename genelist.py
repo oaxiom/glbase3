@@ -94,7 +94,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 forse the loader to assume the file is a TSV, rather than the defaul CSV
 
             gtf_decorators
-                This specifies the column number that contains GTF decorators, which will be split into key:value and added to the genelist
+                This specifies the column number that contains GTF decorators, which will be split into key:value and
+                added to the genelist
 
             endwith
                 Stop loading the file if you see a line that contains the value specified in endwith
@@ -224,8 +225,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         csv_headers = frozenset(["csv", "xls", "tsv", "txt", "bed"])
         if filename.split(".")[-1].lower() in csv_headers: # check the last one for a csv-like header
             self.loadCSV(filename=filename, format=format, gzip=gzip, **kargs)
-        elif filename.split(".")[-1] in ["glb"]:
-            self = glload(filename) # will this work?
         else:
             self.loadCSV(filename=filename, format=format, gzip=gzip, **kargs)
 
@@ -2221,6 +2220,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         Hopefully less bugs, more features. Or at the very least easier to fix and test.
         """
         assert compare_mode, "compare_mode cannot be False"
+        assert compare_mode in ('Collide', 'Overlap'), f'{compare_mode} must be one of Collide or Overlap'
 
         if image_filename:
             config.log.warning("_unified_collide_overlap: use of image_filename to draw a Venn is not recommended. The values in the Venn")

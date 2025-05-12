@@ -53,51 +53,6 @@ class base_sql:
         self._c = None
         self._draw = None # Lazy set-up in track. Don't init draw unless needed.
 
-        self.gl_mem_cache = None
-        if mem_cache:
-            config.log.info('caching the database "%s" into memory...' % filename)
-
-            from io import StringIO
-
-            # This doens't give a very big speed up in reality:
-            self._connection = sqlite3.connect(filename)
-            self._connection.text_factory = sqlite3.OptimizedUnicode
-            tempfile = StringIO()
-            for line in self._connection.iterdump():
-                tempfile.write('%s\n' % line)
-            self._connection.close()
-            tempfile.seek(0)
-
-            # Create a database in memory and import from tempfile
-            self._connection = sqlite3.connect(":memory:")
-            self._connection.cursor().executescript(tempfile.read())
-            self._connection.commit()
-            self._connection.row_factory = sqlite3.Row
-
-            self._c = self._connection.cursor()
-
-            # Use an optional genelist-like variant instead
-            # This one consumes waaay too much memory. Even a single list murders 10Gb....
-            '''
-            self.gl_mem_cache = genelist()
-
-            self._connection = sqlite3.connect(filename)
-            self._connection.text_factory = sqlite3.OptimizedUnicode
-            tempfile = StringIO()
-            for line in self._connection.iterdump():
-                if 'INSERT' in line:
-                    t = line.split(' ')
-                    pos = t[3].replace('VALUES', '').strip('();').split(',')
-                    chrom = t[2].strip('"').replace('chr_', '')
-                    left = int(pos[0])
-                    right = int(pos[1])
-                    strand = pos[2].strip("'")
-                    #print chrom, left, right, strand
-                    self.gl_mem_cache.linearData.append({'loc': location(chr=chrom, left=left, right=right), 'strand': strand})
-
-            self.gl_mem_cache._optimise()
-            '''
-
         config.log.info("Bound '%s'" % filename)
 
     def __getitem__(self, key):
@@ -207,7 +162,6 @@ class base_sql:
         (basically, fill __connection)
         """
         self._connection = sqlite3.connect(filename)
-        self._connection.text_factory = sqlite3.OptimizedUnicode
 
     def _format_data(self, data):
         """
