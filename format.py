@@ -6,16 +6,13 @@ This is now the approved way to get at the format specifiers:
 
 format=format.bed
 
-TODO:
-Implement all the fileformats from::
-
-http://genome.ucsc.edu/FAQ/FAQformat#format5.1
-
 See below for the catalogue of file formats
 
 """
 
-import csv, re, copy
+import csv
+import re
+import copy
 
 import gzip as gzipfile
 from .format_container import fc
@@ -32,19 +29,20 @@ bed = fc(name="bed",
     format={"loc": "location(chr=column[0], left=column[1], right=column[2])",
         "name": 3, "score": 4, "strand": 5,
         "force_tsv": True, "skiplines": -1},
-    description= "The 'normal' 6 column definition of a BED file, containing location, name, score and strand")
+    description="The 'normal' 6 column definition of a BED file, containing location, name, score and strand"
+         )
 
 minimal_bed = fc(name="minimal_bed",
     format={"loc": "location(chr=column[0], left=column[1], right=column[2])", "force_tsv": True,
         "skiplines": -1},
-    description= "A minimal BED file contains just the location data, in columns 0, 1 and 2.")
+    description="A minimal BED file contains just the location data, in columns 0, 1 and 2.")
 
 full_bed = fc(name="full_bed", # The full formal definition of a BED file.
     format={"loc": "location(chr=column[0], left=column[1], right=column[2])",
         "name": 3, "score": 4, "strand": 5, "thickStart": 6, "thickEnd": 7,
         "itemRgb": 8, "blockCount": 9, "blockSizes": 10, "blockStarts": 11,
         "force_tsv": True, "skiplines": -1, "commentlines": "#"},
-    description= "This is the full 12-column definition of a BED file")
+    description="This is the full 12-column definition of a BED file")
 
 # Would be useful to add a "optional" and "required" for bed files?
 
@@ -185,11 +183,11 @@ bowtie_loc_only = fc(name="bowtie_loc_only",
     description="Loads the genomic location and strand from the default bowtie output")
 
 # --------------------- miscellaneous file formats
-ann_list = {"loc": 4, "strand": 6, "name": 9, "refseq": 11, "entrez": 12, "tag_height": 1}# output format from my annotation script
-peak_loc = {"loc": 4, "name": 9, "refseq": 11, "entrez": 12, "tag_height": 1} # A list of peak locations, annotated?
-genespring_out = {"refseq": 4, "entrez": 8, "fold_change": 1, "array_systematic_name": 0, "force_tsv": True}# A list out of GeneSpring
+ann_list = {"loc": 4, "strand": 6, "name": 9, "refseq": 11, "entrez": 12, "tag_height": 1}  # output format from my annotation script
+peak_loc = {"loc": 4, "name": 9, "refseq": 11, "entrez": 12, "tag_height": 1}  # A list of peak locations, annotated?
+genespring_out = {"refseq": 4, "entrez": 8, "fold_change": 1, "array_systematic_name": 0, "force_tsv": True}  # A list out of GeneSpring
 array_simplified = {"refseq": 10, "array_systematic_name": 0, "entrez": 8}
-illumina_anotations = {"array_systematic_name":0, "refseq": 3, "entrez": 7}
+illumina_anotations = {"array_systematic_name": 0, "refseq": 3, "entrez": 7}
 
 # --------------------- snpXXX.txt file
 snp_txt = dict(bin=0, name=4, score=5, strand=6, refNCBI=7, refUCSC=8, observed=9,
@@ -223,7 +221,7 @@ mm9_refgene = fc(name="mm9_refgene",
         "refseq": 1, "tss_loc": {"code": "strandSorter(column[2], column[4], column[5], column[3])"},
         "cds_loc": {"code": "location(chr=column[2], left=column[6], right=column[7])"},
         "exons_count": 8
-        }, # description is lost from the mm9 table?
+        },  # description is lost from the mm9 table?
     description="The mm9 refGene table downloaded from UCSC Genome Browser")
 
 mm10_refgene = fc(name="mm10_refgene",
@@ -232,7 +230,7 @@ mm10_refgene = fc(name="mm10_refgene",
         "refseq": 1, "tss_loc": {"code": "strandSorter(column[2], column[4], column[5], column[3])"},
         "cds_loc": {"code": "location(chr=column[2], left=column[6], right=column[7])"},
         "exons_count": 8
-        }, # description is lost from the mm9 table?
+        },
     description="The mm10 refGene table downloaded from UCSC Genome Browser")
 
 ensembl = {"loc": {"code": "location(chr=column[2], left=column[4], right=column[5])"},
@@ -263,8 +261,8 @@ hg18_refseq = fc(name="hg18_refseq",
 
 # --------------------- miscellaneous
 homer_annotated = {"loc": "location(chr=column[0], left=column[1], right=column[2])",
-    "peak_id":3,"motif_score":4,"strand": 5,"motif_seq":6,"summit_dist":7,
-    "summit_height":8,"nearest_gene":9,"TSS_dist":10,"annotation":11,
+    "peak_id": 3,"motif_score": 4,"strand": 5,"motif_seq": 6,"summit_dist": 7,
+    "summit_height": 8,"nearest_gene": 9,"TSS_dist": 10,"annotation": 11,
     "force_tsv": True,"skiplines": -1}
 
 MACS_combined = {"loc": "location(chr=column[0], left=column[1], right=column[2])","peak_id":3,
@@ -369,6 +367,12 @@ go_DAVID = fc(name="go_DAVID",
 go_GOseq = fc(name="go_GOSeq",
     description="GO table by GOSeq",
     format={"force_tsv": True, "ontology": 7, 'count': 4, "name": {'code': 'cat_columns(column[1], column[6])'}, "qvalue": 2, "pvalue": 2} # no q-value?
+    )
+
+go_cistrome_download = fc(
+    name='go_Cistrome_download',
+    description='GO table downloaded from CistromeGO website',
+    format={'force_tsv': True, 'name': 0, 'qvalue': 4, "skiptill": "# Term"}
     )
 
 # --------------------- class container

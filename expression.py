@@ -42,6 +42,7 @@ if config.SKLEARN_AVAIL:
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .manifold_mdsquish import manifold_mdsquish
 
+
 class expression(base_expression):
     def __init__(self, filename=None, loadable_list=None, format=None, expn=None, gzip=False, **kargs):
         """
@@ -3110,6 +3111,7 @@ class expression(base_expression):
         ax.set_xticklabels("")
         ax.tick_params(top=False, bottom=False, left=False, right=False)
 
+        ret = None
         if cut:
             # I believe that the old code is actually correct
             ret = []
@@ -3163,7 +3165,7 @@ class expression(base_expression):
 
         if not cut:
             ret = {"dendrogram": a, "linkage": link, "distance": dist}
-        return(ret)
+        return ret
 
     def radial_tree(self, mode="conditions", filename=None, row_name_key=None,
         cluster_mode="euclidean", color_threshold=None, label_size=7, cut=False,
@@ -3266,6 +3268,7 @@ class expression(base_expression):
         #ax.set_xticklabels("")
         #ax.tick_params(top="off", bottom="off", left="off", right="off")
 
+        ret = []
         if cut:
             # Probably too tough to support?
             # I believe that the old code is actually correct
@@ -3294,7 +3297,7 @@ class expression(base_expression):
 
         if not cut:
             ret = {"dendrogram": a, "linkage": link, "distance": dist}
-        return(ret)
+        return ret
 
     def gene_curve(self, key=None, values=None, filename=None, moving_average=None,
         **kargs):

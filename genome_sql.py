@@ -35,6 +35,7 @@ from numpy import array, zeros, set_printoptions, int32, append, linspace, argma
 
 TRACK_CACHE_SIZE = 10 # number of track segments to cache.
 
+
 class genome_sql(base_sql):
     """
     track definition, used for things like sequence reads across the genome

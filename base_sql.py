@@ -6,7 +6,13 @@ base class for track-like objects (ie. tracks and flats)
 
 """
 
-import sys, os, sqlite3, time, math, numpy, zlib
+import sys
+import os
+import sqlite3
+import time
+import math
+import numpy
+import zlib
 from array import array
 import matplotlib.cm as cm
 
@@ -20,8 +26,9 @@ from .errors import FailedToMakeNewDBError
 from .progress import progressbar
 from .data import negative_strand_labels, positive_strand_labels
 
+
 class base_sql:
-    def __init__(self, name=None, new=False, filename=None, norm_factor=1.0, mem_cache=False):
+    def __init__(self, name=None, new=False, filename=None, norm_factor=1.0):
         """
         base track only accepts three arguments,
         the filename, name (this is a legacy thing) and new.
@@ -102,7 +109,6 @@ class base_sql:
             else:
                 self.meta_data[item[0]] = item[1]
 
-        #self._connection.commit()
         c.close()
 
     def _save_meta_data(self):
