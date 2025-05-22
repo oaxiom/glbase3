@@ -41,13 +41,6 @@ from .stats import stats
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
     from .network import network
-    # 2to3 problem:
-    #if config.PYDOT_AVAIL:
-    #    from bayes import bayes # Requires graphviz, but will probably port it later.
-
-if config.SKLEARN_AVAIL:
-    #from .learning import learning
-    from .manifold_pca import manifold_pca
 
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
     from .manifold_mdsquish import manifold_mdsquish
@@ -227,11 +220,10 @@ class expression(base_expression):
             self.network = network(self)
             return self.network
 
-        elif name == "svd":
-            return self.get_svd()
-
         elif name == "pca":
-            return self.get_pca()
+            from .manifold_pca import manifold_pca
+            self.som = manifold_pca(parent=self, name=self.name)
+            return self.som
 
         elif name == "stats":
             self.stats = stats(self)
@@ -256,7 +248,7 @@ class expression(base_expression):
             return self.somde
 
         elif name == 'mds':
-            assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
+            assert config.SKLEARN_AVAIL, "Asking for mds but sklearn not available"
             from .manifold_mds import manifold_mds
             self.mds = manifold_mds(parent=self, name=self.name)
             return self.mds
@@ -286,85 +278,6 @@ class expression(base_expression):
             return self.learning
 
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__repr__(), name))
-
-    def get_pca(self, rowwise=False, label_key=None, **kargs):
-        """
-        **Purpose**
-            Get the pca object for this expression data. For performing principal
-            component analysis (PCA) on the expression data set.
-
-            A typical workflow for PCA of expression data would go something like:
-
-            expn = expression(filename="...", ...)
-            pca = expn.get_pca()
-            print pca.max() # maximum number of PCs.
-            pca.loading(filename="...") # PC loading bar chart.
-            pca.plot(1,2, filename="...") # PC
-
-        **Arguments**
-            whiten (Optional, default=False)
-                'Normalise' the data. Each feature is divided by its standard deviation
-                across all observations to give it unit variance
-
-            mean_subtraction (Optional, default=False)
-                subtract the mean from the matrix.
-
-            rowwise (Optional, default=False)
-                Perform PCA on the rows (probably genes), instead of on the conditions (the default)
-
-            label_key (Optional, Required if rowwise=True)
-                The key to use in the genelist to use as a label on plots, etc.
-
-                Ignored if rowwise=False
-
-        **Returns**
-            A 'pca' object.
-            See the documentation for pca for more details.
-
-            You can get the pca object again in expn.pca
-        """
-        # This is currently hidden:
-        self.__pca = manifold_pca(self, rowwise=rowwise, label_key=label_key, **kargs)
-        return self.__pca
-
-    def get_svd(self, rowwise=False, label_key=None, **kargs):
-        """
-        **Purpose**
-            Get the svd object for this expression data. For performing principal
-            component analysis (PCA/SVD) on the expression data set.
-
-            A typical workflow for PCA of expression data would go something like:
-
-            expn = expression(filename="...", ...)
-            svd = expn.get_svd()
-            print svd.max() # maximum number of PCs.
-            svd.loading(filename="...") # PC loading bar chart.
-            svd.plot(1,2, filename="...") # PC
-
-        **Arguments**
-            whiten (Optional, default=False)
-                'Normalise' the data. Each feature is divided by its standard deviation
-                across all observations to give it unit variance
-
-            mean_subtraction (Optional, default=False)
-                subtract the mean from the matrix.
-
-            rowwise (Optional, default=False)
-                Perform svd on the rows (probably genes), instead of on the conditions (the default)
-
-            label_key (Optional, Required if rowwise=True)
-                The key to use in the genelist to use as a label on plots, etc.
-
-                Ignored if rowwise=False
-
-        **Returns**
-            A 'svd' object.
-            See the documentation for svd for more details.
-
-            You can get the svd object again in expn.svd
-        """
-        self.svd = manifold_svd(self, rowwise=rowwise, label_key=label_key, **kargs)
-        return self.svd
 
     def sort_sum_expression(self, selected_conditions=None):
         """

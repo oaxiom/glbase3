@@ -49,7 +49,7 @@ class network:
         elif mode == "genes":
             length = len(self.parent[names])
 
-        return(length)
+        return length
 
     def __corr_network(self, lo, hi, length, max_links, mode="conditions", names="name", cols=None):
         """
@@ -113,7 +113,7 @@ class network:
 
         self.correlation_table = correlation_table
 
-        return(self.names, G, correlation_table, cols)
+        return self.names, G, correlation_table, cols
 
     def __trim_isolated_nodes(self, G, cols, node_size):
         """
@@ -133,7 +133,7 @@ class network:
                 del cols[idx]
             if isinstance(cols, list):
                 del node_size[idx]
-        return(G, cols, node_size)
+        return G, cols, node_size
 
     def genes(self, filename=None, cols=None, label_fontsize=8,
         edge_alpha=1.0,
@@ -227,7 +227,7 @@ class network:
         length = self.__get_network_size(mode="genes", names=name_key)
         if length <= 1:
             config.log.warning("Cannot generate a network with %s items" % length)
-            return(None)
+            return None
 
         conds, G, correlation_table, cols = self.__corr_network(low_threshold, hi_threshold, length, max_links, mode="genes", names=name_key, cols=cols)
 
@@ -240,7 +240,7 @@ class network:
 
         config.log.info("network.conditions(): saved '%s'" % return_data["actual_filename"])
 
-        return(return_data)
+        return return_data
 
     def conditions(self, filename=None, cols=None, label_fontsize=8,
         max_links=9999999, labels=True, node_size=100, edges=True, save_gml=False, layout="neato",
@@ -383,7 +383,7 @@ class network:
         length = self.__get_network_size(mode="conditions")
         if length <= 1:
             config.log.warning("Cannot generate a network with %s items" % length)
-            return(None)
+            return None
 
         conds, G, correlation_table, cols = self.__corr_network(low_threshold, hi_threshold, length, max_links, cols=cols)
         # conds is redundant and should be removed; cols is redundant and should be removed
@@ -494,7 +494,7 @@ class network:
         length = self.__get_network_size(mode="conditions")
         if length <= 1:
             config.log.warning("Cannot generate a network with %s items" % length)
-            return(None)
+            return None
 
         conds, G, correlation_table, cols = self.__corr_network(threshold, threshold, length, max_links, cols=cols)
 

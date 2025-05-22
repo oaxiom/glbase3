@@ -23,12 +23,19 @@ DEALINGS IN THE SOFTWARE.
 
 -------------
 
-Modifications were added by Andrew P. Hutchins and are included as part of glbase,
+Modifications were added by Andrew P. Hutchins and are included as part of glbase3,
 also released under the MIT license
 
 """
 
-import sys, os, timeit, math, textwrap, random, itertools, statistics
+import sys
+import os
+import timeit
+import math
+import textwrap
+import random
+import itertools
+import statistics
 from time import time
 
 import numpy as np
@@ -467,7 +474,7 @@ class manifold_SOM(object):
             if (i[0], i[1]) not in res:
                 res[(i[0], i[1])] = []
             res[(i[0], i[1])].append(self.dlabel[n]) # Why not i[2]?
-        return(data_tr, proj, coord, res)
+        return data_tr, proj, coord, res
 
     def get_all_genes(self):
         """
@@ -488,7 +495,7 @@ class manifold_SOM(object):
 
         ks = list(res.keys())
         ks.sort()
-        return(res)
+        return res
 
     def plot_gene_density(self, filename=None, topological=False, **kargs):
         """
@@ -671,8 +678,8 @@ class manifold_SOM(object):
             actual_filename = self.draw.savefigure(fig, filename, bbox_inches='tight') # bbox is not the same as tight_layout
             config.log.info('som.threshold_SOM_nodes: Saved "%s"' % actual_filename)
         if return_masks:
-            return(masks)
-        return(newres)
+            return masks
+        return newres
 
     def predict_by(self, data, Target, K=5, wt='distance'):
         """
@@ -990,7 +997,7 @@ class manifold_SOM(object):
             print('lattice not found! Lattice as hexa was set')
 
         if lattice == 'rect':
-            return(self.rect_dist(bmu_ind))
+            return self.rect_dist(bmu_ind)
         elif lattice == 'hexa':
             try:
                 msize = self.mapsize
@@ -1133,7 +1140,7 @@ class manifold_SOM(object):
 
         real_filename = self.draw.savefigure(fig, filename)
         config.log.info("som.tree(): Saved '%s'" % real_filename)
-        return(None)
+        return None
 
     def view_2d_pack(self, text_size, which_dim='all', filename=False, grid=True, text=True):
         """

@@ -84,7 +84,7 @@ class genome_sql(base_sql):
         c = self._connection.cursor()
         # check chromosome is not already present.
         if self.__has_chromosome(chromosome):
-            return(True)
+            return True
 
         c.execute("INSERT INTO main VALUES (?, ?)", (chromosome, 0)) # add chr to master table.
 
@@ -291,7 +291,7 @@ class genome_sql(base_sql):
                     yield r
 
     def __len__(self):
-        return(self.get_feature_count())
+        return self.get_feature_count()
 
     def _debug__print_all_tables(self):
         c = self._connection.cursor()

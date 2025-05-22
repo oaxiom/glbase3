@@ -101,7 +101,7 @@ def fold2UpOrDown(data, names, normed = None, **kargs):
                 normed_data = (data[c] / data[normed])
                 # this is greedy - only 1 condition needs to fulfill the criteria.
                 return normed_data > 2 or normed_data < 0.5
-        return(False)
+        return False
 
 def fold2Down(data, names, normed = None, **kargs):
     """
@@ -114,7 +114,7 @@ def fold2Down(data, names, normed = None, **kargs):
                 normed_data = (data[c] / data[normed])
                 # this is greedy - only 1 condition needs to fulfill the criteria.
                 return normed_data < 0.5
-        return(False)
+        return False
 
 def fold2Up(data, names, normed = None, **kargs):
     """
@@ -127,7 +127,7 @@ def fold2Up(data, names, normed = None, **kargs):
                 normed_data = (data[c] / data[normed])
                 # this is greedy - only 1 condition needs to fulfill the criteria.
                 return normed_data > 2
-        return(False)
+        return False
 
 def XDown(data, names, normed = None, **kargs):
     """
@@ -141,7 +141,7 @@ def XDown(data, names, normed = None, **kargs):
                 normed_data = (data[c] / data[normed])
                 # this is greedy - only 1 condition needs to fulfill the criteria.
                 return normed_data < X
-        return(False)
+        return False
 
 def XUp(data, names, normed = None, **kargs):
     """
@@ -171,9 +171,9 @@ def strandSorter(chr, left, right, strand):
     A helper proc to extract the tss from a list of coords.
     """
     if strand in positive_strand_labels:
-        return(location(chr=chr, left=left, right=left))
+        return location(chr=chr, left=left, right=left)
     elif strand in negative_strand_labels:
-        return(location(chr=chr, left=right, right=right))
+        return location(chr=chr, left=right, right=right)
 
     return None
 
@@ -182,8 +182,8 @@ def strandSorter_neg(chr, left, right, strand):
     A helper proc to extract the tts (i.e. the - strand side) from a list of coords.
     """
     if strand in positive_strand_labels:
-        return(location(chr=chr, left=right, right=right))
+        return location(chr=chr, left=right, right=right)
     elif strand in negative_strand_labels:
-        return(location(chr=chr, left=left, right=left))
+        return location(chr=chr, left=left, right=left)
 
     return None

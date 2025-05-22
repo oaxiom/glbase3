@@ -94,7 +94,7 @@ class manifold_pca:
         self.valid = True
 
     def __repr__(self):
-        return("<glbase.pca>")
+        return "<glbase.pca>"
 
     def __str__(self):
         ret = ["PCA object",
@@ -102,7 +102,7 @@ class manifold_pca:
             "    Trained   : %s" % self.valid,
             "    Whiten    : %s" % self.whiten,
             ]
-        return("\n".join(ret))
+        return "\n".join(ret)
 
     '''
     def __len__(self):
@@ -110,7 +110,7 @@ class manifold_pca:
         (Override)
         return the number of dimensions.
         """
-        return(len(self.__d))
+        return len(self.__d)
     '''
 
     def project(self, new_expn):
@@ -180,7 +180,7 @@ class manifold_pca:
         **Returns**
             Returns an array for each PC and it's percent variance
         """
-        return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
+        return numpy.array(self.__model.explained_variance_ratio_) * 100.0
 
     def scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
         spot_size=40, label_font_size=6, label_style='normal', cut=None, squish_scales=False,
@@ -523,11 +523,11 @@ class manifold_pca:
         PC -= 1 # Pad the PC so that the expected PC is returned rather than the zero-based PC.
 
         if not self.rowwise:
-            return(self.__row_loading(filename=filename, PC=PC, top=top, bot=bot, label_key=label_key, all=all,
-                position_override=position_override, selected_only=selected_only, **kargs))
+            return self.__row_loading(filename=filename, PC=PC, top=top, bot=bot, label_key=label_key, all=all,
+                position_override=position_override, selected_only=selected_only, **kargs)
         else:
-            return(self.__condition_loading(filename=filename, PC=PC, top=top, bot=bot, label_key=label_key, all=all,
-                position_override=position_override, **kargs))
+            return self.__condition_loading(filename=filename, PC=PC, top=top, bot=bot, label_key=label_key, all=all,
+                position_override=position_override, **kargs)
 
     def __row_loading(self, filename=None, PC=-1, top=50, bot=50, label_key=None, all=False,
         position_override=None, selected_only=None, **kargs):
@@ -604,7 +604,7 @@ class manifold_pca:
         newgl.load_list([{label_key: i[0], "pc_loading": i[1]} for i in zip(labs, data)]) # relist it so that top bot are used
         newexpn = newgl.map(genelist=self.parent, key=label_key, greedy=False)
         newexpn.sort("pc_loading")
-        return(newexpn)
+        return newexpn
 
     def __condition_loading(self, filename=None, PC=-1, top=50, bot=50, label_key=None, all=False, **kargs):
         """
@@ -661,4 +661,4 @@ class manifold_pca:
         newgl = genelist()
         newgl.load_list([{"name": i[0], "pc_loading": i[1]} for i in zip(labs, data)]) # relist it so that top bot are used
         newgl.sort("pc_loading")
-        return(newgl)
+        return newgl

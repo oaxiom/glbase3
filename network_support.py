@@ -293,7 +293,7 @@ def hierarchical_clusters(G, data_table, node_names, expected_group_number):
             clusters[clus_name] = []
         clusters[clus_name].append(node_names[idx])
 
-    return(clusters)
+    return clusters
 
 def longest_path(G, **kargs):
     """
@@ -320,7 +320,7 @@ def longest_path(G, **kargs):
 
     # convert nodes to edgelist:
     longest_edges = list(zip(longest_path, longest_path[1:]))
-    return(longest_path, longest_edges) # does not support multiple paths
+    return longest_path, longest_edges # does not support multiple paths
 
 def __path_similarity(p1, p2):
     """
@@ -399,7 +399,7 @@ def branches(G, **kargs):
     ret_edges = [list(zip(n, n[1:])) for n in ret_nodes]
 
     #longest_edges = zip(longest_path, longest_path[1:])
-    return(ret_nodes, ret_edges)
+    return ret_nodes, ret_edges
 
 def minimum_spanning_tree(G, **kargs):
     """
@@ -416,7 +416,7 @@ def minimum_spanning_tree(G, **kargs):
     nodes = nx.minimum_spanning_tree(self.G) # returns a new network. Will need to unpack
     nodes = nodes.nodes()
     edges = list(zip(nodes, nodes[1:])) # This is wrong?
-    return([nodes], [edges])
+    return [nodes], [edges]
 
 path_func_mapper = {"longest_path": longest_path,
     "minimum_spanning_tree": minimum_spanning_tree,
@@ -605,7 +605,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         ret["nodes"] = ret_nodes
         ret["edges"] = ret_edges
 
-    return(ret)
+    return ret
 
 def populate_path_neighbours(G, path_names, degree=1):
     """
@@ -649,4 +649,4 @@ def populate_path_neighbours(G, path_names, degree=1):
         last_node = node_name
     direct_path_names = new_direct_path_names # repack for return data
     direct_path = new_path # Already in edge format.
-    return(direct_path_names, direct_path)
+    return direct_path_names, direct_path
