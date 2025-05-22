@@ -1,12 +1,14 @@
 """
 
-The new realtime system, basically a set of data preprocessors for expression objects
+The  realtime system, basically a set of data preprocessors for expression objects
 
 Functions take a bunch of data and spit out an glbase expression object.
 
 """
 
-import csv, numpy, copy
+import csv
+import numpy
+import copy
 from . import config
 from .genelist import genelist
 from .expression import expression
@@ -218,11 +220,11 @@ def process_biomark(expression_sheets, sample_descriptor_tables, method, prefix=
             newgl.append(i)
         gl = genelist()
         gl.load_list(newgl)
-        return(gl)
+        return gl
         
     e = expression(loadable_list=newl, cond_names=sam_order)
     e.sort_conditions()
-    return(e)
+    return e
         
 def load_expn(filename, missing_data_ct, prefix=None, collect_sample_and_primer_names=False):
     """
@@ -255,7 +257,7 @@ def load_expn(filename, missing_data_ct, prefix=None, collect_sample_and_primer_
                     table[sample][primer] = []
                 table[sample][primer].append(Ct)
 
-    return(table)
+    return table
         
 def load_descriptors(filename, prefix, convert_under_scores):
     """
@@ -282,7 +284,7 @@ def load_descriptors(filename, prefix, convert_under_scores):
             if len(row[0]) < 4 and "A" in row[0]:
                 primer_names[row[0]] = row[1]
             
-    return(sample_names, primer_names)
+    return sample_names, primer_names
     
 def norm_buganim(data, sample_names, primer_names, control_genes, missing_data_ct, fudge_factor=20, cull_samples_with_low_control_genes=False):
     """
@@ -359,4 +361,4 @@ def norm_buganim(data, sample_names, primer_names, control_genes, missing_data_c
             #print res
 
             newdata[s][p] = numpy.mean(res)
-    return(newdata, sample_names, primer_names)
+    return newdata, sample_names, primer_names

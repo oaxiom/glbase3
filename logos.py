@@ -6,9 +6,9 @@ tools for drawing logos from sequences, fasta files, genelists, etc.
 
 """
 
-
-
-import sys, os, math
+import sys
+import os
+import math
 from operator import itemgetter
 
 import numpy
@@ -46,14 +46,14 @@ class logo:
             self.__load_numpy(numpy_matrix)
         
     def __repr__(self):
-        return("<glbase.logos.logo>")
+        return "<glbase.logos.logo>"
         
     def __str__(self):
-        return(str(self.data))
+        return str(self.data)
 
     def get_pfm(self):
         self.__gen_freq_table()
-        return(self.freq)
+        return self.freq
 
     def print_pfm(self, style="normal", transpose=False):
         """
@@ -131,13 +131,13 @@ class logo:
             if ">" in l:
                 # It's probably a FASTA
                 self.__load_list(utils.FASTAToLIST)
-                return(True)
+                return True
 
         # Okay, assume it's a list of sequences
         oh = open(filename, "rU")
         seql = [line.strip() for line in oh]
         self.__load_list(seql)
-        return(True)
+        return True
     
     def __load_genelist(self, gl_object):
         raise NotImplementedError("genelist loading for logos not implemented")
@@ -228,7 +228,7 @@ class logo:
                 ax.set_frame_on(False)
                 fig.savefig("char_%s.png" % k)
                 plot.close(fig)
-        return(True)
+        return True
 
     def draw(self, filename):
         if not self.__calc_done:

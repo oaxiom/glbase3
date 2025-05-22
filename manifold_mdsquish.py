@@ -6,7 +6,11 @@ Multi-dimensional PCA squish
 
 """
 
-import operator, heapq, itertools, math, collections
+import operator
+import heapq
+import itertools
+import math
+import collections
 import matplotlib
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -25,7 +29,6 @@ from . import utils, config
 from .progress import progressbar
 from functools import reduce
 
-# nx is interpreting the numpy color array as an iterable.
 
 class manifold_mdsquish:
     def __init__(self, parent):
@@ -385,7 +388,7 @@ class manifold_mdsquish:
         
         config.log.info("mdsquish.network: saved '%s'" % return_data["actual_filename"])
         
-        return(return_data)
+        return return_data
         
     def find_correlated_genes(self, mode="longest_path", R=0.7, patterns=None, **kargs):
         """

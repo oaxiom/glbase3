@@ -19,7 +19,10 @@ o use degenerate elements
 
 """
 
-import sys, os, re, string
+import sys
+import os
+import re
+import string
 from numpy import zeros
 
 # get glbase
@@ -112,7 +115,7 @@ class matrixmotif:
             containing [strand, position, score, and sequence]
         """
         if seq.upper().count("N") > 0:
-            return(False) # reject if contains an N
+            return False # reject if contains an N
 
         con_setpos = {"A" : 0, "C": 1, "G":2, "T": 3}
         result = [] # new list
@@ -140,9 +143,9 @@ class matrixmotif:
                         result.append(['-', len(rc_seq)-pos, score, rc_seq[pos:pos+self._length]])
 
         if result:
-            return(result)
+            return result
         else:
-            return(None)
+            return None
 
     def findAllScores(self, seq):
         """
@@ -152,7 +155,7 @@ class matrixmotif:
         """
 
         if seq.upper().count("N") > 0:
-            return(False) # reject if contains an N
+            return False # reject if contains an N
 
         pos_seq = seq.upper()
         neg_seq = self.rc(pos_seq)
@@ -182,7 +185,7 @@ class matrixmotif:
                 print("here:", seq_both_strands, p_pos)
                 hits.append(p_pos)
             result.append(max(scores))
-        return({"scores": result, "hits": hits})
+        return {"scores": result, "hits": hits}
 
     def EstimateErrorRate(self, seq, steps):
         """
@@ -200,7 +203,7 @@ class matrixmotif:
                 total.append(len(self.find_matches(seq)))
 
         self._threshold = oldthreshold # swap back old threshold;
-        return(total)
+        return total
 
     def rc(self, seq):
         """
@@ -215,7 +218,7 @@ class matrixmotif:
         tseq = [compdict[i] for i in seq] # new list
         tseq.reverse()
 
-        return("".join(tseq))
+        return "".join(tseq)
 
 class matrix:
     def __init__(self, matrixname, pwm):
@@ -233,7 +236,7 @@ class matrix:
         """
         Return a row of the list
         """
-        return(self._pwm[position])
+        return self._pwm[position]
 
     def ConvertPFMtoPWM(self):
         """
@@ -271,7 +274,7 @@ class matrix:
         """
         Method to give a valid len(self) assignment.
         """
-        return(len(self._pwm)) # just pass back the length
+        return len(self._pwm) # just pass back the length
 
     def min_score(self):
         """
@@ -299,10 +302,10 @@ class matrix:
         self.max_score()
 
     def getName(self):
-        return(self.__str__())
+        return self.__str__()
 
     def __str__(self):
-        return(self._matrixname)
+        return self._matrixname
 
 
 def BatchConvert(fasta_file, matrix, threshold = 0.883, bKeepAll=False, errorf=False, path=None):
@@ -401,17 +404,4 @@ def BatchConvert(fasta_file, matrix, threshold = 0.883, bKeepAll=False, errorf=F
         fastafile.close()
     if errorf: errorfile.close()
 
-    return({"total": total, "t_score_dist": tscore, "pos_in_hit": posinhit, "listlen": listlen})
-
-
-if __name__ == "__main__":
-    # windows
-    path = "/home/hutchinsa/genomePeriodicity/"
-    """
-    R=[AG], Y=[CT], K=[GT], M=[AC], S=[GC], W=[AT], and the four-fold
-    degenerate character N=[ATCG]"""
-
-    #
-    # multiple sox's elements: c(a/t)ttgt(c/g)-c(a/t)ttgt(c/g) = cwttgtscwttgts
-    scanPeriodicityFASTA("mwttswnnnnnnnnnynkccty", None, path, "mm8_refseq.csv_l8000bp_r2500bp.fa") # soxf_obp_soxf
-
+    return {"total": total, "t_score_dist": tscore, "pos_in_hit": posinhit, "listlen": listlen}

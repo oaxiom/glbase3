@@ -10,7 +10,9 @@ Requires:
 * h5py
 """
 
-import sys, os, logging
+import sys
+import os
+import logging
 from pkgutil import iter_modules
 
 available_modules = list((name for loader, name, ispkg in iter_modules()))

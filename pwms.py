@@ -6,7 +6,11 @@ An amalgamation of a set of pwms.
 
 """
 
-import sys, os, csv, random, string
+import sys
+import os
+import csv
+import random
+import string
 from . import config, utils
 
 from numpy import zeros, array, mean, std
@@ -45,7 +49,12 @@ class pwms(genelist):
             to add, but currently unsupported formats:
             "jaspar"
     """
-    def __init__(self, filename=None, name="None", format=None, **kargs):
+    def __init__(self,
+                 filename=None,
+                 name="None",
+                 format=None,
+                 **kargs):
+
         genelist.__init__(self, filename=None, name=name, format=format, **kargs) # no filename, get an empty genelist
         assert filename, "filename argument not specified"
         assert format, "no format specifier provided"
@@ -121,7 +130,7 @@ class pwms(genelist):
                 self.linearData.append({"name": name, 'motif_seq': motif_seq, 
                     'p': p, 'score': score,
                     "pwm": pwm.pwm(name=name, pwm_matrix=pwm_store, isPFM=False)})
-        return()     
+        return
 
     def __load_jolma_csv(self, filename):
         """
@@ -323,10 +332,10 @@ class pwms(genelist):
             except ValueError:
                 pass
 
-        return(None)
+        return None
 
     def __repr__(self):
-        return("glbase.pwms")
+        return "glbase.pwms"
 
     def scan_sequence(self, loc, sequence, features, filename=None,
         merge_strands=True, summary_file=None,
@@ -414,7 +423,7 @@ class pwms(genelist):
 
         config.log.info("Saved a summary image file to '%s'" % real_filename)
 
-        return(real_filename)
+        return real_filename
 
     def saveCSV(self, filename=None, **kargs):
         """
@@ -493,7 +502,7 @@ class pwms(genelist):
         elif mode == "cisfinder":
             self.__save_cisfinder(filename)
         config.log.info("Saved '%s'" % filename)
-        return(None)
+        return None
         
     def __save_cisfinder(self, filename):
         with open(filename, "w") as oh:

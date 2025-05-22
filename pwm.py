@@ -5,17 +5,17 @@ pwm.py
 Tools and utilities to use position-weight matrices and other matrix-like
 representations
 
-TODO:
------
-. Merge with logo.py
+TODO: Merge with logo.py
 
 """
 
-
-
 from . import config
 
-import sys, os, math, numpy
+import sys
+import os
+import math
+import numpy
+
 from numpy import zeros, array
 
 from .base_genelist import _base_genelist
@@ -120,7 +120,7 @@ class pwm:
             [a, c, g, t] ]
         """
         new_matrix = [[i["a"], i["c"], i["g"], i["t"]] for i in dict_pwm_matrix]
-        return(array(new_matrix , dtype=float))
+        return array(new_matrix , dtype=float)
 
     def convertPFMtoPWM(self):
         """
@@ -160,7 +160,7 @@ class pwm:
         """
         Method to give a valid len(self) assignment.
         """
-        return(len(self.__matrix)) # just pass back the length
+        return len(self.__matrix) # just pass back the length
 
     def __do_minmax(self):
         """
@@ -174,7 +174,7 @@ class pwm:
             self.__maxscore += max(n)
 
     def __str__(self):
-        return("<name: %s length: %s, minmax: (%.1f, %.1f)>" % (self.name, self.__len__(), self.__minscore, self.__maxscore))
+        return f"<name: {self.name} length: {self.__len__()}, minmax: ({self.__minscore:.1f}, {self.__maxscore:.1f})>"
 
     def get_matrix(self):
         """
@@ -182,7 +182,7 @@ class pwm:
             Return the actual pwm matrix.
             THis is a numpy array and is the native format for the matrix
         """
-        return(self.__matrix)
+        return self.__matrix
 
     def get_as_list(self):
         """
@@ -196,7 +196,7 @@ class pwm:
         new.append([v for v in c[1]]) # c # for clarity.
         new.append([v for v in c[2]]) # g
         new.append([v for v in c[3]]) # t
-        return(new)
+        return new
 
     def score(self, seq):
         """
@@ -218,7 +218,7 @@ class pwm:
             A dictionary {"+": <upper strand score>, "-": <lower strand score>}
         """
         if seq.count("n") > 0 or seq.count("N") > 0:
-            return({"+": 0.0, "-": 0.0}) # reject if contains an N
+            return {"+": 0.0, "-": 0.0} # reject if contains an N
 
         #con_setpos = {"a" : 0, "c": 1, "g": 2, "t": 3} Defined above at the head of the module
 
@@ -232,7 +232,7 @@ class pwm:
 
             result[key] = (unnormalised_score - self.__minscore) / (self.__maxscore - self.__minscore)
 
-        return(result)
+        return result
 
     def scan_sequence(self, sequence, merge_strands=True):
         """
@@ -282,7 +282,7 @@ class pwm:
                     result["+"][p] = scores["+"]
                     result["-"][p] = scores["-"]
 
-        return(result)
+        return result
 
     def scan_seq_with_features(self, sequence, features=None, filename=None, **kargs):
         """
@@ -359,7 +359,7 @@ class pwm:
             p.update(n)
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def save(self, filename=None, mode="homer", usePFM=False):
         """
@@ -405,7 +405,7 @@ class pwm:
             for i in matrix_to_use:
                 oh.write("%s\n" % "\t".join(str(b) for b in nl)) 
 
-        return(None)
+        return None
 
     def draw_logo(self, filename, title=None):
         '''
