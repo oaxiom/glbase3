@@ -4,9 +4,10 @@ run all of the tests
 
 """
 import unittest
+import sys
+import os
 
 # get glbase
-import sys, os
 sys.path.append(os.path.realpath("../../"))
 import glbase3.config
 print(sys.version)

@@ -58,7 +58,7 @@ class manifold_mds(base_manifold):
         self.__mds = MDS(n_components=2,
                          n_jobs=1,
                          n_init=20,
-                         verbose=self.verbose - 1, # MDS is too chatty
+                         verbose=0, # MDS is too chatty
                          random_state=self.random_state
                          )
 

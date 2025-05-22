@@ -7,8 +7,15 @@ New reimplementation using hdf5.
 
 """
 
-import pickle, sys, os, struct, configparser, math, zlib
+import pickle
+import sys
+import os
+import struct
+import configparser
+import math
+import zlib
 from operator import itemgetter
+from typing import Iterable
 
 from .location import location
 
@@ -32,12 +39,14 @@ else:
 positive_strand_labels = frozenset(["+", "1", "f", "F", 1])
 negative_strand_labels = frozenset(["-", "0", "r", "R", -1, 0, "-1"])
 
+
 class flat_track():
     def __init__(self,
-        filename:str=None,
-        name:str=None,
-        new:str=False,
-        bin_format='f'):
+                 filename: str = None,
+                 name: str = None,
+                 new: str = False,
+                 bin_format:str = 'f'
+                 ):
         """
         **Purpose**
             track definition, used for things like sequence reads across the genome
@@ -77,7 +86,7 @@ class flat_track():
             self.meta_data = self.hdf5_handle.attrs
 
             self.draw = draw()
-            config.log.info('Setup new "{0}" flat file' .format(filename))
+            config.log.info(f'Setup new "{filename}" flat file')
 
         else: # old
             try:
@@ -265,17 +274,18 @@ class flat_track():
         self.hdf5_handle.create_dataset('all_chrom_names', (len(self.chrom_names), 1), 'S10', dat)
 
     def pileup(self,
-        genelists=None,
-        filename=None,
-        scaled=None,
-        scaled_view_fraction=0.5,
-        window_size=None,
-        average=True,
-        background=None,
-        mask_zero=False,
-        respect_strand=True,
-        norm_by_read_count=True,
-        **kargs):
+               genelists=None,
+               filename=None,
+               scaled=None,
+               scaled_view_fraction: float = 0.5,
+               window_size=None,
+               average: bool = True,
+               background=None,
+               mask_zero: bool = False,
+               respect_strand: bool = True,
+               norm_by_read_count: bool = True,
+               **kargs
+               ):
         """
         **Purpose**
             Draw a set of pileup count scores (averages or cumulative scores)
@@ -343,7 +353,6 @@ class flat_track():
             background returns an average of the list of background peaks.
 
         """
-        # Common cleanup
         assert genelists, "genelists is None?"
         assert scaled is not None, 'You must specify if scaled is True or False'
 
@@ -372,6 +381,7 @@ class flat_track():
                 respect_strand=respect_strand,
                 norm_by_read_count=norm_by_read_count,
                 **kargs)
+
         else:
             ret = self._pileup_unscaled(
                 genelists=genelists,
@@ -386,8 +396,17 @@ class flat_track():
 
         return ret
 
-    def _pileup_unscaled(self, genelists=None, filename=None, window_size=None, average=True,
-        background=None, mask_zero=False, respect_strand=True, norm_by_read_count=True, **kargs):
+    def _pileup_unscaled(self,
+                         genelists=None,
+                         filename=None,
+                         window_size=None,
+                         average=True,
+                         background=None,
+                         mask_zero: bool = False,
+                         respect_strand: bool = True,
+                         norm_by_read_count: bool = True,
+                         **kargs
+                         ):
 
         read_count = 1.0
         if norm_by_read_count:
