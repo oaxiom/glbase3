@@ -428,7 +428,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
     mark_clusters=False, cluster_alpha_back=0.8, cluster_node_size=3000, node_alpha=0.6, nodes=True,
     cluster_alpha_back2=1.0, mark_path=None, mark_paths=None, path_color='red', title=None, edge_pad=0.03, title_font_size=12,
     traversal_weight=0.0, draw_node_boundary=False, node_boundary=None,
-    width_adjuster=20, 
+    width_adjuster=20,
     layout_data=None, # preexisting layout data
     **kargs):
     """
