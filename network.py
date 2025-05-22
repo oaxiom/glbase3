@@ -302,7 +302,7 @@ class network:
             node_size (Optional, default=100)
                 The size of the spot for each node.
 
-                You can also send a string for the node name and the mdsquish will collect the
+                You can also send a string for the node name and the newtork will collect the
                 expression values and use them to plot the size of the nodes.
 
             log_correct_node_sizes (Optional, default=False)
@@ -311,8 +311,7 @@ class network:
                 original unlogged value.
 
             node_cmap (Optional, default=False)
-                mdsquish specific command:
-                You can send a matplotlib colormap to use to color the nodes to mark intensity
+                You can send a matplotlib colormap to use to color the nodes to mark intensity.
 
             node_alpha (Optional, default=0.6)
                 Alpha blending for the nodes.
@@ -388,8 +387,6 @@ class network:
         conds, G, correlation_table, cols = self.__corr_network(low_threshold, hi_threshold, length, max_links, cols=cols)
         # conds is redundant and should be removed; cols is redundant and should be removed
 
-        # This is getting reused, parck into network_support helper?
-        # I need to repack node_size as mdsquish supports just passing the gene name as a string:
         node_color = "grey"
         if isinstance(node_size, str):
             ee = self.parent.find(node_size)

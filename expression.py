@@ -42,9 +42,6 @@ from .stats import stats
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
     from .network import network
 
-if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
-    from .manifold_mdsquish import manifold_mdsquish
-
 
 class expression(base_expression):
     def __init__(self,
@@ -228,13 +225,6 @@ class expression(base_expression):
         elif name == "stats":
             self.stats = stats(self)
             return self.stats
-
-        elif name == "mdsquish":
-            assert config.NETWORKX_AVAIL, "Asking for mdsquish but networkx is not available"
-            assert config.PYDOT_AVAIL, "Asking for a mdsquish object but pydot is not available"
-            assert config.PYGRAPHVIZ_AVAIL, "Asking for a network object but pygraphviz is not available"
-            self.mdsquish = mdsquish(self)
-            return self.mdsquish
 
         elif name == "som":
             assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
