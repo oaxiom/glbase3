@@ -6,20 +6,20 @@ MDS analysis for glbase expression objects.
 
 from operator import itemgetter
 
-import numpy, random
+import numpy
+import random
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 
 from . import config
 from .genelist import genelist
-
 from .base_manifold import base_manifold
 
 class manifold_mds(base_manifold):
     def __init__(self, parent=None, name='none'):
         base_manifold.__init__(self, parent=parent, name=name, manifold_type='MDS')
 
-    def train(self, num_pc):
+    def train(self, num_pc:int):
         """
         **Purpose**
             Train the MDS on the first <num_pc> components of a PCA
@@ -49,12 +49,19 @@ class manifold_mds(base_manifold):
         elif isinstance(num_pc, list):
             self.__model = PCA(n_components=max(num_pc)+1, whiten=self.whiten)
             self.__transform = self.__model.fit_transform(self.data_table)
-            # get only the specific PCs
+            # get only the specified PCs
             self.__pcas = numpy.array([self.__transform[:,c-1] for c in num_pc]).T
+
         else:
             raise AssertionError('num_pcs must be either an integer or a list')
 
-        self.__mds = MDS(n_components=2, n_jobs=1, n_init=20, verbose=self.verbose, random_state=self.random_state)
+        self.__mds = MDS(n_components=2,
+                         n_jobs=1,
+                         n_init=20,
+                         verbose=self.verbose - 1, # MDS is too chatty
+                         random_state=self.random_state
+                         )
+
         self.npos = self.__mds.fit_transform(self.__pcas)
 
         self.trained = True

@@ -24,7 +24,11 @@ from .draw import draw
 from .genelist import genelist
 
 class base_manifold:
-    def __init__(self, parent=None, name='none', manifold_type='base_manifold'):
+    def __init__(self,
+                 parent=None,
+                 name='none',
+                 manifold_type='base_manifold'):
+
         self.manifold_type = manifold_type
         self.parent = parent
         self.name = name
@@ -39,10 +43,10 @@ class base_manifold:
         return "<glbase.{0}>".format(self.manifold_type)
 
     def __str__(self):
-        ret = ["{0}} object".format(self.manifold_type),
-            "\tExpression: %s" % self.parent.name,
-            "\tConfigured: %s" % self.configured,
-            "\tTrained   : %s" % self.trained,
+        ret = [f"{self.manifold_type} object",
+            f"\tExpression: {self.parent.name}"
+            f"\tConfigured: {self.configured}"
+            f"\tTrained   : {self.trained}"
             ]
         return "\n".join(ret)
 
@@ -51,11 +55,11 @@ class base_manifold:
         feature_key_name: str = None,
         whiten: bool = False,
         random_state = None,
-        verbose: int = 2,
+        verbose: int = 0,
         **kargs):
-        """
+        f"""
         **Purpose**
-            Configure the {0} Manifold
+            Configure the {self.manifold_type} Manifold
 
         **Arguments**
             rowwise (Optional, default=False)
@@ -72,7 +76,8 @@ class base_manifold:
             whiten (Optional, default=False)
                 set the data to unit variance
 
-        """.format(self.manifold_type)
+        """
+
         if rowwise:
             # rowwise here is not needed
             assert feature_key_name, 'If rowwise=True then feature_key_name must also be valid'
@@ -91,9 +96,19 @@ class base_manifold:
         self.whiten = whiten
         self.configured = True
 
-    def scatter(self, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8,
-        spot_size=40, label_font_size=7, cut=None, squish_scales=False,
-        only_plot_if_x_in_label=None, draw_clusters=True, **kargs):
+    def scatter(self,
+                filename=None,
+                spot_cols='grey',
+                spots=True,
+                label=False,
+                alpha=0.8,
+                spot_size=40,
+                label_font_size=7,
+                cut=None,
+                squish_scales=False,
+                only_plot_if_x_in_label=None,
+                draw_clusters=True,
+                **kargs):
         """
         **Purpose**
             plot a scatter plot of the {0}.
@@ -298,4 +313,4 @@ class base_manifold:
             truncate_mode='level', p=self.__model.n_clusters,
             **kargs)
 
-        self.__draw.savefigure(fig, filename)
+        return self.__draw.savefigure(fig, filename)

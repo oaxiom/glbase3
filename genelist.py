@@ -30,6 +30,7 @@ from .base_genelist import _base_genelist
 from .format import sniffer, sniffer_tsv, _load_hmmer_tbl, _load_hmmer_domtbl
 from typing import Iterable
 
+
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
     """
     **Purpose**
@@ -143,15 +144,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     """
     def __init__(self,
-                 filename:str = None,
-                 loadable_list:Iterable = None,
-                 gzip:bool = False,
-                 **kargs):
-        # This call signature is used in a few places, so modify with care
-        valig_args = ["name", "format", "force_tsv",]
-        for k in kargs:
-            if k not in valig_args:
-                raise ArgumentError(self.__init__, k)
+                 filename: str = None,
+                 loadable_list: Iterable = None,
+                 gzip: bool = False,
+                 format=None,
+                 force_tsv: bool = False,
+                 name: str = None,
+                 ):
 
         self.linearData = []
         self.dataByChr = None # this is private, use get by loc.
@@ -162,25 +161,23 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.__deathline = None # Error reporting in load_CSV()
         self.__deathindx = None
 
-        format = sniffer
-        if "format" in kargs:
-            format = kargs["format"] # I expect a filename = is coming.
-
-        if "force_tsv" in kargs and kargs["force_tsv"]:
-            format["force_tsv"] = True
-
         if filename:
-            if "format" in kargs:
+            if format:
+                if force_tsv:
+                    format["force_tsv"] = True
+
                 self.load(filename=filename, format=format, gzip=gzip)
+
             else:
                 raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument, you can reenable this feature by specifying the sniffer: format=format.sniffer')
 
             config.log.info(f"genelist: loaded '{filename}' found {len(self.linearData):,} items")
+
         elif loadable_list:
             self.load_list(loadable_list)
 
-        if "name" in kargs: # Here so it overrides anything above.
-            self.name = kargs["name"]
+        if name: # Here so it overrides anything above.
+            self.name = name
 
     def load(self,
              filename:str = None,
@@ -231,10 +228,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                         pass
                     self._optimiseData()
                     return True
+
                 if format["special"] == "hmmer_tbl":
                     self.linearData = _load_hmmer_tbl(filename, gzip=gzip)
                     self._optimiseData()
                     return True
+
                 elif format['special'] == 'hmmer_domtbl':
                     self.linearData = _load_hmmer_domtbl(filename, gzip=gzip)
                     self._optimiseData()
@@ -251,38 +250,36 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return True  # must have made it to one - if it fails it should trigger
 
     def loadCSV(self,
-                filename:str = None,
+                filename: str = None,
                 format=None,
-                **kargs):
+                **kargs
+                ):
         """
         **Purpose**
-
-        load a CSV file into the genelist
+            Load a CSV file into the genelist
 
         **Arguments**
+            filename
+                absolute filename (including path) to the actual file.
+                can include path short cuts (e.g. "./", "../" etc)
 
-        filename
-            absolute filename (including path) to the actual file.
-            can include path short cuts (e.g. "./", "../" etc)
+            format (Optional, default = "sniffer" (ie. guess))
+                format specifer, see format.py and helpers.py and the
+                documentation on how to write a valid format specifier
 
-        format (Optional, default = "sniffer" (ie. guess))
-            format specifer, see format.py and helpers.py and the
-            documentation on how to write a valid format specifier
+            force_tsv (Optional, default=False)
+                if you don't send a format specifier, but want to force the
+                genelist to load as a tsv, you can set this flag to True.
+                NOTE: If you send a format argument then this argument is ignored!
 
-        force_tsv (Optional, default=False)
-            if you don't send a format specifier, but want to force the
-            genelist to load as a tsv, you can set this flag to True.
-            NOTE: If you send a format argument then this argument is ignored!
+                As another option, you can use the sniffer_tsv format specifier
 
-            As another option, you can use the sniffer_tsv format specifier
-
-        name (Optional, Default = based on the filename)
-            name of the genelist, used intermittently as labels in
-            figures and the like.
+            name (Optional, Default = based on the filename)
+                name of the genelist, used intermittently as labels in
+                figures and the like.
 
         **Result**
-
-        fills the genelist with the CSV table.
+            Fills the genelist with the CSV table.
         """
         assert os.path.isfile(os.path.realpath(filename)), f"File {filename} not found"
 
@@ -302,6 +299,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             print("--------")
             print("DEBUG load:")
             self._loadCSV(filename=self.fullfilename, format=format, **kargs)
+
         else:
             try:
                 self._loadCSV(filename=self.fullfilename, format=format, **kargs)
@@ -1518,9 +1516,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             peaklist=None,
             genome=None,
             key=None,
-            greedy:bool = True,
-            logic:str = "and",
-            silent:bool = False,
+            greedy: bool = True,
+            logic: str = "and",
+            silent: bool = False,
             **kargs):
         """
         **Purpose**
@@ -1614,8 +1612,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             gene_list = genelist
         if peaklist:
             gene_list = peaklist
-        if microarray:
-            gene_list = microarray
         if genome:
             gene_list = genome
 
@@ -1903,7 +1899,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Annotated %s, found: %s within: %s bp" % (newgl.name, len(newgl), distance))
         return newgl
 
-    def pointify(self, key="loc"):
+    def pointify(self,
+                 key:str = "loc"):
         """
         Convert all of the loc coordinates to a single point, centred
         around the middle of the coordinates
@@ -1934,7 +1931,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Pointified peaklist '%s'" % self.name)
         return newl
 
-    def addEmptyKey(self, key=None, value=None):
+    def addEmptyKey(self,
+                    key=None,
+                    value=None):
         """
         **Purpose**
             You need to add a empty key ot the list so that it becomes compatible with some downstream function.
@@ -1976,7 +1975,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("addEmptyKey: Added a new key '%s'" % key)
         return(newl)
 
-    def expand(self, key="loc", base_pairs=None, side="both"):
+    def expand(self,
+               key:str = "loc",
+               base_pairs:int = None,
+               side="both"):
         """
         Add base_pairs to the left and right of the location specified in 'key'
 
@@ -2025,7 +2027,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Expanded '%s' in genelist '%s' by %s base pairs" % (key, self.name, base_pairs))
         return newl
 
-    def pointLeft(self, key="loc"):
+    def pointLeft(self,
+                  key:str = "loc"):
         """
         pointify the location so that it is set to the left-most base pair.
 
@@ -2052,7 +2055,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("pointLeft genelist %s" % (self.name))
         return newl
 
-    def pointRight(self, key="loc"):
+    def pointRight(self,
+                   key:str = "loc"):
         """
         pointify the location so that it is set to the left-most base pair.
 
@@ -2078,8 +2082,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("pointRight genelist %s" % (self.name))
         return newl
 
-    def collide(self, compare_mode="Collide", loc_key="loc", delta=200, title=None, bins=20,
-        add_tags=False, image_filename=None, keep_rank=False, genelist=None, **kargs):
+    def collide(self,
+                genelist=None,
+                compare_mode="Collide",
+                loc_key="loc",
+                delta:int = 200,
+                title:str = None,
+                bins=20,
+                add_tags:bool = False,
+                keep_rank:bool = False,
+                **kargs):
         """
         **Purpose**
 
@@ -2109,11 +2121,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 "notinleft" = Only keep items in the right list if the are 'NOT in the left list'
                 "notinright" = Only keep items in the left list if they are 'NOT in the right list'
 
-            image_filename (Optional)
-                save a dotplot of the ranks of the colliding peaks. ({filename}_dots.png)
-                and save a venn diagram of the overlap. ({filename}_venn.png)
-                and a frequency histogram showing the collision distance ({filename}_distance.png)
-
             bins (Optional, default=20)
                 Sets the number of bins in the frequency histogram showing the collision
                 distances.
@@ -2138,7 +2145,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 If set to False then I will take the tag score from self.
 
         **Result**
-
             returns a new genelist derived from the intersect of the keys in
             the original list and the new gene list
             the resulting "loc" key will be a single base pair mid-way
@@ -2146,7 +2152,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert genelist, "You must specify a genelist"
 
-        newl = self._unified_collide_overlap(compare_mode, loc_key, delta, title, bins, add_tags, image_filename, keep_rank, genelist=genelist, **kargs)
+        newl = self._unified_collide_overlap(compare_mode,
+                                             loc_key,
+                                             delta,
+                                             add_tags,
+                                             keep_rank,
+                                             genelist=genelist,
+                                             **kargs)
 
         len_res = 0 # because newl can be None.
         if newl:
@@ -2166,15 +2178,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def overlap(self,
-        compare_mode="Overlap",
-        loc_key="loc",
-        delta:int=200,
-        title=None,
-        bins:int=20,
-        add_tags:bool=False,
-        image_filename=None,
-        keep_rank:bool=False,
-        merge_keys:bool=False,
+        compare_mode = "Overlap",
+        loc_key = "loc",
+        delta:int = 200,
+        add_tags:bool = False,
+        keep_rank:bool = False,
+        merge_keys:bool = False,
         **kargs):
         """
         **Purpose**
@@ -2207,21 +2216,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 "notinleft" = Only keep items in the right list if the are 'NOT in the left list'
                 "notinright" = Only keep items in the left list if they are 'NOT in the right list'
 
-            image_filename (Optional)
-                save a dot-plot map of the colliding lists.
-
-            bins (Optional, default=20)
-                Sets the number of bins in the frequency histogram showing the collision
-                distances.
-
             merge_keys (Optional, Default=False)
                 merge the two lists keys together. This is useful for
                 heterogenouse lists. For homogenous lists, don't set this
                 or set it to False and collide() will keep the resulting list
                 homogenous too.
-
-            title (Optional, default = None)
-                title for the image figures.
 
             keep_rank (Optional, default=False)
                 if set to true then I will add a new key "ranks" that contains two ranks, the
@@ -2238,13 +2237,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             the resulting "loc" key will be the left and right most extreme points
             of the two overlapping coordinates.
         """
-        newl = self._unified_collide_overlap(compare_mode,
+        newl = self._unified_collide_overlap(
+            compare_mode,
             loc_key,
             delta,
-            title,
-            bins,
             add_tags,
-            image_filename,
             keep_rank,
             merge_keys,
             **kargs)
@@ -2264,13 +2261,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def _unified_collide_overlap(self,
         compare_mode=None,
         loc_key="loc",
-        delta=200,
-        title=None,
-        bins=20,
+        delta:int = 200,
         add_tags=False,
-        image_filename=None,
-        keep_rank=False,
-        merge_keys:bool=False,
+        keep_rank:bool = False,
+        merge_keys:bool = False,
         **kargs):
         """
         A new unified overlap() collide() code.
@@ -2279,12 +2273,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert compare_mode, "compare_mode cannot be False"
         assert compare_mode in ('Collide', 'Overlap'), f'{compare_mode} must be one of Collide or Overlap'
-
-        if image_filename:
-            config.log.warning("_unified_collide_overlap: use of image_filename to draw a Venn is not recommended. The values in the Venn")
-            config.log.warning("                   may not match the actual overlap values (due to multiple overlaps for a single location)")
-            if "logic" in kargs and kargs["logic"] != "and":
-                config.log.warning("_unified_collide_overlap: The output to the Venn (image_filename) when logic != 'and' is not correct")
 
         __add_tag_keys_warning = False
         __add_tag_keys_float_warning = False
@@ -2308,13 +2296,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl = gene_list.shallowcopy()
         newl.linearData = []
-
-        if image_filename:
-            result_array = [0 for x in range(max(len(gene_list), len(self)))]
-            x_data = []
-            y_data = []
-            scatter_data = {"found": [], "not_found": []}
-            dist_array = []
 
         # get a progress bar
         p = progressbar(len(self))
@@ -2398,17 +2379,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                         newl.linearData.append(a)
 
-                        if image_filename: # collect the data for the images.
-                            scatter_data["found"].append((indexA, indexB))
-                            result_array[indexA] += 1
-                            result_array[indexB] += 1
-                            x_data.append(indexA)
-                            y_data.append(indexB)
-                            dist_array.append(a["dist"])
-
-                    # only gets here if not found.
-                    if image_filename: # indexB are not labelled as not Found. Bug or feature?
-                        scatter_data["not_found"] = indexA
             p.update(indexA)
 
         # if logic = "not", I want the opposite of all the items found
@@ -2428,36 +2398,19 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                         a["loc"] = a["loc"].pointify() # pointify result
                         newl.linearData.append(a)
 
-        if image_filename and scatter_data["found"]:
-            filename_root = image_filename
-
-            if not title:
-                title = filename_root
-
-            x_array, y_array = list(zip(*scatter_data["found"])) # neat trick to unzip list
-
-            # I need to add indexB not founds...
-
-            self.draw.nice_scatter(x=x_array, y=y_array, filename="%s_dot.png" % image_filename,
-                do_best_fit_line=True, print_correlation="pearsonr2",
-                xlabel=self.name, ylabel=gene_list.name)
-
-            labels = {"left": self.name, "right": gene_list.name, "title": title}
-
-            # and modify the output and draw the venn
-            self.draw._vennDiagram2(len(self)-len(newl), len(gene_list)-len(newl), len(newl),
-                filename="%s_venn.png" % filename_root, proportional=False, labels=labels)
-
-            #self.draw._qhist(data=dist_array, filename="%s_distance.png" % filename_root, bins=bins, title=title)
-
         if len(newl) == 0:
             return None
 
         newl._optimiseData()
         return newl
 
-    def removeDuplicatesByLoc(self, mode, key="loc", delta=200, use_strand=False,
-        delete_any_matches=False):
+    def removeDuplicatesByLoc(self,
+                              mode,
+                              key="loc",
+                              delta:int = 200,
+                              use_strand:bool = False,
+                              delete_any_matches:bool = False
+                              ):
         """
         **Purpose**
             Remove duplicates in the list based on a location tag.
@@ -2565,6 +2518,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             ov = self.shallowcopy()
             ov.load_list(newl)
+
         elif mode == 'overlap':
             # get the maximum peak size for a decent estimate of delta:
             delta = max(len(i['loc']) for i in self.linearData)
@@ -2618,7 +2572,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Removed {0} duplicates, {1} remain".format((len(self) - len(ov)), len(ov)))
         return ov
 
-    def removeDuplicates(self, key=None):
+    def removeDuplicates(self,
+                         key=None):
         """
         **Purpose**
             remove the duplicates in the list and returns a new list;
@@ -2730,7 +2685,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("removeExactDuplicates: %s exact duplicates" % (len(self) - len(newl)))
         return newl
 
-    def removeEmptyDataByKey(self, key=None):
+    def removeEmptyDataByKey(self,
+                             key=None):
         """
         **Purpose**
             remove any entry that has empty data within 'key'
@@ -2787,7 +2743,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Removed empty data in %s key: %s entries" % (key, len(self) - len(newl)))
         return newl
 
-    def act(self, operation, key1, key2, result_key=None):
+    def act(self,
+            operation,
+            key1,
+            key2,
+            result_key:str = None):
         """
         **Purpose**
             perfrom some sort of action (or operation) on two keys
@@ -2855,7 +2815,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return None
 
-    def load_list(self, list_to_load, name=False):
+    def load_list(self,
+                  list_to_load:Iterable,
+                  name=False):
         """
         **Purpose**
             You've generated your own [{ ... }, { ...}] like list
@@ -2877,22 +2839,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             self
         """
-        try:
-            list_to_load[0]
-            i = list_to_load.__iter__()
-        except TypeError:
-            raise AssertionError("Type Error, the list is not an iterable")
+        assert isinstance(list_to_load, Iterable), "Type Error, the list is not an iterable"
+        assert isinstance(list_to_load[0], dict), "Type Error, the list of items appears not to contain a dictionary item"
 
-        try:
-            item = list_to_load[0]
-            i = [item[k] for k in item]
-        except Exception:
-            raise AssertionError("Type Error, the list of items appears not to contain a dictionary item")
-
-        #try:
         self.linearData = utils.qdeepcopy(list_to_load)
-        #except Exception:
-        #    self.linearData = copy.deepcopy(list_to_load)
 
         if name: # Overwrite name if set
             self.name = name
@@ -2917,7 +2867,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         return self.linearData
 
-    def unfold(self, key=None):
+    def unfold(self,
+               key=None):
         """
         **Purpose**
             This method 'unfolds' the list based on a key that also contains
@@ -2957,7 +2908,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
         return newl
 
-    def sample(self, number_to_get=None, seed=None):
+    def sample(self,
+               number_to_get=None,
+               seed=None):
         """
         **Purpose**
             Sample n random samples from this genelist
@@ -2992,7 +2945,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return newgl
 
-    def find(self, value):
+    def find(self,
+             value):
         """
         **Purpose**
             find value in any key in the genelist.
@@ -3014,7 +2968,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return False
 
-    def renameKey(self, old_key_name, new_key_name, keep_old_key=False, replace_existing_key=False):
+    def renameKey(self,
+                  old_key_name,
+                  new_key_name,
+                  keep_old_key:bool = False,
+                  replace_existing_key:bool = False):
         """
         **Purpose**
             rename a key with a new name
@@ -3071,7 +3029,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Renamed key '%s' to '%s'" % (old_key_name, new_key_name))
         return newgl
 
-    def repairKey(self, key_to_repair, fill_in_key, **kargs):
+    def repairKey(self,
+                  key_to_repair,
+                  fill_in_key,
+                  **kargs):
         '''
         **Purpose**
             genelists will tolerate 'holes' (missing key:values) in individual entries.
@@ -3081,6 +3042,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             glbase is quite happy with this, but it may cause problems downstream if you try to grab a single key from a genelist
 
             This method will fill in the holes in 'key_to_repair' by dragging data from 'fill_in key'
+
+        TODO: Support expression objects
         '''
         assert key_to_repair in list(self.keys()), 'key_to_repair: "%s" not found' % key_to_repair
         assert fill_in_key in list(self.keys()), 'fill_in_key: "%s" not found' % fill_in_key
@@ -3097,7 +3060,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
 
-    def splitKeyValue(self, key, key_sep=" ", val_sep=":"):
+    def splitKeyValue(self,
+                      key,
+                      key_sep=" ",
+                      val_sep=":"):
         """
         **Purpose**
             split() the values of key into key:value pairs and add them back into the genelist
@@ -3161,7 +3127,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("splitKeyValue: split '%s' into ~'%s'%s'%s' key value pairs" % (key, len(k), val_sep, len(v)))
         return newl
 
-    def joinKey(self, new_key_name, formatter, keyA, keyB, keep_originals=False):
+    def joinKey(self,
+                new_key_name,
+                formatter,
+                keyA,
+                keyB,
+                keep_originals: bool = False):
         """
         **Purpose**
             Perform a string formatting operation on two keys to jon them together.
@@ -3203,7 +3174,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
         return newl
 
-    def pie(self, key=None, filename=None, font_size=12, **kargs):
+    def pie(self,
+            key=None,
+            filename: str = None,
+            font_size: int =12,
+            **kargs):
         """
         **Purpose**
             Draw a pie chart based on the values found in 'key'.
@@ -3252,12 +3227,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         raise AssertionError('frequencyAgainstArray() is deprecated, please use the identical fAA()')
 
     def fAA(self,
-        filename:str = None,
-        match_key:str = None,
+        filename: str = None,
+        match_key: str = None,
         expression=None,
-        random_backgrounds:int = 10,
-        spline_interpolate:bool = False,
-        imshow:bool = False,
+        random_backgrounds: int = 10,
+        spline_interpolate: bool = False,
+        imshow: bool = False,
         step_style=False,
         window=None,
         bracket=None,
