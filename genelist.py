@@ -149,6 +149,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                  format: Any = None,
                  expn: Any = None,
                  gzip: bool = False,
+                 name: str = None,
+                 force_tsv: bool = False,
                  **kargs: Any
                  ):
 
