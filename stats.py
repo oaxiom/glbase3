@@ -17,8 +17,6 @@ class stats:
         **Purpose**
             Print out the min, max, mean, median and stddev for each condition in the microarray data
 
-            TODO: Add test for normality
-
         **Arguments**
             log (Optional)
                 if true log2 transform the data.
