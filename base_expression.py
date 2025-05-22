@@ -6,7 +6,12 @@ Basic handling for microarray and rna-seq and realtime PCR like data
 
 """
 
-import sys, os, csv, string, math, collections
+import sys
+import os
+import csv
+import string
+import math
+import collections
 
 from operator import itemgetter
 
@@ -27,8 +32,7 @@ class base_expression(genelist):
         See the documentation in the expression class.
 
         This is the underlying base expression object and is not designed for direct usage.
-        """
-        '''
+
         if not loadable_list:
             # these are only required if not loading a list
             assert expn, "'expn' argument cannot be empty"
@@ -38,7 +42,8 @@ class base_expression(genelist):
         else:
             # probably should put some more sanity checking in here.
             assert loadable_list[0], "the list to load does not appear to be a proper list"
-        '''
+        """
+        genelist.__init__(self)
 
         if "cv_err" in kargs or "err_up" in kargs or "err_dn" in kargs:
             raise NotImplementedError("Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented")
@@ -48,7 +53,7 @@ class base_expression(genelist):
             if k not in valig_args:
                 raise ArgumentError(self.__init__, k)
 
-        genelist.__init__(self)
+
 
         self.filename = filename
         self._conditions = [] # Provide a dummy conditions temporarily
@@ -338,7 +343,7 @@ class base_expression(genelist):
                     writer.writerow(line + interleaved_data)# conditions go last.
             else:
                 if not no_header:
-                    title_row = [k for k in write_keys in k in list(self.keys())]
+                    title_row = [k for k in write_keys if k in list(self.keys())]
                     writer.writerow(write_keys + self.getConditionNames() + [f"err_{i}" for i in self.getConditionNames()])
 
                 for data in self.linearData:

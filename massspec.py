@@ -52,7 +52,7 @@ class massspec(base_expression):
         mq_split_ambiguous_names:bool = True,
         name = None
         ):
-        '''
+        f'''
         **Purpose**
             Handler and processer for Mass Spec data
 
@@ -63,7 +63,7 @@ class massspec(base_expression):
                 list of filenames to process
 
             format (Required)
-                One of {}
+                One of {self.supported_formats}
 
             gzip (Optional)
                 Input file is gzipped
@@ -87,7 +87,7 @@ class massspec(base_expression):
                 as a full match (generally more useful, as map() will correctly work),
                 if False then preserve each protein names as reported by MaxQuant.
 
-        '''.format(self.supported_formats)
+        '''
 
         assert isinstance(filenames, list), 'filenames must be a list'
         assert format in self.supported_formats
@@ -504,7 +504,10 @@ class massspec(base_expression):
 
         return newl
 
-    def call(self, expt_scheme, intensity_fold_change_threshold=1.0, cull_empty_calls=True):
+    def call(self,
+             expt_scheme,
+             intensity_fold_change_threshold:float = 1.0,
+             cull_empty_calls:bool = True):
         '''
         **Purpose**
             Call a peptide in a specific condition.

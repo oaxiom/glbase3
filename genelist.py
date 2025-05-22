@@ -4,9 +4,20 @@ behaves like a normal list, but each element contains a heterogenous set of data
 
 """
 
-import sys, os, csv, copy, random, pickle, re, numpy, scipy, gzip, functools
+import sys
+import os
+import csv
+import copy
+import random
+import pickle
+import re
+import numpy
+import scipy
+import gzip
+import functools
 
 from operator import itemgetter
+from typing import Iterable
 
 from . import config
 from . import utils
@@ -17,6 +28,7 @@ from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFile
 from .progress import progressbar
 from .base_genelist import _base_genelist
 from .format import sniffer, sniffer_tsv, _load_hmmer_tbl, _load_hmmer_domtbl
+from typing import Iterable
 
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
     """
@@ -130,7 +142,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             gl = genelist(..., format=format.full_bed)
 
     """
-    def __init__(self, filename=None, loadable_list=None, gzip=False, **kargs):
+    def __init__(self,
+                 filename:str = None,
+                 loadable_list:Iterable = None,
+                 gzip:bool = False,
+                 **kargs):
         # This call signature is used in a few places, so modify with care
         valig_args = ["name", "format", "force_tsv",]
         for k in kargs:
@@ -166,7 +182,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if "name" in kargs: # Here so it overrides anything above.
             self.name = kargs["name"]
 
-    def load(self, filename=None, format=None, gzip=False, **kargs):
+    def load(self,
+             filename:str = None,
+             format=None,
+             gzip:bool = False,
+             **kargs):
         """
         **Purpose**
 
@@ -230,7 +250,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return True  # must have made it to one - if it fails it should trigger
 
-    def loadCSV(self, filename=None, format=None, **kargs):
+    def loadCSV(self,
+                filename:str = None,
+                format=None,
+                **kargs):
         """
         **Purpose**
 
@@ -471,7 +494,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return True
 
-    def isChromosomeAvailable(self, chromosome):
+    def isChromosomeAvailable(self, chromosome:str):
         """
         you must check me before trying to access dataByChr[]
         """
@@ -616,7 +639,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     ret.append(item)
         return ret
 
-    def saveTSV(self, filename=None, **kargs):
+    def saveTSV(self,
+                filename:str = None,
+                **kargs):
         """
         **Purpose**
             save the geneList or similar object as a tsv
@@ -669,7 +694,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         self.saveCSV(filename, tsv=True, **kargs)
 
-    def saveCSV(self, filename=None, no_header=False, **kargs):
+    def saveCSV(self,
+                filename:str = None,
+                no_header:bool = False,
+                **kargs):
         """
         **Purpose**
 
@@ -770,7 +798,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info(f"Saved '{filename}'")
         return None
 
-    def saveFASTA(self, filename=None, seq_key="seq", **kargs):
+    def saveFASTA(self,
+                  filename:str = None,
+                  seq_key="seq",
+                  **kargs):
         """
         **Purpose**
 
@@ -827,8 +858,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info(f"Saved FASTA file: {filename}")
         return True
 
-    def saveBED(self, filename=None, extra_keys=None, id=None, score=None, uniqueID=False, loc_only=False,
-        **kargs):
+    def saveBED(self,
+                filename:str = None,
+                extra_keys=None,
+                id=None,
+                score=None,
+                uniqueID=False,
+                loc_only:bool = False,
+                **kargs):
         """
         **Purpose**
             save the genelist in bed format
@@ -913,8 +950,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info(f"Saved '{filename}' BED file")
         return filename
 
-    def saveGTF(self, filename=None, strand=None, source=None, feature=None, score=None, frame=None,
-        loc=None, **kargs):
+    def saveGTF(self,
+                filename:str = None,
+                strand=None,
+                source=None,
+                feature=None,
+                score=None,
+                loc=None,
+                **kargs):
         """
         **Purpose**
             save the data as a gtf.
@@ -1008,7 +1051,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("Saved '%s' GTF file" % filename)
         return None
 
-    def sort(self, key=None, reverse=False):
+    def sort(self,
+             key=None,
+             reverse=False):
         """
         Sort the data into a particular order based on key.
         This sorts the list in-place in the same style as Python.
@@ -1042,7 +1087,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self._optimiseData()
         return True
 
-    def shuffle(self, key=None, reverse=False):
+    def shuffle(self):
         """
         Randomly shuffle the order of the genelist
 
@@ -1108,7 +1153,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self._optimiseData() # just in case.
         return True
 
-    def getValuesInRange(self, key=None, low=None, high=None):
+    def getValuesInRange(self,
+                         key=None,
+                         low=None,
+                         high=None):
         """
         **Purpose**
             make a new list with all values in key that are between low and high
@@ -1201,14 +1249,16 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return "\n".join(out)
 
-    def _collectIdenticalKeys(self, gene_list):
+    def _collectIdenticalKeys(self,
+                              gene_list):
         """
         (Internal)
         returns a list of keys in common between this list and gene_list
         """
         return list(set(self.keys()) & set(gene_list.keys()))
 
-    def getColumns(self, return_keys=None):
+    def getColumns(self,
+                   return_keys=None):
         """
         **Purpose**
             return a new genelist only containing the columns specified in return _keys (a list)
@@ -1226,14 +1276,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("getColumns: got only the columns: %s" % ", ".join(return_keys))
         return newl
 
-    def getGeneSet(self, key=None, list_of_items=None, use_re=True, **kargs):
-        """
-        Deprecated, see getRowsByKey
-        """
-        return self.getRowsByKey(key=key, list_of_values=list_of_items, use_re=use_re, **kargs)
-
-    def getRowsByKey(self, key=None, values=None, use_re=True, case_sensitive=True,
-        silent=False, **kargs):
+    def getRowsByKey(self,
+                     key=None,
+                     values=None,
+                     use_re:bool = True,
+                     case_sensitive:bool = True,
+                     silent:bool = False,
+                     **kargs):
         """
         **Purpose**
             extract all rows from a genelist for which the values in key are in the
@@ -1318,13 +1367,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def filter_remove_noncanonical_chromosomes(self,
-        key=None,
-        canonical_names=None,
-        trim_chr_if_present=True
+        key:str = None,
+        canonical_names:Iterable = None,
         ):
         '''
         **Purpose**
-            Remove all locations in htis genelist that do not match any one of the
+            Remove all locations in this genelist that do not match any one of the
             canonical_names
 
         **Arguments**
@@ -1347,11 +1395,15 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newgl.linearData = newl
         newgl._optimiseData()
 
-        config.log.info(f'filter_remove_noncanonical_choromosomes: Kept {len(newl)} matching entries')
+        config.log.info(f'filter_remove_noncanonical_chromosomes: Kept {len(newl)} matching entries')
 
         return newgl
 
-    def filter_by_in(self, key=None, value=None, remove=True, **kargs):
+    def filter_by_in(self,
+                     key:str = None,
+                     value=None,
+                     remove=True,
+                     **kargs):
         """
         **Purpose**
             filter the genelist, and
@@ -1395,7 +1447,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newgl._optimiseData()
         return newgl
 
-    def filter_by_value(self, key=None, evaluator=None, value=None, **kargs):
+    def filter_by_value(self,
+                        key:str = None,
+                        evaluator=None,
+                        value=None,
+                        **kargs):
         """
         **Purpose**
             Filter data based on a key with some numeric data.
@@ -1457,8 +1513,15 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info("filter_by_value: Filtered expression for ['%s' %s %s], found: %s" % (key, evaluator, value, len(ret)))
         return ret
 
-    def map(self, genelist=None, peaklist=None, microarray=None, genome=None, key=None,
-        greedy=True, logic="and", silent=False, **kargs):
+    def map(self,
+            genelist=None,
+            peaklist=None,
+            genome=None,
+            key=None,
+            greedy:bool = True,
+            logic:str = "and",
+            silent:bool = False,
+            **kargs):
         """
         **Purpose**
             map() merges two genelist-like objects and outputs a new genelist.
@@ -1645,7 +1708,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             return(newl)
         return None
 
-    def _findNearbyGenes(self, coords, distance=10000):
+    def _findNearbyGenes(self,
+                         coords,
+                         distance:int = 10000):
         """
         expects:
         coords = chr1:10000-10002
@@ -1682,8 +1747,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 ret.append(line)
         return ret
 
-    def annotate(self, genelist=None, key_to_match="loc", distance=10000, window=2000,
-        image_filename=None, closest_only=False, **kargs):
+    def annotate(self,
+                 genelist=None,
+                 key_to_match="loc",
+                 distance=10000,
+                 closest_only:bool = False,
+                 **kargs):
         """
         **Purpose**
             Annotate some other genelist with this list (usually a genome or expression data set).
@@ -1706,12 +1775,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             distance
                The distance (in base pairs) to look for a match.
-
-            window (Optional)
-                annotate() draws a histogram of the distance to the
-                nearest tss_loc creates an image and saves it to image_filename.
-                The window argument specifies the size of the moving window
-                used in the calculation of the graph.
 
             closest_only (Optional, default=False)
                 keep the closest annotation only, by default annotate() will collect all
@@ -1816,8 +1879,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                     newl.append(new_entry)
 
-                    if image_filename: # Although result can be biased?
-                        dist_hist.append(new_entry["dist_to_tss"])
                 else:
                     for annotation in anns:
                         # I want to merge the two lists in a new dict;
@@ -1830,9 +1891,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                             new_entry[key] = item[key]
 
                         newl.append(new_entry)
-
-                        if image_filename:
-                            dist_hist.append(new_entry["dist_to_tss"])
 
         if not newl:
             config.log.warning("Nothing nearby to annotate for list '%s'" % genelist.name)
@@ -2823,7 +2881,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             list_to_load[0]
             i = list_to_load.__iter__()
         except TypeError:
-            raise AssertionError("Type Error, the list appears not to be actually a list")
+            raise AssertionError("Type Error, the list is not an iterable")
 
         try:
             item = list_to_load[0]
