@@ -8,9 +8,10 @@ TODO:
 
 """
 
-import sys, os, csv
+import sys
+import os
+import csv
 from . import config, utils
-
 from .genelist import genelist
 from .errors import AssertionError
 from .location import location
@@ -142,7 +143,7 @@ class genome(genelist):
         for key, value in args.items():
             if key == "key": # not a documented way to do it, but if you want to just search by key. pass a tuple of the form (actual_key, data)
                 if value[0] in self.linearData[0]:
-                    return(func_dict[value[0]](value[0], value[1]))
+                    return func_dict[value[0]](value[0], value[1])
                 else:
                     return None
             else: # the normal documented way
@@ -187,7 +188,7 @@ class genome(genelist):
         """
         if not geneList:
             ret = [[item[feature], item["name"]] for item in self.linearData]
-            return(ret)
+            return ret
 
         ret = self.getAnnotationsByKey(geneList, feature, KeepUnmapped) # get all the items
 

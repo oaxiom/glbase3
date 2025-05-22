@@ -12,7 +12,13 @@ Part of glbase.
 
 from . import config
 
-import re, random, sys, os, string, numpy, copy
+import re
+import random
+import sys
+import os
+import string
+import numpy
+import copy
 
 from . import utils
 from .genelist import genelist as new_gl
@@ -76,17 +82,17 @@ class motif:
             self._scrambleMotif()
 
     def isPalindromic(self):
-        return(self.palindromic)
+        return self.palindromic
 
     def isPalindrome(self):
-        return(self.palindromic)
+        return self.palindromic
 
     def getRegEx(self):
         """
         return the regex.
         """
         self.re = re.compile("".join(regex_dict[bp] for bp in self.seq.lower()))
-        return(self.re)
+        return self.re
 
     def _scrambleMotif(self, number=10):
         """
@@ -110,13 +116,13 @@ class motif:
 
                 newSeq = "".join(new)
             res.append(re.compile(newSeq))
-        return(res)
+        return res
 
     def __str__(self):
-        return("motif name:%s sequence:%s" % (self.name, self.seq))
+        return "motif name:%s sequence:%s" % (self.name, self.seq)
 
     def __len__(self):
-        return(len(self.seq))
+        return len(self.seq)
 
     def scan_sequence(self, seq=None, both_strands=True, mismatches=0):
         """
@@ -149,9 +155,9 @@ class motif:
             seqs = {"+": seq.lower()}
         
         if mismatches == 0:
-            return(self._scan_no_mismatch(seqs))
+            return self._scan_no_mismatch(seqs)
         else:
-            return(self._scan_seqs_mismatches(seqs, mismatches))
+            return self._scan_seqs_mismatches(seqs, mismatches)
 
     def _scan_no_mismatch(self, seqs=None):
         '''
@@ -182,7 +188,7 @@ class motif:
                     strands.append(strand)
                     
                 num_motifs += 1
-        return({"num_motifs_found": num_motifs, "locations": local_pos, "sequences": found_seqs, "strands": strands})
+        return {"num_motifs_found": num_motifs, "locations": local_pos, "sequences": found_seqs, "strands": strands}
 
     def _getMismatchRegEx(self, mismatches):
         """
@@ -209,7 +215,7 @@ class motif:
                     pos += 1 # move on a bp.
 
         self.re = rels
-        return(rels)
+        return rels
 
     def _scan_seqs_mismatches(self, seqs, mis_matches=1):
         '''
@@ -243,7 +249,7 @@ class motif:
                 found_list.append(item["seq"])
                 unique.append(item["pos"])
 
-        return({"num_motifs_found": len(unique), "locations": None, "sequences": found_list, "strands": None})
+        return {"num_motifs_found": len(unique), "locations": None, "sequences": found_list, "strands": None}
                 
     def scan_sequences(self, seq_data=None, both_strands=True, keep_found_only=False):
         """
@@ -287,7 +293,7 @@ class motif:
                     
         newgl = seq_data.shallowcopy()
         newgl.load_list(newl)
-        return(newgl)                
+        return newgl
 
     def count_sequences_with_motif(self, seq_data=None, both_strands=True, **kargs):
         """
@@ -319,7 +325,7 @@ class motif:
                 results["with_motif"] += 1
         
         results["percent"] = (results["with_motif"] / float(len(seq_data))) * 100.0
-        return(results)
+        return results
 
     def getMotifMatches(self, genelist=None, both_strands=True, return_num_motifs_only=False):
         """
@@ -404,8 +410,8 @@ class motif:
                 pileup[p] += 1
 
         if return_num_motifs_only:
-            return(num_motifs)
-        return(pileup)
+            return num_motifs
+        return pileup
 
     def scanMotifFrequency(self, genelist=None, filename=None, sum_randoms=True, centre=True, 
         random_fastas=None, normalise=True, **kargs):
@@ -530,13 +536,10 @@ class motif:
             ax.set_ylabel("Normalised motif frequency (arbitrary units)")
         else:
             ax.set_ylabel("Motif frequency (counts)")
-        
-        #if centre:
-        #    xlabs = [
-        
+
         self.draw.do_common_args(ax, **kargs)
         actual_filename = self.draw.savefigure(fig, filename)
 
         #config.log.info("Found: %s (%.1f%%) of '%s' motifs in fasta list '%s'" % (sum(motif_result[0]), (sum(motif_result[0])/float(len(fasta_lists[0])))*100, self.seq, fasta_lists[0].name))
         config.log.info("Saved figure '%s'" % actual_filename)
-        return({"data": pileups, "labels": labels, "background": rand_pileups})
+        return {"data": pileups, "labels": labels, "background": rand_pileups}

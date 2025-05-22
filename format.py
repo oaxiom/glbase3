@@ -396,14 +396,14 @@ class fccatalogue():
             for k in keys
         ]
 
-        return("\n".join(a))
+        return "\n".join(a)
 
     def __iter__(self):
         for k in self.formats:
             yield self.formats[k]
 
     def __len__(self):
-        return(len(self.formats))
+        return len(self.formats)
 
     def find(self, value):
         """
@@ -438,12 +438,14 @@ catalogue = fccatalogue([
     snp, pgsnp, psl, encode_rna_expn, encode_broadpeak,
     sam_tophat, sam_tophat_xs, sam,
     blast_tabular,
-    rsem_gene, bowtie_loc_only,
+    rsem_gene,
+    bowtie_loc_only,
     bowtie, homer_peaks,
     hmmer_tbl, hmmer_domtbl, #HMMER
     dfilter_bed,
     # GO lists:
-    go_GREAT_shown, go_DAVID,
+    go_GREAT_shown,
+    go_DAVID,
     ncbi_gwas,
     ])
 

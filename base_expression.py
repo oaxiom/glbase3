@@ -391,7 +391,7 @@ class base_expression(genelist):
         assert (key in self.linearData[0]) or key in self._conditions, f"'{key}' search key not found in list or array data"
 
         if key in self.linearData[0]:
-            return(genelist.sort(self, key, reverse=reverse)) # use the parents sort.
+            return genelist.sort(self, key, reverse=reverse) # use the parents sort.
         else:
             if key in self._conditions:
                 name_index = self._conditions.index(key)
@@ -530,7 +530,7 @@ class base_expression(genelist):
         """
         returns a list of the condition headers
         """
-        return(list(self._conditions))
+        return list(self._conditions)
 
     def setConditionNames(self, new_cond_names):
         """

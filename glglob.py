@@ -6,7 +6,13 @@ renamed to glglob as it clashes with a matplotlib and python module name
 
 """
 
-import sys, os, csv, string, math, numpy, pickle
+import sys
+import os
+import csv
+import string
+import math
+import numpy
+import pickle
 
 from numpy import array, zeros, object_, arange
 from copy import deepcopy
@@ -83,7 +89,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
     def loadCSV(self):
         config.log.error("glglobs cannot be represented as a CSV/TSV file, use glload() to load binary files")
-        return(False)
+        return False
 
     def saveCSV(self):
         config.log.error("glglobs cannot be represented as a CSV/TSV file, use .save() to save binary files")
@@ -96,7 +102,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         glglobs should be accesible by name.
         """
         if value in self.__list_name_lookback:
-            return(self.linearData[self.__list_name_lookback[value]]) # get the actual item
+            return self.linearData[self.__list_name_lookback[value]] # get the actual item
         return None
 
     def __setitem__(self, value):
@@ -989,7 +995,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 row_cluster=False, col_cluster=True, colour_map=cm.Reds, heat_wid=0.7, heat_hei=0.7, bracket=[0,tab.max()])
 
         config.log.info("overlap_heatmap: Saved overlap heatmap to '%s'" % ret["real_filename"])
-        return(tab)
+        return tab
 
     def __peak_cluster(self, list_of_peaks, merge_peaks_distance):
         # Merge overlapping peaks
@@ -1937,7 +1943,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if log:
             expn.log(2, .1)
 
-        return(expn)
+        return expn
 
     def measure_enrichment(self,
         trks,
@@ -2042,7 +2048,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         if log:
             expn.log(2, .1)
 
-        return(expn)
+        return expn
 
     def redefine_peaks(self,
         super_set_of_peaks,
@@ -2234,7 +2240,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         for f in rets:
             config.log.info('    %s: %s peaks' % (f, len(rets[f])))
 
-        return(rets)
+        return rets
 
     def chip_seq_heatmap(self,
         list_of_peaks,

@@ -6,12 +6,22 @@
 
 """
 
-import sys, os, csv, string, math, copy, heapq, itertools, functools, statistics
+import sys
+import os
+import csv
+import string
+import math
+import copy
+import heapq
+import itertools
+import functools
+import statistics
 
 from operator import itemgetter
-from collections.abc import Iterable
+from typing import Any, Iterable
 
-import numpy, scipy
+import numpy
+import scipy
 from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # this should be deprecated
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
 from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
@@ -44,7 +54,13 @@ if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL and config.SKLEARN_AVAIL:
 
 
 class expression(base_expression):
-    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, gzip=False, **kargs):
+    def __init__(self,
+                 filename: str | None = None,
+                 loadable_list: Iterable | None = None,
+                 format: Any = None,
+                 expn: Any = None,
+                 gzip: bool = False,
+                 **kargs: Any):
         """
         **Purpose**
             The base container for expression data.
@@ -1657,7 +1673,7 @@ class expression(base_expression):
 
         ret = expression(loadable_list=new_expn, cond_names=self._conditions)
 
-        rep_d = {"up": "+", "dn": "-", "down": "-", "any": "+\-"}
+        rep_d = {"up": "+", "dn": "-", "down": "-", "any": '±'}
 
         config.log.info("filter_by_fc: Filtered expression by fold-change '%s' %s%s, found: %s" % (fckey, rep_d[direction], value, len(ret)))
         return ret
@@ -1729,7 +1745,7 @@ class expression(base_expression):
         assert len(newl) > 0, "filter_by_mean_expression: The number of genes passing the filter was zero!"
         newl._optimiseData()
         config.log.info("filter_by_mean_expression: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+        return newl
 
     def filter_high_expressed(self, max_expression, number_of_conditions):
         """
@@ -1793,7 +1809,7 @@ class expression(base_expression):
                 newl.linearData.append(row)
         newl._optimiseData()
         config.log.info("filter_by_expression: %s items >= %s in '%s'" % (len(newl), minimum_expression, condition_name))
-        return(newl)
+        return newl
 
     def filter_conditions_by_threshold(self, genes, key, threshold, **kargs):
         """
@@ -1837,7 +1853,7 @@ class expression(base_expression):
 
         e = e.sliceConditions(cell_expressing)
 
-        return(newe)
+        return newe
 
     def filter_by_value(self, value, absolute=False, **kargs):
         """
@@ -1927,7 +1943,7 @@ class expression(base_expression):
 
         newl._optimiseData()
         config.log.info("filter_by_CV: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
-        return(newl)
+        return newl
 
     def bracket(self, min, max):
         """
@@ -1961,7 +1977,7 @@ class expression(base_expression):
                     newc.append(c)
             item['conditions'] = newc
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def draw_cumulative_CV(self, filename, pad=0.1, label_genes=None, label_genes_key=None,
         label_fontsize=7, **kargs):
@@ -2011,7 +2027,7 @@ class expression(base_expression):
         self.draw.do_common_args(ax, **kargs)
         realfilename = self.draw.savefigure(fig, filename)
         config.log.info("draw_cumulative_CV: Saved '%s'" % (realfilename))
-        return(None)
+        return None
 
     def draw_scatter_CV(self, filename, pad=0.1, label_genes=None, label_genes_key=None,
         label_fontsize=7, **kargs):
@@ -2422,7 +2438,7 @@ class expression(base_expression):
         self.draw.do_common_args(ax, **kargs)
         realfilename = self.draw.savefigure(fig, filename)
         config.log.info("multi_line: Saved '%s' with alpha=%.5f" % (realfilename, alpha))
-        return(None)
+        return None
 
     def log(self, base=math.e, pad=0.00001):
         """
@@ -2453,7 +2469,7 @@ class expression(base_expression):
         for item in self:
             item["conditions"] = [math.log(v+pad, do_log) for v in item["conditions"]]
         self._optimiseData()
-        return(None)
+        return None
 
     def unlog(self, base=None, adjuster=0.00001):
         """
@@ -2475,7 +2491,7 @@ class expression(base_expression):
         for item in self:
             item["conditions"] = [base**(v+adjuster) for v in item["conditions"]]
         self._optimiseData()
-        return(None)
+        return None
 
     def mult(self, number=None):
         """
@@ -2520,7 +2536,7 @@ class expression(base_expression):
         for item in self.linearData:
             item["conditions"] = [v+number for v in item["conditions"]]
         self._optimiseData()
-        return(None)
+        return None
 
     def abssub(self, number=None):
         """
@@ -2564,7 +2580,7 @@ class expression(base_expression):
                 newcond.append(expression_value)
             item["conditions"] = newcond
         self._optimiseData()
-        return(None)
+        return None
 
     def sub(self, number=None):
         """
@@ -2586,7 +2602,7 @@ class expression(base_expression):
             newcond = [i-number for i in item["conditions"]]
             item["conditions"] = newcond
         self._optimiseData()
-        return(None)
+        return None
 
     def __log_transform_data(self, serialisedArrayDataList=None, log=math.e):
         """
@@ -2610,7 +2626,7 @@ class expression(base_expression):
             do_log = False
 
         if not do_log:
-            return(serialisedArrayDataList)
+            return serialisedArrayDataList
 
         data = []
         for set in serialisedArrayDataList:
@@ -2621,7 +2637,7 @@ class expression(base_expression):
                 else:
                     row.append(math.log(item, do_log))
             data.append(row)
-        return(data)
+        return data
 
     def drawCurves(self, filename=None, **kargs):
         """
@@ -2723,7 +2739,7 @@ class expression(base_expression):
 
         real_filename = self.draw.savefigure(fig, filename)
         config.log.info("curves: Saved '%s'" % filename)
-        return(True)
+        return True
 
     def getDataByCriteria(self, **kargs):
         """
@@ -2744,7 +2760,7 @@ class expression(base_expression):
 
         if not function:
             config.log.error("Criteria function unavailable.")
-            return(False)
+            return False
 
         newl = self.deepcopy()
         newl.linearData = []
@@ -2758,7 +2774,7 @@ class expression(base_expression):
                 newl.linearData.append(deepcopy(item))
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def _insertCondition(self, condition_name, condition_data, range_bind=None, **kargs):
         """
@@ -2772,7 +2788,8 @@ class expression(base_expression):
         min_data = min(condition_data)
         if len(condition_data) != len(self):
             config.log.error("Insertion of array data, wrongly sized")
-            return(False)
+            return False
+
         for index, item in enumerate(self):
             if range_bind:
                 toAdd = (float((condition_data[index] - min_data)) / max_data)
@@ -2780,8 +2797,9 @@ class expression(base_expression):
             else:
                 toAdd = condition_data[index]
             item["conditions"].append(toAdd)
+
         self._optimiseData()
-        return(True)
+        return True
 
     def drawBarChart(self, gene_symbols=None, filename=None, key=None, labels=None,
         errs_are_absolute=False, error_keys=None, fake_entries=True, **kargs):
@@ -3004,13 +3022,20 @@ class expression(base_expression):
         real_filename = self.draw.savefigure(fig, filename)
 
         config.log.info("hist: Saved '%s'" % real_filename)
-        return({"data": all_data, "labels": self._conditions})
+        return {"data": all_data, "labels": self._conditions}
 
-    def tree(self, mode="conditions", filename=None, row_name_key=None,
-        _data=None, # supply your own data matrix, should be numpy array;
-        cluster_mode="euclidean", color_threshold=None, label_size=6, cut=False,
-        radial=False, optimal_ordering=True,
-        **kargs):
+    def tree(self,
+             mode="conditions",
+             filename=None,
+             row_name_key=None,
+             _data=None, # supply your own data matrix, should be numpy array;
+             cluster_mode="euclidean",
+             color_threshold=None,
+             label_size=6,
+             cut=False,
+             radial=False,
+             optimal_ordering=True,
+             **kargs):
         """
         **Purpose**
             Draw a hierarchical clustered tree of either the 'conditions' or 'rows'
@@ -3397,7 +3422,7 @@ class expression(base_expression):
             for item in self:
                 if function(item):
                     newlist.append(item)
-            return(newlist)
+            return newlist
 
         **Arguments**
             function (Required)
@@ -3419,14 +3444,14 @@ class expression(base_expression):
                 newl.append(item)
 
         if not newl:
-            config.log.info("cut: result of cut() is empty!")
-            return(None)
+            config.log.warning("cut: result of cut() is empty!")
+            return None
 
-        cc = self.shallowcopy() # going to replace linearData.
-        cc.linearData = newl
-        cc._optimiseData()
+        cutted_list = self.shallowcopy() # going to replace linearData.
+        cutted_list.linearData = newl
+        cutted_list._optimiseData()
 
-        return(cc)
+        return cutted_list
 
     def barh_single_item(self,
         key=None,
@@ -3883,7 +3908,7 @@ class expression(base_expression):
 
         if not data:
             config.log.warning("time_course_plot: '%s:%s' not found in this list, not saving" % (key, value))
-            return(None)
+            return None
 
         data = list(data["conditions"])
 
@@ -3909,7 +3934,7 @@ class expression(base_expression):
         self.draw.do_common_args(ax, **kargs)
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("time_course_plot: Saved '%s'" % actual_filename)
-        return(actual_filename)
+        return actual_filename
 
     def fc_scatter(self,
         cond1:str,
@@ -4076,7 +4101,13 @@ class expression(base_expression):
         config.log.info("fc_scatter: Saved '%s'" % actual_filename)
         return None
 
-    def kmeans(self, filename=None, key=None, seeds=None, dowhiten=True, plotseeds=True, **kargs):
+    def kmeans(self,
+               filename=None,
+               key=None,
+               seeds=None,
+               dowhiten=True,
+               plotseeds=True,
+               **kargs):
         """
         **Purpose**
             perform k-means clustering on the expression data.
@@ -4118,7 +4149,7 @@ class expression(base_expression):
         data = numpy.array(self.serialisedArrayDataList).T
 
         if dowhiten:
-            config.log.info("kmeans: whiten...")
+            config.log.info("kmeans: whiten")
             wt = whiten(data) # features are columns
         else:
             wt = data
@@ -4179,8 +4210,15 @@ class expression(base_expression):
         config.log.info("kmeans: Saved '%s'" % actual_filename)
         return actual_filename
 
-    def bundle(self, filename=None, key=None, seeds=None, plotseeds=True, Z=0.9, mode="pearsonr",
-        negative_correlations=False, **kargs):
+    def bundle(self,
+               filename=None,
+               key=None,
+               seeds=None,
+               plotseeds=True,
+               Z=0.9,
+               mode="pearsonr",
+               negative_correlations=False,
+               **kargs):
         """
         **Purpose**
             perform 'gene-bundling' on the expression data.
@@ -4222,11 +4260,10 @@ class expression(base_expression):
 
             {"<seed>": genelist(), "<seed2>": genelist(), ...}
         """
-        assert mode in ("pearsonr", "spearmanr"), "bundle: '%s' mode not found!" % mode
+        assert mode in ("pearsonr", "spearmanr"), f"bundle: '{mode}' mode not found!"
 
         # Get the expression data.
         data = numpy.array(self.serialisedArrayDataList).T
-
         stds = numpy.std(data, axis=0)
 
         centroids = []
@@ -4310,15 +4347,15 @@ class expression(base_expression):
         return res
 
     def volcano(self,
-        condition_name,
-        p_value_key,
-        label_key=None,
-        filename=None,
-        label_fontsize:int=6,
-        label_significant=0.01,
-        highlights=None,
-        highlight_key=None,
-        **kargs):
+                condition_name,
+                p_value_key,
+                label_key=None,
+                filename=None,
+                label_fontsize:int=6,
+                label_significant=0.01,
+                highlights=None,
+                highlight_key=None,
+                **kargs):
         """
         **Purpose**
             draw a Volcano plot (fold change versus P/Q-value

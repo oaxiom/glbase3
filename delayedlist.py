@@ -3,7 +3,12 @@ Think of me as a delayed version of geneList
 
 * this is the only special case of geneList (delayed)
 """
-import sys, os, time, copy, csv, gzip
+import sys
+import os
+import time
+import copy
+import csv
+import gzip
 
 from . import config
 from . import utils
@@ -69,7 +74,7 @@ class delayedlist(genelist):
         self._optimiseData()
 
     def __repr__(self):
-        return("glbase.delayedlist")
+        return "glbase.delayedlist"
 
     def collide(self, **kargs):
         """
@@ -96,7 +101,7 @@ class delayedlist(genelist):
         delta = 200
         if "delta" in kargs: delta = kargs["delta"]
 
-        return(genelist.collide(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True))
+        return genelist.collide(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True)
 
     def overlap(self, delta=200, **kargs):
         """
@@ -119,7 +124,7 @@ class delayedlist(genelist):
 
         self._optimiseData() # reset the __iter__
 
-        return(genelist.overlap(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True))
+        return genelist.overlap(self, genelist=gene_list, loc_key=kargs["loc_key"], delta=delta, merge=True)
 
     def map(self):
         raise AssertionError('delayedlists cannot be mapped in this direction, try the other way: genelist.map(genelist=delayedlist, key="...", ...)')
@@ -137,7 +142,7 @@ class delayedlist(genelist):
                 for _ in f.readlines(): lines += 1
             self.__len_estimate = lines-1 # start from 0
 
-        return(self.__len_estimate) #
+        return self.__len_estimate
 
     def __getitem__(self, index):
         """
@@ -149,7 +154,7 @@ class delayedlist(genelist):
         routines.
         """
         self._optimiseData()
-        return(next(self.__iter__()))
+        return next(self.__iter__())
 
     def __iter__(self):
         """
@@ -245,7 +250,7 @@ class delayedlist(genelist):
 
         self.linearData = self.__iter__()
         self.cindex = 0
-        return(True)
+        return True
 
     def __str__(self):
         self._optimiseData()
@@ -259,7 +264,7 @@ class delayedlist(genelist):
         self.linearData = temp_data
         ret = genelist.__str__(self)
         self._optimiseData()
-        return("%s\nThis is a delayedlist - only the first %s entries are shown" %(ret, config.NUM_ITEMS_TO_PRINT))
+        return "{ret}\nThis is a delayedlist - only the first {config.NUM_ITEMS_TO_PRINT} entries are shown"
 
     def save(self):
         raise NotSupportedError("Cannot save a binary representation of a delayedlist")
@@ -387,7 +392,7 @@ class delayedlist(genelist):
             self._drawMerged(flatBin, gene_list.path)
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def _drawMerged(self, flatBin, path, window=1):
         """

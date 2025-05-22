@@ -10,7 +10,10 @@ TODO:
 
 '''
 
-import pickle, numpy, math, gzip
+import pickle
+import numpy
+import math
+import gzip
 from operator import itemgetter
 from shutil import copyfile
 
@@ -49,7 +52,6 @@ def reshap_mats2(mat, dimX, dimY):
     '''
     interpolator_func = interpolate.interp2d(range(mat.shape[0]), range(mat.shape[1]), mat, kind='linear')
     return interpolator_func(dimX, dimY)
-
 
 def reshap_mats(mat, dimX, dimY):
     '''
@@ -157,7 +159,12 @@ def merge_hiccys(new_hic_filename, name, *hics):
 
 # I'm not using the base_genelist class, so, you need to add in defs as needed.
 class hic:
-    def __init__(self, filename=None, name='', new=False, inter_chrom_only=True, _readplus=False):
+    def __init__(self,
+                 filename: str = None,
+                 name='',
+                 new: bool = False,
+                 inter_chrom_only: bool = True,
+                 _readplus: bool = False):
         """
         **Purpose**
             store for HiC data.
@@ -204,6 +211,7 @@ class hic:
             self.hdf5_handle.attrs['version'] = self.version
             self.all_chrom_names = [] # Made into a set later
             self.draw = draw()
+
         else: # old
             if _readplus:
                 self.hdf5_handle = h5py.File(filename, 'r+')
@@ -244,7 +252,8 @@ class hic:
                     __OE_missing_warning = True
 
             self.draw = draw()
-            config.log.info('Bound "%s" Hic file' % filename)
+            config.log.info(f'Bound "{filename}" Hic file')
+
         return None
 
     def visit(self):
@@ -533,7 +542,9 @@ class hic:
         return
 
 
-    def load_hicpro_matrix(self, matrix_filename, bed_file):
+    def load_hicpro_matrix(self,
+                           matrix_filename,
+                           bed_file):
         """
         **Purpose**
             Load a .matrix file output from HiC-Pro
@@ -1214,7 +1225,7 @@ class hic:
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("tri_plot: Saved '%s'" % actual_filename)
 
-        return()
+        return
 
     def __plot_tad_calls(self, ax, ax_position, loc, tad_calls):
         """
@@ -1447,7 +1458,7 @@ class hic:
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("tri_plot: Saved '%s'" % actual_filename)
 
-        return()
+        return
 
     def density_plot(self, filename, vmin=0, vmax=50000, **kargs):
         """
@@ -1487,7 +1498,7 @@ class hic:
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("density_plot: Saved '%s'" % actual_filename)
 
-        return()
+        return
 
     def pca(self, number_of_components=10, chrom=None):
         """
@@ -1559,7 +1570,7 @@ class hic:
         **Returns**
             Returns an array for each PC and it's percent variance
         """
-        return(numpy.array(self.__model.explained_variance_ratio_) * 100.0)
+        return numpy.array(self.__model.explained_variance_ratio_) * 100.0
 
     def scatter(self, mode, x=None, y=None, filename=None, spot_cols=None, cmap=None, spots=True, label=False, alpha=0.5, overplot=None,
         spot_size=5, label_font_size=7, label_style='normal', cut=None, squish_scales=False, **kargs):

@@ -8,7 +8,10 @@ Used in places like the CSV format language and in selecting criteria, etc...
 
 """
 
-import pickle, math, sys, os
+import pickle
+import math
+import sys
+import os
 from typing import Union, Optional, Iterable, Iterator, Generator
 
 from . import utils, config
@@ -22,7 +25,7 @@ from .errors import BadBinaryFileFormatError
 
 def glload(
     filename:str,
-    name:str = False
+    name: str = False
     ):
     """
     **Purpose**
@@ -35,7 +38,6 @@ def glload(
 
         name (Optional, default=False)
             Change the name of the loaded glb
-
 
     **Returns**
         The glbase object previously saved as a binary file
@@ -81,7 +83,7 @@ def change_drawing_mode(mode: Union[str, list]):
 
     This is a duplication of config.change_draw_mode() ...
     """
-    assert mode in config.valid_draw_modes, "Draw output mode '%s' is not recognised" % mode
+    assert mode in config.valid_draw_modes, f"Draw output mode '{mode}' is not recognised"
 
     config.draw_mode = mode
 
@@ -162,7 +164,7 @@ def lst_find(lst, predicate): # I need a helper function to find the item
 
 def cat_columns(c1, c2, sep=' '):
     # concatenate two columns together
-    return '%s%s%s' % (c1, sep, c2)
+    return f'{c1}{sep}{c2}'
 
 def strandSorter(chr, left, right, strand):
     """
@@ -172,6 +174,7 @@ def strandSorter(chr, left, right, strand):
         return(location(chr=chr, left=left, right=left))
     elif strand in negative_strand_labels:
         return(location(chr=chr, left=right, right=right))
+
     return None
 
 def strandSorter_neg(chr, left, right, strand):
@@ -182,5 +185,5 @@ def strandSorter_neg(chr, left, right, strand):
         return(location(chr=chr, left=right, right=right))
     elif strand in negative_strand_labels:
         return(location(chr=chr, left=left, right=left))
+
     return None
-# various other helpers for normalisation etc..

@@ -10,7 +10,16 @@ So excuse the terrible code in places. I will deprecate occasional functions fro
 
 """
 
-import sys, os, numpy, string, csv, random, math, pickle, gzip
+import sys
+import os
+import numpy
+import string
+import csv
+import random
+import math
+import pickle
+import gzip
+
 import scipy.stats as stats
 from scipy.ndimage.filters import uniform_filter1d
 
@@ -51,7 +60,8 @@ def expandDegenerateMotifs(motif):
         else:
             newlist.append((1, n, nm[n]))
 
-    if not newlist: return([motif]) # no degenerate elements in the motif
+    if not newlist:
+        return [motif] # no degenerate elements in the motif
 
     l = []
     #print newlist
@@ -357,14 +367,14 @@ def fold_change(c1, c2, log=2, pad=1e-6):
         c2v = c2 + pad
         if c2v > c1v:
             if log:
-                return(math.log((c2v/c1v), log))
+                return math.log((c2v/c1v), log)
             else:
-                return((c2v/c1v))
+                return (c2v/c1v)
         else:
             if log:
-                return(-math.log(c1v/c2v, log))
+                return -math.log(c1v/c2v, log)
             else:
-                return(-(c1v/c2v))
+                return -(c1v/c2v)
 
     except (OverflowError, ZeroDivisionError, ValueError):
         if c2v > c1v:

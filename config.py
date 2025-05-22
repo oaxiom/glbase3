@@ -78,8 +78,8 @@ def get_interpolation_mode(filename):
     # config.draw_mode is no longer reliable, so I have to get it from the actual filename now:
     tmode = filename.split('.')[-1]
     if tmode in ("svg", 'pdf', 'eps', 'ps'):
-        return('nearest') # Yes, it really is nearest. Otherwise it will go to something like bilinear
-    return('nearest') # seems fixed in newer matplotlibs?
+        return 'nearest' # Yes, it really is nearest. Otherwise it will go to something like bilinear
+    return 'nearest' # seems fixed in newer matplotlibs?
 
 # -------------- set up the logger here.
 # You can access it using config.log()
@@ -125,4 +125,4 @@ def set_log_level(level):
     assert level in level_map, "no valid level used to set the logger, valid modes are 'info' or 'debug'"
 
     log.setLevel(level_map[level])
-    return(True)
+    return True

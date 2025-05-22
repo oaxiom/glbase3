@@ -72,17 +72,17 @@ def guessDataType(value):
     """
     try: # see if the element is a float()
         if "." in value: # if no decimal point, prefer to save as a int.
-            return(float(value))
+            return float(value)
         else:
             raise ValueError
     except ValueError:
         try: # see if it's actually an int?
-            return(int(value))
+            return int(value)
         except ValueError:
             try: # see if I can cooerce it into a location:
-                return(location(loc=value))
+                return location(loc=value)
             except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
-                return(str(value))
+                return str(value)
 
 class UnRecognisedCSVFormatError(Exception):
     """

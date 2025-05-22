@@ -1,6 +1,6 @@
 """
 
-The new format container, with docs!
+Format container, with docs!
 
 """
 
@@ -25,31 +25,31 @@ class fc():
         a = ["Name: %s" % self.name,
             "Format: %s" % self.data,
             "Description: %s" % self.description]
-        return ("\n".join(a))
+        return "\n".join(a)
 
     def keys(self):
-        return(self.data.keys())
+        return self.data.keys()
     
     def values(self):
-        return(self.data.values())
+        return self.data.values()
         
     def __getitem__(self, key):
-        return(self.data[key])
+        return self.data[key]
     
     def __setitem__(self, key, value):
         self.data[key] = value
         
     def __repr__(self):
-        return("<fc: %s" % self.name)
+        return "<fc: %s" % self.name
         
     def __iter__(self):
         yield from self.data
             
     def has_key(self, key):
-        return(key in self.data)
+        return key in self.data
         
     def __in__(self, key):
-        return(key in self.data)
+        return key in self.data
     
     def update(self, dictionary):
         self.data.update(dictionary)    
@@ -57,4 +57,4 @@ class fc():
     def copy(self):
         c = copy.copy(self)
         c.data = self.data.copy() # dict copy
-        return(c)
+        return c

@@ -8,13 +8,13 @@ But this provides some flexibility in processing that other tools can't always a
 
 """
 
-import sys, os
+import sys
+import os
 
 from . import config
 from .genelist import genelist
 from .errors import AssertionError, NotSupportedError, DelayedListError
 from .delayedlist import delayedlist
-# Todo: Move rnaseqqc into fastq
 
 class fastq(delayedlist):
     """
@@ -49,7 +49,7 @@ class fastq(delayedlist):
         self._optimiseData()
 
     def __repr__(self):
-        return("glbase.fastq")
+        return "glbase.fastq"
 
     def getSequences(self):
         raise NotSupportedError("getSequences() not supported for fastq file")
@@ -108,7 +108,7 @@ class fastq(delayedlist):
                 config.log.warning("Phred Quality < 0, are you sure you selected the correct quality format?")
                 self.__phred_warning = True
 
-        return(qq)
+        return qq
 
     def __phred33_str(self, qual):
         """ convert the quals to Phred33 """
@@ -176,4 +176,4 @@ class fastq(delayedlist):
                         __unpaired_warning = True
 
             h1.close()
-        config.log.info("splitPE(): Correctly paired: %s, unpaired: %s" % (paired, unpaired))
+        config.log.info(f"splitPE(): Correctly paired: {paired}, unpaired: {unpaired}")

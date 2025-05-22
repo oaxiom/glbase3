@@ -17,7 +17,7 @@ import gzip
 import functools
 
 from operator import itemgetter
-from typing import Iterable
+from typing import Any, Iterable
 
 from . import config
 from . import utils
@@ -144,12 +144,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     """
     def __init__(self,
-                 filename: str = None,
-                 loadable_list: Iterable = None,
+                 filename: str | None = None,
+                 loadable_list: Iterable | None = None,
+                 format: Any = None,
+                 expn: Any = None,
                  gzip: bool = False,
-                 format=None,
-                 force_tsv: bool = False,
-                 name: str = None,
+                 **kargs: Any
                  ):
 
         self.linearData = []
@@ -180,10 +180,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.name = name
 
     def load(self,
-             filename:str = None,
+             filename: str = None,
              format=None,
-             gzip:bool = False,
-             **kargs):
+             gzip: bool = False,
+             **kargs
+             ):
         """
         **Purpose**
 
@@ -211,6 +212,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.path = os.path.split(os.path.realpath(filename))[0]
         self.filename = os.path.split(os.path.realpath(filename))[1]
         self.fullfilename = filename
+
         if self.filename.find(".") != -1:
             self.name = "".join(self.filename.split(".")[:-1])
         else:
@@ -238,6 +240,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     self.linearData = _load_hmmer_domtbl(filename, gzip=gzip)
                     self._optimiseData()
                     return True
+
         else:
             raise AssertionError('Due to excessive ambiguity the sniffing function of genelists has been removed and you now MUST provide a format argument')
 
@@ -527,7 +530,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             item_indeces = self.qkeyfind[key][value]
 
         if item_indeces:
-            return([self.linearData[i] for i in item_indeces])
+            return [self.linearData[i] for i in item_indeces]
         return None
 
     def get(self, key, value, mode="greedy"):
@@ -571,7 +574,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if r:
             newl = self.shallowcopy() # shallowcopy for once as we will load in our own list.
             newl.load_list(r)
-            return(newl)
+            return newl
         return None
 
     def index(self, key, value):
@@ -1701,7 +1704,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if len(newl.linearData):
             newl._optimiseData()
-            return(newl)
+            return newl
         return None
 
     def _findNearbyGenes(self,
@@ -1973,7 +1976,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         newl._optimiseData()
         config.log.info("addEmptyKey: Added a new key '%s'" % key)
-        return(newl)
+        return newl
 
     def expand(self,
                key:str = "loc",
@@ -2868,7 +2871,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return self.linearData
 
     def unfold(self,
-               key=None):
+               key=None
+               ):
         """
         **Purpose**
             This method 'unfolds' the list based on a key that also contains
@@ -3826,7 +3830,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if random_lists:
                 ax.bar(x_bar + width, rand, width, color="grey", yerr=err, ec='none', ecolor="black", label="Background")
             else:
-                rand = None # spoof entries for the return()
+                rand = None # spoof entries for the return
                 err = None
 
             ax.set_xticklabels(labels)

@@ -110,10 +110,10 @@ class _base_genelist:
         newl = False
         if isinstance(index, int):
             # this should return a single dictionary.
-            return(self.linearData[index])
+            return self.linearData[index]
         elif isinstance(index, str):
             # returns all labels with that item.
-            return(self._findAllLabelsByKey(index))
+            return self._findAllLabelsByKey(index)
         elif isinstance(index, slice):
             # returns a new genelist corresponding to the slice.
             newl = self.shallowcopy()
@@ -135,7 +135,7 @@ class _base_genelist:
         compute a sensible hash value
         """
         try:
-            return(hash(self.name + str(self[0]) + str(self[-1]) + str(len(self)))) # hash data for comparison.
+            return hash(self.name + str(self[0]) + str(self[-1]) + str(len(self))) # hash data for comparison.
         except Exception:
             try:
                 return hash(self.name + str(self[0]) + str(self[-1])) # len() probably not available (delayedlist?).
@@ -148,7 +148,7 @@ class _base_genelist:
         confer and like behaviour: c = a & b
         """
         if not self.__eq__(gene_list):
-            return(geneList()) # returns an empty list.
+            return geneList() # returns an empty list.
 
         newl = self.shallowcopy()
         newl.linearData = []
@@ -158,7 +158,7 @@ class _base_genelist:
                     newl.linearData.append(copy.deepcopy(item1))
 
         newl._optimiseData()
-        return(newl)
+        return newl
 
     def __or__(self, gene_list):
         """
@@ -166,7 +166,7 @@ class _base_genelist:
         confer append like behaviour: c = a | b
         OR does not keep duplicates.
         """
-        if not self.__eq__(gene_list): return(geneList())
+        if not self.__eq__(gene_list): return geneList()
         newl = self.deepcopy()
         alist = self.linearData + gene_list.linearData
         # remove conserved duplicates;
@@ -238,7 +238,7 @@ class _base_genelist:
         # check the hash's first to see if they are identical.
         # This is diabled as it can be very slow.
         #if self.__hash__() == gene_list.__hash__():
-        #    return(True)
+        #    return True
 
         for key in self.linearData[0]:
             if key in gene_list.linearData[0]:

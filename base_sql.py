@@ -87,7 +87,7 @@ class base_sql:
             # No meta data at all.
             c.execute("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT)")
             self._save_meta_data()
-            return()
+            return
         '''
 
         # Make certain there are no missing keys.

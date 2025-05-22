@@ -44,8 +44,15 @@ Then it can go::
 
 """
 
-import sys, os, copy, random, numpy, math, statistics
-from collections.abc import Iterable
+import sys
+import os
+import copy
+import random
+import numpy
+import math
+import statistics
+
+from typing import Iterable, Any
 
 from numpy import array, arange, mean, max, min, std, float32
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
@@ -760,7 +767,7 @@ class draw:
         cb.set_label(kargs["colbar_label"])
         [label.set_fontsize(5) for label in ax0.get_xticklabels()]
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _heatmap_and_plot(self,
         peak_data=None,
@@ -1457,7 +1464,7 @@ class draw:
             ax3.set_position(position_genomic)
             self._genome_segment(ax3, kargs["loc"], kargs["genomic_features"])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _plot_and_histogram(self, filename=None, data=None, figsize=(5,5), **kargs):
         """
@@ -1510,7 +1517,7 @@ class draw:
             ax3.set_position(position_genomic)
             self._genome_segment(ax3, kargs["loc"], kargs["genomic_features"])
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     # Salted for deprecation
     def _qplotxy(self, list_of_tuples_data, filename=None, labels=None, **kargs):
@@ -1550,7 +1557,7 @@ class draw:
             leg.get_frame().set_alpha(0.5)
             [t.set_fontsize(6) for t in leg.get_texts()]
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def _vennDiagram2(self, left, right, overlap, filename=None,
         proportional=False, plot_sig=False, labels=None,
@@ -2488,7 +2495,7 @@ class draw:
         #[t.set_fontsize(6) for t in ax3.get_yticklabels()] # generally has to go last.
         [t.set_fontsize(6) for t in ax.get_yticklabels()]
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def pie(self, data, labels, filename, aspect="square", title=None, colours=None,
         draw_percents=False, cmap=None, font_size=12, **kargs):
@@ -2522,7 +2529,7 @@ class draw:
         if title:
             ax.set_title(title)
 
-        return(self.savefigure(fig, filename))
+        return self.savefigure(fig, filename)
 
     def beanplot(self, data, filename, violin=True, order=None, mean=False, median=True, alpha=0.2,
         beans=True, IQR=False, covariance=0.2, **kargs):
@@ -2941,7 +2948,7 @@ class draw:
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("dotbarplot: Saved dotbarplot to '%s'" % (real_filename))
-        return(real_filename)
+        return real_filename
 
     def proportional_bar(self,
         filename,
