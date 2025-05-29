@@ -166,7 +166,8 @@ class _base_genelist:
         confer append like behaviour: c = a | b
         OR does not keep duplicates.
         """
-        if not self.__eq__(gene_list): return geneList()
+        if not self.__eq__(gene_list):
+            return geneList()
         newl = self.deepcopy()
         alist = self.linearData + gene_list.linearData
         # remove conserved duplicates;
@@ -189,10 +190,18 @@ class _base_genelist:
         # check they are the same type:
         assert type(self) == type(gene_list), '"+" only works with identical types'
 
+        # Shorcut if the genelist is empty
+        if len(self.linearData) == 0:
+            newl = self.deepcopy()
+            newl.linearData = copy.deepcopy(gene_list.linearData)
+            newl._optimiseData()
+            return newl
+
         mkeys = self._collectIdenticalKeys(gene_list)
         if not mkeys: # unable to match.
-            config.log.warning("No matching keys, the resulting list would be meaningless")
+            config.log.error("No matching keys, the resulting list would be meaningless")
             return False
+
         newl = self.deepcopy()
         newl.linearData.extend(copy.deepcopy(gene_list.linearData))
         newl._optimiseData()
@@ -282,6 +291,7 @@ class _base_genelist:
                 return float(value)
             else:
                 raise ValueError
+
         except ValueError:
             try:
                 # Potential error here if it is a list of strings?
@@ -291,6 +301,7 @@ class _base_genelist:
                     return [int(i) for i in value.strip(']').strip('[').split(',')]
                 else:
                     raise ValueError
+
             except ValueError:
                 try: # see if it's actually an int?
                     return int(value)
@@ -303,6 +314,7 @@ class _base_genelist:
                             raise ValueError
                     except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
                         return str(value).strip()
+
         return "" # return an empty datatype.
         # I think it is possible to get here. If the exception at int() or float() returns something other than a
         # ValueError (Unlikely, Impossible?)
@@ -336,6 +348,7 @@ class _base_genelist:
                     d[key] = eval(format[key])
                 else:
                     d[key] = self._guessDataType(column[format[key]])
+
             elif key == "gtf_decorators": # special exceptions for gtf files
                 gtf = column[format["gtf_decorators"]].strip()
                 for item in gtf.split("; "):

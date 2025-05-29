@@ -502,7 +502,7 @@ class base_expression(genelist):
         """
         assert condition_names, 'You must specify condition_names'
         assert isinstance(condition_names, list), 'condition_names must be a list of colun names'
-        if len(self) >0:
+        if len(self) > 0:
             config.log.warning('expression.from_pandas() will overwrite the existing data in the expression')
 
         newl = []

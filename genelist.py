@@ -2310,6 +2310,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 locA = item[loc_key]
                 if compare_mode == "Collide":
                     locA = locA.pointify().expand(delta)
+
                 elif compare_mode == "Overlap" and delta != 0:
                     locA = locA.expand(delta)
 
@@ -2411,7 +2412,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def removeDuplicatesByLoc(self,
                               mode,
-                              key="loc",
+                              key: str = "loc",
                               delta:int = 200,
                               use_strand:bool = False,
                               delete_any_matches:bool = False
@@ -2915,8 +2916,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def sample(self,
-               number_to_get=None,
-               seed=None):
+               number_to_get: int = None,
+               seed: int = None):
         """
         **Purpose**
             Sample n random samples from this genelist
@@ -3038,7 +3039,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def repairKey(self,
                   key_to_repair,
                   fill_in_key,
-                  **kargs):
+                  **kargs
+                  ):
         '''
         **Purpose**
             genelists will tolerate 'holes' (missing key:values) in individual entries.
@@ -3237,9 +3239,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         match_key: str = None,
         expression=None,
         random_backgrounds: int = 10,
-        spline_interpolate: bool = False,
         imshow: bool = False,
-        step_style=False,
         window=None,
         bracket=None,
         **kargs):
@@ -3282,13 +3282,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 background or some other metric to give a more analogue-like
                 score. You can specify the score to use using this argument
 
-            spline_interpolate (Optional, default=False)
-                spline_interpolate the line graph, valid interpolations are:
-
-                 'slinear', 'quadratic', 'cubic'
-
-                 This will override the default moving average window if set.
-
             draw_frames (Optional, default=False)
                 draw a frame around each of the elements in the figure.
 
@@ -3311,6 +3304,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         assert match_key, "'match_key' is required"
         assert match_key in list(self.linearData[0].keys()), f"match_key '{match_key}' not found in this list"
         assert match_key in list(expression.linearData[0].keys()), f"match_key '{match_key}' not found in expression object"
+
         if spline_interpolate:
             assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), f"'{spline_interpolate}' spline_interpolate method not found"
 
@@ -3353,12 +3347,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not window: # get 10% of the list
             window = int(len(bin) * 0.1) # bin is the same length as the data
 
-        if spline_interpolate:
-            f = scipy.interpolate.interp1d(list(range(len(bin))), bin, kind=spline_interpolate)
-            xnew = numpy.linspace(0, 40, 40) # A space to interpolate into
-            peak_data = list(f(xnew)) # dump out the falues from formula
-        else:
-            peak_data = utils.moving_average(bin, window)
+        peak_data = utils.moving_average(bin, window)
 
         newgl.load_list(newl)
 
