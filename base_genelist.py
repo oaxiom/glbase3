@@ -1,7 +1,10 @@
 
-import copy, pickle, re
+import copy
+import pickle
+import re
 from shlex import split as shlexsplit
 
+from . import utils
 from . import config
 from .helpers import *
 from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
@@ -192,8 +195,8 @@ class _base_genelist:
 
         # Shorcut if the genelist is empty
         if len(self.linearData) == 0:
-            newl = self.deepcopy()
-            newl.linearData = copy.deepcopy(gene_list.linearData)
+            newl = utils.qdeepcopy(self)
+            newl.linearData = utils.qdeepcopy(gene_list.linearData)
             newl._optimiseData()
             return newl
 
@@ -202,8 +205,8 @@ class _base_genelist:
             config.log.error("No matching keys, the resulting list would be meaningless")
             return False
 
-        newl = self.deepcopy()
-        newl.linearData.extend(copy.deepcopy(gene_list.linearData))
+        newl = utils.qdeepcopy(self)
+        newl.linearData.extend(utils.qdeepcopy(gene_list.linearData))
         newl._optimiseData()
         return newl
 
