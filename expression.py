@@ -219,8 +219,8 @@ class expression(base_expression):
 
         elif name == "pca":
             from .manifold_pca import manifold_pca
-            self.som = manifold_pca(parent=self, name=self.name)
-            return self.som
+            self.pca = manifold_pca(parent=self)
+            return self.pca
 
         elif name == "stats":
             self.stats = stats(self)
@@ -1998,8 +1998,15 @@ class expression(base_expression):
         config.log.info("draw_scatter_CV: Saved '%s'" % (realfilename))
         return None
 
-    def scatter(self, x_condition_name, y_condition_name, filename=None, genelist=None, key=None,
-        label=False, label_fontsize=6, **kargs):
+    def scatter(self,
+                x_condition_name: str,
+                y_condition_name: str,
+                filename:str = None,
+                genelist=None,
+                key:str = None,
+                label:str = False,
+                label_fontsize=6,
+                **kargs):
         """
         **Purpose**
             draw an X/Y dot plot or scatter plot, get R^2 correlation etc.
@@ -2033,6 +2040,7 @@ class expression(base_expression):
                 r = R (Correlation coefficient)
                 r2 = R^2.
                 pearson = Pearson
+                spearman = Spearman
 
                 You need to also set do_best_fit_line=True for this to work
 

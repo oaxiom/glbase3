@@ -2266,10 +2266,17 @@ class draw:
 
         return self.savefigure(fig, filename)
 
-    def nice_scatter(self, x=None, y=None, filename=None, do_best_fit_line=False,
-        print_correlation=False, spot_size=4, plot_diag_slope=False, label_fontsize=6,
-        highlights=None,
-        **kargs):
+    def nice_scatter(self,
+                     x=None,
+                     y=None,
+                     filename: str = None,
+                     do_best_fit_line: bool = False,
+                     print_correlation: bool = False,
+                     spot_size=4,
+                     plot_diag_slope: bool = False,
+                     label_fontsize=6,
+                     highlights=None,
+                     **kargs):
         """
         **Purpose**
             Draw a nice simple scatter plot
@@ -2302,6 +2309,8 @@ class draw:
                 valid are:
                     r = R (Correlation coefficient)
                     r2 = R^2.
+                    Pearson
+                    Spearman
 
             spot_size (Optional, default=5)
                 The size of each dot.
@@ -2335,6 +2344,7 @@ class draw:
             (ar, br) = polyfit(x, y, 1)
             xr = polyval([ar,br], x)
             slope, intercept, r_value, p_value, std_err = linregress(x,y)
+            print(r_value, p_value)
 
             # I think this line is actually wrong?
             mx = [min(x), max(x)]
@@ -2346,11 +2356,20 @@ class draw:
 
             if print_correlation:
                 if print_correlation == "r":
-                    ax.set_title("R=%.4f" % r_value)
+                    ax.set_title(f"R={r_value:.2f} p={p_value:.2e}", fontsize=6)
+
                 elif print_correlation == "r2":
-                    ax.set_title("R2=%.4f" % (r_value*r_value))
+                    ax.set_title(f"R2={r_value*r_value:.2f} p={p_value:.2e}", fontsize=6)
+
                 elif print_correlation == "pearson":
-                    ax.set_title("Pearson=%.4f" % scipy.stats.pearsonr(x,y)[0])
+                    # This is the same as R
+                    r, p = scipy.stats.pearsonr(x, y)
+                    ax.set_title(f"Pearson={r:.2f} p={p:.2e}", fontsize=6)
+
+                elif print_correlation == "spearman":
+                    r, p = scipy.stats.spearmanr(x, y)
+                    ax.set_title(f"Spearman={r:.2f} p={p:.2e}", fontsize=6)
+
         if plot_diag_slope:
             ax.plot([min(x+y), max(x+y)], [min(x+y), max(x+y)], ":", color="grey")
 
@@ -2363,6 +2382,8 @@ class draw:
             ax.set_xscale("log", basex=kargs["logx"])
         if "logy" in kargs and kargs["logy"]:
             ax.set_yscale("log", basey=kargs["logy"])
+
+        ax.tick_params(axis='both', labelsize=6)
 
         self.do_common_args(ax, **kargs)
 

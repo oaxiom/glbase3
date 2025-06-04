@@ -18,7 +18,7 @@ from .draw import draw
 from .genelist import genelist
 
 class manifold_pca:
-    def __init__(self, parent=None, rowwise=False, feature_key_name=None, whiten=False, **kargs):
+    def __init__(self, parent=None):
         """
         **Purpose**
             A custom class for PCA analysis of expression object data.
@@ -27,40 +27,22 @@ class manifold_pca:
             parent (Required)
                 The parent expression/genelist object.
 
-            feature_key_name (ORequired)
-                The key to use in the genelist to label.
-
-            whiten (Optional, default=False)
-                [From sklearn]
-                When True (False by default) the components_ vectors are divided by
-                n_samples times singular values to ensure uncorrelated outputs with
-                unit component-wise variances.
-
-                Whitening will remove some information from the
-                transformed signal (the relative variance scales of the components) but
-                can sometime improve the predictive accuracy of the downstream estimators
-                by making there data respect some hard-wired assumptions.
-
-            rowwise (Optional, default=False)
-                Perform PCA on the columns or the rows
-
         """
-        assert feature_key_name, "You must specifiy 'feature_key_name' from the original list to label the features"
-
         self.parent = parent
 
         self.matrix = self.parent.getExpressionTable().T # get a copy
 
         self.__draw = draw()
         self.cols = "black"
-        self.rowwise = rowwise
-        self.__model = None
-        self.whiten = whiten
-        self.feature_labels = parent[feature_key_name]
-        self.labels = parent.getConditionNames() # It makes more sense to get a copy incase someone does something that reorders the list in between
+        # It makes more sense to get a copy incase someone does something that reorders the list in between
         self.valid = False # Just check it's all calc'ed.
 
-    def train(self, number_of_components, **kargs):
+    def train(self,
+              number_of_components: int,
+              rowwise: bool = False,
+              feature_key_name:str = None,
+              whiten=False,
+              **kargs):
         '''
         **Purpose**
             Train the PCA on some array
@@ -80,18 +62,45 @@ class manifold_pca:
                 can sometime improve the predictive accuracy of the downstream estimators
                 by making there data respect some hard-wired assumptions.
 
+            feature_key_name (Required)
+                The key to use in the genelist to label.
+
+            whiten (Optional, default=False)
+                [From sklearn]
+                When True (False by default) the components_ vectors are divided by
+                n_samples times singular values to ensure uncorrelated outputs with
+                unit component-wise variances.
+
+                Whitening will remove some information from the
+                transformed signal (the relative variance scales of the components) but
+                can sometime improve the predictive accuracy of the downstream estimators
+                by making there data respect some hard-wired assumptions.
+
+            rowwise (Optional, default=False)
+                Perform PCA on the columns or the rows
+
         **Returns**
-            None
+            The trained pca object
 
         '''
-        if 'whiten' in kargs:
-            self.whiten = kargs['whiten']
+        assert feature_key_name, "You must specifiy 'feature_key_name' from the original list to label the features"
+
+        self.rowwise = rowwise
+        self.__model = None
+        self.whiten = whiten
+        self.feature_labels = self.parent[feature_key_name]
+        self.labels = self.parent.getConditionNames()
+
         self.__model = PCA(n_components=number_of_components, whiten=self.whiten)
         self.__transform = self.__model.fit_transform(self.matrix) # U, sample loading
         self.__components = self.__model.components_.T # V, The feature loading
+
         #self.__transform = self.__model.transform(self.matrix) # project the data into the PCA
         #self.__inverse_transform = self.__model.inverse_transform(self.matrix)
+
         self.valid = True
+
+        return self
 
     def __repr__(self):
         return "<glbase.pca>"
