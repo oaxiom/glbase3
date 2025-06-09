@@ -118,7 +118,7 @@ class UnRecognisedCSVFormatError(Exception):
         # This is a safe-ish version of loadCSV() that intelligently fails.
 
         if "sniffer" not in format:
-            oh = open(file_handle, "rU")
+            oh = open(file_handle, "rt")
             if "dialect" in format:
                 reader = csv.reader(oh, dialect=format["dialect"])
             else:

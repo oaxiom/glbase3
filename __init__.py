@@ -128,6 +128,7 @@ from .glglob import glglob
 from .element import motif
 from .flat_track import flat_track
 from .flat_heat import flat_heat
+#from .flat_singlecell import flat_singlecell
 from .progress import progressbar
 from .pwm import pwm
 from .pwms import pwms
@@ -167,7 +168,7 @@ __all__ = [
     "expression",
     "genome",
     "genome_sql",
-    "flat_track", 'flat_heat',
+    "flat_track", 'flat_heat', #'flat_singlecell',
     "delayedlist",
     'massspec',
     "glglob",

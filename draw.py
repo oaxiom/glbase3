@@ -2371,7 +2371,7 @@ class draw:
                     ax.set_title(f"Spearman={r:.2f} p={p:.2e}", fontsize=6)
 
         if plot_diag_slope:
-            ax.plot([min(x+y), max(x+y)], [min(x+y), max(x+y)], ":", color="grey")
+            ax.plot([min(x+y), max(x+y)], [min(x+y), max(x+y)], ":", lw=0.5, color="grey")
 
         if highlights:
             for h in highlights:
