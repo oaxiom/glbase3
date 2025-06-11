@@ -11,6 +11,7 @@ TODO:
 import sys
 import os
 import csv
+import mmap
 from . import config, utils
 from .genelist import genelist
 from .errors import AssertionError
@@ -236,7 +237,7 @@ class genome(genelist):
         if type == "genome":
             return self.getFeatures(str(location))
 
-    def bindSequence(self, path=None):
+    def bindSequence(self, path=None, memorymap=True):
         """
         **Purpose**
 
@@ -275,6 +276,9 @@ class genome(genelist):
 
             And similarly '1.fa' will result in chr names of '1'.
 
+            memorymap (Optional, default = False)
+                memory map the file for faster access, but increased memory usage.
+
         **Result**
 
         returns True if complete.
@@ -292,16 +296,19 @@ class genome(genelist):
         for f in fastas:
             if f[0:3] == "chr" and f[-3:] == ".fa":
                 chr_key = f.split(".")[0].replace("chr", "")
-                self.seq[chr_key] = open(os.path.join(path, f), "rt")
+                self.seq[chr_key] = open(os.path.join(path, f), "r", encoding="utf-8")
+                if memorymap:
+                    self.seq[chr_key] = mmap.mmap(self.seq[chr_key].fileno(), length=0, access=mmap.ACCESS_READ)
+
                 self.seq_data[chr_key] = {"filename": f, "offset": 0, "linelength": 0}
 
                 # open the file and sniff the fasta data.
-                first_line = self.seq[chr_key].readline() # should be a fasta handle >dddd d
+                first_line = self.seq[chr_key].readline().decode() # should be a fasta handle >dddd d
                 assert first_line[0] == ">", "Not a valid FASTA file, header is missing"
                 self.seq_data[chr_key]["offset"] = self.seq[chr_key].tell() # get the location after the fasta header
                 self.seq_data[chr_key]["fasta_header"] = first_line
 
-                second_line = self.seq[chr_key].readline() # should be sequence.
+                second_line = self.seq[chr_key].readline().decode() # should be sequence.
                 assert len(second_line[0]) > 0, "Not a valid FASTA file, sequence is missing?"
                 self.seq_data[chr_key]["linelength"] = len(second_line) -1 # each line.
         config.log.info("Bound Genome sequence: '%s', found %s FASTA files" % (path, len(self.seq_data)))
@@ -376,7 +383,7 @@ class genome(genelist):
         ret = ""
         while len(ret) < delta:
             self.seq[chrom].seek(seekloc+self.seq_data[chrom]["offset"])
-            ret = self.seq[chrom].read(delta + (delta // self.seq_data[chrom]["linelength"]) + bonus).replace("\n", "").replace("\r", "")
+            ret = self.seq[chrom].read(delta + (delta // self.seq_data[chrom]["linelength"]) + bonus).decode().strip()
             bonus += 1
             if bonus > delta: # breaks in case you send a loc that is beyond the end of the file.
                 break

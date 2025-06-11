@@ -408,6 +408,9 @@ class draw:
             colour_map = kargs["cmap"]
         if digitize:
             colour_map = cmaps.discretize(colour_map, digitize)
+            # Doesn't deal with -neg bins?
+            #data = numpy.digitize(data, numpy.arange(digitize))
+
 
         # a few grace and sanity checks here;
         if len(data) <= 1: row_cluster = False # clustering with a single point?

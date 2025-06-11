@@ -2,14 +2,10 @@
 
 location.py
 
-part of glbase.
+part of glbase3.
 
-This class is an internal class that implements a more convenient way to manipulate
+This class is an internal class that implements a convenient way to manipulate
 genomic coordiantes.
-
-TODO:
-. This is really due for revision...
-
 
 """
 
@@ -68,10 +64,10 @@ class location:
     def __deepcopy__(self, memo):
         return pickle.loads(pickle.dumps(self, -1)) # This is 2-3x faster and presumably uses less memory
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"chr{self.chrom}:{self.left}-{self.right}"
 
     def __len__(self):
@@ -79,7 +75,7 @@ class location:
         return max([0, self.right - self.left])
 
     def split(self, value=None):
-        # ignores the 'value' argument completely and returns a three-ple
+        # ignores the 'value' argument and returns a three-ple
         return (self.chrom, self.left, self.right)
 
     def __getitem__(self, key):
@@ -96,7 +92,7 @@ class location:
         self.loc[key] = value
         self.__update()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"chr{self.chrom}:{self.left}-{self.right}"
 
     """
