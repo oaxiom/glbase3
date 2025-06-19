@@ -123,7 +123,7 @@ class location:
         return location(chr=self.chrom, left=self.right, right=self.right)
 
     def pointify(self):
-        centre = (self.left + self.right) // 2
+        centre = (self.left + self.right) >> 1
         return location(chr=self.chrom, left=centre, right=centre)
 
     def collide(self, loc):
@@ -160,7 +160,7 @@ class location:
         (Internal)
         ignore the assert.
         """
-        return ((self.left + self.right) // 2) - ((loc.left + loc.right) // 2)
+        return ((self.left + self.right) >> 1) - ((loc.left + loc.right) >> 1)
 
     def __sub__(self, loc):
         """
