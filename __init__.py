@@ -178,7 +178,6 @@ __all__ = [
     "pwm", "pwms", # PWM object support
     "format",
     "glload",
-
     # Tools/
     "wigstep_to_flat", "bedgraph_to_flat", 'bed_to_flat', 'wig_to_flat', "gerp_to_flat", 'merge_flats',
     'merge_hiccys', # hic support

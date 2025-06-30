@@ -497,20 +497,20 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return True
 
-    def isChromosomeAvailable(self, chromosome:str):
+    def isChromosomeAvailable(self, chromosome:str) -> bool:
         """
         you must check me before trying to access dataByChr[]
         """
         return chromosome in self.dataByChr
 
-    def getAllUnorderedData(self):
+    def getAllUnorderedData(self) -> list:
         """
         (Obselete?)
         return the list of unordered data
         """
         return self.linearData
 
-    def _findDataByKeyLazy(self, key, value):    # override????? surely find?
+    def _findDataByKeyLazy(self, key, value) -> list | None:    # override????? surely find?
         """
         (Internal)
 
@@ -644,7 +644,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def saveTSV(self,
                 filename:str = None,
-                **kargs):
+                **kargs
+                ) -> None:
         """
         **Purpose**
             save the geneList or similar object as a tsv
@@ -700,7 +701,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def saveCSV(self,
                 filename:str = None,
                 no_header:bool = False,
-                **kargs):
+                **kargs
+                ) -> None:
         """
         **Purpose**
 
@@ -1090,7 +1092,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self._optimiseData()
         return True
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         """
         Randomly shuffle the order of the genelist
 
@@ -1107,7 +1109,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.linearData = newl
 
         self._optimiseData()
-        return True
+        return None
 
     '''
     def multi_sort(self, keys):
@@ -1140,7 +1142,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return True
     '''
 
-    def reverse(self):
+    def reverse(self) -> bool:
         """
         reverse the order of the list, in place.
 
@@ -1197,7 +1199,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         (Override)
         There may be some obscure failures with this item - to do with
-        returned lists. IF you send a [ {} ... {} ] like object
+        returned lists. If you send a [ {} ... {} ] like object
         derived from a genelist then it will fail (but then it should?)
         but if you use slices it should be okay:
         a = genelist[0] # returns a single dict
@@ -1520,7 +1522,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             genelist=None,
             peaklist=None,
             genome=None,
-            key=None,
+            key: str = None,
             greedy: bool = True,
             logic: str = "and",
             silent: bool = False,
@@ -1905,7 +1907,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newgl
 
     def pointify(self,
-                 key:str = "loc"):
+                 key:str = "loc"
+                 ):
         """
         Convert all of the loc coordinates to a single point, centred
         around the middle of the coordinates
@@ -2163,6 +2166,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                                              add_tags,
                                              keep_rank,
                                              genelist=genelist,
+                                             preserve_original_locs=False, # Not supported;
                                              **kargs)
 
         len_res = 0 # because newl can be None.
@@ -2185,10 +2189,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def overlap(self,
         compare_mode = "Overlap",
         loc_key = "loc",
-        delta:int = 200,
+        delta:int = 0,
         add_tags:bool = False,
         keep_rank:bool = False,
         merge_keys:bool = False,
+                preserve_original_locs:bool = False,
         **kargs):
         """
         **Purpose**
@@ -2210,8 +2215,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 will use whatever key is built by the bucket system. In almost all cases this
                 will be tss_loc first, followed by loc
 
-            delta (Optional, Default: 200)
-                the collision fuzzy window +- around the left and right
+            delta (Optional, Default: 0)
+                the collision window +- around the left and right
                 points of the loc_key tag
 
             logic (Optional, Default: "and")
@@ -2235,6 +2240,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 If I find a key with the name specified in 'add_tags' I will add the numbers together,
                 If set to False then I will take the tag score from self.
 
+            preserve_original_locs (Optional, default=False)
+                Save the original loc key in a new key called 'original_loc'
+
         **Result**
 
             returns a new genelist derived from the intersect of the keys in
@@ -2249,6 +2257,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             add_tags,
             keep_rank,
             merge_keys,
+            preserve_original_locs=preserve_original_locs,
             **kargs)
 
         len_res = 0 # because newl can be None.
@@ -2270,6 +2279,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         add_tags=False,
         keep_rank:bool = False,
         merge_keys:bool = False,
+                                 preserve_original_locs:bool = False,
         **kargs):
         """
         A new unified overlap() collide() code.
@@ -2354,6 +2364,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                             a = utils.qdeepcopy(other)
 
                         a["dist"] = locA.qdistance(locB) # add a new key.
+                        if preserve_original_locs:
+                            a['original_loc'] = copy.deepcopy(a['loc'])
 
                         # Take the mid-point between the two location centres.
                         a["loc"] = location(chr=locA["chr"], left=int((locA["left"] + locB["left"])/2), right=int((locA["right"] + locB["right"])/2))

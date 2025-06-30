@@ -100,6 +100,12 @@ fimo_out = fc(name="fimo_out",
         "p-value": 5, "q-value": 6, "sequence": 7,
         "loc": "location(chr=column[1], left=min(column[2], column[3]), right=max(column[2], column[3]))"})
 
+fimo_narrowPeak = fc(name="fimo_narrowPeak",
+    description="""Load in the fimo.narrowPeak file output by FIMO, part of the MEME suite. 
+                Assumes you are using PGC reading of trhe FASTA header for genome coordinates""",
+    format={"force_tsv": True, "motif": 3, "strand": 5,
+        "loc": "location(chr=column[0], left=column[1], right=column[2])"})
+
 homer_known_motifs = fc(name="homer_known_motifs",
     description='HOMER knownMotifs.txt format',
     format={'name': 0,
@@ -431,7 +437,7 @@ class fccatalogue():
             print("None found")
 
 catalogue = fccatalogue([
-    fimo_out, homer_known_motifs,
+    fimo_out, fimo_narrowPeak, homer_known_motifs,
     fasta, gtf, bed, full_bed, minimal_bed,
     exporttxt_loc_only, exporttxt_all,
     mm8_refgene, mm9_refgene, mm10_refgene, hg18_refseq, hg19_refgene,
