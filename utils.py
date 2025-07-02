@@ -443,3 +443,19 @@ def fastqPE(filename1, filename2, gziped=True):
         yield ({"name": name1, "strand": strand1, "seq": seq1, "qual": qual1},
             {"name": name2, "strand": strand2, "seq": seq2, "qual": qual2})
     return
+
+def make_unique(list_of_strings):
+    # Make them unique, for things like sample names.
+
+    if len(set(list_of_strings)) == len(list_of_strings):
+        return list_of_strings
+
+    # list not unqiue
+    newl = []
+    idx = 0
+    for item in list_of_strings:
+        while item in newl:
+            item = f'{item}{idx}'
+        newl.append(item)
+
+    return newl

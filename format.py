@@ -103,7 +103,7 @@ fimo_out = fc(name="fimo_out",
 fimo_narrowPeak = fc(name="fimo_narrowPeak",
     description="""Load in the fimo.narrowPeak file output by FIMO, part of the MEME suite. 
                 Assumes you are using PGC reading of trhe FASTA header for genome coordinates""",
-    format={"force_tsv": True, "motif": 3, "strand": 5,
+    format={"force_tsv": True, "motif": 3, "strand": 5, 'q-value': 8, 'p-value': 7,
         "loc": "location(chr=column[0], left=column[1], right=column[2])"})
 
 homer_known_motifs = fc(name="homer_known_motifs",

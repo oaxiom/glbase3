@@ -3079,6 +3079,28 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info('repairKey: Repaired %s keys' % replaced)
         return newl
 
+    def add_iterable_key(self,
+                         key_name:str,
+                         fmt = 'ID_{}',
+                         ):
+        '''
+        **Purpose**
+            Add in a key in the form '{label}0' ... {{label}n' for each item in the list.
+            Adds a unique ID for each item in case you need to track what happens to a specific item;
+
+        **Arguments**
+            key_name: the key name
+            fmt: the format of the key for string .format(). Should be something like 'ID_{}'
+
+        '''
+        newl = self.deepcopy()
+        for idx, item in enumerate(newl):
+            item[key_name] = fmt.format(idx)
+        newl._optimiseData()
+
+        config.log.info(f'add_iterable_key: Added {idx:,} labels to {key_name}')
+        return newl
+
 
     def splitKeyValue(self,
                       key,
