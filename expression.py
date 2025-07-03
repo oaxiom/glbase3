@@ -50,6 +50,7 @@ class expression(base_expression):
                  format: Any = None,
                  expn: Any = None,
                  gzip: bool = False,
+                 cond_names: list = None,
                  **kargs: Any):
         """
         **Purpose**
@@ -119,11 +120,11 @@ class expression(base_expression):
         #assert loadable_list or filename, 'You must provide one or other of filename or loadable_list'
 
         if loadable_list:
-            base_expression.__init__(self, loadable_list=loadable_list, expn=expn, **kargs)
+            base_expression.__init__(self, loadable_list=loadable_list, expn=expn, cond_names=cond_names, **kargs)
         elif filename:
             base_expression.__init__(self, filename=filename, expn=expn, format=format, gzip=gzip, **kargs)
         else:
-            genelist.__init__(self)
+            genelist.__init__(self) # Are you sure?
 
             self.filename = filename
             self._conditions = [] # Provide a dummy conditions temporarily
@@ -161,7 +162,10 @@ class expression(base_expression):
         """
         if len(self.linearData) > config.NUM_ITEMS_TO_PRINT:
             out = []
-            # welcome to perl
+
+            conds = ', '.join(self._conditions)
+            out.append(f'Conditions: {conds}')
+
             for index in range(config.NUM_ITEMS_TO_PRINT):
                 out.append(self.__str_helper(index))
 

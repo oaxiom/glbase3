@@ -27,7 +27,15 @@ from .errors import AssertionError, ArgumentError, ExpressionNonUniqueConditionN
 from .utils import qdeepcopy
 
 class base_expression(genelist):
-    def __init__(self, filename=None, loadable_list=None, format=None, expn=None, silent:bool=False, gzip=False, **kargs):
+    def __init__(self,
+                 filename=None,
+                 loadable_list=None,
+                 format=None,
+                 expn=None,
+                 silent:bool = False,
+                 gzip:bool = False,
+                 cond_names:list = None,
+                 **kargs):
         """
         See the documentation in the expression class.
 
@@ -48,12 +56,10 @@ class base_expression(genelist):
         if "cv_err" in kargs or "err_up" in kargs or "err_dn" in kargs:
             raise NotImplementedError("Whoops! I haven't finished expression class - cv_err, err_up and err_dn are not implemented")
 
-        valig_args = ["cond_names", "name", "force_tsv", "nan_value"]
+        valig_args = ["name", "force_tsv", "nan_value"]
         for k in kargs:
             if k not in valig_args:
                 raise ArgumentError(self.__init__, k)
-
-
 
         self.filename = filename
         self._conditions = [] # Provide a dummy conditions temporarily
@@ -66,10 +72,13 @@ class base_expression(genelist):
 
         if not loadable_list and not expn:
             config.log.info("expression: made an empty expression object")
-            return
+            return None
 
         if loadable_list:
-            self.load_list(loadable_list, expn, **kargs)
+            if not cond_names:
+                self.log.warning('No condition names provided, using default names')
+            self.load_list(loadable_list, expn, cond_names=list(cond_names), **kargs) # Hope user knows what they are doing and sends an ordered Iterable;
+
         else:
             # This is a placeholder at the moment,
             # I reload the expn and err values back into the format
@@ -88,8 +97,8 @@ class base_expression(genelist):
 
             self.loadCSV(filename=filename, format=format, gzip=gzip) # no need for error checking here - it's in genelist now.
 
-            if "cond_names" in kargs and kargs["cond_names"]:
-                self._conditions = kargs["cond_names"]
+            if cond_names:
+                self._conditions = list(cond_names) # Hope user knows what they are doing and sends an ordered Iterable;
             else:
                 # re-open the file and try to guess the conditions
                 # reopen the file to get the condition headers.
