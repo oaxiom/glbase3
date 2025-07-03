@@ -625,7 +625,7 @@ class massspec(base_expression):
 
                 for ip in expt_scheme[ctrl]:
                     ip_index = cond_index_lookup[ip]
-                    fc = fold_change(pep['intensities'][ip_index], pep['intensities'][ctrl_index], pad = 0.1)
+                    fc = fold_change(pep['intensities'][ctrl_index], pep['intensities'][ip_index], pad = 0.1)
                     pep['fold_change'][ip_index] = fc
                     pep['fold_change'][ctrl_index] = 0.0
 

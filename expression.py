@@ -145,10 +145,10 @@ class expression(base_expression):
         # Make sure data and err go on the end
         for key in self.linearData[index]:
             if key == 'conditions':
-                linc = str([f'{i:.2f}' for i in self.linearData[index][key]]).replace("'", '')
+                linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
                 item.append(f"data: {linc}")
             elif key == 'err':
-                linc = str([f'{i:.2f}' for i in self.linearData[index][key]]).replace("'", '')
+                linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
                 item.append(f"error: Data has standard error data avaiable")
 
         item = ', '.join(item)
