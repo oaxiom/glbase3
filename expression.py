@@ -34,7 +34,6 @@ from .stats import stats
 if config.NETWORKX_AVAIL and config.PYGRAPHVIZ_AVAIL:
     from .network import network
 
-
 class expression(base_expression):
     def __init__(self,
                  filename: str | None = None,
@@ -251,18 +250,6 @@ class expression(base_expression):
             from .manifold_umap import manifold_umap
             self.umap = manifold_umap(parent=self, name=self.name)
             return self.umap
-
-        elif name == "bayes":
-            assert config.NETWORKX_AVAIL, "Asking for a bayes object but networkx/graphviz is not available"
-            assert config.PYDOT_AVAIL, "Asking for a bayes object but pydot is not available"
-            assert config.PYGRAPHVIZ_AVAIL, "Asking for a network object but pygraphviz is not available"
-            self.bayes = bayes(self)
-            return self.bayes
-
-        elif name == 'learning':
-            assert config.SKLEARN_AVAIL, "Asking for som but sklearn not available"
-            self.learning = learning(self)
-            return self.learning
 
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__repr__(), name))
 
@@ -1700,7 +1687,13 @@ class expression(base_expression):
         config.log.info("filter_by_expression: %s items >= %s in '%s'" % (len(newl), minimum_expression, condition_name))
         return newl
 
-    def filter_by_value(self, value, absolute=False, **kargs):
+    def filter_by_value(self,
+                        key:str = None,
+                        evaluator = None,
+                        value = None,
+                        absolute:bool = None,
+                        **kargs
+                        ):
         """
         **Purpose**
             Keep only items in <condition_name> with >= value
