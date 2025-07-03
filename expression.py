@@ -6,14 +6,7 @@
 
 """
 
-import sys
-import os
-import csv
-import string
 import math
-import copy
-import heapq
-import itertools
 import functools
 import statistics
 
@@ -22,9 +15,8 @@ from typing import Any, Iterable
 
 import numpy
 import scipy
-from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std # this should be deprecated
 from scipy.cluster.hierarchy import distance, linkage, dendrogram
-from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
+from scipy.cluster.vq import vq, kmeans, whiten
 from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plot
 import matplotlib.cm as cm
@@ -34,7 +26,7 @@ from . import config, utils
 from .base_expression import base_expression
 from .draw import draw
 from .progress import progressbar
-from .errors import AssertionError, ArgumentError
+from .errors import AssertionError
 from .genelist import genelist, Genelist # Name mangling for the win!
 from .location import location
 from .stats import stats
@@ -51,7 +43,8 @@ class expression(base_expression):
                  expn: Any = None,
                  gzip: bool = False,
                  cond_names: list = None,
-                 **kargs: Any):
+                 **kargs: Any
+                 ) -> None:
         """
         **Purpose**
             The base container for expression data.
@@ -273,7 +266,9 @@ class expression(base_expression):
 
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__repr__(), name))
 
-    def sort_sum_expression(self, selected_conditions=None):
+    def sort_sum_expression(self,
+                            selected_conditions=None
+                            ) -> None:
         """
         sort by the sum of conditions
 
@@ -294,9 +289,9 @@ class expression(base_expression):
         else:
             self.linearData = sorted(self.linearData, key=lambda x: sum(x["conditions"]))
         self._optimiseData()
-        return True
+        return None
 
-    def sort_column_sum_expression(self):
+    def sort_column_sum_expression(self) -> None:
         """
         sort the conditions, left to right based on the sum of the column expression
 
@@ -333,9 +328,11 @@ class expression(base_expression):
         self.numpy_array_all_data = numpy.array(newtab).T
         self._load_numpy_back_into_linearData() # _conditions must be up to date
         self._optimiseData()
-        return True
+        return None
 
-    def multi_sort(self, keys):
+    def multi_sort(self,
+                   keys:Iterable,
+                   ) -> None:
         """
         **Purpose**
             Sort a genelist using multiple keys.
@@ -371,9 +368,11 @@ class expression(base_expression):
 
         self.linearData = sorted(self.linearData, key=functools.cmp_to_key(comparer))
         self._optimiseData()
-        return True
+        return None
 
-    def sort_conditions(self, reverse=False):
+    def sort_conditions(self,
+                        reverse:bool = False
+                        ) -> None:
         """
         **Purpose**
             Sort the Condition Names
@@ -405,8 +404,11 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def sort_by_expression(self, key:str=None, value:str=None):
-        '''
+    def sort_by_expression(self,
+                           key:str = None,
+                           value:str = None
+                           ):
+        """
         **Purpose**
             Sort the conditions by a gene expression value.
 
@@ -422,7 +424,7 @@ class expression(base_expression):
         **Returns**
             A new sorted expression object
 
-        '''
+        """
         assert key, 'key not specified'
         assert value, 'value not specified'
         assert key in self.keys(), f'{key} not found in this expression object'
@@ -446,11 +448,6 @@ class expression(base_expression):
         return ret
 
     # ----------- overrides/extensions ---------------------------------
-
-    def getGenomeName(self):
-        if not self.genome:
-            return "Genome not bound"
-        return self.genome.getName()
 
     def getColumns(self, return_keys=None, strip_expn=False):
         """
@@ -1703,50 +1700,6 @@ class expression(base_expression):
         config.log.info("filter_by_expression: %s items >= %s in '%s'" % (len(newl), minimum_expression, condition_name))
         return newl
 
-    def filter_conditions_by_threshold(self, genes, key, threshold, **kargs):
-        """
-        **Purpose**
-            filter out conditions based on a threshold test for
-            a list of genes.
-
-            One useage might be to remove all conditions not expressing some set of
-            housekeeping genes:
-
-            newe = expn.filter_conditions_by_threshold(["GAPDH", "ACTB", "EEF1A1"], "name", 1)
-
-        **Arguments**
-            genes (Required)
-                a List of genes (or rows) to test,
-
-            key (Required)
-                key in the genelist to use to find the genes
-
-            threshold (Required)
-                all genes specified in genes must be > than this threshold.
-
-        **Returns**
-            A new expression object, with the conditions that failed removed.
-
-        """
-        cond_names = self.getConditionNames()
-
-        cell_expressing = []
-        genes_to_test = genes
-
-        # I should get all the genes here, then just iterate through the genes, in case there are duplicate.s
-
-        for g in genes_to_test:
-            this_gene = e.getRowsByKey(key=key, values=g)[0] # what if more?
-            for i, n in enumerate(cond_names):
-                if this_gene["conditions"][i] >= threshold[g]:
-                    cell_expressing.append(n)
-
-        cell_expressing = list(set(cell_expressing))
-
-        e = e.sliceConditions(cell_expressing)
-
-        return newe
-
     def filter_by_value(self, value, absolute=False, **kargs):
         """
         **Purpose**
@@ -2274,7 +2227,10 @@ class expression(base_expression):
         config.log.info(f"boxplots_vertical: Saved '{real_filename}'")
         return p_values
 
-    def violinplot(self, filename=None, beans=False, **kargs):
+    def violinplot(self,
+                   filename: str = None,
+                   beans: bool = False,
+                   **kargs):
         """
         **Purpose**
 
@@ -2538,143 +2494,6 @@ class expression(base_expression):
                     row.append(math.log(item, do_log))
             data.append(row)
         return data
-
-    def drawCurves(self, filename=None, **kargs):
-        """
-        **Purpose**
-
-        draw a bell-curve diagram of the expression-data expression.
-
-        **Arguments**
-
-            filename (Required)
-                filename of the resulting
-
-            window
-                size of window for moving average
-
-            modifier
-                undocumented fudge for float based arrays.
-
-            xlimits
-                a tuple of the form: (minimum_x, maximum_y)
-
-            log (True|False of 2..n for log2, log10)
-                log the y axis (defaults to e)
-                send an integer for the base, e.g. for log10
-
-                log=10
-
-                for log2
-
-                log=2
-
-                for mathematical constant e
-
-                log=True
-                log="e"
-
-                Data points that are 0.0 will be trimmed from the data.
-                This means the number of samples plotted may not
-                be the same as the number of points in the microarray
-                data.
-
-            cumulative (True|False, default False)
-
-                draw cumulative curves.
-
-            verbose (True|False), default=False
-                print out the means and standard deviations.
-
-        **Result**
-
-        saves an image to 'filename'
-        returns the actual filename (the filename may be modified
-        depending upon the current display driver)
-
-        """
-        assert filename, "no filename given"
-
-        window_size = 200
-        simple_args = ["filename", "window", "modifier"]
-        xlimits = None
-        do_log = False
-        extra_args = {}
-        data = self.serialisedArrayDataList
-
-        for k in kargs:
-            if k == "log":
-                data = self.__log_transform_data(self.serialisedArrayDataList, log=kargs["log"])
-            if k == "filename":
-                filename = kargs[k]
-            if k == "window":
-                window_size = kargs[k]
-            if k == "modifier": # undocumented fudge for flat arrays.
-                binner_modifier = kargs[k]
-            if k == "xlimits": # requires a tuple.
-                xlimits = kargs[k]
-            if k == "cumulative":
-                extra_args["cumulative"] = kargs["cumulative"]
-
-        # normalise data, for each condition.
-        fig = self.draw.getfigure(**kargs)
-        ax = fig.add_subplot(111)
-
-        if "verbose" in kargs and kargs["verbose"]:
-            print("name\tmean\tstd")
-
-        for i, c in enumerate(self.getConditionNames()):
-            ax.hist(data[i], bins=window_size, histtype="step", label=c, **extra_args)
-            m = mean(data[i])
-            d = std(data[i])
-            ax.axvline(x=m, color="red")
-            ax.axvline(x=m-d, color='grey', ls=":")
-            ax.axvline(x=m+d, color='grey', ls=":")
-            if "verbose" in kargs and kargs["verbose"]:
-                print("%s\t%.2f\t%.2f" % (c, m, d))
-
-        if xlimits:
-            ax.xlim(xlimits)
-        ax.legend()
-
-        real_filename = self.draw.savefigure(fig, filename)
-        config.log.info("curves: Saved '%s'" % filename)
-        return True
-
-    def getDataByCriteria(self, **kargs):
-        """
-        **Purpose**
-            used to test for fold_up, sig_up, etc...
-
-            function can be any helper_function, which uses data[] as it's set for each item.
-            function must accept these arguments: (data[], conditionNames)
-            data is a dict of the form {"con_name1": value, "con_name2": value ...}
-        """
-        function = None
-        normal = None
-        for k in kargs:
-            if k == "function":
-                function = kargs[k]
-            elif k == "normal":
-                normal = kargs[k]
-
-        if not function:
-            config.log.error("Criteria function unavailable.")
-            return False
-
-        newl = self.deepcopy()
-        newl.linearData = []
-
-        conNames = self.getConditionNames()
-        for item in self:
-            data = item["conditions"]
-            # package as a dict:
-            dd = {name: data[index] for index, name in enumerate(conNames)}
-            if function(dd, conNames, normal, **kargs): # pass on other kargs
-                newl.linearData.append(deepcopy(item))
-
-        newl._optimiseData()
-        return newl
 
     def _insertCondition(self, condition_name, condition_data, range_bind=None, **kargs):
         """
@@ -4307,7 +4126,7 @@ class expression(base_expression):
             the actual filename saved as and a new image in filename.
         """
         assert filename, "No filename specified"
-        assert condition_name in self.serialisedArrayDataDict, "%s condition not found" % x_condition_name
+        assert condition_name in self.serialisedArrayDataDict, "%s condition not found" % condition_name
         assert p_value_key in self.keys(), f'"{p_value_key}" p_value_key not found in this list'
         if highlights:
             assert highlight_key, 'highlight_key must hold a value if highlights=True'
