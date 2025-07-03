@@ -445,12 +445,6 @@ class expression(base_expression):
         config.log.info(f'Sorted conditions by {key}: {value}')
         return ret
 
-    def findGene(self, **kargs):
-        """
-        Deprecated method
-        """
-        raise AssertioError("findGene() is deprecated, see getRowsByKey()")
-
     # ----------- overrides/extensions ---------------------------------
 
     def getGenomeName(self):
@@ -528,6 +522,7 @@ class expression(base_expression):
 
         for item in self.linearData:
             del item["err"]
+
         self._optimiseData() # I think this does nothing at the moment, but just in case I ever fix err key handling
         return None
 
@@ -571,8 +566,8 @@ class expression(base_expression):
         return newgl
 
     def sliceConditions(self,
-        conditions:Iterable=None,
-        _silent=False,
+        conditions:Iterable = None,
+        _silent:bool = False,
         **kargs):
         """
         **Purpose**
@@ -631,6 +626,7 @@ class expression(base_expression):
         newgl._optimiseData()
 
         if not _silent: config.log.info("sliceConditions: sliced for %s conditions" % (len(newgl[0]["conditions"]),))
+
         return newgl
 
     def getDataForCondition(self, condition_name):
@@ -781,7 +777,11 @@ class expression(base_expression):
         self._load_numpy_back_into_linearData()
         return None
 
-    def digitize(self, number_of_steps, min=None, max=None):
+    def digitize(self,
+                 number_of_steps:int,
+                 min:float = None,
+                 max:float = None
+                 ) -> None:
         """
         **purpose**
             Digitize the data into the supplied <number_of_steps>.
@@ -805,7 +805,7 @@ class expression(base_expression):
 
         self._load_numpy_back_into_linearData()
 
-    def coerce(self, new_type):
+    def coerce(self, new_type) -> None:
         """
         **Purpose**
             Semi-internal/obscure function. Coerces the data in condition into
@@ -833,7 +833,7 @@ class expression(base_expression):
         row_label_key:str ="name",
         row_color_threshold=None,
         optimal_ordering=True,
-        dpi:int =300,
+        dpi:int = 300,
         _draw_supplied_cell_labels=None,
         **kargs):
         """
