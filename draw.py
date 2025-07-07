@@ -1443,10 +1443,6 @@ class draw:
 
         return self.savefigure(fig, filename)
 
-    # Salted for deprecation
-    def _qplotxy(self, list_of_tuples_data, filename=None, labels=None, **kargs):
-        self.qplotxy(list_of_tuples_data, filename=filename, labels=labels, **kargs)
-
     def qplotxy(self, list_of_tuples_data, filename=None, labels=None, **kargs):
         """
         thin wrapper around plot.
