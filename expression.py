@@ -2420,14 +2420,15 @@ class expression(base_expression):
             newcond = []
             for expression_value in item["conditions"]:
                 if expression_value >= 0:
-                    expression_value -= number
-                    expression_value = max(expression_value, 0)
+                    expression_value = max(expression_value - number, 0)
 
                 elif expression_value <= 0:
-                    expression_value += number
-                    expression_value = min(expression_value, 0)
+                    expression_value = min(expression_value + number, 0)
+
                 newcond.append(expression_value)
+
             item["conditions"] = newcond
+
         self._optimiseData()
         return None
 
@@ -3046,6 +3047,8 @@ class expression(base_expression):
         square = True
         if "heat_hei" in kargs or "heat_wid" in kargs:
             square=False
+
+        #return arr
 
         results = self.draw.heatmap(filename=filename, data=arr, square=square,
             bracket=bracket, aspect=aspect, row_names=labels, col_names=labels,

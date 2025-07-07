@@ -260,7 +260,7 @@ class draw:
             ls = [len(kargs["data"][key]) for key in col_names]
 
             if not all(x == ls[0] for x in ls):
-                raise Exception("Heatmap data not Square")
+                raise Exception("Heatmap data is not square, and appears to be ragged")
         else:
             # the default is a numpy like array object which can be passed right through.
             data = array(kargs["data"], dtype=float32)
@@ -285,7 +285,15 @@ class draw:
             left_side_tree =          [0.15,    0.15,   0.10,   0.75]
             top_side_tree =           [0.25,    0.90,  0.55,   0.08]
             heatmap_location =        [0.25,    0.15,   0.55,   0.75]
-            loc_col_colbar = [] # not supported?
+
+            if col_colbar:
+                left_side_tree =         [0.10, 0.15, 0.115, 0.75]
+                loc_col_colbar =         [0.225, 0.15, 0.02, 0.75]
+
+            if row_colbar:
+                top_side_tree =          [0.25, 0.926, 0.55, 0.07]
+                loc_row_colbar =         [0.25, 0.905, 0.55, 0.02]
+
         else:
             # positions of the items in the plot:
             # heat_hei needs to be adjusted. as 0.1 is the bottom edge. User wants the bottom
@@ -347,7 +355,7 @@ class draw:
             highlights = list(set(highlights)) # Make it unique, because sometimes duplicates get through and it erroneously reports failure.
             found = [False for i in highlights]
             if row_font_size == 0:
-                row_font_size = 5 # IF the above sets to zero, reset to a reasonable value.
+                row_font_size = 6 # IF the above sets to zero, reset to a reasonable value.
             if "row_font_size" in kargs: # but override ir row_font_size is being used.
                 row_font_size = kargs["row_font_size"] # override size if highlights == True
                 # I suppose this means you could do row_font_size = 0 if you wanted.
@@ -408,9 +416,6 @@ class draw:
             colour_map = kargs["cmap"]
         if digitize:
             colour_map = cmaps.discretize(colour_map, digitize)
-            # Doesn't deal with -neg bins?
-            #data = numpy.digitize(data, numpy.arange(digitize))
-
 
         # a few grace and sanity checks here;
         if len(data) <= 1: row_cluster = False # clustering with a single point?
@@ -529,25 +534,26 @@ class draw:
                     new_colbar.append([matplotlib_colors.to_rgb(c)])
 
             col_colbar = numpy.array(new_colbar)#.transpose(1,0,2)
+            # unpack the oddly contained data:
+            col_colbar = [tuple(i[0]) for i in col_colbar]
+            cols = list(set(col_colbar))
+            lcmap = ListedColormap(cols)
+            col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
 
             ax4 = fig.add_axes(loc_col_colbar)
             if 'imshow' in kargs and kargs['imshow']:
-                col_colbar = numpy.array(new_colbar).transpose(1,0,2)
-                ax4.imshow(col_colbar, aspect="auto",
-                    origin='lower', extent=[0, len(col_colbar),  0, 1],
-                    interpolation=config.get_interpolation_mode(filename))
+                ax4.imshow(numpy.array([col_colbar_as_col_indeces,]).T,
+                           cmap=lcmap,
+                           aspect="auto",
+                           origin='lower', extent=[0, len(col_colbar),  0, 1],
+                           interpolation=config.get_interpolation_mode(filename))
 
             else:
-                col_colbar = numpy.array(new_colbar)
-                # unpack the oddly contained data:
-                col_colbar = [tuple(i[0]) for i in col_colbar]
-                cols = list(set(col_colbar))
-                lcmap = ListedColormap(cols)
-                col_colbar_as_col_indeces = [cols.index(i) for i in col_colbar]
-
-                ax4.pcolormesh(numpy.array([col_colbar_as_col_indeces,]), cmap=lcmap,
-                    vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
-                    antialiased=False, edgecolors=edgecolors, lw=0.4)
+                ax4.pcolormesh(numpy.array([col_colbar_as_col_indeces,]),
+                               cmap=lcmap,
+                               vmin=min(col_colbar_as_col_indeces), vmax=max(col_colbar_as_col_indeces),
+                               antialiased=False,
+                               edgecolors=edgecolors, lw=0.4)
 
             ax4.set_frame_on(False)
             ax4.tick_params(top=False, bottom=False, left=False, right=False)
@@ -564,17 +570,20 @@ class draw:
 
             row_colbar = numpy.array(new_colbar)
 
+            # unpack the oddly contained data:
+            row_colbar = [tuple(i[0]) for i in row_colbar]
+            cols = list(set(row_colbar))
+            lcmap = ListedColormap(cols)
+            row_colbar_as_col_indeces = [cols.index(i) for i in row_colbar]
+
             ax4 = fig.add_axes(loc_row_colbar)
             if 'imshow' in kargs and kargs['imshow']:
-                ax4.imshow(row_colbar, aspect="auto",
+                ax4.imshow(numpy.array([row_colbar_as_col_indeces,]), cmap=lcmap,
+                           aspect="auto",
                     origin='lower', extent=[0, len(row_colbar),  0, 1],
                     interpolation=config.get_interpolation_mode(filename))
             else:
-                # unpack the oddly contained data:
-                row_colbar = [tuple(i[0]) for i in row_colbar]
-                cols = list(set(row_colbar))
-                lcmap = ListedColormap(cols)
-                row_colbar_as_col_indeces = [cols.index(i) for i in row_colbar]
+
                 ax4.pcolormesh(numpy.array([row_colbar_as_col_indeces,]).T, cmap=lcmap,
                     vmin=min(row_colbar_as_col_indeces), vmax=max(row_colbar_as_col_indeces),
                     antialiased=False, edgecolors=edgecolors, lw=0.4)

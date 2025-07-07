@@ -2097,7 +2097,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 delta:int = 200,
                 title:str = None,
                 bins=20,
-                add_tags:bool = False,
                 keep_rank:bool = False,
                 **kargs):
         """
@@ -2148,10 +2147,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 if set to true then I will add a new key "ranks" that contains two ranks, the
                 ranks of the peak in the (old, new) lists.
 
-            add_tags (Optional, default=False)
-                If I find a key with the name specified in 'add_tags' I will add the numbers together,
-                If set to False then I will take the tag score from self.
-
         **Result**
             returns a new genelist derived from the intersect of the keys in
             the original list and the new gene list
@@ -2163,7 +2158,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl = self._unified_collide_overlap(compare_mode,
                                              loc_key,
                                              delta,
-                                             add_tags,
                                              keep_rank,
                                              genelist=genelist,
                                              preserve_original_locs=False, # Not supported;
@@ -2190,7 +2184,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         compare_mode = "Overlap",
         loc_key = "loc",
         delta:int = 0,
-        add_tags:bool = False,
         keep_rank:bool = False,
         merge_keys:bool = False,
                 preserve_original_locs:bool = False,
@@ -2236,10 +2229,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 if set to true then I will add a new key "ranks" that contains two ranks, the
                 ranks of the peak in the (old, new) lists.
 
-            add_tags (Optional, default=False)
-                If I find a key with the name specified in 'add_tags' I will add the numbers together,
-                If set to False then I will take the tag score from self.
-
             preserve_original_locs (Optional, default=False)
                 Save the original loc key in a new key called 'original_loc'
 
@@ -2252,11 +2241,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         newl = self._unified_collide_overlap(
             compare_mode,
-            loc_key,
-            delta,
-            add_tags,
-            keep_rank,
-            merge_keys,
+            loc_key=loc_key,
+            delta=delta,
+            keep_rank=keep_rank,
+            merge_keys=merge_keys,
             preserve_original_locs=preserve_original_locs,
             **kargs)
 
@@ -2266,21 +2254,20 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if not config.SILENT:
             if "logic" in kargs and kargs["logic"]:
-                config.log.info( "%s (%s) two lists using '%s', found: %s non-overlapping sites" % (compare_mode, kargs["logic"], loc_key, len_res))
+                config.log.info("%s (%s) two lists using '%s', found: %s non-overlapping sites" % (compare_mode, kargs["logic"], loc_key, len_res))
             else:
                 config.log.info("%s two lists using '%s' key, found: %s overlaps" % (compare_mode, loc_key, len_res))
 
         return newl
 
     def _unified_collide_overlap(self,
-        compare_mode=None,
-        loc_key="loc",
-        delta:int = 200,
-        add_tags=False,
-        keep_rank:bool = False,
-        merge_keys:bool = False,
-                                 preserve_original_locs:bool = False,
-        **kargs):
+                                 compare_mode=None,
+                                 loc_key="loc",
+                                 delta: int = 200,
+                                 keep_rank: bool = False,
+                                 merge_keys: bool = False,
+                                 preserve_original_locs: bool = False,
+                                 **kargs):
         """
         A new unified overlap() collide() code.
 
@@ -2373,27 +2360,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
                         if keep_rank:
                             a["ranks"] = (indexA, indexB)
-
-                        if add_tags and add_tags in other and add_tags in item:
-                            try:
-                                a[add_tags] = float(item[add_tags]) + float(other[add_tags])
-                            except TypeError:
-
-                                if not __add_tag_keys_float_warning:
-                                    config.log.warning("add_tag key float addition failed")
-                                    __add_tag_keys_float_warning = True
-                                try:
-                                    a[add_tags] = int(item[add_tags]) + int(other[add_tags])
-                                except TypeError as ValueError:
-
-                                    if not __add_tag_keys_int_warning:
-                                        __add_tag_keys_int_warning = True
-                                        config.log.warning("add_tag key int addition failed")
-
-                                    a[add_tags] = item[add_tags]
-                                    if not __add_tag_keys_warning:
-                                        config.log.warning("add_tag key could not be added together")
-                                        __add_tag_keys_warning = True
 
                         newl.linearData.append(a)
 
