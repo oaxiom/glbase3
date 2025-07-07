@@ -1390,43 +1390,6 @@ class draw:
 
         return self.savefigure(fig, filename)
 
-    def _genome_segment(self, figure_axis, loc, feature_list):
-        """
-        draw a representation of the genome using the axis provided by figure_axis
-        loc = the genomic location
-        feature_list = a list of refseq features to draw on the graph.
-        """
-        ax = figure_axis
-        # set the x axis to match.
-        ax.set_xlim([0, len(loc)]) # 1 = 1bp scale.
-        ax.set_ylim([0, 10]) # arbitary.
-
-        ax.set_xticks([0, len(loc)])
-        ax.set_yticks([0, 10])
-
-        ax.tick_params(top=False, bottom=False, left=False, right=False)
-        left_base = loc["left"]
-        for item in feature_list:
-            if item["type"] == "gene":
-                left_most_base = item["loc"]["left"] - loc["left"]
-                right_most_base = item["loc"]["right"] - loc["left"]
-
-                if item["strand"] in positive_strand_labels:
-                    ax.text(left_most_base, 7, item["name"], size=10, ha="left", va="center")
-                    ax.arrow(left_most_base, 6, right_most_base-left_most_base, 0,
-                        alpha=0.5, fc=(0,0,0), width=0.02)
-                elif item["strand"] in negative_strand_labels:
-                    ax.text(right_most_base, 3, item["name"], size=10, ha="right", va="center")
-                    ax.arrow(left_most_base, 4, right_most_base-left_most_base, 0,
-                        alpha=0.5, fc=(0,0,0), width=0.02)
-        ax.axhline(y=5, color='gray', linestyle=":", linewidth=0.5, alpha=0.5)
-        # tidy up stuff:
-        ax.set_frame_on(False)
-        ax.set_yticklabels("")
-        ax.set_xticklabels("")
-        # append the chromosome coords to the figure.
-        ax.text(100, 8, str(loc), size=10, ha="left", va="center")
-
     def _labeled_figure(self, data=None, axissize=None, filename=None,
         horizontal_line=True, **kargs):
         """
