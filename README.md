@@ -22,9 +22,9 @@ Then at the command type:
 $ git clone https://github.com/oaxiom/glbase3.git
 ```
 
-This will create a directory 'glbase', containing all of the code.
+This will create a directory 'glbase3', containing all of the code.
 
-Next add glbase to your python path by adding this line to ~/.bash_profile (Mac) or ~/.bashrc (Unix, Linux) or equivalent:
+Next add glbase to your python path by adding this line to ~/.profile (Mac) or ~/.bashrc (Unix, Linux) or equivalent:
 
 ```
 export PYTHONPATH=/Users/name/tools:$PYTHONPATH
@@ -59,7 +59,7 @@ You can find self-contained tutorials in:
 
 glbase is distributed under the MIT license:
 
-Copyright (C) 2009-2022 Andrew Hutchins
+Copyright (C) 2009-2025 Andrew Hutchins
     
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
     
