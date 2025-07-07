@@ -1390,57 +1390,6 @@ class draw:
 
         return self.savefigure(fig, filename)
 
-    def _labeled_figure(self, data=None, axissize=None, filename=None,
-        horizontal_line=True, **kargs):
-        """
-        **Purpose**
-            Draw a figure with a set of labels.
-
-        **Arguments**
-            filename
-                filename to save to. May get modified depending upon the current
-                draw mode.
-
-            data
-                A set of values if this form: {"pos": (x,y), "label": label}
-
-            horizontal_line (Optional, default=True)
-                draw  horizontal line at y axis 0.
-
-            axissize (Required)
-                the axis dimensions (x and y maximal limits).
-
-            Common Arguments also supported:
-                figsize - tuple specifying the figure aspect
-                dpi - the dpi (only supported for ps outputs)
-        """
-        position_plot = [0.02, 0.05, 0.96, 0.9]
-
-        fig = self.getfigure(**kargs)
-
-        ax1 = fig.add_subplot(131)
-        ax1.set_position(position_plot)
-        ax1.set_xlim([0, axissize[0]])
-        ax1.set_ylim([0, axissize[1]])
-        if "ylim" and kargs["ylim"]:
-            ax1.set_ylim(kargs["ylim"])
-        if horizontal_line:
-            ax1.axhline(y=4.5, color='gray', linestyle=":", linewidth=1.5)
-
-        for l in data:
-            # draw an arrow.
-            ax1.text(l["pos"][0], l["pos"][1], l["label"], size=8, ha="left", va="bottom",
-                rotation="vertical")
-
-        if "genomic_features" in kargs:
-            # I've got some genomic features, I want to draw them.
-            position_genomic = [0.02, 0.05, 0.96, 0.1]
-            ax3 = fig.add_subplot(133)
-            ax3.set_position(position_genomic)
-            self._genome_segment(ax3, kargs["loc"], kargs["genomic_features"])
-
-        return self.savefigure(fig, filename)
-
     def _plot_and_histogram(self, filename=None, data=None, figsize=(5,5), **kargs):
         """
         Draw a graph plot and a histogram on the right hand side.
