@@ -781,13 +781,25 @@ class flat_track():
             bkgd = None
         '''
 
-
-    def heatmap(self, filename=None, genelist=None, scaled_view_fraction=0.5,
-        scaled=False, distance=1000, read_extend=200, log=2,
-        bins=200, sort_by_intensity=True, raw_heatmap_filename=None, bracket=None,
-        pointify=True, respect_strand=False, cmap=cm.plasma, norm_by_read_count=False,
-        log_pad=None, imshow=True,
-        **kargs):
+    def heatmap(self,
+                filename: Any = None,
+                genelist: {keys, linearData} = None,
+                scaled_view_fraction: float = 0.5,
+                scaled: bool = False,
+                distance: int = 1000,
+                read_extend: int = 200,
+                log: int = 2,
+                bins: int = 200,
+                sort_by_intensity: bool = True,
+                raw_heatmap_filename: Any = None,
+                bracket: Any = None,
+                pointify: bool = True,
+                respect_strand: bool = False,
+                cmap: Any = cm.plasma,
+                norm_by_read_count: bool = False,
+                log_pad: Any = None,
+                imshow: bool = True,
+                **kargs: Any) -> dict[str, ndarray[Any, dtype] | Genelist]
         """
         **Purpose**
             Draw a heatmap of the seq tag density drawn from a genelist with a "loc" key.
