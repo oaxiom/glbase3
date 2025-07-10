@@ -264,7 +264,7 @@ class delayedlist(genelist):
         self.linearData = temp_data
         ret = genelist.__str__(self)
         self._optimiseData()
-        return "{ret}\nThis is a delayedlist - only the first {config.NUM_ITEMS_TO_PRINT} entries are shown"
+        return f"{ret}\nThis is a delayedlist - only the first {config.NUM_ITEMS_TO_PRINT} entries are shown"
 
     def save(self):
         raise NotSupportedError("Cannot save a binary representation of a delayedlist")

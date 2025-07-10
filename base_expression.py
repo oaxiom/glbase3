@@ -75,9 +75,11 @@ class base_expression(genelist):
             return None
 
         if loadable_list:
-            if not cond_names:
-                self.log.warning('No condition names provided, using default names')
-            self.load_list(loadable_list, expn, cond_names=list(cond_names), **kargs) # Hope user knows what they are doing and sends an ordered Iterable;
+            if expn:
+                self.load_list(loadable_list, expn, **kargs)
+            elif not cond_names:
+                config.log.warning('No condition names provided, using default names')
+                self.load_list(loadable_list, expn, cond_names=list(cond_names), **kargs) # Hope user knows what they are doing and sends an ordered Iterable;
 
         else:
             # This is a placeholder at the moment,
@@ -411,7 +413,12 @@ class base_expression(genelist):
                 return True
         return False
 
-    def load_list(self, list_to_load, expn=None, name=False, cond_names=None, nan_value=0):
+    def load_list(self,
+                  list_to_load,
+                  expn=None,
+                  name=False,
+                  cond_names=None,
+                  nan_value=0):
         """
         **Purpose**
             You've generated your own [{ ... }, { ...}] like list
@@ -430,7 +437,7 @@ class base_expression(genelist):
             list_to_load
                 must be a list of dicts.
 
-            expn (optional)
+            expn (Optional)
                 A list of key names to construct the expression data from
                 If not specified then it assumes your list already has a correctly formatted
                 "conditions" key.

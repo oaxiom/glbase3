@@ -15,7 +15,7 @@ import configparser
 import math
 import zlib
 from operator import itemgetter
-from typing import Iterable
+from typing import Iterable, Any
 
 from .location import location
 
@@ -414,6 +414,7 @@ class flat_track():
             if read_count <= 0:
                 raise AssertionError('norm_by_read_count=True, but this flat_track has no total number of reads')
 
+        __block_miss_warning_done = False
         all_hists = {}
 
         fig = self._draw.getfigure(**kargs)
@@ -462,7 +463,10 @@ class flat_track():
                     # chr9_GL000201_RANDOM:-500-1500
                     # Check for a block miss:
                     if len(a) < loc_span: # This should be a very rare case...
-                        config.log.warning('Block miss (short)')
+                        if not __block_miss_warning_done:
+                            config.log.warning(f'Block miss (short), len={len(a)}, loc_span={loc_span}, loc={i["loc"]}')
+                            __block_miss_warning_done = True
+
                         num_missing = loc_span - len(a)
                         ad = numpy.zeros(num_missing, dtype=float)
                         a = numpy.append(a, ad)
@@ -624,8 +628,8 @@ class flat_track():
                 center = self.get(None, c=loc_chrom, left=loc['left'], rite=loc['right'], strand="+")#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
                 rite_flank = self.get(None, c=loc_chrom, left=loc['right'], rite=loc['right']+window_size, strand="+")
 
-                if center.size < 100:
-                    config.log.warning(f'center is shorter than 100 bp {loc}, skipping')
+                if center.size < 50:
+                    config.log.warning(f'center is shorter than 50 bp {loc}, skipping')
                     continue
 
                 # scale center to 0 1000
@@ -783,7 +787,7 @@ class flat_track():
 
     def heatmap(self,
                 filename: Any = None,
-                genelist: {keys, linearData} = None,
+                genelist = None,
                 scaled_view_fraction: float = 0.5,
                 scaled: bool = False,
                 distance: int = 1000,
@@ -799,7 +803,7 @@ class flat_track():
                 norm_by_read_count: bool = False,
                 log_pad: Any = None,
                 imshow: bool = True,
-                **kargs: Any) -> dict[str, ndarray[Any, dtype] | Genelist]
+                **kargs: Any) -> Any:
         """
         **Purpose**
             Draw a heatmap of the seq tag density drawn from a genelist with a "loc" key.
@@ -1106,8 +1110,8 @@ class flat_track():
             center = self.get(None, c=loc_chrom, left=loc['left'], rite=loc['right'], strand="+")#[0:window_size*2] # mask_zero is NOT asked of here. because I need to ignore zeros for the average calculation (below)
             rite_flank = self.get(None, c=loc_chrom, left=loc['right'], rite=loc['right']+distance, strand="+")
 
-            if center.size < 100:
-                config.log.warning('center is shorter than 100 bp {}, skipping'.format(loc))
+            if center.size < 50:
+                config.log.warning('center is shorter than 50 bp {}, skipping'.format(loc))
 
             if respect_strand:
                 # positive strand is always correct, so I leave as is.
