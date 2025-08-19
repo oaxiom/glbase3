@@ -76,7 +76,11 @@ class base_expression(genelist):
 
         if loadable_list:
             if expn:
-                self.load_list(loadable_list, expn, **kargs)
+                self.load_list(loadable_list, expn, cond_names=cond_names, **kargs)
+
+            elif cond_names:
+                self.load_list(loadable_list, None, cond_names=list(cond_names), **kargs)
+
             elif not cond_names:
                 config.log.warning('No condition names provided, using default names')
                 self.load_list(loadable_list, expn, cond_names=list(cond_names), **kargs) # Hope user knows what they are doing and sends an ordered Iterable;
