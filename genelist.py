@@ -1602,7 +1602,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             right hand side of the function.
 
         """
-        valid_args = ("genelist", "peaklist", "microarray", "key",
+        valid_args = ("genelist", "peaklist", "key",
             "image_filename", "title", "venn_proportional", "greedy")
         for k in kargs:
             if not k in valid_args:
@@ -1613,7 +1613,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if repr(genelist) == "glbase.delayedlist": # delayedlists will fail an assertion
             gene_list = genelist
         else:
-            assert genome or genelist or peaklist or microarray, "map: No valid genelist specified"
+            assert genome or genelist or peaklist, "map: No valid genelist specified"
 
         if genelist:
             gene_list = genelist
