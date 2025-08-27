@@ -14,7 +14,14 @@ from .. import flat_track
 from .. import config
 from .. import location
 
-def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, skip_non_standard_chroms=False, **kargs):
+def wigstep_to_flat(
+        infilename,
+        outfilename,
+        name,
+        bin_format=None,
+        gzip=False,
+        skip_non_standard_chroms=True,
+        **kargs):
     """
     **Purpose**
         Convert a list of genomic coordinates to a flat file (Actually an SQL
@@ -29,11 +36,6 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
 
         name
             A name describing the track
-
-        bin_format
-            the format to use to store the data. Valid values are:
-
-            f = floats
 
         skip_non_standard_chroms (Optional, default=False)
             only use canonical chromsome names (i.e. chr1, chrX, chrM)
@@ -65,6 +67,7 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
     cleft = 0
     newchrom = None
     lastchrom = None
+    list_of_chroms = set([])
 
     for line in oh:
         if 'track' in line: # Ignore headers'
@@ -77,6 +80,7 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
 
                 # if change of chrom, save it to the flat;
                 if lastchrom and lastchrom != chrom and newchrom:
+                    list_of_chroms.add(chrom)
                     if skip_non_standard_chroms and '_' not in lastchrom:
                         f.add_chromosome_array(lastchrom, numpy.array(newchrom))
                         config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
@@ -85,6 +89,9 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
                 lastchrom = chrom
                 cleft = int(t[2].split("=")[1])
                 step = int(t[3].split("=")[1])
+                span = int(t[4].split("=")[1])
+
+                print(f'chrom={chrom}, left={cleft}, step={step}, span={span}')
 
                 if not newchrom:# setup new array;
                     newchrom = [0] * cleft
@@ -92,7 +99,7 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
                     newchrom += [0] * (cleft-len(newchrom))
             else:
                 #f.add_score(loc=location("%s:%s-%s" % (chrom, cleft, cleft+step)), score=float(line))
-                newchrom.append(float(line))
+                newchrom += [float(line)] * span
                 cleft += step
 
             if n > 1e7: # because n+= step;
@@ -103,7 +110,15 @@ def wigstep_to_flat(infilename, outfilename, name, bin_format=None, gzip=False, 
 
     e = time.time()
 
+    # Commit final chrom:
+    f.add_chromosome_array(chrom, numpy.array(newchrom))
+    config.log.info('Finished {} with {:,} bp of data'.format(chrom, len(newchrom)))
+
     config.log.info("Finalise library. Contains approx. {:,} bps of data".format(int(m*1e6)))
+    config.log.info('Observed chromsomes sizes:')
+    for ch in sorted(list_of_chroms):
+        config.log.info('Chromosome: {0} = {1:,} bp'.format(ch, list_of_chroms[ch]))
+
     f.finalise()
     config.log.info("Took: %s seconds" % (e-s))
     return True
