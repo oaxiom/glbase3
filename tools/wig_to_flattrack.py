@@ -65,7 +65,7 @@ def wig_to_flat(infilenames, outfilename, name, gzip=False, skip_non_standard_ch
 
     s = time.time()
 
-    config.log.info('Preparse BED(s)')
+    config.log.info('Preparse WIG(s)')
 
     cleft = 0
     open_mode = None
@@ -105,7 +105,7 @@ def wig_to_flat(infilenames, outfilename, name, gzip=False, skip_non_standard_ch
 
     # Go back through, once for each chromosome to make a numpy array for each chrom
     for chrom in list_of_chroms:
-        config.log.info('Building array for %s' % chrom)
+        config.log.info(f'Building array for {chrom}')
         arr = [0] * (list_of_chroms[chrom]+1000) # add a small pad for edge cases
         for f in infilenames:
             config.log.info("Started %s" % (f, ))
