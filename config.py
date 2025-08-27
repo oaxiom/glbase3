@@ -34,6 +34,7 @@ MATPLOTLIB_AVAIL = False # required
 NUMPY_AVAIL = False # required
 SCIPY_AVAIL = False # required
 SKLEARN_AVAIL = False # required
+
 H5PY_AVAIL = False # Optional
 NETWORKX_AVAIL = False # optional
 PYDOT_AVAIL = False # optional
@@ -51,7 +52,7 @@ PRINT_LAST_ITEM = True
 bucket_size = 10000 # in bp - tested, seems a reasonable choice.
 
 DEFAULT_DPI = 150 # not working?
-draw_mode = "pdf" # TODO: Deprecate this, jsut use the matplotlib backend;
+draw_mode = "pdf" # TODO: Deprecate this, just use the matplotlib backend;
 draw_size = "medium"
 draw_aspect = "normal"
 valid_draw_modes = frozenset(["png", "ps", "eps", "svg", 'pdf'])

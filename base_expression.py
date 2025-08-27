@@ -71,7 +71,7 @@ class base_expression(genelist):
             self.name = "".join(self.filename.split(".")[:-1])
 
         if not loadable_list and not expn:
-            config.log.info("expression: made an empty expression object")
+            config.log.warning("expression: made an empty expression object")
             return None
 
         if loadable_list:
@@ -379,7 +379,9 @@ class base_expression(genelist):
 
         return None
 
-    def sort(self, key, reverse=False):
+    def sort(self,
+             key:str,
+             reverse:bool = False):
         """
         This is slightly different from the vanilla genelist's sort - you can pass it the name of
         a condition. Take care to make sure the condition name is not also a valid list key.
@@ -418,11 +420,12 @@ class base_expression(genelist):
         return False
 
     def load_list(self,
-                  list_to_load,
+                  list_to_load:list,
                   expn=None,
                   name=False,
                   cond_names=None,
-                  nan_value=0):
+                  nan_value=0
+                  ):
         """
         **Purpose**
             You've generated your own [{ ... }, { ...}] like list
@@ -431,7 +434,7 @@ class base_expression(genelist):
             This is the method to do that officially.
 
             This method should be used with care. Some sanity
-            checking is done. But not very much.
+            checking is done. But not as much as should be.
 
             This load_list is modified for expression-like genelists.
             (eg. expression()). Here you can load keys into conditions based on
@@ -546,13 +549,15 @@ class base_expression(genelist):
 
         config.log.info("expression.from_pandas() imported dataFrame")
 
-    def getConditionNames(self):
+    def getConditionNames(self) -> list:
         """
         returns a list of the condition headers
         """
         return list(self._conditions)
 
-    def setConditionNames(self, new_cond_names):
+    def setConditionNames(self,
+                          new_cond_names:list
+                          ) -> list:
         """
         rename the conditions names for the expression data
 

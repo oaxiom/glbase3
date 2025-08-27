@@ -26,8 +26,9 @@ from .genelist import genelist
 class base_manifold:
     def __init__(self,
                  parent=None,
-                 name='none',
-                 manifold_type='base_manifold'):
+                 name:str = 'none',
+                 manifold_type='base_manifold'
+                 ):
 
         self.manifold_type = manifold_type
         self.parent = parent
@@ -51,12 +52,13 @@ class base_manifold:
         return "\n".join(ret)
 
     def configure(self,
-        rowwise: str = False,
-        feature_key_name: str = None,
-        whiten: bool = False,
-        random_state = None,
-        verbose: int = 0,
-        **kargs):
+                rowwise: str = False,
+                feature_key_name: str = None,
+                whiten: bool = False,
+                random_state = None,
+                verbose: int = 0,
+                **kargs
+                  ):
         f"""
         **Purpose**
             Configure the {self.manifold_type} Manifold
@@ -97,7 +99,7 @@ class base_manifold:
         self.configured = True
 
     def scatter(self,
-                filename=None,
+                filename:str = None,
                 spot_cols='grey',
                 spots=True,
                 label=False,
@@ -192,7 +194,11 @@ class base_manifold:
             **kargs
             )
 
-    def cluster(self, method=None, num_clusters=None, filename=None):
+    def cluster(self,
+                method=None,
+                num_clusters=None,
+                filename=None
+                ):
         '''
         **Purpose**
             Report louvain or leiden clusters for a trained 2D {0}
@@ -272,7 +278,10 @@ class base_manifold:
         config.log.info('tsne.cluster: {0} clustered'.format(method))
         return self.clusters, self.cluster_labels, self.centroids
 
-    def cluster_tree(self, filename, **kargs):
+    def cluster_tree(self,
+                     filename:str,
+                     **kargs
+                     ):
         """
         **Purpose**
             Draw the relationship between clusters as a tree.
