@@ -67,7 +67,7 @@ def wigstep_to_flat(
     cleft = 0
     newchrom = None
     lastchrom = None
-    list_of_chroms = set([])
+    list_of_chroms = {}
 
     for line in oh:
         if 'track' in line: # Ignore headers'
@@ -80,10 +80,10 @@ def wigstep_to_flat(
 
                 # if change of chrom, save it to the flat;
                 if lastchrom and lastchrom != chrom and newchrom:
-                    list_of_chroms.add(chrom)
                     if skip_non_standard_chroms and '_' not in lastchrom:
                         f.add_chromosome_array(lastchrom, numpy.array(newchrom))
                         config.log.info('Finished {} with {:,} bp of data'.format(lastchrom, len(newchrom)))
+                        list_of_chroms[lastchrom] = len(newchrom)
                     newchrom = []
 
                 lastchrom = chrom
