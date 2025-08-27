@@ -2243,8 +2243,8 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         return rets
 
     def chip_seq_heatmap(self,
-        list_of_peaks,
-        list_of_trks,
+        list_of_peaks:list,
+        list_of_trks:list,
         filename:str = None,
         norm_by_library_size:bool = False,
         bins:int = 100,
@@ -2391,6 +2391,9 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
         assert not (sort_by_sum_intensity and sort_by_intensity), 'sort_by_sum_intensity and sort_by_intensity cannot both be True'
         if 'normalize' in kargs: raise AssertionError('normalize has been deprecated, use norm_by_library_size')
         if 'normalise' in kargs: raise AssertionError('normalise has been deprecated, use norm_by_library_size')
+
+        if not isinstance(list_of_peaks, list): list_of_peaks = list(list_of_peaks)
+        if not isinstance(list_of_trks, list): list_of_trks = list(list_of_trks)
 
         total_rows = 0
 
