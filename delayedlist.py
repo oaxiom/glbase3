@@ -51,7 +51,13 @@ class delayedlist(genelist):
 
     """
 
-    def __init__(self, filename=None, format=None, force_tsv=False, gzip=False, **kargs):
+    def __init__(self,
+                 filename: str = None,
+                 format=None,
+                 force_tsv: bool = False,
+                 gzip: bool = False,
+                 **kargs
+                 ):
         genelist.__init__(self) # no kargs though. I want the mpty version.
 
         self.__len_estimate = None

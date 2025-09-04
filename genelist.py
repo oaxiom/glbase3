@@ -2181,13 +2181,13 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def overlap(self,
-        compare_mode = "Overlap",
-        loc_key = "loc",
-        delta:int = 0,
-        keep_rank:bool = False,
-        merge_keys:bool = False,
+                compare_mode:str = "Overlap",
+                loc_key:str = "loc",
+                delta:int = 0,
+                keep_rank:bool = False,
+                merge_keys:bool = False,
                 preserve_original_locs:bool = False,
-        **kargs):
+                **kargs):
         """
         **Purpose**
 
@@ -2262,7 +2262,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def _unified_collide_overlap(self,
                                  compare_mode=None,
-                                 loc_key="loc",
+                                 loc_key: str = "loc",
                                  delta: int = 200,
                                  keep_rank: bool = False,
                                  merge_keys: bool = False,
@@ -2557,7 +2557,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return ov
 
     def removeDuplicates(self,
-                         key=None):
+                         key:str
+                         ):
         """
         **Purpose**
             remove the duplicates in the list and returns a new list;
@@ -2670,7 +2671,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def removeEmptyDataByKey(self,
-                             key=None):
+                             key:str
+                             ):
         """
         **Purpose**
             remove any entry that has empty data within 'key'
@@ -2801,7 +2803,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def load_list(self,
                   list_to_load:Iterable,
-                  name=False):
+                  name=False
+                  ):
         """
         **Purpose**
             You've generated your own [{ ... }, { ...}] like list
@@ -2852,7 +2855,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return self.linearData
 
     def unfold(self,
-               key=None
+               key: str,
                ):
         """
         **Purpose**
@@ -2954,10 +2957,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return False
 
     def renameKey(self,
-                  old_key_name,
-                  new_key_name,
-                  keep_old_key:bool = False,
-                  replace_existing_key:bool = False):
+                  old_key_name: str,
+                  new_key_name: str,
+                  keep_old_key: bool = False,
+                  replace_existing_key: bool = False
+                  ):
         """
         **Purpose**
             rename a key with a new name
@@ -3396,7 +3400,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         config.log.info(f"fAA: Saved '{actual_filename}'")
         return newgl
 
-    def islocinlist(self, loc, key="loc", mode="collide", delta=200):
+    def islocinlist(self,
+                    loc,
+                    key="loc",
+                    mode="collide",
+                    delta: int = 200
+                    ):
         """
         **Purpose**
             check if the specified loc is in this peaklist.
