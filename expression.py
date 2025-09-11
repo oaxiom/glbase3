@@ -24,7 +24,6 @@ from scipy.stats import ttest_ind, mannwhitneyu
 
 from . import config, utils
 from .base_expression import base_expression
-from .draw import draw
 from .progress import progressbar
 from .errors import AssertionError
 from .genelist import genelist, Genelist # Name mangling for the win!
@@ -141,7 +140,7 @@ class expression(base_expression):
                 linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
                 item.append(f"data: {linc}")
             elif key == 'err':
-                linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
+                #linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
                 item.append(f"error: Data has standard error data avaiable")
 
         item = ', '.join(item)
@@ -552,7 +551,7 @@ class expression(base_expression):
     def sliceConditions(self,
         conditions:Iterable = None,
         _silent:bool = False,
-        **kargs):
+        ):
         """
         **Purpose**
 
