@@ -3365,17 +3365,17 @@ class expression(base_expression):
         return item
 
     def violinplot_by_conditions(self,
-        filename:str,
-        key:str,
-        value:str,
-        condition_classes,
-        class_order,
-        log=False,
-        log_pad=0.1,
-        title=None,
-        ylims=None,
-        colors=None,
-        **kargs):
+                                 filename:str,
+                                 key:str,
+                                 value:str,
+                                 condition_classes,
+                                 class_order,
+                                 log=False,
+                                 log_pad=0.1,
+                                 title:str = None,
+                                 ylims=None,
+                                 colors=None,
+                                 **kargs) -> dict | None:
         """
         **Purpose**
             draw a bean plot by merging the conditions together for each item in condition_classes
@@ -3413,7 +3413,8 @@ class expression(base_expression):
                 yticklabel_fontsize - y tick labels fontsizes
 
                 hori_space (default=0.5)
-                vert_space (default=0.75) - a special arg to help pad the barchart up when using very long plots with a ot of samples
+                vert_space (default=0.75) - a special arg to help pad the barchart up when using very long plots with a
+                    lot of samples
 
             colors (Optional, default=None)
                 either a single color for the violins, or a list of colors (one for each violin).

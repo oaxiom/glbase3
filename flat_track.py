@@ -707,8 +707,11 @@ class flat_track():
 
         ax.set_ylabel("Magnitude")
 
-        ax.set_xticks([0, half_scale, half_scale+full_scale, half_scale+full_scale+half_scale])
-        ax.set_xticklabels(['-{} kbp'.format(window_size//1000), 'left', 'right', '{} kbp'.format(window_size//1000)])
+        ticks = [0, half_scale, half_scale+full_scale, half_scale+full_scale+half_scale]
+        tick_labels = ['-{} kbp'.format(window_size//1000), 'left', 'right', '{} kbp'.format(window_size//1000)]
+
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(tick_labels)
         ax.axvline(half_scale, ls=":", color="grey")
         ax.axvline(half_scale+full_scale, ls=":", color="grey")
         ax.set_xlabel('Base pairs (bp)')
@@ -721,7 +724,7 @@ class flat_track():
 
         config.log.info(f"pileup(): Saved '{actual_filename}'")
 
-        return {'hist': all_hists, 'bkgd': bkgd}
+        return {'hist': all_hists, 'bkgd': bkgd, 'ticks': ticks, 'tick_labels': tick_labels}
 
         '''
         bkgd = None
@@ -789,7 +792,7 @@ class flat_track():
         '''
 
     def heatmap(self,
-                filename: Any = None,
+                filename: str = None,
                 genelist = None,
                 scaled_view_fraction: float = 0.5,
                 scaled: bool = False,
