@@ -5,26 +5,20 @@ flat_heat, part of chipFish, and glbase3
 
 x-axis is the genome, y-axis is the read size. Useful for V plots for ATAC-seq, etc.
 
-
 """
 
-import pickle, sys, os, math, zlib
-from operator import itemgetter
+import sys
 
 from .location import location
 
 from .draw import draw
 from .progress import progressbar
-from .genelist import Genelist
-from .flat_track import flat_track, positive_strand_labels, negative_strand_labels
+from .flat_track import negative_strand_labels
 from . import config
-from . import utils
 
 import numpy
-import matplotlib.pyplot as plot
 import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import scipy.interpolate as scipyinterp
 
 if config.H5PY_AVAIL:
     import h5py
@@ -71,7 +65,7 @@ class flat_heat:
             self.ybins = ybins
             self.hdf5_handle = h5py.File(filename, 'w')  # This should be x to stop overwriting an exisiting file
 
-            # h5py hierarchy (Made at load_time)
+            # h5py hierarchy (Make at load_time)
             # Things stored:
             self.hdf5_handle.attrs['name'] = name
             self.hdf5_handle.attrs['bin_format'] = 'float'
@@ -145,7 +139,7 @@ class flat_heat:
         return self.hdf5_handle.attrs[index]
 
     def add_chromosome_array(self, chromosome=None, arr=None):
-        '''
+        """
         **Purpose**
             Support for loading of complete chromosome arrays.
 
@@ -158,7 +152,7 @@ class flat_heat:
             arr (Required)
                 a Python list of scores for the entire chromosome. Should start at position 0,
                 and extend for the complete chromosomes.
-        '''
+        """
         assert chromosome, 'You must specify a chromosome'
         assert isinstance(arr, numpy.ndarray), 'arr is not a numpy array'
 
@@ -264,7 +258,6 @@ class flat_heat:
         respect_strand=True,
         norm_by_read_count=True,
         colour_map = cm.BrBG,
-        fast:bool = False,
         bracket = None,
         **kargs):
         """
