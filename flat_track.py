@@ -275,10 +275,10 @@ class flat_track():
 
     def pileup(self,
                genelists=None,
-               filename=None,
-               scaled=None,
+               filename: str = None,
+               scaled: bool =  None,
                scaled_view_fraction: float = 0.5,
-               window_size=None,
+               window_size: int = None,
                average: bool = True,
                background=None,
                mask_zero: bool = False,
@@ -471,6 +471,9 @@ class flat_track():
                         ad = numpy.zeros(num_missing, dtype=float)
                         a = numpy.append(a, ad)
 
+                    a[numpy.isnan(a)] = 0
+                    a[numpy.isinf(a)] = 0
+
                     hist += a
 
                 if mask_zero: # surely a better way of doing this...
@@ -570,7 +573,7 @@ class flat_track():
 
         config.log.info("pileup(scaled=False): Saved '{}'".format(actual_filename))
 
-        return (all_hists, bkgd)
+        return {'hist': all_hists, 'bkgd': bkgd}
 
     def _pileup_scaled(self,
         scaled_view_fraction=None,
@@ -718,7 +721,7 @@ class flat_track():
 
         config.log.info(f"pileup(): Saved '{actual_filename}'")
 
-        return (all_hists, bkgd)
+        return {'hist': all_hists, 'bkgd': bkgd}
 
         '''
         bkgd = None
