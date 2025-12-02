@@ -7,9 +7,6 @@ PCA analysis for glbase expression objects.
 from operator import itemgetter
 
 import numpy
-import matplotlib.pyplot as plot
-import matplotlib.patches
-import scipy.cluster.vq
 from mpl_toolkits.mplot3d import art3d
 from sklearn.decomposition import PCA
 
@@ -137,7 +134,7 @@ class manifold_pca:
         **returns**
             True if successful, and all subsequent pca methods will use the new projected data.
         """
-        raise AsserionError('Not implemented')
+        raise AssertionError('Not implemented')
 
     def explained_variance(self, filename=None, percent_variance=True, **kargs):
         """
@@ -295,14 +292,14 @@ class manifold_pca:
         )
 
     def get_transform(self):
-        '''
+        """
         **Purpose**
             Semi undocumented feature to get the transform matrix back
             Also returns the labels for the columns and rows
 
         **Returns**
             row_names, col_names, transform_matrix
-        '''
+        """
         return self.labels , list(range(1, self.__transform.shape[1]+1)), self.__transform
 
     def feature_scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8,

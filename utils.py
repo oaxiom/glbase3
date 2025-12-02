@@ -24,6 +24,10 @@ import scipy.stats as stats
 from scipy.ndimage.filters import uniform_filter1d
 
 from . import config
+import itertools
+
+def permute_one_nucleotide(motif, alphabet={"A", "C", "G", "T"}):
+       return list(set(itertools.chain.from_iterable([[motif[:pos] + nucleotide + motif[pos + 1 :] for nucleotide in alphabet] for pos in range(len(motif))])))
 
 def library(args):
     """

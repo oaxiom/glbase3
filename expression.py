@@ -120,6 +120,8 @@ class expression(base_expression):
             self.filename = filename
             self._conditions = [] # Provide a dummy conditions temporarily
             self.name = "None"
+            self.numpy_array_all_data = None
+            self.linearData: list = []
 
     def __repr__(self):
         return "glbase.expression"
@@ -141,7 +143,7 @@ class expression(base_expression):
                 item.append(f"data: {linc}")
             elif key == 'err':
                 #linc = str([f'{i:.1f}' for i in self.linearData[index][key]]).replace("'", '')
-                item.append(f"error: Data has standard error data avaiable")
+                item.append(f"error: Data has standard error data available")
 
         item = ', '.join(item)
         return f"{index}: {item}"
@@ -2819,8 +2821,6 @@ class expression(base_expression):
 
         if "bracket" in kargs: # done here so clustering is performed on bracketed data
             data = self.draw.bracket_data(data, kargs["bracket"][0], kargs["bracket"][1])
-            vmin = kargs["bracket"][0]
-            vmax = kargs["bracket"][1]
 
         if mode == "conditions": # Use the condition names for rows:
             row_names = self._conditions

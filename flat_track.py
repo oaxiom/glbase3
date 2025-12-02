@@ -673,9 +673,9 @@ class flat_track():
                 '''
 
             if average and mask_zero:
-                left_hist /= counts
-                center_hist /= counts
-                rite_hist /= counts
+                left_hist /= read_count
+                center_hist /= read_count
+                rite_hist /= read_count
 
             elif average and not mask_zero:
                 left_hist /= len(gl)
