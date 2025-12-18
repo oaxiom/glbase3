@@ -49,13 +49,11 @@ class expression(base_expression):
 
             Please note that:
             Expression analysis in glbase requires easily manipulatable data.
-            Examples for normalisation are
-            genespring output, or output from R and PMA, Cufflinks, RSEM,
+            Examples for normalisation are from R (EDASeq, DESeq2 etc.), Cufflinks, RSEM,
             EDASeq, DESeq, etc...
 
         **Arguments**
             filename (Required, one of loadable_list or filename)
-
                 the filename of the microarray to load.
 
             loadable_list (Required, one of loadable_list or filename)
@@ -81,7 +79,7 @@ class expression(base_expression):
 
                 If a loadable_list:
 
-                This should be the name of the keys used to extract the expresion data
+                This should be the name of the keys used to extract the expression data
 
             err (Optional)
                 Some sort of descriptor for where to get the error data from.
@@ -126,7 +124,7 @@ class expression(base_expression):
     def __repr__(self):
         return "glbase.expression"
 
-    def __str_helper(self, index):
+    def __str_helper(self, index) -> str:
         item = []
         for key in self.linearData[index]:
             if key == 'conditions':
@@ -148,7 +146,7 @@ class expression(base_expression):
         item = ', '.join(item)
         return f"{index}: {item}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         (Override)
         give a sensible print out.
@@ -392,52 +390,11 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def sort_by_expression(self,
-                           key:str = None,
-                           value:str = None
-                           ):
-        """
-        **Purpose**
-            Sort the conditions by a gene expression value.
-
-            TODO: This is kind of slow...
-
-        **Arguments**
-            key (Required)
-                key to mach the gene name in
-
-            value (Required)
-                value to match
-
-        **Returns**
-            A new sorted expression object
-
-        """
-        assert key, 'key not specified'
-        assert value, 'value not specified'
-        assert key in self.keys(), f'{key} not found in this expression object'
-
-        # check the key/value pair is a match;
-        assert value in self.qkeyfind[key], f'{value} not found in key {key}'
-
-        idx = self.qkeyfind[key][value]
-
-        assert len(idx) == 1, f'Found more than one match for {key} = {value}'
-
-        gene_row = self.linearData[idx[0]]
-
-        order = dict(zip(self.getConditionNames(), gene_row['conditions']))
-
-        sorted_conds = list(sorted(order, key=order.get))
-
-        ret = self.sliceConditions(sorted_conds, _silent=True)
-
-        config.log.info(f'Sorted conditions by {key}: {value}')
-        return ret
-
     # ----------- overrides/extensions ---------------------------------
 
-    def getColumns(self, return_keys=None, strip_expn=False):
+    def getColumns(self,
+                   return_keys=None,
+                   strip_expn: bool = False):
         """
         **Purpose**
             return a new expression only containing the columns specified in return_keys (a list)
@@ -680,7 +637,7 @@ class expression(base_expression):
         self._load_numpy_back_into_linearData() # calls _optimseData()
 
     def column_Z(self, col_wise_variance=True):
-        '''
+        """
         **Purpose**
             Perform column Z-score conversion
 
@@ -693,7 +650,7 @@ class expression(base_expression):
 
                 If set to False use the entire array
 
-        '''
+        """
         expn = self.numpy_array_all_data
         m = numpy.mean(expn, axis=0)
         s = numpy.std(expn, axis=0) if col_wise_variance else numpy.std(expn)
@@ -1257,8 +1214,6 @@ class expression(base_expression):
         **Returns**
             A new expression object containing mean-ed values for each set of replicates.
         """
-        newe = []
-        all_conds = self._conditions
         done = set([])
         pearson_vals = []
 
@@ -1784,19 +1739,19 @@ class expression(base_expression):
         config.log.info("filter_by_CV: removed %s items, list now %s items long" % (len(self) - len(newl), len(newl)))
         return newl
 
-    def bracket(self, min, max):
+    def bracket(self, vmin, vmax):
         """
         **Purpose**
             force the data to span only min and max:
 
             for each_value:
-                if each_value > max:
-                    each_value = max
-                elif each_value <min:
-                    each_value = min
+                if each_value > vmax:
+                    each_value = vmax
+                elif each_value < vmin:
+                    each_value = vmin
 
         **Arguments**
-            min, max (Required)
+            vmin, vmax (Required)
                 minimum and maximum values
 
         **Returns**
@@ -1808,10 +1763,10 @@ class expression(base_expression):
         for item in newl:
             newc = []
             for c in item['conditions']:
-                if c > max:
-                    newc.append(max)
-                elif c < min:
-                    newc.append(min)
+                if c > vmax:
+                    newc.append(vmax)
+                elif c < vmin:
+                    newc.append(vmin)
                 else:
                     newc.append(c)
             item['conditions'] = newc
@@ -1820,7 +1775,7 @@ class expression(base_expression):
 
     def draw_cumulative_CV(self, filename, pad=0.1, label_genes=None, label_genes_key=None,
         label_fontsize=7, **kargs):
-        '''
+        """
         **Purpose**
             Draw a cumulative CV plot for all genes (rows) in the expression object.
 
@@ -1839,7 +1794,7 @@ class expression(base_expression):
 
             label_fontsize (Optional, default=7)
                 Font size for the labels
-        '''
+        """
         assert filename, "no filename specified"
 
         if label_genes_key:
@@ -1865,12 +1820,12 @@ class expression(base_expression):
 
         self.draw.do_common_args(ax, **kargs)
         realfilename = self.draw.savefigure(fig, filename)
-        config.log.info("draw_cumulative_CV: Saved '%s'" % (realfilename))
+        config.log.info(f"draw_cumulative_CV: Saved '{realfilename}'")
         return None
 
     def draw_scatter_CV(self, filename, pad=0.1, label_genes=None, label_genes_key=None,
         label_fontsize=7, **kargs):
-        '''
+        """
         **Purpose**
             Draw a scatter CV plot for all genes in the expression object.
 
@@ -1897,7 +1852,7 @@ class expression(base_expression):
                 You usually calculate CV on the raw (un transofrmed data)
                 Hence, when displaying it is easier to comprehend if the X axis (mean expression)
                 is log2 transformed
-        '''
+        """
         assert filename, "no filename specified"
         if 'logx' not in kargs:
             kargs['logx'] = 2 # Use the do_common_args system for clean overrides
@@ -2963,7 +2918,7 @@ class expression(base_expression):
         aspect="square",
         bracket=(0,1),
         optimal_ordering=True,
-        **kargs):
+        **kargs) -> dict:
         """
         **Purpose**
             Plot a heatmap of the (R, R^2, Pearson or Spearman) correlation for all pairs of
@@ -3047,82 +3002,12 @@ class expression(base_expression):
         if "heat_hei" in kargs or "heat_wid" in kargs:
             square=False
 
-        #return arr
-
         results = self.draw.heatmap(filename=filename, data=arr, square=square,
             bracket=bracket, aspect=aspect, row_names=labels, col_names=labels,
             colbar_label="Correlation (%s)" % mode, optimal_ordering=optimal_ordering, **kargs)
         config.log.info("correlation_heatmap: Saved '%s'" % results["real_filename"])
+
         return {"data": results["reordered_data"], "labels": results["reordered_cols"]}
-
-    def closest_correlate(self, target_condition, number=5, cut_off=0.7, method="r2",
-        pretty_print=False, **kargs):
-        """
-
-        **Purpose**
-            Find the closest correlating samples to <target_condition>
-
-        **Arguments**
-            target_condition (Required)
-                The name of the target condition to find the closest correlates for
-
-            number (Optional, default=5)
-                report <number> closest correlates
-
-            cut_off (Optional, default=0.7)
-                Do not report a correlate if it falls below the <cut_off> value
-
-            method (Optional, default="r2")
-                The method to use for the correlation, must be one of:
-                "r", "r2", "spearman", "pearson"
-
-            pretty_print (Optional, default=False)
-                By default closest_correlate dumps it all in a fiddly dict.
-                With this enabled instead closest_correlate() will print it to the screen
-                nicely formatted.
-
-        **Returns**
-            A list of dictionaries containing the closest correlations, their rank
-            and their correlation score
-
-        """
-        assert target_condition in self._conditions, "closest_correlate: '%s' condition was not found" % target_condition
-        assert method in ("r", "r2", "pearson", "spearman"), "closest_correlate: method '%s' not recognised" % method
-
-        # get all the correlations:
-
-        res = []
-        x = self.getDataForCondition(target_condition)
-
-        for ic1, c1 in enumerate(self._conditions):
-            if c1 != target_condition:
-                y = self.getDataForCondition(c1)
-                if method in ("r", "r2"):
-                    arbr = scipy.polyfit(x, y, 1)
-                    xr = scipy.polyval(arbr, x)
-                    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x,y)
-                    if method == "r":
-                        correlation = r_value
-                    elif method == "r2":
-                        correlation = r_value**2
-
-                elif method == "pearson":
-                    correlation, p_value = scipy.stats.pearsonr(x, y)
-                elif method == "spearman":
-                    correlation, p_value = scipy.stats.spearmanr(x, y)
-
-                if correlation > cut_off:
-                    res.append({"name": c1, "correlation": correlation})
-
-        # sort the dict by correlation:
-        res = sorted(res, key=itemgetter("correlation"))
-        res.reverse()
-
-        if pretty_print:
-            for rank, item in enumerate(res):
-                print("%s:\t%s (%.3f)" % (rank+1, item["name"], item["correlation"]))
-
-        return res
 
     def cut(self, function):
         """
@@ -3816,115 +3701,6 @@ class expression(base_expression):
         config.log.info("fc_scatter: Saved '%s'" % actual_filename)
         return None
 
-    def kmeans(self,
-               filename=None,
-               key=None,
-               seeds=None,
-               dowhiten=True,
-               plotseeds=True,
-               **kargs):
-        """
-        **Purpose**
-            perform k-means clustering on the expression data.
-
-            There are two modes to k-means: Either randomly gather
-            patterns from the data or the user can provide the initial patterns to
-            cluster around.
-
-            Output a stack of plots and return the groups
-
-        **Arguments**
-            filename (Optional)
-                filename to save the profiles to
-
-            key (Optional)
-                A key to use to extract the initial values from
-
-            seeds (Optional)
-                If you send a number:
-                    kmeans() will select 0..seeds randomly from the data
-                If seeds is a genelist
-                    For each item in the genelist, k-means cluster around that
-                    value.
-
-            dowhiten (Optional, default=True)
-                'whiten' the data, i.e. standardise the variation.
-                This can be a bad idea if your data is already heavily normalised (i.e.
-                variation has already been controlled).
-
-            plotseeds (Optional, default=False)
-                don't plot the seeds
-
-        **Returns**
-            A dictionary containing keys either from the names of the seeds or the random
-            group from the seed
-        """
-
-        # expression table needs to be transformed.
-        data = numpy.array(self.serialisedArrayDataList).T
-
-        if dowhiten:
-            config.log.info("kmeans: whiten")
-            wt = whiten(data) # features are columns
-        else:
-            wt = data
-
-        if isinstance(seeds, int):
-            seeds = seeds
-            seed_names = None
-        else: # assume genelist
-            assert key, "You must specify a key"
-            cents = []
-            seed_names = []
-            for i in seeds:
-                col = self.index(key, i[key])# I need to know the column numbers for each item in seeds:
-                cents.append(self[col]["conditions"])
-                seed_names.append(i[key])
-            seeds = numpy.array(cents)
-
-        config.log.info("kmeans: kmeans...")
-        centroids, variance = kmeans(wt, seeds)
-
-
-        config.log.info("kmeans: vq...")
-        code, distance = vq(wt, centroids)
-
-        clusters = {}
-        for feature, cluster in enumerate(code):
-            if not cluster in clusters:
-                clusters[cluster] = []
-            clusters[cluster].append(data[feature])
-
-        # Guess a suitable arrangement
-        sq = math.ceil(math.sqrt(len(clusters)))
-        if not "size" in kargs:
-            kargs["size"] = (sq*2, sq*2)
-
-        fig = self.draw.getfigure(**kargs)
-
-        fig.subplots_adjust(0.01, 0.01, 0.98, 0.98, wspace=0.15, hspace=0.15)
-
-        for i, k in enumerate(clusters):
-            ax = fig.add_subplot(sq, sq, i+1)
-            ta = numpy.array(clusters[k])
-            ax.plot(ta.T, alpha=0.1, color="grey")
-
-            if seed_names:
-                # plot he original centroid:
-                if plotseeds:
-                    ax.plot(cents[i], color="black")
-                ax.set_title("%s (%s)" % (seed_names[i], len(clusters[k])), size=6)
-            else:
-                ax.set_title("Cluster %s (%s)" % (k+1, len(clusters[k])), size=6)
-
-            ax.set_xlim([-1,len(self._conditions)])
-            #ax.set_xticklabels("")
-            #ax.set_yticklabels("")
-
-        actual_filename = self.draw.savefigure(fig, filename)
-        config.log.info("kmeans: Saved '%s'" % actual_filename)
-        return actual_filename
-
     def bundle(self,
                filename=None,
                key=None,
@@ -4177,7 +3953,7 @@ class expression(base_expression):
         return real_filename
 
     def scatter_expression_two_genes(self, filename, gene_name_x, gene_name_y, cols, search_key='name'):
-        '''
+        """
         **Purpose**
             Plot a 2D scatter plot for 2 genes, with KDE density plots on the x and y axis.
             Best if you have several hundered samples
@@ -4200,7 +3976,7 @@ class expression(base_expression):
         **Returns**
             The actual filename
 
-        '''
+        """
         assert len(cols) == len(self.getConditionNames()), 'the length of the colors does not equal the number of conditions'
 
         from seaborn import kdeplot

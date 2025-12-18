@@ -188,11 +188,12 @@ class manifold_pca:
         """
         return numpy.array(self.__model.explained_variance_ratio_) * 100.0
 
-    def scatter(self, x, y, filename=None, spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
-        spot_size=40, label_font_size=6, label_style='normal', cut=None, squish_scales=False,
-        only_plot_if_x_in_label=None,
-        only_label_if_x_in_label=None,
-        **kargs):
+    def scatter(self, x, y, filename=None,
+                spot_cols='grey', spots=True, label=False, alpha=0.8, overplot=None,
+                spot_size=40, label_font_size=6, label_style='normal', cut=None, squish_scales=False,
+                only_plot_if_x_in_label=None,
+                only_label_if_x_in_label=None,
+                **kargs):
         """
         **Purpose**
             plot a scatter plot of PCx against PCy.
