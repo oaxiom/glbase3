@@ -1981,11 +1981,11 @@ class expression(base_expression):
         return True
 
     def boxplot(self,
-        filename=None,
+        filename:str,
         showfliers=True,
         whis=1.5,
         showmeans=False,
-        **kargs):
+        **kargs) -> str:
         """
         **Purpose**
 
@@ -2041,14 +2041,14 @@ class expression(base_expression):
             showfliers=showfliers,
             **kargs)
 
-        config.log.info("boxplot: Saved %s" % actual_filename)
+        config.log.info(f"boxplot: Saved {actual_filename}")
         return actual_filename
 
     def boxplots_vertical(self,
-        filename=None,
+        filename: str,
         cond_order=None,
-        box_colors='lightgrey',
-        vert_sizer=0.022,
+        box_colors: str ='lightgrey',
+        vert_sizer: float = 0.022,
         p_values=None,
         stats_baseline=None,
         stats_test=None,
@@ -2177,9 +2177,9 @@ class expression(base_expression):
         return p_values
 
     def violinplot(self,
-                   filename: str = None,
+                   filename: str,
                    beans: bool = False,
-                   **kargs):
+                   **kargs) -> str:
         """
         **Purpose**
 
@@ -2245,7 +2245,9 @@ class expression(base_expression):
         config.log.info("multi_line: Saved '%s' with alpha=%.5f" % (realfilename, alpha))
         return None
 
-    def log(self, base=math.e, pad=0.00001):
+    def log(self,
+            base: float = math.e,
+            pad: float = 0.1) -> None:
         """
         **Purpose**
             log transform the data
@@ -2276,12 +2278,13 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def unlog(self, base=None, adjuster=0.00001):
+    def unlog(self, base=None,
+              adjuster: float = 0.1) -> None:
         """
         **Purpose**
             return the raw data to the unlogged form. YOU MUST PROVIDE THE CORRECT BASE
 
-            NOTE: THis is one of the few IN-PLACE glbase commands.
+            NOTE: This is an IN-PLACE glbase command.
 
             Also note that continual repeated log() unlog() will cause the data to 'drift' away from its
             actual values.
@@ -2298,7 +2301,8 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def mult(self, number=None):
+    def mult(self,
+             number=None) -> None:
         """
         **Purpose**
             multiply the data by some number
@@ -2306,7 +2310,7 @@ class expression(base_expression):
             This method came about as I had a reason to multiply RNA-seq data to get it above zero
             Particularly concerning the TPM measure.
 
-            NOTE: This is one of the few IN-PLACE glbase commands.
+            NOTE: This is an IN-PLACE glbase command.
 
         **Arguments**
             number (Required)
@@ -2343,7 +2347,7 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def abssub(self, number=None):
+    def abssub(self, number=None) -> None:
         """
         **Purpose**
             subtract number from all of the expression data, moving the value towards 0 with a limit of 0.
@@ -2388,7 +2392,7 @@ class expression(base_expression):
         self._optimiseData()
         return None
 
-    def sub(self, number=None):
+    def sub(self, number=None) -> None:
         """
         **Purpose**
             subtract number from all of the expression data.
@@ -2445,7 +2449,7 @@ class expression(base_expression):
             data.append(row)
         return data
 
-    def _insertCondition(self, condition_name, condition_data, range_bind=None, **kargs):
+    def _insertCondition(self, condition_name, condition_data, range_bind=None):
         """
         (Internal)
         candidate for reveal?
@@ -2469,142 +2473,6 @@ class expression(base_expression):
 
         self._optimiseData()
         return True
-
-    def drawBarChart(self, gene_symbols=None, filename=None, key=None, labels=None,
-        errs_are_absolute=False, error_keys=None, fake_entries=True, **kargs):
-        """
-        **Purpose**
-
-            Draw barcharts of the individual genes or a (more likely) list of genes.
-            I will use these symbols and collect every matching entry in the expression-data
-            and will draw a horizontal bar-chart
-
-            You probably want barh_single_item() in preference over this (old) method
-
-        **Arguments**
-
-            gene_symbols (Required)
-                a list or single item that I can find in the expression data.
-
-            filename (Required)
-                the filename to save the image to.
-
-            key (Optional, default="name"|"symbol")
-                The key to match the gene_symbols in.
-                Ususally you will mean either name, gene symbol, or enst or equivalent
-                annotation
-
-            labels (Optional, default=<the same as 'key' argument, above>)
-                specify an optional key to use for the actual labels on the chart
-                If left unspecified then the 'key' argument is used for the labels.
-                This allows you to search using 'key' but actually label the items with 'label'
-
-            error_keys (Optional, default=None)
-                If the array data has error values then you can send the key names.
-                The input comes in two forms::
-
-                    error_keys="stderr" # this will use one key that should match the
-                                        # expression data
-
-                    error_keys=["conf_lo", "conf_hi"] # If you have paired keys for
-                    # error values. In this instace conf_lo holds the lower bound confidence
-                    # interval and conf_hi the Higher bound.
-
-            errs_are_absolute (Optional, default=False)
-                If your error bars are absolute then set this to True.
-                What it means is if your expression is (say) 10, and your error is 2.
-                then the error bars will be drawn from 8 -> 12 (ie. the errors are relative
-                to the expression value. If however you are using
-
-            fake_entries (Optional, default=True)
-                If the value you search for (usually a gene name) does not exist in the data
-                then bar_chart will fake an empty entry, and the gene will still show up on the
-                graph even though there is no data in your list. It will be given expression values of
-                0 (actually, a very small float to avoid log errors).
-                Set this to False if you don't want empty values to be placed on the bar_chart
-
-            Other arguments understood by the figure
-                title, xlabel, ylabel
-
-                and 'cols' - where you can send a list of colours for the bars. The list
-                must be as long as the data, or it will throw an error.
-
-        **Example**
-
-            Okay, this is pretty complicated (It's because the expression system has only a rudimentary
-            understanding of error values, I may change this in the future)::
-
-                x = expression(...)
-
-                # I don't have any error values
-                x.bar_chart(filename="meh1.png", gene_symbols=["Nanog", "Sox2", "Sox17", "Stat3"],
-                    key="name")
-
-                # My errors are confidence intervals relative to the expression value
-                x.bar_chart(filename="meh2.png", gene_symbols=["Nanog", "Sox2", "Sox17", "Stat3"],
-                    key="name", error_keys=["conf_lo", "conf_hi"], errors_are_absolute=True)
-
-                # My errors are standard errors (or equivalent) and are symmetric around the mean
-                x.bar_chart(filename="meh3.png", gene_symbols=["Nanog", "Sox2", "Sox17", "Stat3"],
-                    key="name", error_keys="stderr")
-
-        **Returns**
-
-            A saved image in filename and None
-
-        """
-        assert filename, "no filename specified"
-        assert gene_symbols, "no gene_symbols specified"
-        if "cols" in kargs:
-            assert len(kargs["cols"]) == len(self.linearData[0]["conditions"]), "the colour array is not the same length as the array data!"
-
-        if not key:
-            if "name" in self:
-                key = "name"
-            else:
-                if "symbol" not in self:
-                    key = "symbol"
-                else:
-                    raise AssertionError("No suitable key found")
-
-        if not labels:
-            labels = key
-
-        if not isinstance(gene_symbols, list):
-            gene_symbols = [gene_symbols]
-
-        empty_array = [0.0001 for x in self._conditions]
-        fake_entry = {"conditions": empty_array, "loc": location(loc="chr1:1000-1000")}
-        # work out the error keys:
-        if error_keys:
-            if isinstance(error_keys, list): # load kargs for draw.bar_chart()
-                kargs["err_up"] = error_keys[0]
-                kargs["err_dn"] = error_keys[1]
-                fake_entry = {"conditions": empty_array, error_keys[0]: empty_array, error_keys[1]: empty_array, "loc": location(loc="chr1:1000-1000")}
-            else: # assume string
-                kargs["err"] = error_keys
-                fake_entry = {"conditions": empty_array, error_keys: empty_array, "loc": location(loc="chr1:1000-1000")}
-
-        subset = []
-        for g in gene_symbols:
-            nl = self._findDataByKeyGreedy(key, g)
-            if nl:
-                subset += nl
-            else:
-                new = fake_entry.copy()
-                new.update({key: "%s (not detected)" % g, labels: "%s (not detected)" % g}) # I want to signify that these are empty
-                subset.append(new)
-                config.log.warning("%s not found. Spoofing an empty entry" % g)
-
-        if subset:
-            nl = genelist()
-            nl.load_list(subset)
-
-            # This is a kind of peculiar way of doing it...
-            self.draw.bar_chart(filename=filename, genelist=nl, data="conditions",
-                errs_are_absolute=errs_are_absolute,
-                labels=labels, cond_names=self._conditions,
-                **kargs)
 
     def hist(self, filename=None, range=None, suppress_zeros=True, log=None, kde=False,
         covariance=0.2, bins=50, color='grey', legend=True, **kargs):

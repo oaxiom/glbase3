@@ -2096,7 +2096,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 loc_key="loc",
                 delta:int = 200,
                 title:str = None,
-                bins=20,
                 keep_rank:bool = False,
                 **kargs):
         """
@@ -2127,10 +2126,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 "not" = perform a 'not collision', keeping elements that do not collide.
                 "notinleft" = Only keep items in the right list if the are 'NOT in the left list'
                 "notinright" = Only keep items in the left list if they are 'NOT in the right list'
-
-            bins (Optional, default=20)
-                Sets the number of bins in the frequency histogram showing the collision
-                distances.
 
             merge (Optional, Default: False)
                 merge the keys of the two lists keys together. This is useful for
