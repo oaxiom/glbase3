@@ -2474,8 +2474,11 @@ class expression(base_expression):
         self._optimiseData()
         return True
 
-    def hist(self, filename=None, range=None, suppress_zeros=True, log=None, kde=False,
-        covariance=0.2, bins=50, color='grey', legend=True, **kargs):
+    def hist(self,
+             filename: str,
+             range=None, suppress_zeros=True, log=None, kde=False,
+             covariance=0.2, bins=50,
+             color: str = 'grey', legend=True, **kargs):
         """
         **Purpose**
             Draw a normal histogram of the expression values
@@ -2523,10 +2526,6 @@ class expression(base_expression):
         **Returns**
 
         """
-        assert filename, "Need filename, leh!"
-
-        binned_data = {}
-
         fig = self.draw.getfigure(**kargs)
         ax = fig.add_subplot(111)
 
@@ -2726,57 +2725,6 @@ class expression(base_expression):
         if not cut:
             ret = {"dendrogram": a, "linkage": link, "distance": dist}
         return ret
-
-    def gene_curve(self, key=None, values=None, filename=None, moving_average=None,
-        **kargs):
-        """
-        **Purpose**
-            Draw all of the genes specified on a single axis.
-
-        **Arguments**
-            key (Required)
-                The key to use to match to items found in values
-
-            values (Required)
-                The values to match, should be a list or other iterable
-
-            filename (Required)
-                the filename to save to
-
-            moving_average (Optional, default=False)
-                use a moving average to smooth the gene curves.
-                If set then should be an integer specifying the number of neighboring bins to use
-
-        **Returns**
-            A file in filename and None
-        """
-        assert key, "Must specify key"
-        assert values, "must specify values"
-        assert filename, "must specify filename to save to"
-
-        if "aspect" not in kargs:
-            kargs["aspect"] = "wide"
-
-        keeps = frozenset(values)
-
-        x_data = numpy.arange(len(self._conditions))
-
-        data = {i[key]: i["conditions"] for i in self.linearData if i[key] in keeps}
-        fig = self.draw.getfigure(**kargs)
-
-        ax = fig.add_subplot(111)
-
-        for k in data:
-            if moving_average:
-                x_data, y_data = utils.movingAverage(data[k], window=moving_average)
-                ax.plot(x_data, y_data, label=k)
-            else:
-                ax.plot(x_data, data[k], label=k)
-
-        ax.legend()
-        self.draw.do_common_args(ax, **kargs)
-        actual_filename = self.draw.savefigure(fig, filename)
-        config.log.info("gene_curve: Saved '%s'" % actual_filename)
 
     def correlation_heatmap(self,
         axis="conditions",
