@@ -35,7 +35,7 @@ class location:
     def __eq__(self, other):
         if other:
             if isinstance(other, str):
-                return (str(self) == str(other.replace(",", ""))) # use string comparison.
+                return str(self) == str(other.replace(",", "")) # use string comparison.
 
             # use a faster ? dict comparison, or throw an exception, as this item probably not a <location>
             if (
