@@ -1,6 +1,6 @@
 """
 
-Initialise glbase, import all the libraries, set up the environment etc.
+Initialise glbase3, import all the libraries, set up the environment etc.
 
 Requires:
 * numpy
@@ -152,7 +152,7 @@ from .tools.bedgraph_to_flattrack import bedgraph_to_flat
 from .tools.bed_to_flattrack import bed_to_flat
 from .tools.bed_to_flatheat import bed_to_flatheat
 from .tools.wig_to_flattrack import wig_to_flat
-from .tools.rnaseq import rnaseqqc
+from .tools.rnaseq import rnaseqqc # TODO: deprecate
 
 def version():
     config.log.info("glbase3 - version: {} {}".format(config.version, config.DATE))

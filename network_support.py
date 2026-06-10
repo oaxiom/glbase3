@@ -21,7 +21,7 @@ from operator import itemgetter
 from . import config, utils
 from .draw import draw
 
-gldraw = draw() # make the glbase draw system avaiablae
+gldraw = draw() # make the glbase draw system available
 
 def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=None, node_color=None, node_shape='o',
     alpha=1.0, cmap=None, vmin=None, vmax=None, linewidths=None, label=None, zorder=2, **kargs):
@@ -78,7 +78,7 @@ def draw_nodes(G, pos, ax=None, nodelist=None, node_size=300, node_col_override=
 
     return node_collection
 
-def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_color='k', style='solid',
+def draw_edges(G, pos, ax, edgelist=None, width: float = 1.0, width_adjuster: float = 50, edge_color='k', style='solid',
     alpha=None, edge_cmap=None, edge_vmin=None, edge_vmax=None, traversal_weight=1.0,
     edge_delengthify=0.15,
     arrows=True, label=None, zorder=1, **kwds):
@@ -152,7 +152,6 @@ def draw_edges(G, pos, ax, edgelist=None, width=1.0, width_adjuster=50, edge_col
         else:
             raise ValueError('edge_color must be a single color or list the same size as the number or edges')
     '''
-
 
     edge_collection = LineCollection(edge_pos,
         #colors=edge_colors,
@@ -467,7 +466,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         #pos = nx.drawing.nx_agraph.graphviz_layout(G, layout) # Bug in NX 1.11
         #A = nx.to_agraph(G)
         #pos = A.graphviz_layout(G, layout)
-        # pygraphviz is no longer avaialble ...
+        # pygraphviz is no longer available ...
         pos = nx.spring_layout(G, k=1)
 
     # trim isolated nodes
@@ -540,7 +539,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
         draw_node_labels(G, pos, ax=ax, font_size=label_fontsize, font_family='sans-serif', zorder=5)
 
     if mark_path:
-        if isinstance(mark_path, list): # ou are probably sending your own path
+        if isinstance(mark_path, list): # you are probably sending your own path
             draw_edges(G, pos, ax, edgelist=mark_path, width=5.0, alpha=1.0, edge_color=path_color,
                 width_adjuster=width_adjuster*2.0, traversal_weight=traversal_weight, zorder=6) # in front of nodes
         else:
@@ -591,7 +590,7 @@ def unified_network_drawer(G, correlation_table, names, filename=None, low_thres
 
     if save_gml:
         nx.write_gml(G, save_gml)
-        config.log.info("network_drawer: saved GML '%s'" % save_gml)
+        config.log.info(f"network_drawer: saved GML '{save_gml}'")
 
     actual_filename = gldraw.savefigure(fig, filename)
 

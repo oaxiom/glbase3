@@ -2385,7 +2385,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def removeDuplicatesByLoc(self,
                               mode,
-                              key: str = "loc",
+                              key:str = "loc",
                               delta:int = 200,
                               use_strand:bool = False,
                               delete_any_matches:bool = False
@@ -2437,8 +2437,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 By default, if there is a collision/overlap between two intervals then the
                 first one that the algorithm comes across is kept, and all subsequent ones are deleted
 
-                If this is set to True then anytime there is a match, the both the original and the matching
-                interval are deleted. i.e. If there is a match then 0 matches will be retunred.
+                If this is set to True then anytime there is a match, then both the original and the matching
+                interval are deleted. i.e. If there is a match then 0 matches will be returned.
 
         **Returns**
             A new genelist containing only unique sites

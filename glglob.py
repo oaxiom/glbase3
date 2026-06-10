@@ -57,7 +57,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         if args: # So we can have empty glglobs.
             self.linearData = [i for i in args]
-            print(self.linearData)
             self._optimiseData()
         else:
             self.linearData = []
@@ -197,6 +196,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                 row_cluster=row_cluster, col_cluster=col_cluster, bracket=bracket,
                 jaccard=jaccard,
                 **kargs)
+        return None
 
     def __compare_fast(self, key=None, filename=None, method=None, delta=200, matrix_tsv=None,
         row_cluster=True, col_cluster=True, bracket=None, pearson_tsv=None, bin_size=2000,

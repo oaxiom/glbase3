@@ -24,7 +24,7 @@ from .draw import draw
 class glgo(genelist):
     def __init__(self, filename=None,  **kargs):
         assert "loadable_list" not in kargs, "glgo() does not support loadable_lists"
-        assert "format" in kargs and kargs["format"], "glgo requries a 'format' argument"
+        assert "format" in kargs and kargs["format"], "glgo requires a 'format' argument"
         assert "qvalue" in kargs["format"] or 'pvalue' in kargs["format"], "the format must contain a 'qvalue' or 'pvalue' key"
 
         genelist.__init__(self, filename=filename, **kargs)
