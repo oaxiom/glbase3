@@ -1745,25 +1745,17 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             The resorted row names (as a list) and a heatmap in filename
 
         '''
-
-        format = {'force_tsv': True, 'pvalue': 1, 'name': 0}
-
-        main_cluster_membership = {}
         number_of_clusters = len(self)
         go_store = {}
-        main_cluster_membership = {}
         cond_names_idx = {}
 
         for idx, go in enumerate(self.linearData):
             cond_names_idx[go.name] = idx
             if not go:
-                config.log.warning("GO_heatmap: GO list '%s' was empty, skipping" % go.name)
+                config.log.warning(f"GO_heatmap: GO list '{go.name}' was empty, skipping")
                 continue
 
             go.sort(pvalue_key)
-            #go.reverse() # huh?
-
-            #print(go)
 
             if ontology:
                 this_ont = go.getRowsByKey('ontology', ontology)
@@ -1783,7 +1775,6 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                             go_store[item['name']] = [-1] * (number_of_clusters)
                         go_store[item['name']][idx] = item[pvalue_key]
 
-
         # fill in the holes:
         for go in self.linearData:
             for k in go_store:
@@ -1793,19 +1784,15 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
                     if do_negative_log10:
                         if float(item[pvalue_key]) < p_value_limit:
                             if item['name'] not in go_store:
-                                go_store[item['name']] = [-1] * (number_of_clusters)
+                                go_store[item['name']] = [-1] * number_of_clusters
                             go_store[k][cond_names_idx[go.name]] = -math.log10(float(this_k[0][pvalue_key]))
                     else:
                         if float(item[pvalue_key]) > -math.log10(p_value_limit): # i.e. 0.01
                             if item['name'] not in go_store:
-                                go_store[item['name']] = [-1] * (number_of_clusters)
+                                go_store[item['name']] = [-1] * number_of_clusters
                             go_store[k][cond_names_idx[go.name]] = float(this_k[0][pvalue_key])
 
-        newe = []
-
-        for k in go_store:
-            newe.append({'name': k.replace("~", ":"), 'conditions': go_store[k]}) # REPAIR DAVID GO names
-
+        newe = [{'name': k.replace("~", ":"), 'conditions': go_store[k]} for k in go_store] # REPAIR DAVID GO names
         cond_names = sorted(zip(list(cond_names_idx.keys()), list(cond_names_idx.values())), key=itemgetter(1))
         cond_names = [i[0] for i in cond_names]
 
@@ -1835,7 +1822,7 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
             draw_numbers_font_size=draw_numbers_font_size,
             **kargs)
 
-        config.log.warning("GO_heatmap: Saved heatmap '%s'" % filename)
+        config.log.warning(f"GO_heatmap: Saved heatmap '{filename}'")
         return reversed(res["reordered_rows"])
 
     def measure_density(self,

@@ -2060,7 +2060,7 @@ class expression(base_expression):
             Draw cute vertical boxplots. These can be preferable to the horizontal
             boxplots as they have more space for labels. The disadvantage is that
             they can only realistically present about 20 samples before the flow off
-            the top of the figure. Also they tend to overemphasise vertical
+            the top of the figure. Also they tend to overemphasise horizontal
             changes.
 
             Nonetheless, they have their place. This implementation is also useful
@@ -3709,6 +3709,9 @@ class expression(base_expression):
             available key-word arguments:
             xlabel, ylabel, title, log (set this to the base to log the data by),
             xlims, ylims, spot_size,
+
+            topN (Optional, default=False)
+                A kind of hack for a particular figure
 
         **Returns**
             the actual filename saved as and a new image in filename.

@@ -676,8 +676,7 @@ class draw:
         **Purpose**
             This version of heatmap is a simplified heatmap. It does not accept colnames, row_names
             and it outputs the heatmap better centred and expanded to fill the available space
-            it does not draw a tree and (unlike normal heatmap) draws a black border
-            around. Also, the scale-bar is optional, and by default is switched off.
+            it does not draw a tree. Also, the scale-bar is optional, and by default is switched off.
 
             It is ideal for drawing sequence tag pileup heatmaps. For that is what it was originally made for
             (see track.heatmap())
@@ -2866,13 +2865,13 @@ class draw:
                 yd.append(d)
 
 
-        ax.scatter(xd, yd, edgecolors='black', lw=0.5, c='none', s=15)
+        ax.scatter(xd, yd, edgecolors='none', lw=0.5, c='lightgrey', s=10, alpha=0.5)
         if False not in [i>=3 for i in lengths]:
             if draw_stds:
-                ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.5, ls='-', color='black', lw=0.5)
+                ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=4, capthick=0.3, ls='-', color='black', lw=0.5)
             else:
                 ax.bar(xs, means, ls='-', color='black', lw=0.5)
-
+        ax.errorbar(xs, means, yerr=stds, barsabove=True, fmt='none', capsize=1, capthick=0.3, ls='-', color='black', lw=0.5)
         #ax.set_ylim([0, max(yd)+10])
         ax.set_xlim([-0.2, len(labs)+0.2])
         ax.set_xticks(xs)

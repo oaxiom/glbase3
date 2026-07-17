@@ -259,6 +259,7 @@ class flat_heat:
         norm_by_read_count=True,
         colour_map = cm.BrBG,
         bracket = None,
+        log:int | bool = None,
         **kargs):
         """
         **Purpose**
@@ -380,8 +381,24 @@ class flat_heat:
         if average:
             hist /= len(gl)
 
+        cb_label = 'Density'
+
         if norm_by_read_count:
             hist /= read_count
+            cb_label = 'Normalised density'
+
+        if log:
+            pad = hist.max() / 1000 # dynamic range
+            config.log.info(f'min={hist.min():.2e}, max={hist.max():.2e}, pad={pad:.2e}')
+            if log == 2:
+                hist = numpy.log2(hist + pad)
+                cb_label = f'log2({cb_label})'
+            elif log == 10:
+                hist = numpy.log10(hist+ pad)
+                cb_label = f'log10({cb_label})'
+            else:
+                hist = numpy.log(hist + pad)
+                cb_label = f'ln({cb_label})'
 
         if bracket: # done here so clustering is performed on bracketed data
             vmin = bracket[0]
@@ -419,7 +436,7 @@ class flat_heat:
             borderpad=0,
         )
         cb = fig.colorbar(hm, orientation="vertical" ,cax=axins)
-        cb.set_label('Normalised density', fontsize=6)
+        cb.set_label(cb_label, fontsize=6)
         cb.ax.tick_params(labelsize=6)
 
         ax.set_xlabel("Base pairs around centre (kbp)", fontsize = 6)

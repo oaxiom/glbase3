@@ -4324,7 +4324,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             highlights (Optional)
                 A list of items to draw a label over on the plot
 
-            highlights_key (Optional, required if highlights is True, or one of the only_* is True)
+            highlight_key (Optional, required if highlights is True, or one of the only_* is True)
                 Key to match highlights in
 
             highlight_override (Optional, default=False)
@@ -4427,9 +4427,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             rest = []
             # we only use up and rest;
             for item, fc, q in zip(self.linearData, fcs, qs):
+                if only_genes and ':' in item[highlight_key]:
+                    continue
 
                 if item[highlight_key] in highlights:
-                    print(item)
                     up.append((fc, q))
                 else:
                     rest.append((fc, q))
