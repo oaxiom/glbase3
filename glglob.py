@@ -2572,54 +2572,42 @@ class glglob(_base_genelist): # cannot be a genelist, as it has no keys...
 
         brackets = None
 
-        if per_column_bracket:
-            bracket = None
-            # Suggest brackets:
-
+        def _guess_brackets():
             t_stats = []
             brackets = []
-            for tindex, _ in enumerate(list_of_trks): # I can have track-wise brackets;
+            for tindex, _ in enumerate(list_of_trks):  # I can have track-wise brackets;
                 for plidx, peaklist in enumerate(list_of_peaks):
-                    tab_max = max([tab.max() for tab in matrix[tindex][plidx]]) # need to get new tab_max for log'd values.
+                    tab_max = max(
+                        [tab.max() for tab in matrix[tindex][plidx]])  # need to get new tab_max for log'd values.
                     tab_min = min([tab.min() for tab in matrix[tindex][plidx]])
-                    #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
+                    # tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
                     tab_mean = mean([numpy.average(tab) for tab in matrix[tindex][plidx]])
                     tab_std = numpy.std(numpy.array([tab for tab in matrix[tindex][plidx]]))
                     t_stats.append((tab_max, tab_min, tab_mean, tab_std))
 
-                config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
+                config.log.info(
+                    'chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(
+                        list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
 
                 tab_range = tab_max - tab_min
-                top = tab_min + tab_range*range_bracket[0]
-                bot = tab_min + tab_range*range_bracket[1]
+                top = tab_min + tab_range * range_bracket[0]
+                bot = tab_min + tab_range * range_bracket[1]
                 brackets.append([top, bot])
                 config.log.info("chip_seq_heatmap: trk={0}, suggested bracket=({1:.2f}, {2:.2f})".format(list_of_trks[tindex]['name'], brackets[tindex][0], brackets[tindex][1]))
+            return bracket, brackets
+
+        if per_column_bracket:
+            bracket = None
+            # Suggest brackets:
+            _, brackets = _guess_brackets()
         else:
             # Suggest brackets:
             if bracket:
+                _, _ = _guess_brackets() # Still suggest
                 pass # USe the arg
+
             else: # Guess a bracket for all heatmaps;
-                t_stats = []
-                brackets = []
-                for tindex, _ in enumerate(list_of_trks): # I can have track-wise brackets;
-                    for plidx, peaklist in enumerate(list_of_peaks):
-                        tab_max = max([tab.max() for tab in matrix[tindex][plidx]]) # need to get new tab_max for log'd values.
-                        tab_min = min([tab.min() for tab in matrix[tindex][plidx]])
-                        #tab_median = numpy.median([numpy.median(tab) for tab in list_of_tables])
-                        tab_mean = mean([numpy.average(tab) for tab in matrix[tindex][plidx]])
-                        tab_std = numpy.std(numpy.array([tab for tab in matrix[tindex][plidx]]))
-                        t_stats.append((tab_max, tab_min, tab_mean, tab_std))
-
-                    config.log.info('chip_seq_heatmap: trk={0} min={1:.2f}, max={2:.2f}, mean={3:.2f}, stdev={4:.2f}'.format(list_of_trks[tindex]['name'], tab_min, tab_max, tab_mean, tab_std))
-
-                    tab_range = tab_max -tab_min
-                    top = tab_min + tab_range*range_bracket[0]
-                    bot = tab_min + tab_range*range_bracket[1]
-                    brackets.append([top, bot])
-
-                bracket = [max([b[0] for b in brackets]), max([b[1] for b in brackets])]
-                brackets = None
-                config.log.info("chip_seq_heatmap: suggested bracket=({:.2f}, {:.2f})".format(bracket[0], bracket[1]))
+                bracket, _ = _guess_brackets()
 
         if filename:
             real_filename = self.draw.grid_heatmap(
