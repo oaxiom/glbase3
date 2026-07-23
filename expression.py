@@ -1976,7 +1976,6 @@ class expression(base_expression):
         else:
             real_filename = self.draw.nice_scatter(x_data, y_data, filename, **kargs)
 
-
         config.log.info(f"scatter: Saved '{real_filename}'")
         return True
 
@@ -2108,7 +2107,7 @@ class expression(base_expression):
                 used for up-regulated. e.g. : "blue|red"
 
         **Returns**
-            None
+            List of p-values
         """
         from statsmodels.stats.multitest import multipletests
         assert stats_test in (None, 'ttest_ind', 'welch', 'mannwhitneyu'), f'stats_test {stats_test} not found'
@@ -3349,6 +3348,7 @@ class expression(base_expression):
 
         self.draw.do_common_args(ax, **kargs)
         actual_filename = self.draw.savefigure(fig, filename)
+
         config.log.info("time_course_plot: Saved '%s'" % actual_filename)
         return actual_filename
 

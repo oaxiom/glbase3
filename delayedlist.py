@@ -278,6 +278,9 @@ class delayedlist(genelist):
     def saveCSV(self, **kargs):
         raise NotSupportedError("delayedlists do not support saveCSV()")
 
+    def saveTSV(self, **kargs):
+        raise NotSupportedError("delayedlists do not support saveTSV()")
+
     def getChIPSeqTags(self, gene_list, bins=None, bSaveMergedImages=True):
         """
         **Purpose**

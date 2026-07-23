@@ -143,7 +143,7 @@ class _base_genelist:
             try:
                 return hash(self.name + str(self[0]) + str(self[-1])) # len() probably not available (delayedlist?).
             except Exception: # I bet the list is empty.
-                return hash(self.name)
+                return hash(self.name + [None])
 
     def __and__(self, gene_list):
         """
