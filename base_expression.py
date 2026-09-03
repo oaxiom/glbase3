@@ -6,35 +6,26 @@ Basic handling for microarray and rna-seq and realtime PCR like data
 
 """
 
-import sys
 import os
 import csv
-import string
-import math
-import collections
-
-from operator import itemgetter
 
 import numpy
-from numpy import array, arange, meshgrid, zeros, linspace, mean, object_, std
 import gzip as gzipfile
 
 from . import config
 from .draw import draw
 from .genelist import genelist
-from .progress import progressbar
-from .errors import AssertionError, ArgumentError, ExpressionNonUniqueConditionNameError
-from .utils import qdeepcopy
+from .errors import ArgumentError, ExpressionNonUniqueConditionNameError
 
 class base_expression(genelist):
     def __init__(self,
-                 filename=None,
-                 loadable_list=None,
-                 format=None,
+                 filename:str | None = None,
+                 loadable_list:list | None= None,
+                 format:dict | str | None = None,
                  expn=None,
                  silent:bool = False,
                  gzip:bool = False,
-                 cond_names:list = None,
+                 cond_names:list | None = None,
                  **kargs):
         """
         See the documentation in the expression class.
@@ -150,7 +141,7 @@ class base_expression(genelist):
         for idx, i in enumerate(self.linearData):
             try:
                 # Nan policy:
-                if True in [t in nans for t in i["conditions"]]:
+                if any(t in nans for t in i["conditions"]):
                     config.log.warning("line {0}, contains Nan, filling with 0".format(idx))
                     newc = []
                     for c in i['conditions']:

@@ -113,7 +113,7 @@ class expression(base_expression):
         elif filename:
             base_expression.__init__(self, filename=filename, expn=expn, format=format, gzip=gzip, **kargs)
         else:
-            genelist.__init__(self) # Are you sure?
+            raise AssertionError('Not supported call format for expression() I was expecting at least one of loadable_list of filename')
 
             self.filename = filename
             self._conditions = [] # Provide a dummy conditions temporarily
@@ -418,7 +418,7 @@ class expression(base_expression):
         for k in return_keys:
             if k not in list(self.keys()):
                 not_found.append(k)
-        assert False not in [k in list(self.keys()) for k in return_keys], "key(s): '%s' not found" % (', '.join(not_found),)
+        assert all(k in self.keys() for k in return_keys), f"key(s): {', '.join(not_found)} not found"
         assert len(return_keys) == len(set(return_keys)), 'return_keys list is not unique'
 
         if strip_expn:
@@ -433,14 +433,11 @@ class expression(base_expression):
                 return_keys.append("err")
 
         for item in self.linearData:
-            newd = {} # Could be done with dict comprehension.
-            for key in return_keys:
-                newd[key] = item[key] # This is wrong? It will give a view?
-
+            newd = {key: copy.deepcopy(item[key]) for key in return_keys} # Could be done with dict comprehension.
             newl.linearData.append(newd)
         newl._optimiseData()
 
-        config.log.info("getColumns: got only the columns: %s" % (", ".join(return_keys),))
+        config.log.info("getColumns: got only the columns: {}".format((", ".join(return_keys),)))
         return newl
 
     def strip_errs(self):
@@ -672,22 +669,6 @@ class expression(base_expression):
         rng = maxs - mins
 
         self.numpy_array_all_data = (self.numpy_array_all_data - mins) / rng
-        self._load_numpy_back_into_linearData()
-
-    def normalize_columns(self):
-        """
-        **Purpose**
-            column based normalization of data
-
-        **Returns**
-            None
-            THIS IS AN IN-PLACE CONVERSION
-        """
-        mins = numpy.min(self.numpy_array_all_data, axis=0)
-        maxs = numpy.max(self.numpy_array_all_data, axis=0)
-        rng = maxs - mins
-
-        self.numpy_array_all_data = 1.0 - (((1.0 - -1.0) * (maxs - self.numpy_array_all_data)) / rng)
         self._load_numpy_back_into_linearData()
 
     def normalize_rows(self):
@@ -1382,133 +1363,6 @@ class expression(base_expression):
 
         config.log.info("mean_replicates: Started with %s conditions, ended with %s" % (len(self._conditions), len(newgl[0]["conditions"])))
         return newgl
-
-    def add_fc_key(self, key="fc", cond1=None, cond2=None, log=2, pad=1.0E-06, and_err=False, **kargs):
-        """
-        **Purpose**
-            Add in a fold-change key for the fold change from cond1 to cond2.
-
-            Note that it will pad the values by 1.0E-08 to avoid divide by zero errors.
-
-            You can change this value with the 'pad' argument if it is too large/small
-
-        **Arguments**
-            key (Optional, default="fc")
-                The key name to load the fold-change value into
-
-            cond1 (Required)
-                condition name 1
-
-            cond2 (Required)
-                condition name 2
-
-            pad (Optional, default=1.0E-06)
-                The amount to pad the divisor so as to avoid divide by zero errors and
-                overflow errors.
-
-            log (Optional, default=2)
-                By default fold-changes are log2 transformed. This means a fold-change of
-                2.0 becomes 1.0 and no change is no 0.0. Set this to None to disable this
-                behaviour
-
-            and_err (Optional, default=False)
-                and estimate the err and load into a key name as specified by and_err.
-                Note that your expression object must have an 'err' key to estimate the error.
-                Also, expresion objects can't hold assymetric error bars. Hence the minimum value
-                will be taken. Now, that may sound a bit odd, but as fold-changes are commonly
-                log transformed taking the maximum value will overestimate the error, whilst the min
-                value will show an accurate 'upward' error bar and a somewhat inaccurate downward error
-                bar.
-
-        **Returns**
-            A new expression object containing the <fc> key.
-        """
-        assert cond1, "add_fc_key: you must specify a name for condition1"
-        assert cond1 in self._conditions, "add_fc_key: appears '%s' not in this expression-object" % cond1
-        assert cond2, "add_fc_key: you must specify a name for condition1"
-        assert cond2 in self._conditions, "add_fc_key: appears '%s' not in this expression-object" % cond2
-        if and_err:
-            assert "err" in self.linearData[0], "add_fc_key: 'err' key not found in this genelist"
-
-        newl = self.deepcopy() # full copy
-
-        c1i = self._conditions.index(cond1)
-        c2i = self._conditions.index(cond2)
-
-        for item in newl:
-            c1v = item["conditions"][c1i]+pad
-            c2v = item["conditions"][c2i]+pad
-            try:
-                item[key] = self.__fold_change(item["conditions"][c1i]+pad, item["conditions"][c2i]+pad, log=log)
-            except OverflowError as DivByZeroError:
-                if c2v > c1v:
-                    config.log.error("(%.2f/%.2f) failed" % (c2v, c1v))
-                else:
-                    config.log.error("(%.2f/%.2f) failed" % (c1v, c2v))
-                raise Exception("add_fc_key: encountered an error, possibly the pad value '%s' is too small, or you need to log transform the data as you are getting an Infinity result" % pad)
-
-            if and_err: # If it got here then the above try probably passed.
-                expn_lo_err = item["conditions"][c2i] - item["err"][c2i] + pad
-                expn_base = item["conditions"][c1i] + pad # I ignore any potential error here.
-                expn_hi_err = item["conditions"][c2i] + item["err"][c2i] + pad
-                up = abs(item[key] - (self.__fold_change(expn_base, expn_lo_err, log=log)))
-                dn = abs(item[key] - self.__fold_change(expn_base, expn_hi_err, log=log))
-                item[and_err] = min(up,dn)
-                #print item["name"]
-                #print item["conditions"]
-                #print item["err"]
-                #print expn_lo_err, expn_base, expn_hi_err, up, dn, item[key]
-
-        newl._optimiseData()
-        config.log.info("add_fc_key: Added fold-change key '%s'" % key)
-        return newl
-
-    def filter_by_fc(self, fckey=None, direction="any", value=2.0, **kargs):
-        """
-        **Purpose**
-            Filter data which passes some sort of fold-change, defined in a previous key generated
-            by add_fc_key()
-
-        **Arguments**
-            fckey (Required)
-                The name of the fc_key to use, previously generated by add_fc_key()
-
-            direction (Optional, default="any", values=["up", "down", "dn", "any"])
-                The direction of change. "up" is +value, "down"/"dn" is -value and "any" is
-                either +value or -value.
-
-            value (Optional, default=2.0)
-                The value of change required to pass the test.
-                comparisons are evaluated as >= (i.e. greater than or equal to)
-
-        **Returns**
-            A new expression-object containing only the items that pass.
-        """
-        assert fckey, "filter_by_fc: 'fckey' argument is required"
-        assert fckey in self.linearData[0], "filter_by_fc: '%s' not found in this expression object" % fckey
-        assert direction in ("up", "down", "dn", "any"), "filter_by_fc(): direction argument '%s' not recognised" % direction
-
-        new_expn = []
-
-        for item in self.linearData:
-            if direction == "up":
-                if item[fckey] >= value:
-                    new_expn.append(item)
-
-            elif direction in ("down", "dn"):
-                if item[fckey] <= -value:
-                    new_expn.append(item)
-
-            elif direction == "any":
-                if item[fckey] >= value or item[fckey] <= -value:
-                    new_expn.append(item)
-
-        ret = expression(loadable_list=new_expn, cond_names=self._conditions)
-
-        rep_d = {"up": "+", "dn": "-", "down": "-", "any": '±'}
-
-        config.log.info("filter_by_fc: Filtered expression by fold-change '%s' %s%s, found: %s" % (fckey, rep_d[direction], value, len(ret)))
-        return ret
 
     def filter_low_expressed(self, min_expression, number_of_conditions):
         """
@@ -3837,7 +3691,6 @@ class expression(base_expression):
             cx = []
             cy = []
             for x, y, c in zip(x_genes, y_genes, cols):
-                print(x,y,c)
                 if c == col:
                     cx.append(x)
                     cy.append(y)
