@@ -6,6 +6,7 @@
 
 """
 
+import copy
 import math
 import functools
 import statistics
