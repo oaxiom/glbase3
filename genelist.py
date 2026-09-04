@@ -1263,19 +1263,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return list(set(self.keys()) & set(gene_list.keys()))
 
     def getColumns(self,
-                   return_keys=None):
+                   return_keys:list):
         """
         **Purpose**
             return a new genelist only containing the columns specified in return _keys (a list)
         """
-        assert isinstance(return_keys, list), "return_keys must have a list"
-
         newl = self.shallowcopy()
-        newl.linearData = []
 
-        for item in self.linearData:
-            newl.linearData.append(dict((k, item[k]) for k in return_keys)) # hack for lack of dict comprehension
-            # assumes all keys are in the dict
+        newl.linearData = [dict((k, item[k]) for k in return_keys) for item in self.linearData]
 
         newl._optimiseData()
         config.log.info("getColumns: got only the columns: %s" % ", ".join(return_keys))
