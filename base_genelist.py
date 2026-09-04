@@ -1,7 +1,5 @@
 
 import copy
-import pickle
-import re
 from shlex import split as shlexsplit
 
 from . import utils
@@ -272,56 +270,6 @@ class _base_genelist:
         if not self.linearData: return [] # Match python dict default
         return [key for key in self.linearData[0]] # Not exhaustive
 
-    def _guessDataType(self, value):
-        """
-        (Internal)
-
-        Take a guess at the most reasonable datatype to store value as.
-        returns the resulting data type based on a list of logical cooercions
-        (explain as I fail each cooercion).
-        Used internally in _loadCSV()
-        I expect this will get larger and larger with new datatypes, so it's here as
-        as a separate function.
-
-        Datatype coercion preference:
-        float > list > int > location > string
-        """
-
-        try: # see if the element is a float()
-            if "." in value: # if no decimal point, prefer to save as a int.
-                return float(value)
-            elif 'e' in value: # See if we can coocere from scientific notation
-                return float(value)
-            else:
-                raise ValueError
-
-        except ValueError:
-            try:
-                # Potential error here if it is a list of strings?
-                if '[' in value and ']' in value and ',' in value and '.' in value: # Probably a Python list of floats
-                    return [float(i) for i in value.strip(']').strip('[').split(',')]
-                elif '[' in value and ']' in value and ',' in value: # Probably a Python list of ints
-                    return [int(i) for i in value.strip(']').strip('[').split(',')]
-                else:
-                    raise ValueError
-
-            except ValueError:
-                try: # see if it's actually an int?
-                    return int(value)
-                except ValueError:
-                    try: # see if I can cooerce it into a location:
-                        # Turns out ~12% of loading was spent in this test:
-                        if ':' in value and '-' in value:
-                            return location(loc=value)
-                        else:
-                            raise ValueError
-                    except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
-                        return str(value).strip()
-
-        return "" # return an empty datatype.
-        # I think it is possible to get here. If the exception at int() or float() returns something other than a
-        # ValueError (Unlikely, Impossible?)
-
     def _processKey(self, format, column):
         """
         (Internal)
@@ -350,7 +298,7 @@ class _base_genelist:
                     # locations are very common, add support for them out of the box:
                     d[key] = eval(format[key])
                 else:
-                    d[key] = self._guessDataType(column[format[key]])
+                    d[key] = utils.guessDataType(column[format[key]])
 
             elif key == "gtf_decorators": # special exceptions for gtf files
                 gtf = column[format["gtf_decorators"]].strip()

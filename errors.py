@@ -19,7 +19,7 @@ class AssertionError(Exception):
         failed. This usually means some sort of category required
         for the method is missing.
     """
-    def __init__(self, message="Undefned AssertionError"):
+    def __init__(self, message="Undefined AssertionError"):
         """
         Output the error message and tidy up the traceback, and perform other stuff.
         """
@@ -48,41 +48,6 @@ class ArgumentError(Exception):
         Output the error message and tidy up the traceback, and perform other stuff.
         """
         config.log.critical("Function '%s' - argument '%s' not supported" % (function, argument))
-
-def guessDataType(value):
-    """
-    (Internal)
-
-    This is a copy of genelist._guessDataTpye()
-    I have to copy it here, as due to some circular imports I can't import
-    a genelist
-
-    Take a guess at the most reasonable datatype to store value as.
-    returns the resulting data type based on a list of logical cooercions
-    (explaines as I fail each cooercion).
-    Used internally in _loadCSV()
-    I expect this will get larger and larger with new datatypes, so it's here as
-    as separate proc.
-
-    Datatype cooercion preference:
-    float # this is wrong? try to make a float if has '.' otherwise int.
-    int
-    location
-    string
-    """
-    try: # see if the element is a float()
-        if "." in value: # if no decimal point, prefer to save as a int.
-            return float(value)
-        else:
-            raise ValueError
-    except ValueError:
-        try: # see if it's actually an int?
-            return int(value)
-        except ValueError:
-            try: # see if I can cooerce it into a location:
-                return location(loc=value)
-            except (TypeError, IndexError, AttributeError, AssertionError, ValueError): # this is not working, just store it as a string
-                return str(value)
 
 class UnRecognisedCSVFormatError(Exception):
     """
