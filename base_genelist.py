@@ -169,8 +169,10 @@ class _base_genelist:
         """
         if not self.__eq__(gene_list):
             return geneList()
+
         newl = self.deepcopy()
         alist = self.linearData + gene_list.linearData
+
         # remove conserved duplicates;
         ulist = []
         newl = self.shallowcopy()
