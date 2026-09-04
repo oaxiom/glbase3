@@ -4,17 +4,13 @@ behaves like a normal list, but each element contains a heterogenous set of data
 
 """
 
-import sys
-import os
 import csv
 import copy
 import random
-import pickle
 import re
 import numpy
 import scipy
 import gzip
-import functools
 
 from operator import itemgetter
 from typing import Any, Iterable
@@ -1255,7 +1251,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return "\n".join(out)
 
     def _collectIdenticalKeys(self,
-                              gene_list):
+                              gene_list:list):
         """
         (Internal)
         returns a list of keys in common between this list and gene_list
@@ -1517,10 +1513,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             genelist=None,
             peaklist=None,
             genome=None,
-            key: str = None,
-            greedy: bool = True,
-            logic: str = "and",
-            silent: bool = False,
+            key:str = None,
+            greedy:bool = True,
+            logic:str = "and",
+            silent:bool = False,
             **kargs):
         """
         **Purpose**
@@ -1747,8 +1743,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def annotate(self,
                  genelist=None,
-                 key_to_match="loc",
-                 distance=10000,
+                 key_to_match:str = "loc",
+                 distance:int = 10000,
                  closest_only:bool = False,
                  **kargs):
         """
@@ -1935,8 +1931,8 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return newl
 
     def addEmptyKey(self,
-                    key=None,
-                    value=None):
+                    key:str,
+                    value):
         """
         **Purpose**
             You need to add a empty key ot the list so that it becomes compatible with some downstream function.
@@ -1968,8 +1964,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         **Returns**
             A new genelist with the added key.
         """
-        assert key , "You must specify a new key name"
-
         newl = self.deepcopy()
         for item in newl:
             item[key] = value
@@ -1981,7 +1975,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def expand(self,
                key:str = "loc",
                base_pairs:int = None,
-               side="both"):
+               side:str = "both"):
         """
         Add base_pairs to the left and right of the location specified in 'key'
 
@@ -2087,10 +2081,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
     def collide(self,
                 genelist=None,
-                compare_mode="Collide",
-                loc_key="loc",
+                compare_mode:str ="Collide",
+                loc_key:str = "loc",
                 delta:int = 200,
-                title:str = None,
                 keep_rank:bool = False,
                 **kargs):
         """
@@ -2253,10 +2246,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
     def _unified_collide_overlap(self,
                                  compare_mode=None,
                                  loc_key: str = "loc",
-                                 delta: int = 200,
-                                 keep_rank: bool = False,
-                                 merge_keys: bool = False,
-                                 preserve_original_locs: bool = False,
+                                 delta:int = 200,
+                                 keep_rank:bool = False,
+                                 merge_keys:bool = False,
+                                 preserve_original_locs:bool = False,
                                  **kargs):
         """
         A new unified overlap() collide() code.
@@ -3229,13 +3222,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         raise AssertionError('frequencyAgainstArray() is deprecated, please use the identical fAA()')
 
     def fAA(self,
-        filename: str = None,
-        match_key: str = None,
+        filename:str = None,
+        match_key:str = None,
         expression=None,
-        random_backgrounds: int = 10,
-        imshow: bool = False,
+        random_backgrounds:int = 10,
+        imshow:bool = False,
         window=None,
         bracket=None,
+            spline_interpolate:str | None = None,
         **kargs):
         """
         Draw a peaklist and compare against an array.
@@ -3904,7 +3898,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if kde:
             values = utils.kde(values, range=range, covariance=covariance, bins=100)
 
-        ax.hist(values, bins=200, range=range, normed=True, histtype='step', label=k)
+        ax.hist(values, bins=200, range=range, normed=True, histtype='step')
 
         ax.legend(ncol=1)
 
@@ -4203,73 +4197,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         newl._optimiseData()
         config.log.info("remove: removed %s items" % removed)
         return newl
-
-    def cumulative_annotation_plot(self, filename, peaklists, randoms=None, annotation_range=(100, 50000, 500), **kargs):
-        """
-        **Purpose**
-            Plot the cumulative number of your set of genes with a peak nearby.
-
-            This list should be a list of genes, with a valid "tss_loc" key.
-
-        **Arguments**
-            filename (Required)
-                The filename to save to.
-
-            peaklist (Required)
-                a list of genelists containing lists of peaks.
-
-            randoms (Optional, default=None)
-                A list of randoms for comparison.
-
-            annotation_range (Optional, default=(100, 50000, 500))
-                The genomic range to annotate over.
-
-        **Returns**
-            A file saved in filename.
-        """
-        assert filename, "cumulative_annotation_plot: You must provide a filename"
-
-        xs = list(range(100, 50000, 500))
-        result = []
-        annotated_genes = self.annotate(genelist=peaklists, distance=annotation_range[1]).removeDuplicates("enst")
-
-        p = progressbar(len(xs))
-        for n, d in enumerate(xs):
-            this_amount = 0
-            for gene in annotated_genes:
-                #print gene["dist_to_tss"], abs(gene["dist_to_tss"]) < d
-                if abs(gene["dist_to_tss"]) < d:
-                    this_amount += 1
-            result.append((this_amount/float(len(self))) * 100.0) # get within 100%
-
-            if randoms:
-                for r in random_stat1:
-                    r_ann = enst.annotate(genelist=r, distance=d)
-                    if r_ann: # can sometimes be zero.
-                        mapped = r_ann.map(genelist=wtko, key="ensg")
-                        if mapped:
-                            mapped = mapped.removeDuplicates("ensg") # ... bad map key
-
-                    if not r.name in rands_st1:
-                        rands_st1[r.name] = []
-                    if r_ann and mapped:
-                        rands_st1[r.name].append(len(mapped)/len(wtko) * 100.0)
-                    else:
-                        rands_st1[r.name].append(0.0)
-            p.update(n)
-
-        fig = self.draw.getfigure(**kargs)
-
-        ax = fig.add_subplot(111)
-        ax.plot(xs, result, color="red")
-        if randoms:
-            for k in randoms:
-                ax.plot(xs, rands_st3[k], color="grey", alpha=0.5)
-        ax.set_title(self.name)
-        ax.legend(loc=2)
-
-        self.draw.savefigure(fig, filename, **kargs)
-        return None
 
     def volcanoplot(self,
         filename:str,
