@@ -22,7 +22,7 @@ available_modules = list((name for loader, name, ispkg in iter_modules()))
 try:
     from . import config
     from .errors import LibraryNotFoundError
-except:
+except Exception:
     print("Error: Fatal - glbase3 is not installed correctly, cannot find my own libraries")
     print("       Is the python 'sys.path' correct?")
     sys.exit() # no raise if I can't get errors, it's surely a fatal installation problem.
@@ -98,7 +98,6 @@ else:
     pass # pass silently as umap is optional.
 
 # Work out if we are in IPython and/or jupyter and reconfigure some settings
-
 try:
     shell = get_ipython().__class__.__name__
     if shell == 'ZMQInteractiveShell':
@@ -140,7 +139,6 @@ from .draw import adjust_text
 from .hic import hic, merge_hiccys
 from .massspec import massspec
 from .glgo import glgo
-from . import realtime
 from . import utils
 from . import format
 from . import cmaps
@@ -186,7 +184,8 @@ __all__ = [
     "rnaseqqc",
     "glgo",
     #"rigidgrid", # Unavailable
-    "realtime",
+    #"realtime", # Unavailable
+    # Various utils
     "utils",
     'adjust_text',
     "change_drawing_mode",
