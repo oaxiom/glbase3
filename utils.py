@@ -120,16 +120,6 @@ def expandDegenerateMotifs(motif):
     iti(newlist, 0, None, l)
 
     return l
-'''
-def moving_average(_list, window=20, normalise=False, bAbsiscaCorrect=True):
-    assert window < len(_list), "the window size for the moving average is too large"
-    assert window >= 1, "the window size is too small (%s < 1)" % window
-
-    if window == 1: # just return the original array
-        return numpy.arange(0, len(_list)), _list
-
-    return uniform_filter1d(_list, size=window, mode='reflect')[window//2:-window//2] # emulates previous version;
-'''
 
 def moving_average(a, window):
     ret = numpy.cumsum(a, dtype=float)
@@ -267,36 +257,6 @@ def qcollide(Aleft, Aright, Bleft, Bright):
 
     #print "unhandled!"
     return False
-
-def FASTAToLIST(filename):
-    """
-    load a fasta file and output it into a big list;
-    expects filename to be correct
-    """
-    try:
-        openfile = open(filename, "rb")
-    except IOError:
-        print("Error opening File:", filename)
-        sys.exit()
-
-    record = ""
-    elementList = []
-    entry = Node("empty")
-    for line in openfile:
-        if line[:1] != ">": # not a FASTA block, so add this line to the sequence
-            entry.seq += line.replace("\n", "").replace("\r", "")
-
-        if line[:1] == ">": # fasta start block
-            # start recording
-            # add the old Node to the list
-            if entry.name != "empty":
-                # convert the list to a tuple
-                n = entry.seq.lower()
-                elementList.append(n) # and stick it on the big list
-            entry = Node(line) # make a new node
-
-    # all done;
-    return elementList
 
 # This code comes from http://www.johndcook.com/standard_deviation.html
 # the point of all this complexity is to allow incremental computation of mean and std in

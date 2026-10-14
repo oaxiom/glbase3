@@ -20,7 +20,7 @@ from .errors import ArgumentError, ExpressionNonUniqueConditionNameError
 class base_expression(genelist):
     def __init__(self,
                  filename:str | None = None,
-                 loadable_list:list | None= None,
+                 loadable_list:list | None = None,
                  format:dict | str | None = None,
                  expn=None,
                  silent:bool = False,
@@ -137,7 +137,7 @@ class base_expression(genelist):
                     config.log.info('\n' + "\n".join([f"{n}\t{i}" for n, i in enumerate(self._conditions)]))
 
         # coerce the conditions errs etc to floats
-        nans = set(('nan', 'Nan', 'NaN'))
+        nans = {'nan', 'Nan', 'NaN'}
         for idx, i in enumerate(self.linearData):
             try:
                 # Nan policy:

@@ -2,8 +2,6 @@
 import copy
 from shlex import split as shlexsplit
 
-from . import utils
-from . import config
 from .helpers import *
 from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 
@@ -112,14 +110,17 @@ class _base_genelist:
         if isinstance(index, int):
             # this should return a single dictionary.
             return self.linearData[index]
+
         elif isinstance(index, str):
             # returns all labels with that item.
             return self._findAllLabelsByKey(index)
+
         elif isinstance(index, slice):
             # returns a new genelist corresponding to the slice.
             newl = self.shallowcopy()
             newl.linearData = utils.qdeepcopy(self.linearData[index]) # separate the data so it can be modified.
             newl._optimiseData()
+
         return newl # deep copy the slice.
 
     def __setitem__(self, index, *args):

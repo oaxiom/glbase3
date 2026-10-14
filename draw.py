@@ -1909,7 +1909,7 @@ class draw:
         # See savefigure() for the actual specification
         return plot.figure(figsize=data[aspect][size])
 
-    def savefigure(self, fig, filename, size=config.draw_size, bbox_inches=None, dpi=None):
+    def savefigure(self, fig, filename, bbox_inches=None, dpi=None):
         """
         **Purpose**
             Save the figure
@@ -2891,13 +2891,15 @@ class draw:
         return real_filename
 
     def proportional_bar(self,
-        filename,
-        data_dict,
-        key_order=None,
-        title='',
-        cols=None,
+                         filename:str,
+                         data_dict:dict,
+                         key_order: list | None = None,
+                         title:str = '',
+                         cols=None,
                          already_perc:bool = False,
-        **kargs):
+                         dont_show_numbers:bool = False,
+                         plot_hei_adjuster:float = 0.04,
+                         **kargs):
         '''
         **Purpose**
             Draw a bar plot, but with proporional bars.
@@ -2918,9 +2920,11 @@ class draw:
             ...
 
         '''
-        #assert filename, 'A filename to save the image to is required'
-        assert data_dict, 'data_dict is required'
         assert isinstance(data_dict, dict), 'data_dict is not a dict'
+
+        figsize = [4,3]
+        if 'figsize' in kargs and kargs['figsize']:
+            figsize = kargs['figsize']
 
         if not cols:
             cols = plot.rcParams['axes.prop_cycle'].by_key()['color']
@@ -2957,11 +2961,11 @@ class draw:
             scaled[k] /= sums
             scaled[k] *= 100
 
-        plot_hei = (0.8) - (0.04*len(labs))
+        plot_hei = (0.98) - (plot_hei_adjuster*len(labs))
 
         plot.rcParams['pdf.fonttype'] = 42
-        fig = plot.figure(figsize=[4,3])
-        fig.subplots_adjust(left=0.35, right=0.95, bottom=plot_hei,)
+        fig = plot.figure(figsize=figsize)
+        fig.subplots_adjust(left=0.35, right=0.95, top=0.98, bottom=plot_hei,)
         ax = fig.add_subplot(111)
         ax.set_prop_cycle('color', cols)
 
@@ -2974,9 +2978,12 @@ class draw:
             ax.barh(ypos, scaled[k], 0.7, label=k, left=bots)
             for y, v, s, b in zip(ypos, vals[k], scaled[k], bots):
                 if already_perc:
-                    ax.text(b + (s // 2), y, '{1:.0f}%'.format(v, s), ha='center', va='center', fontsize=6)
+                    ax.text(b + (s // 2), y, '{1:.0f}%'.format(v, s), ha='center', va='center', fontsize=4)
                 else:
-                    ax.text(b+(s//2), y, '{0:,.0f} ({1:.0f}%)'.format(v, s), ha='center', va='center', fontsize=6)
+                    if dont_show_numbers:
+                        ax.text(b + (s // 2), y, '{1:.0f}%'.format(v, s), ha='center', va='center', fontsize=4)
+                    else:
+                        ax.text(b+(s//2), y, '{0:,.0f} ({1:.0f}%)'.format(v, s), ha='center', va='center', fontsize=4)
             bots += scaled[k]
 
         ax.set_yticks(ypos)
@@ -2993,6 +3000,8 @@ class draw:
         [t.set_fontsize(6) for t in ax.get_xticklabels()]
 
         self.do_common_args(ax, **kargs)
+
+        #fig.tight_layout()
 
         real_filename = self.savefigure(fig, filename)
         config.log.info("proportional_bar: Saved '{0}'".format(real_filename))

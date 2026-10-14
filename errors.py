@@ -9,7 +9,6 @@ import csv
 
 from .data import typical_headers, ignorekeys
 from collections import Counter
-from .location import location
 from . import config
 
 class AssertionError(Exception):
