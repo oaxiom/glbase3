@@ -597,15 +597,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         return min(self.qkeyfind[key][value])
 
-    def _findAllLabelsByKey(self, key):
-        """
-        (Internal)
-        Returns a 1D list of all the values under Key.
-        Most useful for things like geneList["Symbol"]
-        geneList["entrez"]
-        """
-        return [x[key] for x in self.linearData]
-
     def _findByLabel(self, key, value):
         """
         (Internal)

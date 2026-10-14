@@ -197,7 +197,6 @@ class _base_genelist:
         # Shorcut if the genelist is empty
         if len(self.linearData) == 0:
             newl = utils.qdeepcopy(self)
-            newl.linearData = utils.qdeepcopy(gene_list.linearData)
             newl._optimiseData()
             return newl
 
@@ -207,7 +206,6 @@ class _base_genelist:
             return False
 
         newl = utils.qdeepcopy(self)
-        newl.linearData.extend(utils.qdeepcopy(gene_list.linearData))
         newl._optimiseData()
         return newl
 
@@ -314,7 +312,7 @@ class _base_genelist:
                         d[key] = self._guessDataType(value)
         return d
 
-    def save(self, filename=None):
+    def save(self, filename:str = None):
         """
         **Purpose**
 
@@ -330,7 +328,7 @@ class _base_genelist:
 
             list = glload("path/to/filename.glb")
 
-            I generally used extension is glb. Although you can use
+            I generally use the extension glb. Although you can use
             whatever you like.
 
         **Arguments**
@@ -381,3 +379,12 @@ class _base_genelist:
         self._optimiseData()
 
         config.log.info("genelist.from_pandas() imported dataFrame")
+
+    def _findAllLabelsByKey(self, key):
+        """
+        (Internal)
+        Returns a 1D list of all the values under Key.
+        Most useful for things like geneList["Symbol"]
+        geneList["entrez"]
+        """
+        return [x[key] for x in self.linearData]
