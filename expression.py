@@ -16,7 +16,7 @@ from typing import Any, Iterable
 
 import numpy
 import scipy
-from scipy.cluster.hierarchy import distance, linkage, dendrogram
+from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.vq import vq, kmeans, whiten
 from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plot
