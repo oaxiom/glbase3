@@ -55,7 +55,7 @@ import statistics
 from typing import Iterable, Any
 
 from numpy import array, arange, mean, max, min, std, float32
-from scipy.cluster.hierarchy import distance, linkage, dendrogram
+from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import pdist # not in scipy.cluster.hierarchy.distance as you might expect :(
 from numpy import polyfit, polyval
 from scipy.stats import linregress

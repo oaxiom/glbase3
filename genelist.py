@@ -148,7 +148,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                  format: Any = None,
                  expn: Any = None,
                  gzip: bool = False,
-                 name: str = None,
+                 name: str | None = None,
                  force_tsv: bool = False,
                  **kargs: Any
                  ):
@@ -181,7 +181,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             self.name = name
 
     def load(self,
-             filename: str = None,
+             filename: str | None = None,
              format=None,
              gzip: bool = False,
              **kargs
@@ -254,7 +254,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return True  # must have made it to one - if it fails it should trigger
 
     def loadCSV(self,
-                filename: str = None,
+                filename: str | None = None,
                 format=None,
                 **kargs
                 ):
@@ -311,7 +311,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 # oh dear. Die.
                 if self.__deathline:
                     config.log.error(f"Died on line: '{self.__deathline}'")
-                raise UnRecognisedCSVFormatError("'%s' appears mangled, the file does not fit the format specifier" % self.fullfilename, self.fullfilename, format)
+                raise UnRecognisedCSVFormatError(f"'{self.fullfilename}' appears mangled, the file does not fit the format specifier", self.fullfilename, format)
 
     def _loadCSV(self, **kargs):
         """
@@ -631,7 +631,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return ret
 
     def saveTSV(self,
-                filename:str = None,
+                filename:str | None = None,
                 **kargs
                 ) -> None:
         """
@@ -687,7 +687,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.saveCSV(filename, tsv=True, **kargs)
 
     def saveCSV(self,
-                filename:str = None,
+                filename:str | None = None,
                 no_header:bool = False,
                 **kargs
                 ) -> None:
@@ -792,7 +792,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return
 
     def saveFASTA(self,
-                  filename:str = None,
+                  filename:str | None = None,
                   seq_key:str = "seq",
                   **kargs):
         """
@@ -852,7 +852,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         return True
 
     def saveBED(self,
-                filename:str = None,
+                filename:str | None = None,
                 extra_keys=None,
                 id=None,
                 score=None,

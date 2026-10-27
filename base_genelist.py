@@ -209,34 +209,6 @@ class _base_genelist:
         newl._optimiseData()
         return newl
 
-    def __sub__(self, gene_list):
-        """
-        (Override)
-        confer c = a - b ability.
-        Actually xor?
-        """
-        mkeys = self._collectIdenticalKeys(gene_list)
-        if not mkeys: # unable to match.
-            config.warning("Warning: No matching keys, unable to perform subtraction")
-            return False
-
-        newl = self.shallowcopy()
-        newl.linearData = []
-
-        dontAdd = False
-        for item in self.linearData: # do a map here...
-            for item2 in gene_list.linearData:
-                for k in mkeys:
-                    if item[k] == item2[k]:
-                        dontAdd = True
-                    else:
-                        dontAdd = False # all mkeys must match
-            if not dontAdd:
-                newl.linearData.append(copy.deepcopy(item))
-            dontAdd = False
-        newl._optimiseData()
-        return newl
-
     def __eq__(self, gene_list):
         """
         (Internal)
