@@ -4,27 +4,30 @@ behaves like a normal list, but each element contains a heterogenous set of data
 
 """
 
-import csv
 import copy
+import csv
+import gzip
 import random
 import re
+from collections.abc import Iterable
+from operator import itemgetter
+from typing import Any
+
 import numpy
 import scipy
-import gzip
 
-from operator import itemgetter
-from typing import Any, Iterable
-
-from . import config
-from . import utils
+from . import config, utils
+from .base_genelist import _base_genelist
+from .draw import draw
+from .errors import (
+    ArgumentError,
+    AssertionError,
+    UnRecognisedCSVFormatError,
+)
+from .format import _load_hmmer_domtbl, _load_hmmer_tbl, sniffer, sniffer_tsv
 from .helpers import *
 from .location import location
-from .draw import draw
-from .errors import AssertionError, UnRecognisedCSVFormatError, UnrecognisedFileFormatError, ArgumentError
 from .progress import progressbar
-from .base_genelist import _base_genelist
-from .format import sniffer, sniffer_tsv, _load_hmmer_tbl, _load_hmmer_domtbl
-from typing import Iterable
 
 
 class Genelist(_base_genelist): # gets a special uppercase for some dodgy code in map() I don't dare refactor.
@@ -291,12 +294,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         # decide whether to respect the force_tsv arg.
         if not format:
-            if "force_tsv" in kargs and kargs["force_tsv"]:
+            if kargs.get("force_tsv"):
                 format = sniffer_tsv
             else:
                 format = sniffer
 
-        if "debug" in format and format["debug"]:
+        if format.get("debug"):
             print("--------")
             print("DEBUG load:")
             self._loadCSV(filename=self.fullfilename, format=format, **kargs)
@@ -327,16 +330,14 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         format = kargs["format"]
 
         temp_data = []
-        if 'gzip' in kargs and kargs['gzip']:
+        if kargs.get('gzip'):
             oh = gzip.open(filename, "rt")
         else:
             oh = open(filename, "rt")
 
-        if "force_tsv" in kargs and kargs["force_tsv"]: # force_tsv takes priority
+        if kargs.get("force_tsv") or format.get("force_tsv"): # force_tsv takes priority
             reader = csv.reader(oh, dialect=csv.excel_tab)
-        elif "force_tsv" in format and format["force_tsv"]:
-            reader = csv.reader(oh, dialect=csv.excel_tab)
-        elif "dialect" in format and format["dialect"]:
+        elif format.get("dialect"):
             reader = csv.reader(oh, dialect=format["dialect"])
         else:
             reader = csv.reader(oh)
@@ -346,7 +347,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         else:
             skiplines = 0 # skip any header row by default.
 
-        if "skiptill" in format and format["skiptill"]:
+        if format.get("skiptill"):
             skiptill = format["skiptill"]
         else:
             skiptill = "Done" # This is done as truth testing fails as format["skiptill"] != None
@@ -390,22 +391,22 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     skiptill = "Done"
                 continue
 
-            if "__column_must_be_used" in format and format["__column_must_be_used"]:
+            if format.get("__column_must_be_used"):
                 if not column[format["__column_must_be_used"]]:
                     continue # Omit data when this particular column is blank
 
-            if "endwith" in format and format["endwith"]:
+            if format.get("endwith"):
                 if True in [format["endwith"] in item for item in column]:
                     break
 
-            if "debug" in format and format["debug"]:
+            if format.get("debug"):
                 debug_line += 1
                 print(f"{index}:'{column}'")
                 if isinstance(format["debug"], int) and debug_line > format["debug"]:
                     break # If an integer, collect that many items.
 
             if column[0] not in typical_headers:
-                if "commentlines" in format and format["commentlines"]:
+                if format.get("commentlines"):
                     if column[0][0] == format["commentlines"]:
                         continue
 
@@ -748,7 +749,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if k not in valig_args:
                 raise ArgumentError(self.saveCSV, k)
 
-        if 'gzip' in kargs and kargs['gzip']:
+        if kargs.get('gzip'):
             oh = gzip.open(filename, "wt")
         else:
             oh = open(filename, "w")
@@ -756,9 +757,9 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         if not self.linearData: # data is empty, fail graciously.
             config.log.error(f"csv file '{filename}' is empty, no file written")
             oh.close()
-            return None
+            return
 
-        if "tsv" in kargs and kargs["tsv"]:
+        if kargs.get("tsv"):
             writer = csv.writer(oh, dialect=csv.excel_tab)
         else:
             writer = csv.writer(oh)
@@ -788,11 +789,11 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             writer.writerow(line)
         oh.close()
         config.log.info(f"Saved '{filename}'")
-        return None
+        return
 
     def saveFASTA(self,
                   filename:str = None,
-                  seq_key="seq",
+                  seq_key:str = "seq",
                   **kargs):
         """
         **Purpose**
@@ -916,7 +917,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         """
         assert 'loc' in self.keys(), 'This list has no "loc" key'
 
-        if 'gzip' in kargs and kargs['gzip']:
+        if kargs.get('gzip'):
             oh = gzip.open(filename, "wt")
         else:
             oh = open(filename, "w")
@@ -926,7 +927,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             if not loc_only:
                 if uniqueID:
                     if id:
-                        todo += [f"{str(item[id])}-{index}"]
+                        todo += [f"{item[id]!s}-{index}"]
                     else:
                         todo += ["%s-%s" % (self.name.replace(' ', '_'), index)]
                 else:
@@ -1041,7 +1042,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                 oh.write("%s\n" % out)
                 #break
         config.log.info("Saved '%s' GTF file" % filename)
-        return None
 
     def sort(self,
              key=None,
@@ -1096,7 +1096,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         self.linearData = newl
 
         self._optimiseData()
-        return None
 
     '''
     def multi_sort(self, keys):
@@ -1425,10 +1424,10 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if remove:
             newl = [item for item in newgl.linearData if value not in item[key]]
-            config.log.info('filter_by_in: Removed {} entries'.format(len(self) - len(newl)))
+            config.log.info(f'filter_by_in: Removed {len(self) - len(newl)} entries')
         else:
             newl = [item for item in newgl.linearData if value in item[key]]
-            config.log.info('filter_by_in: Kept {} matching entries'.format(len(self) - len(newl)))
+            config.log.info(f'filter_by_in: Kept {len(self) - len(newl)} matching entries')
 
         newgl.linearData = newl
         newgl._optimiseData()
@@ -1659,12 +1658,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             p.update(index)
 
-        if "image_filename" in kargs and kargs["image_filename"]:
+        if kargs.get("image_filename"):
             if not greedy:
                 config.log.warning("map: greedy=False, this can lead to inaccurate results in the Venn diagram")
 
             venn_proportional = False
-            if "venn_proportional" in kargs and kargs["venn_proportional"]:
+            if kargs.get("venn_proportional"):
                 venn_proportional = True
 
             title = "".join(kargs["image_filename"].split(".")[:-1]) # guess a title
@@ -2142,7 +2141,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             len_res = len(newl)
 
         if not config.SILENT:
-            if "logic" in kargs and kargs["logic"]:
+            if kargs.get("logic"):
                 config.log.info( "{0} ({1}) two lists using '{2}', found {3} non-overlapping sites".format(compare_mode, kargs["logic"], loc_key, len_res))
             else:
                 try:
@@ -2150,7 +2149,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     perc = (len_res/ float(len(self)+len(genelist)-len_res) ) # This is actually the Jaccard index
                 except ZeroDivisionError: # This can occur if you collide two identical lists
                     perc = 1.0
-                config.log.info("{0}: found {1} (Jaccard={2:.3f}) overlaps in [{3} & {4}] with '{5}' key".format(compare_mode.lower(), len_res, perc, self.name, genelist.name, loc_key))
+                config.log.info(f"{compare_mode.lower()}: found {len_res} (Jaccard={perc:.3f}) overlaps in [{self.name} & {genelist.name}] with '{loc_key}' key")
 
         return newl
 
@@ -2227,7 +2226,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             len_res = len(newl)
 
         if not config.SILENT:
-            if "logic" in kargs and kargs["logic"]:
+            if kargs.get("logic"):
                 config.log.info("%s (%s) two lists using '%s', found: %s non-overlapping sites" % (compare_mode, kargs["logic"], loc_key, len_res))
             else:
                 config.log.info("%s two lists using '%s' key, found: %s overlaps" % (compare_mode, loc_key, len_res))
@@ -2480,7 +2479,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         elif mode == 'overlap':
             # get the maximum peak size for a decent estimate of delta:
             delta = max(len(i['loc']) for i in self.linearData)
-            config.log.info('removeDuplicatesByLoc: delta used for bucket searching {0}'.format(delta))
+            config.log.info(f'removeDuplicatesByLoc: delta used for bucket searching {delta}')
 
             if delta > 2000:
                 config.log.warning("removeDuplicatesByLoc: The maximum location size is >2000 bp, performance may be poor for removeDuplicatesByLoc()")
@@ -2527,7 +2526,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             ov = self.shallowcopy()
             ov.load_list(newl)
 
-        config.log.info("Removed {0} duplicates, {1} remain".format((len(self) - len(ov)), len(ov)))
+        config.log.info(f"Removed {len(self) - len(ov)} duplicates, {len(ov)} remain")
         return ov
 
     def removeDuplicates(self,
@@ -2574,7 +2573,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         if isinstance(key, list):
             for k in key:
-                assert k in list(self.keys()), "the key '{}' was not found in this genelist".format(key)
+                assert k in list(self.keys()), f"the key '{key}' was not found in this genelist"
 
             # Multiple keys path:
             # make a key, index dict:
@@ -2595,7 +2594,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             newl.linearData = new_data_to_load
             newl._optimiseData()
 
-            config.log.info("removeDuplicates: {} duplicates, list now {} items long".format(len(self)-len(newl), len(newl)))
+            config.log.info(f"removeDuplicates: {len(self)-len(newl)} duplicates, list now {len(newl)} items long")
             return newl
 
         else:
@@ -2612,7 +2611,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
             newl._optimiseData()
 
-            config.log.info("removeDuplicates: {} duplicates, list now {} items long".format(len(self) - len(newl), len(newl)))
+            config.log.info(f"removeDuplicates: {len(self) - len(newl)} duplicates, list now {len(newl)} items long")
             return newl
 
     def removeExactDuplicates(self):
@@ -2773,7 +2772,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             elif operation == "cat":
                 item[result_key] = "%s%s" % (item[key1], item[key2])
 
-        return None
 
     def load_list(self,
                   list_to_load:Iterable,
@@ -3288,7 +3286,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
             assert spline_interpolate in ('slinear', 'quadratic', 'cubic' ), f"'{spline_interpolate}' spline_interpolate method not found"
 
         tag_key = None
-        if "tag_key" in kargs and kargs["tag_key"]:
+        if kargs.get("tag_key"):
             tag_key = kargs["tag_key"]
 
         # get arrange and sort the data.
@@ -3313,7 +3311,7 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
                     newi.update({"conditions": item["conditions"]})
                     newf.append(newi)
 
-                    if "tag_key" in kargs and kargs["tag_key"]:
+                    if kargs.get("tag_key"):
                         bin[index] += i[kargs["tag_key"]]
                     else:
                         bin[index] = 1
@@ -3546,7 +3544,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         for i, glist in enumerate([self] + random_lists):
             ann = genome.annotate(genelist=glist, distance=int(0.2e6), closest_only=True)
-            #
             tback = {(-200, -100): 0, (-100, -50): 0, (-50, -10): 0, (-10, 0): 0,
                 (0, 10): 0, (10, 50): 0, (50, 100): 0, (100, 200): 0}
 
@@ -3956,7 +3953,6 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
         actual_filename = self.draw.savefigure(fig, filename)
         config.log.info("bar_chart: Saved '%s'" % actual_filename)
 
-        return None
 
     def frequency_bar_chart(self, filename=None, random_backgrounds=None, key=None, percents=True,
         horizontal=False, **kargs):
@@ -4388,12 +4384,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         ylim_pad = (cylims[1] - cylims[0]) * 0.05
 
-        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
-        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
+        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, f'Down: {len(dn[0])}', fontsize=6, ha='left')
+        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, f'Up: {len(up[0])}', fontsize=6, ha='right')
 
         real_filename = self.draw.savefigure(fig, filename)
 
-        config.log.info('volcanoplot: Saved {}'.format(real_filename))
+        config.log.info(f'volcanoplot: Saved {real_filename}')
         return upgl, dngl, real_filename
 
     def plotMA(self,
@@ -4599,12 +4595,12 @@ class Genelist(_base_genelist): # gets a special uppercase for some dodgy code i
 
         ylim_pad = (cylims[1] - cylims[0]) * 0.05
 
-        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, 'Down: {}'.format(len(dn[0])), fontsize=6, ha='left')
-        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, 'Up: {}'.format(len(up[0])), fontsize=6, ha='right')
+        if dn: ax.text(cxlims[0], cylims[1]+ylim_pad, f'Down: {len(dn[0])}', fontsize=6, ha='left')
+        if up: ax.text(cxlims[1], cylims[1]+ylim_pad, f'Up: {len(up[0])}', fontsize=6, ha='right')
 
         real_filename = self.draw.savefigure(fig, filename)
 
-        config.log.info('plotMA: Saved {}'.format(real_filename))
+        config.log.info(f'plotMA: Saved {real_filename}')
         return upgl, dngl, real_filename
 
 genelist = Genelist # Hack alert! Basically used only in map() for some dodgy old code I do not want to refactor.
