@@ -10,49 +10,52 @@ class fc():
     def __init__(self, name, format, description):
         self.data = format
         self.name = name
-        
+
         if description:
             self.description = description
-        
+
         elif "__description__" in self.data:
             self.description = self.data["__description__"]
-        
-        else:   
+
+        else:
             self.description = "None"
         self.__doc__ = self.description
-    
+
     def __str__(self):
         a = ["Name: %s" % self.name,
             "Format: %s" % self.data,
             "Description: %s" % self.description]
         return "\n".join(a)
 
+    def get(self, key:str):
+        return self.data.get(key)
+
     def keys(self):
         return self.data.keys()
-    
+
     def values(self):
         return self.data.values()
-        
+
     def __getitem__(self, key):
         return self.data[key]
-    
+
     def __setitem__(self, key, value):
         self.data[key] = value
-        
+
     def __repr__(self):
         return "<fc: %s" % self.name
-        
+
     def __iter__(self):
         yield from self.data
-            
+
     def has_key(self, key):
         return key in self.data
-        
+
     def __in__(self, key):
         return key in self.data
-    
+
     def update(self, dictionary):
-        self.data.update(dictionary)    
+        self.data.update(dictionary)
 
     def copy(self):
         c = copy.copy(self)

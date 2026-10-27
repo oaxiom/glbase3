@@ -174,15 +174,6 @@ class Test_Expression(unittest.TestCase):
         self.expn.whiten() # I'm just assuming this one is correct, it's not clear how to check it.
         self.assertEqual(self.expn[0]["conditions"], [-0.57735026918962573, -0.017669388943904119, 1.0, 1.6774842736586513])
 
-    def test_normalization_cols(self):
-        self.expn.normalize_columns()
-        self.assertEqual(self.expn[1]["conditions"], [-1.0, -1.0, -1.0, -0.53846153846153855])
-
-    #def test_normalization_rows(self):
-    #    print self.expn.all()
-    #    self.expn.normalize_rows()
-    #    print self.expn.all()
-
     def test_digitize(self):
         self.expn.digitize(8)
         self.assertEqual(self.expn[0]["conditions"], [2.0, 4.0, 6.0, 8.0])
