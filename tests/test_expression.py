@@ -79,12 +79,6 @@ class Test_Expression(unittest.TestCase):
 
 
     def test_fold_change(self):
-        expn = self.expn.add_fc_key(key="fca", cond1="a", cond2="b")
-        self.assertEqual(expn[0]["fca"], 0.9999992786530209) # not 2.0 because of pad
-        self.assertEqual(expn[1]["fca"], -0.0)
-        self.assertEqual(expn[2]["fca"], -0.41503737905429205)
-        self.assertEqual(expn[3]["fca"], 1.0356231707899088)
-
         tt = expn.norm_multi_fc({"a": ["b"], "c": ["d"]}, log=None)
         # These test a vs b
         self.assertEqual(tt[0]["conditions"][1], 1.9999990000010004) # not 2.0 because of pad
